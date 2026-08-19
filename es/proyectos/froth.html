@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Froth - PENDIENTE: tu nombre completo</title>
+<meta name="description" content="Mapea un campo científico por significado, para que una revisión de literatura deje de ser cinco papers escogidos a dedo.">
+<meta property="og:title" content="Froth - PENDIENTE: tu nombre completo">
+<meta property="og:description" content="Mapea un campo científico por significado, para que una revisión de literatura deje de ser cinco papers escogidos a dedo.">
+<meta property="og:type" content="website">
+<link rel="alternate" hreflang="en" href="../../work/froth.html">
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<a class="skip" href="#main">Ir al contenido</a>
+<header class="wrap masthead">
+  <a class="mark" href="../../es/index.html">PENDIENTE: tu nombre completo <b>/</b> datageeksunited.com</a>
+  <nav>
+    <a href="../../es/index.html#work">Proyectos</a>
+    <a href="../../es/index.html#notes">Apuntes</a>
+    <a href="../../es/index.html#contact">Contacto</a>
+    <a href="../../work/froth.html" rel="alternate" hreflang="en">English</a>
+    <button class="theme-toggle" type="button" data-toggle-theme>froth / pulp</button>
+  </nav>
+</header>
+<main id="main">
+<article class="wrap section">
+  <a class="back" href="../../es/index.html#work">Todos los proyectos</a>
+  <p class="eyebrow">v1 congelada y aprobada. La edición de escala sigue en desarrollo.</p>
+  <h1 class="project-title">Froth</h1>
+  <p class="project-tagline">Mapea un campo científico por significado, para que una revisión de literatura deje de ser cinco papers escogidos a dedo.</p>
+
+  
+
+  <div class="assay assay-solo" data-accent="amber">
+    <div class="assay-body">
+      <dl class="streams"><div><dt>Alimentación</dt><dd>Un tema, y todos los papers que OpenAlex tenga de él. Hasta 10.921 en un corpus ya mapeado.</dd></div><div><dt>Separación</dt><dd>Cada paper se convierte en un vector por significado, no por palabra clave (SPECTER). Un agrupamiento por densidad encuentra los subtemas. Tres vistas los dibujan: burbujas, red con física y guía de lectura.</dd></div><div><dt>Concentrado</dt><dd>44 subtemas con nombre, los papers que hacen de puente entre ellos, y una bitácora que llenas mientras lees.</dd></div></dl>
+      <div class="assay-figure">
+        <p class="eyebrow">Ley</p>
+        <q>el 42% de los papers dibujados no comparte ni un enlace con similitud 0,75</q>
+        <p>Sabido, medido y sin esconder: con el umbral actual casi la mitad de los nodos dibujados quedan sueltos. Antes de la última ronda era el 36%, así que esto empeoró, no mejoró.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="prose"><p>Una revisión de literatura suele empezar leyendo cinco papers que alguien te recomendó. Froth empieza leyéndolos todos.</p><p>La ingeniería interesante no fue el agrupamiento, fueron las perillas. Cada umbral se recalcula por corpus en vez de venir fijado: el tope de 30 papers por subtema salió de una tabla medida (sin tope daban 2 islas y 0 puentes; con 60, ocho y 17; con 30, catorce y 25; con 20, veintiuna y 23), y la regla del puente (un paper cuyos vecinos están mayormente fuera de su propio subtema) se volvió a medir aquí en vez de heredarla.</p><p>El resultado que no esperaba: afinar el modelo de vectores con un conjunto pequeño y curado de 1.290 pares igualó o superó al entrenamiento con 4.045. Lo probé dos veces, una con una métrica de agrupamiento y otra a doble ciego con mi propio criterio, y el modelo pequeño ganó las dos. La pregunta de si entrenar sobre más temas ayuda está cerrada, y la respuesta es no.</p></div>
+
+  <p class="eyebrow stack-label">Hecho con</p>
+  <ul class="stack"><li>Python</li><li>SPECTER</li><li>HDBSCAN</li><li>UMAP</li><li>Streamlit</li><li>OpenAlex</li></ul>
+
+  <p class="assay-links"><a href="https://github.com/kmortizva-data/froth-public">Ver el código</a></p>
+</article>
+</main>
+<footer class="wrap foot">
+  <span>&copy; 2026 PENDIENTE: tu nombre completo</span>
+  <span><a href="mailto:kmortizva@datageeksunited.com">kmortizva@datageeksunited.com</a></span>
+  <span><a href="https://github.com/kmortizva-data">github.com/kmortizva-data</a></span>
+</footer>
+<script src="../../theme.js" defer></script>
+</body>
+</html>

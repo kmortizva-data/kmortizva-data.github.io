@@ -1,0 +1,336 @@
+{
+  "_comment": "Every string the site shows lives here, in both languages. src/build.py reads this and writes the HTML. Edit this file, not the generated pages.",
+  "author": "PENDIENTE: tu nombre completo",
+  "email": "kmortizva@datageeksunited.com",
+  "github_user": "kmortizva-data",
+  "domain": "datageeksunited.com",
+  "default_lang": "en",
+  "ui": {
+    "en": {
+      "lang_name": "English",
+      "switch_to": "Español",
+      "nav_work": "Work",
+      "nav_notes": "Notes",
+      "nav_contact": "Contact",
+      "back": "All work",
+      "feed": "Feed",
+      "process": "Separation",
+      "concentrate": "Concentrate",
+      "assay": "Assay",
+      "assay_note": "The honest number, not the flattering one.",
+      "view_repo": "Read the code",
+      "view_notes": "Read the notes",
+      "stack": "Built with",
+      "status": "Status",
+      "skip": "Skip to content"
+    },
+    "es": {
+      "lang_name": "Español",
+      "switch_to": "English",
+      "nav_work": "Proyectos",
+      "nav_notes": "Apuntes",
+      "nav_contact": "Contacto",
+      "back": "Todos los proyectos",
+      "feed": "Alimentación",
+      "process": "Separación",
+      "concentrate": "Concentrado",
+      "assay": "Ley",
+      "assay_note": "El número honesto, no el que queda bien.",
+      "view_repo": "Ver el código",
+      "view_notes": "Leer los apuntes",
+      "stack": "Hecho con",
+      "status": "Estado",
+      "skip": "Ir al contenido"
+    }
+  },
+  "hero": {
+    "en": {
+      "eyebrow": "Mineral processing engineer",
+      "headline": "I build software that does to data what a plant does to ore.",
+      "lede": "Take in a lot of low grade material. Pull out the part worth keeping. Report the grade as it is, including when it disappoints.",
+      "meta": "Flotation, hydrometallurgy, Li / Ta / Nb / W. Learning machine learning by building things with it."
+    },
+    "es": {
+      "eyebrow": "Ingeniero de procesamiento de minerales",
+      "headline": "Construyo software que le hace a los datos lo que una planta le hace al mineral.",
+      "lede": "Entra mucho material de baja ley. Sale la parte que vale. Y la ley se reporta como es, también cuando decepciona.",
+      "meta": "Flotación, hidrometalurgia, Li / Ta / Nb / W. Aprendiendo machine learning construyendo cosas con él."
+    }
+  },
+  "work_intro": {
+    "en": {
+      "title": "The work",
+      "text": "Four projects, each written up the way a plant reports a campaign: what went in, how it was separated, what came out, and what it actually assayed."
+    },
+    "es": {
+      "title": "Los proyectos",
+      "text": "Cuatro proyectos, contados como una planta reporta una campaña: qué entró, cómo se separó, qué salió y cuánto dio de verdad al ensayarlo."
+    }
+  },
+  "notes": {
+    "en": {
+      "title": "Notes",
+      "text": "Every concept I had to learn became a written note, in Spanish, built on my own data rather than textbook examples, and including the mistakes. They are here because the reasoning is the part worth reading.",
+      "items": [
+        {
+          "label": "Machine learning from zero",
+          "detail": "31 notes, 10 modules, 89 pages",
+          "file": "docs/ML_desde_cero_Apuntes_completos.pdf"
+        },
+        {
+          "label": "Froth, study notes",
+          "detail": "Spanish edition",
+          "file": "docs/Froth_Apuntes_completos_ES.pdf"
+        },
+        {
+          "label": "Froth, study notes",
+          "detail": "English edition",
+          "file": "docs/Froth_Study_Notes_EN.pdf"
+        }
+      ]
+    },
+    "es": {
+      "title": "Apuntes",
+      "text": "Cada concepto que tuve que aprender se convirtió en un apunte escrito, en español, sobre mis propios datos y no sobre ejemplos de libro, con los tropiezos incluidos. Están aquí porque el razonamiento es lo que vale la pena leer.",
+      "items": [
+        {
+          "label": "Machine learning desde cero",
+          "detail": "31 apuntes, 10 módulos, 89 páginas",
+          "file": "docs/ML_desde_cero_Apuntes_completos.pdf"
+        },
+        {
+          "label": "Froth, apuntes del proyecto",
+          "detail": "Edición en español",
+          "file": "docs/Froth_Apuntes_completos_ES.pdf"
+        },
+        {
+          "label": "Froth, study notes",
+          "detail": "Edición en inglés",
+          "file": "docs/Froth_Study_Notes_EN.pdf"
+        }
+      ]
+    }
+  },
+  "contact": {
+    "en": {
+      "title": "Contact",
+      "text": "Open to doctoral positions and to process engineering work where the data side matters.",
+      "email_label": "Email",
+      "github_label": "GitHub"
+    },
+    "es": {
+      "title": "Contacto",
+      "text": "Abierto a posiciones doctorales y a trabajo de ingeniería de procesos donde la parte de datos importe.",
+      "email_label": "Correo",
+      "github_label": "GitHub"
+    }
+  },
+  "projects": [
+    {
+      "slug": "froth",
+      "repo": "https://github.com/kmortizva-data/froth-public",
+      "accent": "amber",
+      "shot": "froth-network.png",
+      "shot_alt": {
+        "en": "Froth's network view: papers as nodes clustered into subtopics, with bridge papers ringed in amber",
+        "es": "Vista de red de Froth: los papers como nodos agrupados en subtemas, con los papers puente marcados con un anillo ámbar"
+      },
+      "stack": [
+        "Python",
+        "SPECTER",
+        "HDBSCAN",
+        "UMAP",
+        "Streamlit",
+        "OpenAlex"
+      ],
+      "en": {
+        "name": "Froth",
+        "tagline": "Maps a scientific field by meaning, so a literature review stops being five cherry picked papers.",
+        "feed": "A topic, and every paper OpenAlex has on it. Up to 10,921 in one mapped corpus.",
+        "process": "Each paper becomes a vector by meaning, not by keyword (SPECTER). Density clustering finds the subtopics. Three views draw them: bubbles, a force directed network, and a reading guide.",
+        "concentrate": "44 named subtopics, the papers that bridge between them, and a logbook you fill as you read.",
+        "assay": "42% of the papers drawn share no link at similarity 0.75",
+        "assay_detail": "Known, measured, and not hidden: at the current threshold nearly half the drawn nodes sit unconnected. Before the last round it was 36%, so this got worse, not better.",
+        "status": "v1 frozen and approved. A scale edition is in development.",
+        "body": [
+          "A literature review usually starts by reading five papers someone recommended. Froth starts by reading all of them.",
+          "The interesting engineering was not the clustering, it was the knobs. Every threshold in it is recalculated per corpus instead of shipped as a default: the network cap of 30 papers per cluster was picked from a measured table (no cap gave 2 islands and 0 bridges; 60 gave 8 and 17; 30 gave 14 and 25; 20 gave 21 and 23), and the bridge rule (a paper whose neighbours mostly sit outside its own subtopic) was re-measured here rather than inherited.",
+          "The result I did not expect: fine tuning the embedding model on a small curated set of 1,290 pairs matched or beat training on 4,045. I tested it twice, once by a clustering metric and once double blind on my own judgement, and the small model won both times. The question of whether training on more topics helps is settled, and the answer is no."
+        ]
+      },
+      "es": {
+        "name": "Froth",
+        "tagline": "Mapea un campo científico por significado, para que una revisión de literatura deje de ser cinco papers escogidos a dedo.",
+        "feed": "Un tema, y todos los papers que OpenAlex tenga de él. Hasta 10.921 en un corpus ya mapeado.",
+        "process": "Cada paper se convierte en un vector por significado, no por palabra clave (SPECTER). Un agrupamiento por densidad encuentra los subtemas. Tres vistas los dibujan: burbujas, red con física y guía de lectura.",
+        "concentrate": "44 subtemas con nombre, los papers que hacen de puente entre ellos, y una bitácora que llenas mientras lees.",
+        "assay": "el 42% de los papers dibujados no comparte ni un enlace con similitud 0,75",
+        "assay_detail": "Sabido, medido y sin esconder: con el umbral actual casi la mitad de los nodos dibujados quedan sueltos. Antes de la última ronda era el 36%, así que esto empeoró, no mejoró.",
+        "status": "v1 congelada y aprobada. La edición de escala sigue en desarrollo.",
+        "body": [
+          "Una revisión de literatura suele empezar leyendo cinco papers que alguien te recomendó. Froth empieza leyéndolos todos.",
+          "La ingeniería interesante no fue el agrupamiento, fueron las perillas. Cada umbral se recalcula por corpus en vez de venir fijado: el tope de 30 papers por subtema salió de una tabla medida (sin tope daban 2 islas y 0 puentes; con 60, ocho y 17; con 30, catorce y 25; con 20, veintiuna y 23), y la regla del puente (un paper cuyos vecinos están mayormente fuera de su propio subtema) se volvió a medir aquí en vez de heredarla.",
+          "El resultado que no esperaba: afinar el modelo de vectores con un conjunto pequeño y curado de 1.290 pares igualó o superó al entrenamiento con 4.045. Lo probé dos veces, una con una métrica de agrupamiento y otra a doble ciego con mi propio criterio, y el modelo pequeño ganó las dos. La pregunta de si entrenar sobre más temas ayuda está cerrada, y la respuesta es no."
+        ]
+      }
+    },
+    {
+      "slug": "silica",
+      "repo": "https://github.com/kmortizva-data/ml-silica-flotation",
+      "accent": "iron",
+      "shot": "silica-horizons.png",
+      "shot_alt": {
+        "en": "Model skill against prediction horizon, compared with a persistence baseline",
+        "es": "Habilidad del modelo frente al horizonte de predicción, comparada con el baseline de persistencia"
+      },
+      "stack": [
+        "Python",
+        "pandas",
+        "scikit-learn",
+        "gradient boosting",
+        "SHAP",
+        "LaTeX"
+      ],
+      "en": {
+        "name": "Silica in an iron flotation plant",
+        "tagline": "Can a model call the concentrate grade before the lab does? I spent ten modules finding out that it cannot, and why.",
+        "feed": "737,453 rows and 24 sensors from a real iron ore flotation plant, March to September 2017.",
+        "process": "Trees, forests, gradient boosting, a neural network, and lag features. Then, crucially, a persistence baseline to compare them against.",
+        "concentrate": "A verdict, 31 written notes and an 89 page volume.",
+        "assay": "the model adds +0.009 R² over doing nothing",
+        "assay_detail": "Persistence, meaning \"assume it stays where it is\", scores R² 0.632 at one hour. The trained model scores 0.641. Past five hours both go negative. At twelve hours the model is actively worse than the baseline.",
+        "status": "Complete. 30 of 30 notes, 10 of 10 modules.",
+        "body": [
+          "Halfway through, this project looked like a success. Adding hourly memory and gradient boosting took R² from 0.04 to 0.64, which is the kind of jump you put on a slide.",
+          "Then I measured what the process gives you for free. Silica does not move much in an hour, so simply predicting that the next value equals the last one already scores 0.632. Almost the entire jump was the inertia of the plant, not the skill of the model. That correction stayed in the notes, because catching it is worth more than the number was.",
+          "The part I would actually take to an operations meeting came from clustering, not prediction. K means found three operating states, and one of them dominates March and April and then vanishes. The plant changed how it was run, which explains a drift that had been quietly degrading every model since module two. Monthly error climbs 0.44 in June, 0.65 in August, 0.76 in September. The data cannot tell you tomorrow's grade, but it can tell you the plant is not the plant it was."
+        ]
+      },
+      "es": {
+        "name": "Sílice en una planta de flotación de hierro",
+        "tagline": "¿Puede un modelo cantar la ley del concentrado antes que el laboratorio? Pasé diez módulos averiguando que no, y por qué.",
+        "feed": "737.453 filas y 24 sensores de una planta real de flotación de hierro, de marzo a septiembre de 2017.",
+        "process": "Árboles, bosques, gradient boosting, una red neuronal y variables con memoria. Y después, lo decisivo: un baseline de persistencia contra el cual compararlos.",
+        "concentrate": "Un veredicto, 31 apuntes escritos y un volumen de 89 páginas.",
+        "assay": "el modelo aporta +0,009 de R² sobre no hacer nada",
+        "assay_detail": "La persistencia, o sea \"supón que se queda donde está\", da R² 0,632 a una hora. El modelo entrenado da 0,641. Pasadas cinco horas los dos se van a negativo. A doce horas el modelo es directamente peor que el baseline.",
+        "status": "Terminado. 30 de 30 apuntes, 10 de 10 módulos.",
+        "body": [
+          "A mitad de camino esto parecía un éxito. Añadir memoria horaria y gradient boosting subió el R² de 0,04 a 0,64, que es el salto que uno pone en una diapositiva.",
+          "Después medí lo que el proceso te regala. La sílice no se mueve mucho en una hora, así que predecir simplemente que el siguiente valor es igual al último ya da 0,632. Casi todo el salto era la inercia de la planta, no la habilidad del modelo. Esa corrección se quedó escrita en los apuntes, porque pillarla vale más que el número que tumbó.",
+          "Lo que sí me llevaría a una reunión de operaciones no salió de predecir, salió de agrupar. K-medias encontró tres estados de operación, y uno de ellos manda en marzo y abril y luego desaparece. La planta cambió su forma de operar, y eso explica una deriva que llevaba degradando todos los modelos desde el módulo dos. El error mensual sube: 0,44 en junio, 0,65 en agosto, 0,76 en septiembre. Los datos no te dicen la ley de mañana, pero sí te dicen que la planta ya no es la que era."
+        ]
+      }
+    },
+    {
+      "slug": "concentra",
+      "repo": "https://github.com/kmortizva-data/concentra",
+      "accent": "mint",
+      "shot": "concentra-site.png",
+      "shot_alt": {
+        "en": "A Concentra cheatsheet: glossary, recipe, pitfalls and collapsible review questions",
+        "es": "Un cheatsheet de Concentra: glosario, receta, tropiezos y preguntas de repaso plegables"
+      },
+      "stack": [
+        "Python standard library",
+        "HTML",
+        "CSS",
+        "matplotlib"
+      ],
+      "en": {
+        "name": "Concentra",
+        "tagline": "Turns the public syllabus of a course into a study sheet you can actually consult later.",
+        "feed": "The publicly visible syllabus of a Coursera course. One request, cached, nothing behind the login.",
+        "process": "The module map is generated from the syllabus, never typed by hand. Around it I write the glossary, the recipe, the pitfalls and the review questions, with analogies from metallurgy.",
+        "concentrate": "One self contained HTML sheet per module, offline, dark and light, and it prints to PDF cleanly.",
+        "assay": "23 rounds of correction for the first course alone",
+        "assay_detail": "Course 3 took 23 passes before it was right. The procedure that came out of that is written down in MANUAL.md, and three automated checks now have to pass before anything is committed. Skipping it means doing the work three times.",
+        "status": "4 courses, 21 lessons. Course 5 in progress.",
+        "body": [
+          "I pay for the courses, watch them, and forget them. There was nowhere to look things up afterwards in a condensed form, so I built one.",
+          "The metaphor is deliberate and it matches Froth: the course is the feed, the cheatsheet is the concentrate.",
+          "The rule I care about most here is where the boundary sits. Only the public course description page is ever requested, once per course. Nothing behind the login is downloaded, no video is touched, and the cheatsheets are notes rewritten from scratch rather than a copy of the course. The cached page is Coursera's markup, so it stays out of the repository.",
+          "The site itself has no dependencies at all, just the Python standard library, which means it still builds on a machine where installing anything is slow."
+        ]
+      },
+      "es": {
+        "name": "Concentra",
+        "tagline": "Convierte el temario público de un curso en una hoja de estudio que sí puedes consultar después.",
+        "feed": "El temario público de un curso de Coursera. Una sola petición, cacheada, nada detrás del login.",
+        "process": "El mapa de módulos se genera del temario, nunca se escribe a mano. Alrededor escribo el glosario, la receta, los tropiezos y las preguntas de repaso, con analogías de metalurgia.",
+        "concentrate": "Una hoja HTML autocontenida por módulo, offline, en claro y oscuro, y que imprime a PDF limpio.",
+        "assay": "23 rondas de corrección solo para el primer curso",
+        "assay_detail": "El Curso 3 necesitó 23 pasadas hasta quedar bien. El procedimiento que salió de ahí está escrito en MANUAL.md, y hoy tres verificadores automáticos tienen que pasar antes de cada commit. Saltárselo es repetir el trabajo tres veces.",
+        "status": "4 cursos, 21 lecciones. Curso 5 en marcha.",
+        "body": [
+          "Pago los cursos, los veo y se me olvidan. No tenía dónde consultarlos después de forma condensada, así que me lo construí.",
+          "La metáfora es a propósito y rima con Froth: el curso es la alimentación, el cheatsheet es el concentrado.",
+          "La regla que más me importa aquí es dónde está la raya. Solo se pide la página pública de descripción del curso, una vez por curso. No se descarga nada detrás del login, no se toca ningún video, y los cheatsheets son apuntes reescritos desde cero, no una copia del curso. La página cacheada es marcado de Coursera, así que no entra al repositorio.",
+          "El sitio no tiene ni una dependencia, solo la librería estándar de Python, y eso significa que sigue compilando en una máquina donde instalar cualquier cosa es lento."
+        ]
+      }
+    },
+    {
+      "slug": "bg-remover",
+      "repo": "https://github.com/kmortizva-data/bg-remover",
+      "accent": "slate",
+      "shot": "bg-remover.png",
+      "shot_alt": {
+        "en": "The bg-remover editor: a cut out subject over a checkerboard, with the Erase and Restore brushes",
+        "es": "El editor de bg-remover: un sujeto recortado sobre un damero, con los pinceles Borrar y Restaurar"
+      },
+      "stack": [
+        "FastAPI",
+        "ONNX Runtime",
+        "DirectML",
+        "vanilla JavaScript"
+      ],
+      "en": {
+        "name": "bg-remover",
+        "tagline": "Cuts the background out of a photo on your own machine, and lets you repair the edges the model got wrong.",
+        "feed": "A 12 megapixel phone photo, downscaled once to 2000 px on the long side.",
+        "process": "A segmentation model returns only the alpha mask, never a finished cutout. The browser holds the original pixels, the model's mask and a working copy as three separate layers.",
+        "concentrate": "A PNG with real transparency, and two brushes that can actually fix an edge.",
+        "assay": "the first cut takes 13 to 15 seconds, every one after that takes 2",
+        "assay_detail": "DirectML compiles its GPU shaders on the first inference. Nothing is broken, but a user cannot tell a fifteen second wait from a hang, so the overlay counts the seconds out loud instead of spinning silently.",
+        "status": "Working and verified in a browser. Paused.",
+        "body": [
+          "The design decision worth explaining is why the server sends back a greyscale mask instead of a finished cutout.",
+          "If it sent a finished RGBA image, the colour under the transparent pixels would be gone. Many libraries write black there. A Restore brush would then have nothing real to bring back, only black. So the browser keeps the uploaded pixels untouched, keeps the model's mask untouched as the ground truth, and paints only on a third mutable copy.",
+          "That is what makes Restore behave correctly. It does not force a pixel to full opacity, it copies back whatever the model originally predicted. A wisp of hair the model judged 60% transparent returns to 60%, instead of turning into a hard opaque blob. That single detail is the difference between a brush that repairs an edge and one that ruins it.",
+          "It runs on DirectML rather than CUDA, because getting CUDA working for this GPU generation on Windows cost more than it was worth, and it logs which execution provider actually ended up active rather than assuming the GPU won."
+        ]
+      },
+      "es": {
+        "name": "bg-remover",
+        "tagline": "Quita el fondo de una foto en tu propia máquina, y te deja reparar los bordes que el modelo se comió.",
+        "feed": "Una foto de celular de 12 megapíxeles, reducida una sola vez a 2000 px por el lado mayor.",
+        "process": "Un modelo de segmentación devuelve solo la máscara alfa, nunca un recorte terminado. El navegador guarda los píxeles originales, la máscara del modelo y una copia de trabajo como tres capas separadas.",
+        "concentrate": "Un PNG con transparencia de verdad, y dos pinceles que sí pueden arreglar un borde.",
+        "assay": "el primer recorte tarda de 13 a 15 segundos, los siguientes tardan 2",
+        "assay_detail": "DirectML compila los shaders de la GPU en la primera inferencia. No está roto, pero un usuario no distingue una espera de quince segundos de un cuelgue, así que el overlay cuenta los segundos en voz alta en vez de girar en silencio.",
+        "status": "Funciona y está verificado en navegador. Pausado.",
+        "body": [
+          "La decisión de diseño que vale la pena explicar es por qué el servidor devuelve una máscara en gris en vez de un recorte terminado.",
+          "Si devolviera un RGBA ya recortado, el color que hay debajo de los píxeles transparentes se pierde. Muchas librerías escriben negro ahí. Entonces un pincel de Restaurar no tendría nada real que recuperar, solo negro. Por eso el navegador conserva intactos los píxeles subidos, conserva intacta la máscara del modelo como la verdad, y pinta solo sobre una tercera copia mutable.",
+          "Eso es lo que hace que Restaurar se comporte bien. No fuerza el píxel al 100% de opacidad: copia de vuelta lo que el modelo había predicho originalmente. Un mechón de pelo que el modelo juzgó 60% transparente vuelve al 60%, en vez de convertirse en un pegote opaco. Ese detalle solo es la diferencia entre un pincel que repara un borde y uno que lo arruina.",
+          "Corre sobre DirectML y no sobre CUDA, porque hacer funcionar CUDA para esta generación de GPU en Windows costaba más de lo que valía, y registra qué proveedor de ejecución quedó activo de verdad en vez de dar por hecho que ganó la GPU."
+        ]
+      }
+    }
+  ],
+  "notes_files": [
+    {
+      "out": "docs/ML_desde_cero_Apuntes_completos.pdf",
+      "src": "Exc-1-Learn Machine Learning/1_Apuntes/ML_desde_cero_Apuntes_completos.pdf"
+    },
+    {
+      "out": "docs/Froth_Apuntes_completos_ES.pdf",
+      "src": "Froth/2_Froth publico (GitHub)/1_Apuntes/Froth_Apuntes_completos_ES.pdf"
+    },
+    {
+      "out": "docs/Froth_Study_Notes_EN.pdf",
+      "src": "Froth/2_Froth publico (GitHub)/1_Apuntes/Froth_Study_Notes_EN.pdf"
+    }
+  ]
+}

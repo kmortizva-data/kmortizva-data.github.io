@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PENDIENTE: tu nombre completo</title>
+<meta name="description" content="Entra mucho material de baja ley. Sale la parte que vale. Y la ley se reporta como es, también cuando decepciona.">
+<meta property="og:title" content="PENDIENTE: tu nombre completo">
+<meta property="og:description" content="Entra mucho material de baja ley. Sale la parte que vale. Y la ley se reporta como es, también cuando decepciona.">
+<meta property="og:type" content="website">
+<link rel="alternate" hreflang="en" href="../index.html">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+<a class="skip" href="#main">Ir al contenido</a>
+<header class="wrap masthead">
+  <a class="mark" href="../es/index.html">PENDIENTE: tu nombre completo <b>/</b> datageeksunited.com</a>
+  <nav>
+    <a href="../es/index.html#work">Proyectos</a>
+    <a href="../es/index.html#notes">Apuntes</a>
+    <a href="../es/index.html#contact">Contacto</a>
+    <a href="../index.html" rel="alternate" hreflang="en">English</a>
+    <button class="theme-toggle" type="button" data-toggle-theme>froth / pulp</button>
+  </nav>
+</header>
+<main id="main">
+<section class="wrap hero">
+  <p class="eyebrow">Ingeniero de procesamiento de minerales</p>
+  <h1>Construyo software que le hace a los datos lo que una planta le hace al mineral.</h1>
+  <p class="lede">Entra mucho material de baja ley. Sale la parte que vale. Y la ley se reporta como es, también cuando decepciona.</p>
+  <p class="meta">Flotación, hidrometalurgia, Li / Ta / Nb / W. Aprendiendo machine learning construyendo cosas con él.</p>
+</section>
+
+<section id="work" class="wrap section rule-top">
+  <div class="section-head">
+    <h2>Los proyectos</h2>
+    <p>Cuatro proyectos, contados como una planta reporta una campaña: qué entró, cómo se separó, qué salió y cuánto dio de verdad al ensayarlo.</p>
+  </div>
+  <div class="assays">
+<article class="assay reveal" data-accent="amber">
+  <div class="assay-body">
+    <p class="eyebrow">v1 congelada y aprobada. La edición de escala sigue en desarrollo.</p>
+    <h3 class="assay-name"><a href="../es/proyectos/froth.html">Froth</a></h3>
+    <p class="assay-tagline">Mapea un campo científico por significado, para que una revisión de literatura deje de ser cinco papers escogidos a dedo.</p>
+    <dl class="streams"><div><dt>Alimentación</dt><dd>Un tema, y todos los papers que OpenAlex tenga de él. Hasta 10.921 en un corpus ya mapeado.</dd></div><div><dt>Separación</dt><dd>Cada paper se convierte en un vector por significado, no por palabra clave (SPECTER). Un agrupamiento por densidad encuentra los subtemas. Tres vistas los dibujan: burbujas, red con física y guía de lectura.</dd></div><div><dt>Concentrado</dt><dd>44 subtemas con nombre, los papers que hacen de puente entre ellos, y una bitácora que llenas mientras lees.</dd></div></dl>
+    <div class="assay-figure">
+        <p class="eyebrow">Ley</p>
+        <q>el 42% de los papers dibujados no comparte ni un enlace con similitud 0,75</q>
+        <p>Sabido, medido y sin esconder: con el umbral actual casi la mitad de los nodos dibujados quedan sueltos. Antes de la última ronda era el 36%, así que esto empeoró, no mejoró.</p>
+      </div>
+    <ul class="stack"><li>Python</li><li>SPECTER</li><li>HDBSCAN</li><li>UMAP</li><li>Streamlit</li><li>OpenAlex</li></ul>
+    <p class="assay-links"><a href="../es/proyectos/froth.html">Froth</a><a href="https://github.com/kmortizva-data/froth-public">Ver el código</a></p>
+  </div>
+  <div class="assay-shot"><p class="placeholder">screenshot pending</p></div>
+</article>
+<article class="assay reveal" data-accent="iron">
+  <div class="assay-body">
+    <p class="eyebrow">Terminado. 30 de 30 apuntes, 10 de 10 módulos.</p>
+    <h3 class="assay-name"><a href="../es/proyectos/silica.html">Sílice en una planta de flotación de hierro</a></h3>
+    <p class="assay-tagline">¿Puede un modelo cantar la ley del concentrado antes que el laboratorio? Pasé diez módulos averiguando que no, y por qué.</p>
+    <dl class="streams"><div><dt>Alimentación</dt><dd>737.453 filas y 24 sensores de una planta real de flotación de hierro, de marzo a septiembre de 2017.</dd></div><div><dt>Separación</dt><dd>Árboles, bosques, gradient boosting, una red neuronal y variables con memoria. Y después, lo decisivo: un baseline de persistencia contra el cual compararlos.</dd></div><div><dt>Concentrado</dt><dd>Un veredicto, 31 apuntes escritos y un volumen de 89 páginas.</dd></div></dl>
+    <div class="assay-figure">
+        <p class="eyebrow">Ley</p>
+        <q>el modelo aporta +0,009 de R² sobre no hacer nada</q>
+        <p>La persistencia, o sea &quot;supón que se queda donde está&quot;, da R² 0,632 a una hora. El modelo entrenado da 0,641. Pasadas cinco horas los dos se van a negativo. A doce horas el modelo es directamente peor que el baseline.</p>
+      </div>
+    <ul class="stack"><li>Python</li><li>pandas</li><li>scikit-learn</li><li>gradient boosting</li><li>SHAP</li><li>LaTeX</li></ul>
+    <p class="assay-links"><a href="../es/proyectos/silica.html">Sílice en una planta de flotación de hierro</a><a href="https://github.com/kmortizva-data/ml-silica-flotation">Ver el código</a></p>
+  </div>
+  <div class="assay-shot"><p class="placeholder">screenshot pending</p></div>
+</article>
+<article class="assay reveal" data-accent="mint">
+  <div class="assay-body">
+    <p class="eyebrow">4 cursos, 21 lecciones. Curso 5 en marcha.</p>
+    <h3 class="assay-name"><a href="../es/proyectos/concentra.html">Concentra</a></h3>
+    <p class="assay-tagline">Convierte el temario público de un curso en una hoja de estudio que sí puedes consultar después.</p>
+    <dl class="streams"><div><dt>Alimentación</dt><dd>El temario público de un curso de Coursera. Una sola petición, cacheada, nada detrás del login.</dd></div><div><dt>Separación</dt><dd>El mapa de módulos se genera del temario, nunca se escribe a mano. Alrededor escribo el glosario, la receta, los tropiezos y las preguntas de repaso, con analogías de metalurgia.</dd></div><div><dt>Concentrado</dt><dd>Una hoja HTML autocontenida por módulo, offline, en claro y oscuro, y que imprime a PDF limpio.</dd></div></dl>
+    <div class="assay-figure">
+        <p class="eyebrow">Ley</p>
+        <q>23 rondas de corrección solo para el primer curso</q>
+        <p>El Curso 3 necesitó 23 pasadas hasta quedar bien. El procedimiento que salió de ahí está escrito en MANUAL.md, y hoy tres verificadores automáticos tienen que pasar antes de cada commit. Saltárselo es repetir el trabajo tres veces.</p>
+      </div>
+    <ul class="stack"><li>Python standard library</li><li>HTML</li><li>CSS</li><li>matplotlib</li></ul>
+    <p class="assay-links"><a href="../es/proyectos/concentra.html">Concentra</a><a href="https://github.com/kmortizva-data/concentra">Ver el código</a></p>
+  </div>
+  <div class="assay-shot"><p class="placeholder">screenshot pending</p></div>
+</article>
+<article class="assay reveal" data-accent="slate">
+  <div class="assay-body">
+    <p class="eyebrow">Funciona y está verificado en navegador. Pausado.</p>
+    <h3 class="assay-name"><a href="../es/proyectos/bg-remover.html">bg-remover</a></h3>
+    <p class="assay-tagline">Quita el fondo de una foto en tu propia máquina, y te deja reparar los bordes que el modelo se comió.</p>
+    <dl class="streams"><div><dt>Alimentación</dt><dd>Una foto de celular de 12 megapíxeles, reducida una sola vez a 2000 px por el lado mayor.</dd></div><div><dt>Separación</dt><dd>Un modelo de segmentación devuelve solo la máscara alfa, nunca un recorte terminado. El navegador guarda los píxeles originales, la máscara del modelo y una copia de trabajo como tres capas separadas.</dd></div><div><dt>Concentrado</dt><dd>Un PNG con transparencia de verdad, y dos pinceles que sí pueden arreglar un borde.</dd></div></dl>
+    <div class="assay-figure">
+        <p class="eyebrow">Ley</p>
+        <q>el primer recorte tarda de 13 a 15 segundos, los siguientes tardan 2</q>
+        <p>DirectML compila los shaders de la GPU en la primera inferencia. No está roto, pero un usuario no distingue una espera de quince segundos de un cuelgue, así que el overlay cuenta los segundos en voz alta en vez de girar en silencio.</p>
+      </div>
+    <ul class="stack"><li>FastAPI</li><li>ONNX Runtime</li><li>DirectML</li><li>vanilla JavaScript</li></ul>
+    <p class="assay-links"><a href="../es/proyectos/bg-remover.html">bg-remover</a><a href="https://github.com/kmortizva-data/bg-remover">Ver el código</a></p>
+  </div>
+  <div class="assay-shot"><p class="placeholder">screenshot pending</p></div>
+</article>
+  </div>
+</section>
+
+<section id="notes" class="wrap section rule-top">
+  <div class="section-head">
+    <h2>Apuntes</h2>
+    <p>Cada concepto que tuve que aprender se convirtió en un apunte escrito, en español, sobre mis propios datos y no sobre ejemplos de libro, con los tropiezos incluidos. Están aquí porque el razonamiento es lo que vale la pena leer.</p>
+  </div>
+  <ul class="notes-list"><li><a href="../docs/ML_desde_cero_Apuntes_completos.pdf"><span class="n-label">Machine learning desde cero</span><span class="n-detail">31 apuntes, 10 módulos, 89 páginas</span></a></li><li><a href="../docs/Froth_Apuntes_completos_ES.pdf"><span class="n-label">Froth, apuntes del proyecto</span><span class="n-detail">Edición en español</span></a></li><li><a href="../docs/Froth_Study_Notes_EN.pdf"><span class="n-label">Froth, study notes</span><span class="n-detail">Edición en inglés</span></a></li></ul>
+</section>
+
+<section id="contact" class="wrap section rule-top">
+  <div class="section-head">
+    <h2>Contacto</h2>
+    <p>Abierto a posiciones doctorales y a trabajo de ingeniería de procesos donde la parte de datos importe.</p>
+  </div>
+  <ul class="contact-links">
+    <li><a href="mailto:kmortizva@datageeksunited.com">kmortizva@datageeksunited.com</a></li>
+    <li><a href="https://github.com/kmortizva-data">github.com/kmortizva-data</a></li>
+  </ul>
+</section>
+</main>
+<footer class="wrap foot">
+  <span>&copy; 2026 PENDIENTE: tu nombre completo</span>
+  <span><a href="mailto:kmortizva@datageeksunited.com">kmortizva@datageeksunited.com</a></span>
+  <span><a href="https://github.com/kmortizva-data">github.com/kmortizva-data</a></span>
+</footer>
+<script src="../theme.js" defer></script>
+</body>
+</html>

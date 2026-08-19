@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Silica in an iron flotation plant - PENDIENTE: tu nombre completo</title>
+<meta name="description" content="Can a model call the concentrate grade before the lab does? I spent ten modules finding out that it cannot, and why.">
+<meta property="og:title" content="Silica in an iron flotation plant - PENDIENTE: tu nombre completo">
+<meta property="og:description" content="Can a model call the concentrate grade before the lab does? I spent ten modules finding out that it cannot, and why.">
+<meta property="og:type" content="website">
+<link rel="alternate" hreflang="es" href="../es/proyectos/silica.html">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="wrap masthead">
+  <a class="mark" href="../index.html">PENDIENTE: tu nombre completo <b>/</b> datageeksunited.com</a>
+  <nav>
+    <a href="../index.html#work">Work</a>
+    <a href="../index.html#notes">Notes</a>
+    <a href="../index.html#contact">Contact</a>
+    <a href="../es/proyectos/silica.html" rel="alternate" hreflang="es">Español</a>
+    <button class="theme-toggle" type="button" data-toggle-theme>froth / pulp</button>
+  </nav>
+</header>
+<main id="main">
+<article class="wrap section">
+  <a class="back" href="../index.html#work">All work</a>
+  <p class="eyebrow">Complete. 30 of 30 notes, 10 of 10 modules.</p>
+  <h1 class="project-title">Silica in an iron flotation plant</h1>
+  <p class="project-tagline">Can a model call the concentrate grade before the lab does? I spent ten modules finding out that it cannot, and why.</p>
+
+  
+
+  <div class="assay assay-solo" data-accent="iron">
+    <div class="assay-body">
+      <dl class="streams"><div><dt>Feed</dt><dd>737,453 rows and 24 sensors from a real iron ore flotation plant, March to September 2017.</dd></div><div><dt>Separation</dt><dd>Trees, forests, gradient boosting, a neural network, and lag features. Then, crucially, a persistence baseline to compare them against.</dd></div><div><dt>Concentrate</dt><dd>A verdict, 31 written notes and an 89 page volume.</dd></div></dl>
+      <div class="assay-figure">
+        <p class="eyebrow">Assay</p>
+        <q>the model adds +0.009 R² over doing nothing</q>
+        <p>Persistence, meaning &quot;assume it stays where it is&quot;, scores R² 0.632 at one hour. The trained model scores 0.641. Past five hours both go negative. At twelve hours the model is actively worse than the baseline.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="prose"><p>Halfway through, this project looked like a success. Adding hourly memory and gradient boosting took R² from 0.04 to 0.64, which is the kind of jump you put on a slide.</p><p>Then I measured what the process gives you for free. Silica does not move much in an hour, so simply predicting that the next value equals the last one already scores 0.632. Almost the entire jump was the inertia of the plant, not the skill of the model. That correction stayed in the notes, because catching it is worth more than the number was.</p><p>The part I would actually take to an operations meeting came from clustering, not prediction. K means found three operating states, and one of them dominates March and April and then vanishes. The plant changed how it was run, which explains a drift that had been quietly degrading every model since module two. Monthly error climbs 0.44 in June, 0.65 in August, 0.76 in September. The data cannot tell you tomorrow&#x27;s grade, but it can tell you the plant is not the plant it was.</p></div>
+
+  <p class="eyebrow stack-label">Built with</p>
+  <ul class="stack"><li>Python</li><li>pandas</li><li>scikit-learn</li><li>gradient boosting</li><li>SHAP</li><li>LaTeX</li></ul>
+
+  <p class="assay-links"><a href="https://github.com/kmortizva-data/ml-silica-flotation">Read the code</a></p>
+</article>
+</main>
+<footer class="wrap foot">
+  <span>&copy; 2026 PENDIENTE: tu nombre completo</span>
+  <span><a href="mailto:kmortizva@datageeksunited.com">kmortizva@datageeksunited.com</a></span>
+  <span><a href="https://github.com/kmortizva-data">github.com/kmortizva-data</a></span>
+</footer>
+<script src="../theme.js" defer></script>
+</body>
+</html>

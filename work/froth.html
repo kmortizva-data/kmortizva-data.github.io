@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Froth - PENDIENTE: tu nombre completo</title>
+<meta name="description" content="Maps a scientific field by meaning, so a literature review stops being five cherry picked papers.">
+<meta property="og:title" content="Froth - PENDIENTE: tu nombre completo">
+<meta property="og:description" content="Maps a scientific field by meaning, so a literature review stops being five cherry picked papers.">
+<meta property="og:type" content="website">
+<link rel="alternate" hreflang="es" href="../es/proyectos/froth.html">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="wrap masthead">
+  <a class="mark" href="../index.html">PENDIENTE: tu nombre completo <b>/</b> datageeksunited.com</a>
+  <nav>
+    <a href="../index.html#work">Work</a>
+    <a href="../index.html#notes">Notes</a>
+    <a href="../index.html#contact">Contact</a>
+    <a href="../es/proyectos/froth.html" rel="alternate" hreflang="es">Español</a>
+    <button class="theme-toggle" type="button" data-toggle-theme>froth / pulp</button>
+  </nav>
+</header>
+<main id="main">
+<article class="wrap section">
+  <a class="back" href="../index.html#work">All work</a>
+  <p class="eyebrow">v1 frozen and approved. A scale edition is in development.</p>
+  <h1 class="project-title">Froth</h1>
+  <p class="project-tagline">Maps a scientific field by meaning, so a literature review stops being five cherry picked papers.</p>
+
+  
+
+  <div class="assay assay-solo" data-accent="amber">
+    <div class="assay-body">
+      <dl class="streams"><div><dt>Feed</dt><dd>A topic, and every paper OpenAlex has on it. Up to 10,921 in one mapped corpus.</dd></div><div><dt>Separation</dt><dd>Each paper becomes a vector by meaning, not by keyword (SPECTER). Density clustering finds the subtopics. Three views draw them: bubbles, a force directed network, and a reading guide.</dd></div><div><dt>Concentrate</dt><dd>44 named subtopics, the papers that bridge between them, and a logbook you fill as you read.</dd></div></dl>
+      <div class="assay-figure">
+        <p class="eyebrow">Assay</p>
+        <q>42% of the papers drawn share no link at similarity 0.75</q>
+        <p>Known, measured, and not hidden: at the current threshold nearly half the drawn nodes sit unconnected. Before the last round it was 36%, so this got worse, not better.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="prose"><p>A literature review usually starts by reading five papers someone recommended. Froth starts by reading all of them.</p><p>The interesting engineering was not the clustering, it was the knobs. Every threshold in it is recalculated per corpus instead of shipped as a default: the network cap of 30 papers per cluster was picked from a measured table (no cap gave 2 islands and 0 bridges; 60 gave 8 and 17; 30 gave 14 and 25; 20 gave 21 and 23), and the bridge rule (a paper whose neighbours mostly sit outside its own subtopic) was re-measured here rather than inherited.</p><p>The result I did not expect: fine tuning the embedding model on a small curated set of 1,290 pairs matched or beat training on 4,045. I tested it twice, once by a clustering metric and once double blind on my own judgement, and the small model won both times. The question of whether training on more topics helps is settled, and the answer is no.</p></div>
+
+  <p class="eyebrow stack-label">Built with</p>
+  <ul class="stack"><li>Python</li><li>SPECTER</li><li>HDBSCAN</li><li>UMAP</li><li>Streamlit</li><li>OpenAlex</li></ul>
+
+  <p class="assay-links"><a href="https://github.com/kmortizva-data/froth-public">Read the code</a></p>
+</article>
+</main>
+<footer class="wrap foot">
+  <span>&copy; 2026 PENDIENTE: tu nombre completo</span>
+  <span><a href="mailto:kmortizva@datageeksunited.com">kmortizva@datageeksunited.com</a></span>
+  <span><a href="https://github.com/kmortizva-data">github.com/kmortizva-data</a></span>
+</footer>
+<script src="../theme.js" defer></script>
+</body>
+</html>

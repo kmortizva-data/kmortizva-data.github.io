@@ -1,0 +1,527 @@
+/* ---------------------------------------------------------------------------
+   Palette: a flotation cell, seen from above.
+
+   Light theme is the FROTH: the pale layer that floats and carries the value.
+   Dark theme is the PULP: the dark slurry underneath. The theme toggle is a
+   cross section of the cell, which is why it is labelled the way it is.
+
+   The neutral is deliberately a cool concrete grey-green, not a warm cream.
+   The accent is the muted yellow of plant signage, not a terracotta. Both are
+   taken from what a plant actually looks like.
+--------------------------------------------------------------------------- */
+
+:root {
+  color-scheme: light;
+
+  --bg:        #E7E9E5;
+  --surface:   #F2F3F0;
+  --sunken:    #DDE0DB;
+  --ink:       #141816;
+  --ink-soft:  #575E5A;
+  --ink-faint: #5F6662;
+  --rule:      #C9CDC6;
+  --rule-firm: #A9AFA8;
+
+  --hi:        #8A7C0E;          /* signage yellow, darkened for contrast on pale */
+  --hi-bright: #C9B81C;          /* the same yellow where it sits on a dark block */
+
+  --froth:     #2F6675;          /* cell water */
+  --iron:      #8E4E33;          /* iron oxide */
+  --mint:      #4A6A3C;          /* olive */
+  --slate:     #57525F;          /* grey violet */
+
+  --measure: 68ch;
+  --gap: clamp(1.25rem, 3vw, 2.5rem);
+  --pad: clamp(1.25rem, 5vw, 5rem);
+
+  --display: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua",
+             Georgia, "Times New Roman", serif;
+  --body: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  --mono: "Cascadia Mono", Consolas, "SF Mono", "Roboto Mono", ui-monospace,
+          "Courier New", monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="froth"]) { color-scheme: dark; }
+  :root:not([data-theme="froth"]) {
+    --bg:        #0F1312;
+    --surface:   #161B19;
+    --sunken:    #0A0D0C;
+    --ink:       #E2E5E0;
+    --ink-soft:  #9AA19C;
+    --ink-faint: #7D847F;
+    --rule:      #262C29;
+    --rule-firm: #3A423E;
+    --hi:        #C9B81C;
+    --hi-bright: #DDCB2E;
+    --froth:     #6BA8B8;
+    --iron:      #C88663;
+    --mint:      #8CAE79;
+    --slate:     #9B93A6;
+  }
+}
+
+:root[data-theme="pulp"] {
+  color-scheme: dark;
+  --bg:        #0F1312;
+  --surface:   #161B19;
+  --sunken:    #0A0D0C;
+  --ink:       #E2E5E0;
+  --ink-soft:  #9AA19C;
+  --ink-faint: #7D847F;
+  --rule:      #262C29;
+  --rule-firm: #3A423E;
+  --hi:        #C9B81C;
+  --hi-bright: #DDCB2E;
+  --froth:     #6BA8B8;
+  --iron:      #C88663;
+  --mint:      #8CAE79;
+  --slate:     #9B93A6;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--body);
+  font-size: clamp(1rem, 0.96rem + 0.2vw, 1.0625rem);
+  line-height: 1.65;
+  text-rendering: optimizeLegibility;
+}
+
+img { max-width: 100%; height: auto; display: block; }
+
+a { color: inherit; }
+
+:focus-visible {
+  outline: 2px solid var(--hi);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+.skip {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  background: var(--ink);
+  color: var(--bg);
+  padding: 0.75rem 1rem;
+  z-index: 50;
+}
+.skip:focus { left: 0; }
+
+/* --- shared shell ------------------------------------------------------- */
+
+.wrap {
+  width: min(100%, 76rem);
+  margin-inline: auto;
+  padding-inline: var(--pad);
+}
+
+.rule-top { border-top: 1px solid var(--rule); }
+
+.eyebrow {
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin: 0;
+}
+
+/* --- masthead ------------------------------------------------------------ */
+
+.masthead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem 2rem;
+  flex-wrap: wrap;
+  padding-block: 1.5rem;
+  border-bottom: 1px solid var(--rule);
+}
+
+.mark {
+  font-family: var(--mono);
+  font-size: 0.8125rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--ink);
+}
+.mark b { font-weight: 700; color: var(--hi); }
+
+.masthead nav {
+  display: flex;
+  gap: clamp(0.9rem, 2.5vw, 1.75rem);
+  align-items: baseline;
+  flex-wrap: wrap;
+  font-family: var(--mono);
+  font-size: 0.8125rem;
+  letter-spacing: 0.06em;
+}
+
+.masthead nav a {
+  text-decoration: none;
+  color: var(--ink-soft);
+  padding-bottom: 2px;
+  border-bottom: 1px solid transparent;
+}
+.masthead nav a:hover { color: var(--ink); border-bottom-color: var(--hi); }
+
+.theme-toggle {
+  font: inherit;
+  font-family: var(--mono);
+  font-size: 0.8125rem;
+  background: none;
+  border: 1px solid var(--rule-firm);
+  color: var(--ink-soft);
+  padding: 0.3rem 0.7rem;
+  cursor: pointer;
+  letter-spacing: 0.06em;
+}
+.theme-toggle:hover { color: var(--ink); border-color: var(--hi); }
+
+/* --- hero ---------------------------------------------------------------- */
+
+.hero { padding-block: clamp(3.5rem, 11vw, 8rem) clamp(2.5rem, 7vw, 5rem); }
+
+.hero h1 {
+  font-family: var(--display);
+  font-weight: 400;
+  font-size: clamp(2.1rem, 1.1rem + 4.4vw, 4.6rem);
+  line-height: 1.03;
+  letter-spacing: -0.022em;
+  margin: 1.25rem 0 0;
+  max-width: 20ch;
+  text-wrap: balance;
+}
+
+.hero .lede {
+  font-size: clamp(1.05rem, 1rem + 0.45vw, 1.375rem);
+  line-height: 1.5;
+  color: var(--ink-soft);
+  max-width: 46ch;
+  margin: 1.75rem 0 0;
+}
+
+.hero .meta {
+  font-family: var(--mono);
+  font-size: 0.8125rem;
+  color: var(--ink-faint);
+  margin: 2.5rem 0 0;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--rule);
+  max-width: 52ch;
+  line-height: 1.6;
+}
+
+/* --- section headers ----------------------------------------------------- */
+
+.section { padding-block: clamp(3rem, 8vw, 6rem); }
+
+.section-head {
+  display: grid;
+  gap: 0.75rem 3rem;
+  grid-template-columns: 1fr;
+  margin-bottom: clamp(2rem, 5vw, 3.5rem);
+}
+@media (min-width: 52rem) {
+  .section-head { grid-template-columns: minmax(0, 22ch) minmax(0, 46ch); align-items: start; }
+}
+
+.section-head h2 {
+  font-family: var(--display);
+  font-weight: 400;
+  font-size: clamp(1.6rem, 1.2rem + 1.6vw, 2.5rem);
+  letter-spacing: -0.015em;
+  line-height: 1.1;
+  margin: 0;
+}
+
+.section-head p { margin: 0; color: var(--ink-soft); }
+
+/* --- the assay card: the signature ---------------------------------------
+   Each project is reported the way a plant reports a campaign. Feed goes in,
+   separation happens, concentrate comes out, and the assay is the number that
+   says what it was really worth. The assay is given the same weight as the
+   headline on purpose.
+--------------------------------------------------------------------------- */
+
+.assays { display: grid; gap: clamp(1.5rem, 3vw, 2.25rem); }
+
+.assay {
+  --tint: var(--hi);
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--tint);
+  display: grid;
+  grid-template-columns: 1fr;
+}
+.assay[data-accent="amber"] { --tint: var(--froth); }
+.assay[data-accent="iron"]  { --tint: var(--iron); }
+.assay[data-accent="mint"]  { --tint: var(--mint); }
+.assay[data-accent="slate"] { --tint: var(--slate); }
+
+@media (min-width: 60rem) {
+  .assay { grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); }
+}
+
+.assay-body { padding: clamp(1.5rem, 3.5vw, 2.5rem); }
+
+.assay-name {
+  font-family: var(--display);
+  font-weight: 400;
+  font-size: clamp(1.5rem, 1.2rem + 1.2vw, 2.1rem);
+  line-height: 1.12;
+  letter-spacing: -0.015em;
+  margin: 0.4rem 0 0;
+}
+.assay-name a { text-decoration: none; }
+.assay-name a:hover { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 4px; }
+
+.assay-tagline {
+  color: var(--ink-soft);
+  margin: 0.9rem 0 0;
+  max-width: 44ch;
+}
+
+/* the three streams */
+.streams {
+  margin: 1.75rem 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 1px;
+  background: var(--rule);
+  border-block: 1px solid var(--rule);
+}
+.streams > div { background: var(--surface); padding: 0.9rem 0 0.95rem; }
+
+.streams dt {
+  font-family: var(--mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.streams dd {
+  margin: 0.3rem 0 0;
+  font-size: 0.9375rem;
+  line-height: 1.55;
+  color: var(--ink-soft);
+}
+
+/* the number */
+.assay-figure {
+  margin: 1.75rem 0 0;
+  padding-top: 1.25rem;
+  border-top: 2px solid var(--tint);
+}
+.assay-figure .eyebrow { color: var(--tint); }
+.assay-figure q {
+  display: block;
+  quotes: none;
+  font-family: var(--display);
+  font-size: clamp(1.15rem, 1rem + 0.8vw, 1.6rem);
+  line-height: 1.25;
+  margin: 0.5rem 0 0;
+  max-width: 30ch;
+}
+.assay-figure p {
+  font-size: 0.875rem;
+  color: var(--ink-soft);
+  margin: 0.75rem 0 0;
+  max-width: 48ch;
+}
+
+.assay-links {
+  margin: 1.75rem 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem 1.5rem;
+  font-family: var(--mono);
+  font-size: 0.8125rem;
+}
+.assay-links a {
+  text-decoration: none;
+  color: var(--ink);
+  border-bottom: 1px solid var(--tint);
+  padding-bottom: 2px;
+}
+.assay-links a:hover { color: var(--tint); }
+.assay-links a::after { content: " \2192"; }
+
+.assay-shot {
+  border-top: 1px solid var(--rule);
+  background: var(--sunken);
+  display: grid;
+  place-items: center;
+  padding: 1.25rem;
+  min-height: 12rem;
+}
+@media (min-width: 60rem) {
+  .assay-shot { border-top: 0; border-left: 1px solid var(--rule); }
+}
+.assay-shot img { box-shadow: 0 1px 3px rgb(0 0 0 / 0.18); }
+
+.assay-shot .placeholder {
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  text-align: center;
+  border: 1px dashed var(--rule-firm);
+  padding: 2.5rem 1.5rem;
+  width: 100%;
+}
+
+.status {
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  color: var(--ink-faint);
+  margin: 1.5rem 0 0;
+}
+
+/* --- stack chips --------------------------------------------------------- */
+
+.stack {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  padding: 0;
+  margin: 1.25rem 0 0;
+  list-style: none;
+}
+.stack li {
+  font-family: var(--mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.06em;
+  color: var(--ink-soft);
+  border: 1px solid var(--rule);
+  padding: 0.2rem 0.5rem;
+}
+
+/* --- notes --------------------------------------------------------------- */
+
+.notes-list { list-style: none; padding: 0; margin: 0; border-top: 1px solid var(--rule); }
+.notes-list li { border-bottom: 1px solid var(--rule); }
+.notes-list a {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.4rem 1.5rem;
+  padding: 1.1rem 0;
+  text-decoration: none;
+}
+.notes-list a:hover .n-label { color: var(--hi); }
+.n-label { font-family: var(--display); font-size: 1.1875rem; }
+.n-detail { font-family: var(--mono); font-size: 0.75rem; color: var(--ink-faint); }
+
+/* --- contact ------------------------------------------------------------- */
+
+.contact-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem 2.5rem;
+  margin: 1.5rem 0 0;
+  padding: 0;
+  list-style: none;
+  font-family: var(--mono);
+  font-size: 0.9375rem;
+}
+.contact-links a { text-decoration: none; border-bottom: 1px solid var(--hi); padding-bottom: 3px; }
+.contact-links a:hover { color: var(--hi); }
+
+/* --- project page -------------------------------------------------------- */
+
+.back {
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  text-decoration: none;
+  display: inline-block;
+  margin-bottom: 2rem;
+}
+.back:hover { color: var(--hi); }
+.back::before { content: "\2190  "; }
+
+.prose { max-width: var(--measure); }
+.prose p { margin: 0 0 1.35rem; }
+.prose p:last-child { margin-bottom: 0; }
+
+.figure { margin: clamp(2rem, 5vw, 3.5rem) 0; }
+.figure img { border: 1px solid var(--rule); width: 100%; }
+.figure figcaption {
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  color: var(--ink-faint);
+  margin-top: 0.7rem;
+  line-height: 1.5;
+}
+
+/* --- footer -------------------------------------------------------------- */
+
+.foot {
+  border-top: 1px solid var(--rule);
+  padding-block: 2.5rem 3.5rem;
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  color: var(--ink-faint);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 2rem;
+  justify-content: space-between;
+}
+.foot a { color: var(--ink-soft); }
+
+/* --- motion -------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: no-preference) {
+  .reveal {
+    opacity: 0;
+    transform: translateY(0.75rem);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  }
+  .reveal.in { opacity: 1; transform: none; }
+}
+
+@media print {
+  .masthead nav, .theme-toggle, .skip { display: none; }
+  body { background: #fff; color: #000; }
+}
+
+/* --- project page headings ----------------------------------------------- */
+
+.project-title {
+  font-family: var(--display);
+  font-weight: 400;
+  font-size: clamp(2rem, 1.4rem + 2.4vw, 3.4rem);
+  line-height: 1.06;
+  letter-spacing: -0.02em;
+  margin: 0.6rem 0 0;
+  max-width: 18ch;
+  text-wrap: balance;
+}
+
+.project-tagline {
+  font-size: clamp(1.05rem, 1rem + 0.4vw, 1.25rem);
+  line-height: 1.5;
+  color: var(--ink-soft);
+  max-width: 46ch;
+  margin: 1.25rem 0 0;
+}
+
+/* On a project page the assay stands alone, so it does not need the two column
+   split that the cards on the home page use. */
+.assay-solo { grid-template-columns: 1fr; margin-block: clamp(2rem, 5vw, 3rem); }
+
+.stack-label { margin-top: 2.75rem; }

@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sílice en una planta de flotación de hierro - PENDIENTE: tu nombre completo</title>
+<meta name="description" content="¿Puede un modelo cantar la ley del concentrado antes que el laboratorio? Pasé diez módulos averiguando que no, y por qué.">
+<meta property="og:title" content="Sílice en una planta de flotación de hierro - PENDIENTE: tu nombre completo">
+<meta property="og:description" content="¿Puede un modelo cantar la ley del concentrado antes que el laboratorio? Pasé diez módulos averiguando que no, y por qué.">
+<meta property="og:type" content="website">
+<link rel="alternate" hreflang="en" href="../../work/silica.html">
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<a class="skip" href="#main">Ir al contenido</a>
+<header class="wrap masthead">
+  <a class="mark" href="../../es/index.html">PENDIENTE: tu nombre completo <b>/</b> datageeksunited.com</a>
+  <nav>
+    <a href="../../es/index.html#work">Proyectos</a>
+    <a href="../../es/index.html#notes">Apuntes</a>
+    <a href="../../es/index.html#contact">Contacto</a>
+    <a href="../../work/silica.html" rel="alternate" hreflang="en">English</a>
+    <button class="theme-toggle" type="button" data-toggle-theme>froth / pulp</button>
+  </nav>
+</header>
+<main id="main">
+<article class="wrap section">
+  <a class="back" href="../../es/index.html#work">Todos los proyectos</a>
+  <p class="eyebrow">Terminado. 30 de 30 apuntes, 10 de 10 módulos.</p>
+  <h1 class="project-title">Sílice en una planta de flotación de hierro</h1>
+  <p class="project-tagline">¿Puede un modelo cantar la ley del concentrado antes que el laboratorio? Pasé diez módulos averiguando que no, y por qué.</p>
+
+  
+
+  <div class="assay assay-solo" data-accent="iron">
+    <div class="assay-body">
+      <dl class="streams"><div><dt>Alimentación</dt><dd>737.453 filas y 24 sensores de una planta real de flotación de hierro, de marzo a septiembre de 2017.</dd></div><div><dt>Separación</dt><dd>Árboles, bosques, gradient boosting, una red neuronal y variables con memoria. Y después, lo decisivo: un baseline de persistencia contra el cual compararlos.</dd></div><div><dt>Concentrado</dt><dd>Un veredicto, 31 apuntes escritos y un volumen de 89 páginas.</dd></div></dl>
+      <div class="assay-figure">
+        <p class="eyebrow">Ley</p>
+        <q>el modelo aporta +0,009 de R² sobre no hacer nada</q>
+        <p>La persistencia, o sea &quot;supón que se queda donde está&quot;, da R² 0,632 a una hora. El modelo entrenado da 0,641. Pasadas cinco horas los dos se van a negativo. A doce horas el modelo es directamente peor que el baseline.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="prose"><p>A mitad de camino esto parecía un éxito. Añadir memoria horaria y gradient boosting subió el R² de 0,04 a 0,64, que es el salto que uno pone en una diapositiva.</p><p>Después medí lo que el proceso te regala. La sílice no se mueve mucho en una hora, así que predecir simplemente que el siguiente valor es igual al último ya da 0,632. Casi todo el salto era la inercia de la planta, no la habilidad del modelo. Esa corrección se quedó escrita en los apuntes, porque pillarla vale más que el número que tumbó.</p><p>Lo que sí me llevaría a una reunión de operaciones no salió de predecir, salió de agrupar. K-medias encontró tres estados de operación, y uno de ellos manda en marzo y abril y luego desaparece. La planta cambió su forma de operar, y eso explica una deriva que llevaba degradando todos los modelos desde el módulo dos. El error mensual sube: 0,44 en junio, 0,65 en agosto, 0,76 en septiembre. Los datos no te dicen la ley de mañana, pero sí te dicen que la planta ya no es la que era.</p></div>
+
+  <p class="eyebrow stack-label">Hecho con</p>
+  <ul class="stack"><li>Python</li><li>pandas</li><li>scikit-learn</li><li>gradient boosting</li><li>SHAP</li><li>LaTeX</li></ul>
+
+  <p class="assay-links"><a href="https://github.com/kmortizva-data/ml-silica-flotation">Ver el código</a></p>
+</article>
+</main>
+<footer class="wrap foot">
+  <span>&copy; 2026 PENDIENTE: tu nombre completo</span>
+  <span><a href="mailto:kmortizva@datageeksunited.com">kmortizva@datageeksunited.com</a></span>
+  <span><a href="https://github.com/kmortizva-data">github.com/kmortizva-data</a></span>
+</footer>
+<script src="../../theme.js" defer></script>
+</body>
+</html>

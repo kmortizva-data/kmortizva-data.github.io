@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>bg-remover - PENDIENTE: tu nombre completo</title>
+<meta name="description" content="Quita el fondo de una foto en tu propia máquina, y te deja reparar los bordes que el modelo se comió.">
+<meta property="og:title" content="bg-remover - PENDIENTE: tu nombre completo">
+<meta property="og:description" content="Quita el fondo de una foto en tu propia máquina, y te deja reparar los bordes que el modelo se comió.">
+<meta property="og:type" content="website">
+<link rel="alternate" hreflang="en" href="../../work/bg-remover.html">
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<a class="skip" href="#main">Ir al contenido</a>
+<header class="wrap masthead">
+  <a class="mark" href="../../es/index.html">PENDIENTE: tu nombre completo <b>/</b> datageeksunited.com</a>
+  <nav>
+    <a href="../../es/index.html#work">Proyectos</a>
+    <a href="../../es/index.html#notes">Apuntes</a>
+    <a href="../../es/index.html#contact">Contacto</a>
+    <a href="../../work/bg-remover.html" rel="alternate" hreflang="en">English</a>
+    <button class="theme-toggle" type="button" data-toggle-theme>froth / pulp</button>
+  </nav>
+</header>
+<main id="main">
+<article class="wrap section">
+  <a class="back" href="../../es/index.html#work">Todos los proyectos</a>
+  <p class="eyebrow">Funciona y está verificado en navegador. Pausado.</p>
+  <h1 class="project-title">bg-remover</h1>
+  <p class="project-tagline">Quita el fondo de una foto en tu propia máquina, y te deja reparar los bordes que el modelo se comió.</p>
+
+  
+
+  <div class="assay assay-solo" data-accent="slate">
+    <div class="assay-body">
+      <dl class="streams"><div><dt>Alimentación</dt><dd>Una foto de celular de 12 megapíxeles, reducida una sola vez a 2000 px por el lado mayor.</dd></div><div><dt>Separación</dt><dd>Un modelo de segmentación devuelve solo la máscara alfa, nunca un recorte terminado. El navegador guarda los píxeles originales, la máscara del modelo y una copia de trabajo como tres capas separadas.</dd></div><div><dt>Concentrado</dt><dd>Un PNG con transparencia de verdad, y dos pinceles que sí pueden arreglar un borde.</dd></div></dl>
+      <div class="assay-figure">
+        <p class="eyebrow">Ley</p>
+        <q>el primer recorte tarda de 13 a 15 segundos, los siguientes tardan 2</q>
+        <p>DirectML compila los shaders de la GPU en la primera inferencia. No está roto, pero un usuario no distingue una espera de quince segundos de un cuelgue, así que el overlay cuenta los segundos en voz alta en vez de girar en silencio.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="prose"><p>La decisión de diseño que vale la pena explicar es por qué el servidor devuelve una máscara en gris en vez de un recorte terminado.</p><p>Si devolviera un RGBA ya recortado, el color que hay debajo de los píxeles transparentes se pierde. Muchas librerías escriben negro ahí. Entonces un pincel de Restaurar no tendría nada real que recuperar, solo negro. Por eso el navegador conserva intactos los píxeles subidos, conserva intacta la máscara del modelo como la verdad, y pinta solo sobre una tercera copia mutable.</p><p>Eso es lo que hace que Restaurar se comporte bien. No fuerza el píxel al 100% de opacidad: copia de vuelta lo que el modelo había predicho originalmente. Un mechón de pelo que el modelo juzgó 60% transparente vuelve al 60%, en vez de convertirse en un pegote opaco. Ese detalle solo es la diferencia entre un pincel que repara un borde y uno que lo arruina.</p><p>Corre sobre DirectML y no sobre CUDA, porque hacer funcionar CUDA para esta generación de GPU en Windows costaba más de lo que valía, y registra qué proveedor de ejecución quedó activo de verdad en vez de dar por hecho que ganó la GPU.</p></div>
+
+  <p class="eyebrow stack-label">Hecho con</p>
+  <ul class="stack"><li>FastAPI</li><li>ONNX Runtime</li><li>DirectML</li><li>vanilla JavaScript</li></ul>
+
+  <p class="assay-links"><a href="https://github.com/kmortizva-data/bg-remover">Ver el código</a></p>
+</article>
+</main>
+<footer class="wrap foot">
+  <span>&copy; 2026 PENDIENTE: tu nombre completo</span>
+  <span><a href="mailto:kmortizva@datageeksunited.com">kmortizva@datageeksunited.com</a></span>
+  <span><a href="https://github.com/kmortizva-data">github.com/kmortizva-data</a></span>
+</footer>
+<script src="../../theme.js" defer></script>
+</body>
+</html>
