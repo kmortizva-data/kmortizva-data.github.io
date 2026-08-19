@@ -84,6 +84,7 @@ def shell(*, title: str, desc: str, lang: str, depth: int, switch_href: str,
 <meta property="og:description" content="{esc(desc)}">
 <meta property="og:type" content="website">
 <link rel="alternate" hreflang="{other_lang}" href="{switch}">
+<script>document.documentElement.className="js"</script>
 <link rel="stylesheet" href="{up}style.css">
 </head>
 <body>

@@ -485,13 +485,17 @@ a { color: inherit; }
 
 /* --- motion -------------------------------------------------------------- */
 
+/* The reveal is an enhancement, never a precondition for reading the page.
+   Content is visible by default; the hidden starting state is scoped to html.js,
+   which an inline script in the head sets before first paint. If scripting is off
+   or fails, the projects are simply there, rather than invisible for ever. */
 @media (prefers-reduced-motion: no-preference) {
-  .reveal {
+  html.js .reveal {
     opacity: 0;
     transform: translateY(0.75rem);
     transition: opacity 0.5s ease, transform 0.5s ease;
   }
-  .reveal.in { opacity: 1; transform: none; }
+  html.js .reveal.in { opacity: 1; transform: none; }
 }
 
 @media print {

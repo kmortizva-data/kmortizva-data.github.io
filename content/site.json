@@ -1,6 +1,6 @@
 {
   "_comment": "Every string the site shows lives here, in both languages. src/build.py reads this and writes the HTML. Edit this file, not the generated pages.",
-  "author": "PENDIENTE: tu nombre completo",
+  "author": "Kevin Ortiz",
   "email": "kmortizva@datageeksunited.com",
   "github_user": "kmortizva-data",
   "domain": "datageeksunited.com",
