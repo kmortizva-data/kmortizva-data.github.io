@@ -17,11 +17,11 @@
 <header class="wrap masthead">
   <a class="mark" href="index.html">Kevin Ortiz <b>/</b> datageeksunited.com</a>
   <nav>
+    <a href="index.html#about">About</a>
     <a href="index.html#work">Work</a>
     <a href="index.html#notes">Notes</a>
-    <a href="index.html#contact">Contact</a>
     <a href="es/index.html" rel="alternate" hreflang="es">Español</a>
-    <button class="theme-toggle" type="button" data-toggle-theme>froth / pulp</button>
+    <a class="cta" href="mailto:kmortizva@datageeksunited.com">Get in touch</a>
   </nav>
 </header>
 <main id="main">
@@ -30,82 +30,110 @@
   <h1>I build software that does to data what a plant does to ore.</h1>
   <p class="lede">Take in a lot of low grade material. Pull out the part worth keeping. Report the grade as it is, including when it disappoints.</p>
   <p class="meta">Flotation, hydrometallurgy, Li / Ta / Nb / W. Learning machine learning by building things with it.</p>
+  <p class="hero-actions">
+    <a class="cta" href="#work">See the work</a>
+    <a class="cta cta-quiet" href="mailto:kmortizva@datageeksunited.com">Get in touch</a>
+  </p>
 </section>
 
-<section id="work" class="wrap section rule-top">
+<div class="marquee" aria-hidden="true">
+  <div class="marquee-track"><span>+0.009 R² over doing nothing</span><span>42% of papers share no strong link</span><span>23 rounds of correction</span><span>13 s the first cutout, 2 s the rest</span><span>737,453 rows of real plant data</span><span>0 of 4 horizons where ML helps</span><span>+0.009 R² over doing nothing</span><span>42% of papers share no strong link</span><span>23 rounds of correction</span><span>13 s the first cutout, 2 s the rest</span><span>737,453 rows of real plant data</span><span>0 of 4 horizons where ML helps</span></div>
+</div>
+
+<section id="about" class="wrap section band">
+  <div class="about">
+    <h2>Who I am</h2>
+    <div class="about-body"><p>I am a mineral processing engineer. Flotation, hydrometallurgy, and the critical metals behind them: lithium, tantalum, niobium, tungsten. I trained on the EMerald master&#x27;s programme.</p><p>Two years ago I could not write a line of Python. I learned by building the four things below, and by writing down every concept I had to understand before I could use it.</p><p>What I bring to software is the habit a plant teaches you: measure before you claim, compare against the right baseline, and report the grade as it came out. A negative result that is properly measured is still a result, and it saves more money than a flattering one.</p></div>
+  </div>
+  <div class="marks"><div><span class="mark-value">4</span><span class="mark-label">projects built end to end</span></div><div><span class="mark-value">45</span><span class="mark-label">written study notes</span></div><div><span class="mark-value">2 yr</span><span class="mark-label">from zero Python</span></div></div>
+</section>
+
+<section id="work" class="wrap section">
   <div class="section-head">
     <h2>The work</h2>
     <p>Four projects, each written up the way a plant reports a campaign: what went in, how it was separated, what came out, and what it actually assayed.</p>
   </div>
   <div class="assays">
 <article class="assay reveal" data-accent="amber">
+  <a class="assay-shot" href="work/froth.html" aria-hidden="true" tabindex="-1">
+    <img src="assets/shots/froth-network.png" alt="Froth&#x27;s network view: papers as nodes clustered into subtopics, with bridge papers ringed in amber" width="1440" height="900" decoding="async">
+    <span class="assay-mark">42% with no strong link</span>
+  </a>
   <div class="assay-body">
     <p class="eyebrow">v1 frozen and approved. A scale edition is in development.</p>
     <h3 class="assay-name"><a href="work/froth.html">Froth</a></h3>
     <p class="assay-tagline">Maps a scientific field by meaning, so a literature review stops being five cherry picked papers.</p>
-    <dl class="streams"><div><dt>Feed</dt><dd>A topic, and every paper OpenAlex has on it. Up to 10,921 in one mapped corpus.</dd></div><div><dt>Separation</dt><dd>Each paper becomes a vector by meaning, not by keyword (SPECTER). Density clustering finds the subtopics. Three views draw them: bubbles, a force directed network, and a reading guide.</dd></div><div><dt>Concentrate</dt><dd>44 named subtopics, the papers that bridge between them, and a logbook you fill as you read.</dd></div></dl>
+    <dl class="streams"><div><dt>The problem</dt><dd>A topic, and every paper OpenAlex has on it. Up to 10,921 in one mapped corpus.</dd></div><div><dt>How I solved it</dt><dd>Each paper becomes a vector by meaning, not by keyword (SPECTER). Density clustering finds the subtopics. Three views draw them: bubbles, a force directed network, and a reading guide.</dd></div><div><dt>The result</dt><dd>44 named subtopics, the papers that bridge between them, and a logbook you fill as you read.</dd></div></dl>
     <div class="assay-figure">
-        <p class="eyebrow">Assay</p>
+        <p class="eyebrow">Measured</p>
         <q>42% of the papers drawn share no link at similarity 0.75</q>
         <p>Known, measured, and not hidden: at the current threshold nearly half the drawn nodes sit unconnected. Before the last round it was 36%, so this got worse, not better.</p>
       </div>
     <ul class="stack"><li>Python</li><li>SPECTER</li><li>HDBSCAN</li><li>UMAP</li><li>Streamlit</li><li>OpenAlex</li></ul>
     <p class="assay-links"><a href="work/froth.html">Froth</a><a href="https://github.com/kmortizva-data/froth-public">Read the code</a></p>
   </div>
-  <div class="assay-shot"><p class="placeholder">screenshot pending</p></div>
 </article>
 <article class="assay reveal" data-accent="iron">
+  <a class="assay-shot" href="work/silica.html" aria-hidden="true" tabindex="-1">
+    <img src="assets/shots/silica-horizons.png" alt="Model skill against prediction horizon, compared with a persistence baseline" width="1440" height="900" decoding="async">
+    <span class="assay-mark">+0.009 R² over nothing</span>
+  </a>
   <div class="assay-body">
     <p class="eyebrow">Complete. 30 of 30 notes, 10 of 10 modules.</p>
     <h3 class="assay-name"><a href="work/silica.html">Silica in an iron flotation plant</a></h3>
     <p class="assay-tagline">Can a model call the concentrate grade before the lab does? I spent ten modules finding out that it cannot, and why.</p>
-    <dl class="streams"><div><dt>Feed</dt><dd>737,453 rows and 24 sensors from a real iron ore flotation plant, March to September 2017.</dd></div><div><dt>Separation</dt><dd>Trees, forests, gradient boosting, a neural network, and lag features. Then, crucially, a persistence baseline to compare them against.</dd></div><div><dt>Concentrate</dt><dd>A verdict, 31 written notes and an 89 page volume.</dd></div></dl>
+    <dl class="streams"><div><dt>The problem</dt><dd>737,453 rows and 24 sensors from a real iron ore flotation plant, March to September 2017.</dd></div><div><dt>How I solved it</dt><dd>Trees, forests, gradient boosting, a neural network, and lag features. Then, crucially, a persistence baseline to compare them against.</dd></div><div><dt>The result</dt><dd>A verdict, 31 written notes and an 89 page volume.</dd></div></dl>
     <div class="assay-figure">
-        <p class="eyebrow">Assay</p>
+        <p class="eyebrow">Measured</p>
         <q>the model adds +0.009 R² over doing nothing</q>
         <p>Persistence, meaning &quot;assume it stays where it is&quot;, scores R² 0.632 at one hour. The trained model scores 0.641. Past five hours both go negative. At twelve hours the model is actively worse than the baseline.</p>
       </div>
     <ul class="stack"><li>Python</li><li>pandas</li><li>scikit-learn</li><li>gradient boosting</li><li>SHAP</li><li>LaTeX</li></ul>
     <p class="assay-links"><a href="work/silica.html">Silica in an iron flotation plant</a><a href="https://github.com/kmortizva-data/ml-silica-flotation">Read the code</a></p>
   </div>
-  <div class="assay-shot"><p class="placeholder">screenshot pending</p></div>
 </article>
 <article class="assay reveal" data-accent="mint">
+  <a class="assay-shot" href="work/concentra.html" aria-hidden="true" tabindex="-1">
+    <img src="assets/shots/concentra-site.png" alt="A Concentra cheatsheet: glossary, recipe, pitfalls and collapsible review questions" width="1440" height="900" decoding="async">
+    <span class="assay-mark">23 rounds of correction</span>
+  </a>
   <div class="assay-body">
     <p class="eyebrow">4 courses, 21 lessons. Course 5 in progress.</p>
     <h3 class="assay-name"><a href="work/concentra.html">Concentra</a></h3>
     <p class="assay-tagline">Turns the public syllabus of a course into a study sheet you can actually consult later.</p>
-    <dl class="streams"><div><dt>Feed</dt><dd>The publicly visible syllabus of a Coursera course. One request, cached, nothing behind the login.</dd></div><div><dt>Separation</dt><dd>The module map is generated from the syllabus, never typed by hand. Around it I write the glossary, the recipe, the pitfalls and the review questions, with analogies from metallurgy.</dd></div><div><dt>Concentrate</dt><dd>One self contained HTML sheet per module, offline, dark and light, and it prints to PDF cleanly.</dd></div></dl>
+    <dl class="streams"><div><dt>The problem</dt><dd>The publicly visible syllabus of a Coursera course. One request, cached, nothing behind the login.</dd></div><div><dt>How I solved it</dt><dd>The module map is generated from the syllabus, never typed by hand. Around it I write the glossary, the recipe, the pitfalls and the review questions, with analogies from metallurgy.</dd></div><div><dt>The result</dt><dd>One self contained HTML sheet per module, offline, dark and light, and it prints to PDF cleanly.</dd></div></dl>
     <div class="assay-figure">
-        <p class="eyebrow">Assay</p>
+        <p class="eyebrow">Measured</p>
         <q>23 rounds of correction for the first course alone</q>
         <p>Course 3 took 23 passes before it was right. The procedure that came out of that is written down in MANUAL.md, and three automated checks now have to pass before anything is committed. Skipping it means doing the work three times.</p>
       </div>
     <ul class="stack"><li>Python standard library</li><li>HTML</li><li>CSS</li><li>matplotlib</li></ul>
     <p class="assay-links"><a href="work/concentra.html">Concentra</a><a href="https://github.com/kmortizva-data/concentra">Read the code</a></p>
   </div>
-  <div class="assay-shot"><p class="placeholder">screenshot pending</p></div>
 </article>
 <article class="assay reveal" data-accent="slate">
+  <a class="assay-shot" href="work/bg-remover.html" aria-hidden="true" tabindex="-1">
+    <img src="assets/shots/bg-remover.png" alt="The bg-remover editor: a cut out subject over a checkerboard, with the Erase and Restore brushes" width="1440" height="900" decoding="async">
+    <span class="assay-mark">13 s, then 2 s</span>
+  </a>
   <div class="assay-body">
     <p class="eyebrow">Working and verified in a browser. Paused.</p>
     <h3 class="assay-name"><a href="work/bg-remover.html">bg-remover</a></h3>
     <p class="assay-tagline">Cuts the background out of a photo on your own machine, and lets you repair the edges the model got wrong.</p>
-    <dl class="streams"><div><dt>Feed</dt><dd>A 12 megapixel phone photo, downscaled once to 2000 px on the long side.</dd></div><div><dt>Separation</dt><dd>A segmentation model returns only the alpha mask, never a finished cutout. The browser holds the original pixels, the model&#x27;s mask and a working copy as three separate layers.</dd></div><div><dt>Concentrate</dt><dd>A PNG with real transparency, and two brushes that can actually fix an edge.</dd></div></dl>
+    <dl class="streams"><div><dt>The problem</dt><dd>A 12 megapixel phone photo, downscaled once to 2000 px on the long side.</dd></div><div><dt>How I solved it</dt><dd>A segmentation model returns only the alpha mask, never a finished cutout. The browser holds the original pixels, the model&#x27;s mask and a working copy as three separate layers.</dd></div><div><dt>The result</dt><dd>A PNG with real transparency, and two brushes that can actually fix an edge.</dd></div></dl>
     <div class="assay-figure">
-        <p class="eyebrow">Assay</p>
+        <p class="eyebrow">Measured</p>
         <q>the first cut takes 13 to 15 seconds, every one after that takes 2</q>
         <p>DirectML compiles its GPU shaders on the first inference. Nothing is broken, but a user cannot tell a fifteen second wait from a hang, so the overlay counts the seconds out loud instead of spinning silently.</p>
       </div>
     <ul class="stack"><li>FastAPI</li><li>ONNX Runtime</li><li>DirectML</li><li>vanilla JavaScript</li></ul>
     <p class="assay-links"><a href="work/bg-remover.html">bg-remover</a><a href="https://github.com/kmortizva-data/bg-remover">Read the code</a></p>
   </div>
-  <div class="assay-shot"><p class="placeholder">screenshot pending</p></div>
 </article>
   </div>
 </section>
 
-<section id="notes" class="wrap section rule-top">
+<section id="notes" class="wrap section band">
   <div class="section-head">
     <h2>Notes</h2>
     <p>Every concept I had to learn became a written note, in Spanish, built on my own data rather than textbook examples, and including the mistakes. They are here because the reasoning is the part worth reading.</p>
@@ -113,7 +141,7 @@
   <ul class="notes-list"><li><a href="docs/ML_desde_cero_Apuntes_completos.pdf"><span class="n-label">Machine learning from zero</span><span class="n-detail">31 notes, 10 modules, 89 pages</span></a></li><li><a href="docs/Froth_Apuntes_completos_ES.pdf"><span class="n-label">Froth, study notes</span><span class="n-detail">Spanish edition</span></a></li><li><a href="docs/Froth_Study_Notes_EN.pdf"><span class="n-label">Froth, study notes</span><span class="n-detail">English edition</span></a></li></ul>
 </section>
 
-<section id="contact" class="wrap section rule-top">
+<section id="contact" class="wrap section">
   <div class="section-head">
     <h2>Contact</h2>
     <p>Open to doctoral positions and to process engineering work where the data side matters.</p>

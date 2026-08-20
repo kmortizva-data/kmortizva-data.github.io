@@ -17,11 +17,11 @@
 <header class="wrap masthead">
   <a class="mark" href="../../es/index.html">Kevin Ortiz <b>/</b> datageeksunited.com</a>
   <nav>
+    <a href="../../es/index.html#about">Quién soy</a>
     <a href="../../es/index.html#work">Proyectos</a>
     <a href="../../es/index.html#notes">Apuntes</a>
-    <a href="../../es/index.html#contact">Contacto</a>
     <a href="../../work/froth.html" rel="alternate" hreflang="en">English</a>
-    <button class="theme-toggle" type="button" data-toggle-theme>froth / pulp</button>
+    <a class="cta" href="mailto:kmortizva@datageeksunited.com">Escríbeme</a>
   </nav>
 </header>
 <main id="main">
@@ -31,13 +31,13 @@
   <h1 class="project-title">Froth</h1>
   <p class="project-tagline">Mapea un campo científico por significado, para que una revisión de literatura deje de ser cinco papers escogidos a dedo.</p>
 
-  
+  <figure class="figure"><img src="../../assets/shots/froth-network.png" alt="Vista de red de Froth: los papers como nodos agrupados en subtemas, con los papers puente marcados con un anillo ámbar" width="1440" height="900" decoding="async"><figcaption>Vista de red de Froth: los papers como nodos agrupados en subtemas, con los papers puente marcados con un anillo ámbar</figcaption></figure>
 
   <div class="assay assay-solo" data-accent="amber">
     <div class="assay-body">
-      <dl class="streams"><div><dt>Alimentación</dt><dd>Un tema, y todos los papers que OpenAlex tenga de él. Hasta 10.921 en un corpus ya mapeado.</dd></div><div><dt>Separación</dt><dd>Cada paper se convierte en un vector por significado, no por palabra clave (SPECTER). Un agrupamiento por densidad encuentra los subtemas. Tres vistas los dibujan: burbujas, red con física y guía de lectura.</dd></div><div><dt>Concentrado</dt><dd>44 subtemas con nombre, los papers que hacen de puente entre ellos, y una bitácora que llenas mientras lees.</dd></div></dl>
+      <dl class="streams"><div><dt>El problema</dt><dd>Un tema, y todos los papers que OpenAlex tenga de él. Hasta 10.921 en un corpus ya mapeado.</dd></div><div><dt>Cómo lo resolví</dt><dd>Cada paper se convierte en un vector por significado, no por palabra clave (SPECTER). Un agrupamiento por densidad encuentra los subtemas. Tres vistas los dibujan: burbujas, red con física y guía de lectura.</dd></div><div><dt>El resultado</dt><dd>44 subtemas con nombre, los papers que hacen de puente entre ellos, y una bitácora que llenas mientras lees.</dd></div></dl>
       <div class="assay-figure">
-        <p class="eyebrow">Ley</p>
+        <p class="eyebrow">Medido</p>
         <q>el 42% de los papers dibujados no comparte ni un enlace con similitud 0,75</q>
         <p>Sabido, medido y sin esconder: con el umbral actual casi la mitad de los nodos dibujados quedan sueltos. Antes de la última ronda era el 36%, así que esto empeoró, no mejoró.</p>
       </div>

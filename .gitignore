@@ -5,3 +5,6 @@ __pycache__/
 # System
 Thumbs.db
 desktop.ini
+
+# Chrome's scratch profile, created by src/shoot.py when it takes the screenshots.
+assets/.chrome-profile/

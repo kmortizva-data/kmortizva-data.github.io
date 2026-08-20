@@ -92,11 +92,11 @@ def shell(*, title: str, desc: str, lang: str, depth: int, switch_href: str,
 <header class="wrap masthead">
   <a class="mark" href="{home}">{author} <b>/</b> {esc(site["domain"])}</a>
   <nav>
+    <a href="{home}#about">{esc(ui["nav_about"])}</a>
     <a href="{home}#work">{esc(ui["nav_work"])}</a>
     <a href="{home}#notes">{esc(ui["nav_notes"])}</a>
-    <a href="{home}#contact">{esc(ui["nav_contact"])}</a>
     <a href="{switch}" rel="alternate" hreflang="{other_lang}">{esc(ui["switch_to"])}</a>
-    <button class="theme-toggle" type="button" data-toggle-theme>froth / pulp</button>
+    <a class="cta" href="mailto:{esc(site["email"])}">{esc(ui["cta"])}</a>
   </nav>
 </header>
 <main id="main">
@@ -121,8 +121,12 @@ def shot_block(project: dict, lang: str, depth: int) -> str:
     """
     name = project.get("shot") or ""
     if name and (ASSETS / "shots" / name).exists():
+        # No lazy loading. There are four images on the whole site, they are the point
+        # of the page, and deferring them means a fast scroll (or a screenshot) lands on
+        # alt text instead of the work.
         return (f'<img src="{rel(depth)}assets/shots/{esc(name)}" '
-                f'alt="{esc(project["shot_alt"][lang])}" loading="lazy">')
+                f'alt="{esc(project["shot_alt"][lang])}" '
+                f'width="1440" height="900" decoding="async">')
     return '<p class="placeholder">screenshot pending</p>'
 
 
@@ -150,6 +154,10 @@ def assay_card(project: dict, lang: str, ui: dict, depth: int) -> str:
     p = project[lang]
     href = f"{rel(depth)}{LANGS[lang]['work']}/{project['slug']}.html"
     return f"""<article class="assay reveal" data-accent="{esc(project["accent"])}">
+  <a class="assay-shot" href="{href}" aria-hidden="true" tabindex="-1">
+    {shot_block(project, lang, depth)}
+    <span class="assay-mark">{esc(p["mark"])}</span>
+  </a>
   <div class="assay-body">
     <p class="eyebrow">{esc(p["status"])}</p>
     <h3 class="assay-name"><a href="{href}">{esc(p["name"])}</a></h3>
@@ -159,8 +167,34 @@ def assay_card(project: dict, lang: str, ui: dict, depth: int) -> str:
     <ul class="stack">{stack_of(project)}</ul>
     <p class="assay-links"><a href="{href}">{esc(p["name"])}</a><a href="{esc(project["repo"])}">{esc(ui["view_repo"])}</a></p>
   </div>
-  <div class="assay-shot">{shot_block(project, lang, depth)}</div>
 </article>"""
+
+
+def marquee(data: dict, lang: str) -> str:
+    """The numbers, scrolling. Vlad uses a marquee as decoration; this one carries the
+    four measured results, so it earns the space it takes."""
+    items = data["marquee"][lang]
+    run = "".join(f"<span>{esc(text)}</span>" for text in items)
+    # The track is duplicated so the loop has no visible seam when it wraps.
+    return f'''<div class="marquee" aria-hidden="true">
+  <div class="marquee-track">{run}{run}</div>
+</div>'''
+
+
+def about_section(data: dict, lang: str) -> str:
+    about = data["about"][lang]
+    paragraphs = "".join(f"<p>{esc(par)}</p>" for par in about["body"])
+    marks = "".join(
+        f'<div><span class="mark-value">{esc(m["value"])}</span>'
+        f'<span class="mark-label">{esc(m["label"])}</span></div>'
+        for m in about["marks"])
+    return f'''<section id="about" class="wrap section band">
+  <div class="about">
+    <h2>{esc(about["title"])}</h2>
+    <div class="about-body">{paragraphs}</div>
+  </div>
+  <div class="marks">{marks}</div>
+</section>'''
 
 
 def home_page(data: dict, lang: str) -> str:
@@ -185,9 +219,17 @@ def home_page(data: dict, lang: str) -> str:
   <h1>{esc(hero["headline"])}</h1>
   <p class="lede">{esc(hero["lede"])}</p>
   <p class="meta">{esc(hero["meta"])}</p>
+  <p class="hero-actions">
+    <a class="cta" href="#work">{esc(ui["see_work"])}</a>
+    <a class="cta cta-quiet" href="mailto:{esc(data["email"])}">{esc(ui["cta"])}</a>
+  </p>
 </section>
 
-<section id="work" class="wrap section rule-top">
+{marquee(data, lang)}
+
+{about_section(data, lang)}
+
+<section id="work" class="wrap section">
   <div class="section-head">
     <h2>{esc(work["title"])}</h2>
     <p>{esc(work["text"])}</p>
@@ -197,7 +239,7 @@ def home_page(data: dict, lang: str) -> str:
   </div>
 </section>
 
-<section id="notes" class="wrap section rule-top">
+<section id="notes" class="wrap section band">
   <div class="section-head">
     <h2>{esc(notes["title"])}</h2>
     <p>{esc(notes["text"])}</p>
@@ -205,7 +247,7 @@ def home_page(data: dict, lang: str) -> str:
   <ul class="notes-list">{note_items}</ul>
 </section>
 
-<section id="contact" class="wrap section rule-top">
+<section id="contact" class="wrap section">
   <div class="section-head">
     <h2>{esc(contact["title"])}</h2>
     <p>{esc(contact["text"])}</p>

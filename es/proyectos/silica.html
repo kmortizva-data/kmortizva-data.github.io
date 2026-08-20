@@ -17,11 +17,11 @@
 <header class="wrap masthead">
   <a class="mark" href="../../es/index.html">Kevin Ortiz <b>/</b> datageeksunited.com</a>
   <nav>
+    <a href="../../es/index.html#about">Quién soy</a>
     <a href="../../es/index.html#work">Proyectos</a>
     <a href="../../es/index.html#notes">Apuntes</a>
-    <a href="../../es/index.html#contact">Contacto</a>
     <a href="../../work/silica.html" rel="alternate" hreflang="en">English</a>
-    <button class="theme-toggle" type="button" data-toggle-theme>froth / pulp</button>
+    <a class="cta" href="mailto:kmortizva@datageeksunited.com">Escríbeme</a>
   </nav>
 </header>
 <main id="main">
@@ -31,13 +31,13 @@
   <h1 class="project-title">Sílice en una planta de flotación de hierro</h1>
   <p class="project-tagline">¿Puede un modelo cantar la ley del concentrado antes que el laboratorio? Pasé diez módulos averiguando que no, y por qué.</p>
 
-  
+  <figure class="figure"><img src="../../assets/shots/silica-horizons.png" alt="Habilidad del modelo frente al horizonte de predicción, comparada con el baseline de persistencia" width="1440" height="900" decoding="async"><figcaption>Habilidad del modelo frente al horizonte de predicción, comparada con el baseline de persistencia</figcaption></figure>
 
   <div class="assay assay-solo" data-accent="iron">
     <div class="assay-body">
-      <dl class="streams"><div><dt>Alimentación</dt><dd>737.453 filas y 24 sensores de una planta real de flotación de hierro, de marzo a septiembre de 2017.</dd></div><div><dt>Separación</dt><dd>Árboles, bosques, gradient boosting, una red neuronal y variables con memoria. Y después, lo decisivo: un baseline de persistencia contra el cual compararlos.</dd></div><div><dt>Concentrado</dt><dd>Un veredicto, 31 apuntes escritos y un volumen de 89 páginas.</dd></div></dl>
+      <dl class="streams"><div><dt>El problema</dt><dd>737.453 filas y 24 sensores de una planta real de flotación de hierro, de marzo a septiembre de 2017.</dd></div><div><dt>Cómo lo resolví</dt><dd>Árboles, bosques, gradient boosting, una red neuronal y variables con memoria. Y después, lo decisivo: un baseline de persistencia contra el cual compararlos.</dd></div><div><dt>El resultado</dt><dd>Un veredicto, 31 apuntes escritos y un volumen de 89 páginas.</dd></div></dl>
       <div class="assay-figure">
-        <p class="eyebrow">Ley</p>
+        <p class="eyebrow">Medido</p>
         <q>el modelo aporta +0,009 de R² sobre no hacer nada</q>
         <p>La persistencia, o sea &quot;supón que se queda donde está&quot;, da R² 0,632 a una hora. El modelo entrenado da 0,641. Pasadas cinco horas los dos se van a negativo. A doce horas el modelo es directamente peor que el baseline.</p>
       </div>

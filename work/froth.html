@@ -17,11 +17,11 @@
 <header class="wrap masthead">
   <a class="mark" href="../index.html">Kevin Ortiz <b>/</b> datageeksunited.com</a>
   <nav>
+    <a href="../index.html#about">About</a>
     <a href="../index.html#work">Work</a>
     <a href="../index.html#notes">Notes</a>
-    <a href="../index.html#contact">Contact</a>
     <a href="../es/proyectos/froth.html" rel="alternate" hreflang="es">Español</a>
-    <button class="theme-toggle" type="button" data-toggle-theme>froth / pulp</button>
+    <a class="cta" href="mailto:kmortizva@datageeksunited.com">Get in touch</a>
   </nav>
 </header>
 <main id="main">
@@ -31,13 +31,13 @@
   <h1 class="project-title">Froth</h1>
   <p class="project-tagline">Maps a scientific field by meaning, so a literature review stops being five cherry picked papers.</p>
 
-  
+  <figure class="figure"><img src="../assets/shots/froth-network.png" alt="Froth&#x27;s network view: papers as nodes clustered into subtopics, with bridge papers ringed in amber" width="1440" height="900" decoding="async"><figcaption>Froth&#x27;s network view: papers as nodes clustered into subtopics, with bridge papers ringed in amber</figcaption></figure>
 
   <div class="assay assay-solo" data-accent="amber">
     <div class="assay-body">
-      <dl class="streams"><div><dt>Feed</dt><dd>A topic, and every paper OpenAlex has on it. Up to 10,921 in one mapped corpus.</dd></div><div><dt>Separation</dt><dd>Each paper becomes a vector by meaning, not by keyword (SPECTER). Density clustering finds the subtopics. Three views draw them: bubbles, a force directed network, and a reading guide.</dd></div><div><dt>Concentrate</dt><dd>44 named subtopics, the papers that bridge between them, and a logbook you fill as you read.</dd></div></dl>
+      <dl class="streams"><div><dt>The problem</dt><dd>A topic, and every paper OpenAlex has on it. Up to 10,921 in one mapped corpus.</dd></div><div><dt>How I solved it</dt><dd>Each paper becomes a vector by meaning, not by keyword (SPECTER). Density clustering finds the subtopics. Three views draw them: bubbles, a force directed network, and a reading guide.</dd></div><div><dt>The result</dt><dd>44 named subtopics, the papers that bridge between them, and a logbook you fill as you read.</dd></div></dl>
       <div class="assay-figure">
-        <p class="eyebrow">Assay</p>
+        <p class="eyebrow">Measured</p>
         <q>42% of the papers drawn share no link at similarity 0.75</q>
         <p>Known, measured, and not hidden: at the current threshold nearly half the drawn nodes sit unconnected. Before the last round it was 36%, so this got worse, not better.</p>
       </div>

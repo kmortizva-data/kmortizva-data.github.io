@@ -17,11 +17,11 @@
 <header class="wrap masthead">
   <a class="mark" href="../index.html">Kevin Ortiz <b>/</b> datageeksunited.com</a>
   <nav>
+    <a href="../index.html#about">About</a>
     <a href="../index.html#work">Work</a>
     <a href="../index.html#notes">Notes</a>
-    <a href="../index.html#contact">Contact</a>
     <a href="../es/proyectos/silica.html" rel="alternate" hreflang="es">Español</a>
-    <button class="theme-toggle" type="button" data-toggle-theme>froth / pulp</button>
+    <a class="cta" href="mailto:kmortizva@datageeksunited.com">Get in touch</a>
   </nav>
 </header>
 <main id="main">
@@ -31,13 +31,13 @@
   <h1 class="project-title">Silica in an iron flotation plant</h1>
   <p class="project-tagline">Can a model call the concentrate grade before the lab does? I spent ten modules finding out that it cannot, and why.</p>
 
-  
+  <figure class="figure"><img src="../assets/shots/silica-horizons.png" alt="Model skill against prediction horizon, compared with a persistence baseline" width="1440" height="900" decoding="async"><figcaption>Model skill against prediction horizon, compared with a persistence baseline</figcaption></figure>
 
   <div class="assay assay-solo" data-accent="iron">
     <div class="assay-body">
-      <dl class="streams"><div><dt>Feed</dt><dd>737,453 rows and 24 sensors from a real iron ore flotation plant, March to September 2017.</dd></div><div><dt>Separation</dt><dd>Trees, forests, gradient boosting, a neural network, and lag features. Then, crucially, a persistence baseline to compare them against.</dd></div><div><dt>Concentrate</dt><dd>A verdict, 31 written notes and an 89 page volume.</dd></div></dl>
+      <dl class="streams"><div><dt>The problem</dt><dd>737,453 rows and 24 sensors from a real iron ore flotation plant, March to September 2017.</dd></div><div><dt>How I solved it</dt><dd>Trees, forests, gradient boosting, a neural network, and lag features. Then, crucially, a persistence baseline to compare them against.</dd></div><div><dt>The result</dt><dd>A verdict, 31 written notes and an 89 page volume.</dd></div></dl>
       <div class="assay-figure">
-        <p class="eyebrow">Assay</p>
+        <p class="eyebrow">Measured</p>
         <q>the model adds +0.009 R² over doing nothing</q>
         <p>Persistence, meaning &quot;assume it stays where it is&quot;, scores R² 0.632 at one hour. The trained model scores 0.641. Past five hours both go negative. At twelve hours the model is actively worse than the baseline.</p>
       </div>
