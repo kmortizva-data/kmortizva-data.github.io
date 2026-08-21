@@ -57,13 +57,13 @@
     "en": {
       "eyebrow": "Erasmus Mundus EMerald · Belgium / France / Sweden",
       "headline": "You cannot recover what you cannot measure.",
-      "lede": "Mineral processing engineer, working on flotation, hydrometallurgy and the critical metals Europe is short of.",
+      "lede": "Mineral processing engineer, working on flotation, hydrometallurgy, critical raw materials and the circular economy.",
       "meta": "Looking for a doctoral position from 2027. Below: {n} things I built, and what each one actually measured."
     },
     "es": {
       "eyebrow": "Erasmus Mundus EMerald · Bélgica / Francia / Suecia",
       "headline": "No se recupera lo que no se sabe medir.",
-      "lede": "Ingeniero de procesamiento de minerales. Flotación, hidrometalurgia y los metales críticos que a Europa le faltan.",
+      "lede": "Ingeniero de procesamiento de minerales. Flotación, hidrometalurgia, materias primas críticas y economía circular.",
       "meta": "Busco doctorado a partir de 2027. Abajo, {n} cosas que construí y lo que midió cada una."
     }
   },
@@ -124,13 +124,13 @@
   "contact": {
     "en": {
       "title": "Get in touch",
-      "text": "I am looking for a doctoral position in mineral processing or extractive metallurgy, in Europe, starting 2027. Critical raw materials, flotation, hydrometallurgy, or the circular economy side of any of them. If that overlaps with your group, I would like to hear from you.",
+      "text": "I am looking for a doctoral position in mineral processing or extractive metallurgy, starting 2027. Critical raw materials, flotation, hydrometallurgy, or the circular economy side of any of them. If that overlaps with your work, I would like to hear from you.",
       "email_label": "Email",
       "github_label": "GitHub"
     },
     "es": {
       "title": "Contacto",
-      "text": "Busco un doctorado en procesamiento de minerales o metalurgia extractiva, en Europa, a partir de 2027. Materias primas críticas, flotación, hidrometalurgia, o la parte de economía circular de cualquiera de las tres. Si eso se cruza con tu grupo, escríbeme.",
+      "text": "Busco un doctorado en procesamiento de minerales o metalurgia extractiva a partir de 2027. Materias primas críticas, flotación, hidrometalurgia, o la parte de economía circular de cualquiera de las tres. Si eso se cruza con tu trabajo, escríbeme.",
       "email_label": "Correo",
       "github_label": "GitHub"
     }
