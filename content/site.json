@@ -68,11 +68,11 @@
   "work_intro": {
     "en": {
       "title": "The work",
-      "text": "{N} projects, each written up the way a plant reports a campaign: what went in, how it was separated, what came out, and what it actually assayed."
+      "text": "{N} data analysis projects, each one an opportunity to experiment: new models, new statistical tests, new corners of programming. All of them run on real data, and every one ends with a measured result."
     },
     "es": {
       "title": "Los proyectos",
-      "text": "{N} proyectos, contados como una planta reporta una campaña: qué entró, cómo se separó, qué salió y cuánto dio de verdad al ensayarlo."
+      "text": "{N} proyectos de análisis de datos, cada uno una oportunidad para experimentar: modelos nuevos, pruebas estadísticas nuevas, rincones nuevos de la programación. Todos corren sobre datos reales, y cada uno termina con un resultado medido."
     }
   },
   "contact": {
@@ -324,7 +324,8 @@
       "body": [
         "I am a mining and metallurgy engineer from Colombia, now on the Erasmus Mundus EMerald master's in Georesources Engineering across Belgium, France and Sweden. I graduated first in my class at Universidad Nacional de Colombia, with honours every semester along the way.",
         "The critical metals crisis is easy to state and hard to escape. The world is electrifying: wind turbines, power grids, electric vehicles and the batteries behind all of them need copper, lithium, cobalt and rare earths in quantities we have never mined before. Recycling cannot close that loop yet, because you can only recycle what was bought decades ago, when the world bought far less of it. So most of tomorrow's metal must still come out of the ground, from deposits that grow poorer, finer and more chemically complex every year.",
-        "I believe the honest response to that is not bigger machines but better questions: innovation, curiosity and ingenuity applied at every step of the process. That is why, alongside the master's, I have been training myself through independent projects in machine learning and other engineering techniques that a doctorate or an industrial project will end up needing. The goal is to move past checking quality after the fact and into predicting it: imagine a lithium recovery circuit, or a battery materials plant, that sees its next hour coming. The {n} projects below are that training in public, and every one closes with a measured result."
+        "I believe the honest response to that is not bigger machines but better questions: innovation, curiosity and inventiveness applied at every step of the process. That is why, alongside the master's, I have been training myself through independent projects in machine learning and other engineering techniques that a doctorate or an industrial project will end up needing.",
+        "Quality control looks backwards: it tells you what already went wrong. What I want to build looks forward, models that warn a lithium recovery circuit or a battery materials plant about its next hour while there is still time to act. The {n} projects below are that practice in the open, and each one ends in a number, not an impression."
       ],
       "marks": [
         {
@@ -346,7 +347,8 @@
       "body": [
         "Soy ingeniero de minas y metalurgia, colombiano, ahora en el máster Erasmus Mundus EMerald de Georesources Engineering entre Bélgica, Francia y Suecia. Me gradué primero de mi promoción en la Universidad Nacional de Colombia, con cuadro de honor semestre tras semestre.",
         "La crisis de los metales críticos es fácil de enunciar y difícil de esquivar. El mundo se está electrificando: las turbinas de viento, las redes eléctricas, los vehículos eléctricos y las baterías detrás de todos ellos necesitan cobre, litio, cobalto y tierras raras en cantidades que nunca hemos minado. El reciclaje todavía no puede cerrar ese ciclo, porque solo se recicla lo que se compró hace décadas, cuando el mundo compraba mucho menos. Así que la mayor parte del metal de mañana seguirá saliendo del suelo, de depósitos cada año más pobres, más finos y más complejos químicamente.",
-        "Creo que la respuesta honesta a eso no son máquinas más grandes sino mejores preguntas: innovación, curiosidad e ingenio aplicados a cada paso del proceso. Por eso, en paralelo al máster, me he formado por mi cuenta en proyectos independientes de machine learning y otras técnicas de ingeniería que un doctorado o un proyecto industrial van a terminar necesitando. La meta es pasar de revisar la calidad después del hecho a predecirla: imagina un circuito de recuperación de litio, o una planta de materiales de batería, que ve venir su próxima hora. Los {n} proyectos de abajo son ese entrenamiento en público, y cada uno cierra con un resultado medido."
+        "Creo que la respuesta honesta a eso no son máquinas más grandes sino mejores preguntas: innovación, curiosidad e ingenio aplicados a cada paso del proceso. Por eso, en paralelo al máster, me he formado por mi cuenta en proyectos independientes de machine learning y otras técnicas de ingeniería que un doctorado o un proyecto industrial van a terminar necesitando.",
+        "El control de calidad mira hacia atrás: te dice qué salió mal cuando ya salió. Lo que quiero construir mira hacia adelante, modelos que le avisen a un circuito de recuperación de litio o a una planta de materiales de batería lo que trae su próxima hora, cuando todavía hay tiempo de actuar. Los {n} proyectos de abajo son esa práctica a la vista, y cada uno termina en un número, no en una impresión."
       ],
       "marks": [
         {

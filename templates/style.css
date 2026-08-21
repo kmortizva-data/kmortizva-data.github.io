@@ -814,7 +814,6 @@ article > .assay-links { max-width: var(--measure); }
    270 px screen, and long words allowed to break rather than push. */
 .hero h1 {
   overflow-wrap: break-word;
-  hyphens: auto;
   font-size: clamp(1.9rem, 1rem + 5.6vw, 6rem);
 }
 
@@ -1064,8 +1063,10 @@ p, .assay-tagline, .cred-detail, .streams dd { text-wrap: pretty; }
    container query, which measures the column itself; a viewport breakpoint would only be
    guessing at the column width through the layout.
 
-   Chrome refuses to hyphenate here whatever hyphenate-limit-chars says, so width is the
-   only lever that works. hyphens stays declared because Firefox and Safari do honour it.
+   No hyphenation, by Kevin's explicit rule: his browser was splitting words at line ends
+   (this dev environment's Chrome ships no hyphenation dictionaries, so screenshots never
+   showed it) and a word that does not fit must move down whole. The declared cost is
+   slightly wider justified gaps on browsers that would have hyphenated.
 
    Ragged is the default, so a browser without container queries gets the safe one. */
 .about-body, .prose { container-type: inline-size; }
@@ -1076,8 +1077,6 @@ p, .assay-tagline, .cred-detail, .streams dd { text-wrap: pretty; }
 
 .about-body p,
 .prose p {
-  hyphens: auto;
-  -webkit-hyphens: auto;
 }
 
 @container (min-width: 33rem) {
@@ -1256,8 +1255,6 @@ p, .assay-tagline, .cred-detail, .streams dd { text-wrap: pretty; }
   .section-head p {
     text-align: justify;
     text-align-last: start;
-    hyphens: auto;
-    -webkit-hyphens: auto;
   }
 }
 
