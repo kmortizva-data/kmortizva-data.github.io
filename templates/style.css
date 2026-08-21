@@ -50,6 +50,20 @@
      width of a zero at the element's own font size, so one value in ch produces a
      different right edge for every block on the page. */
   --measure: 55rem;   /* 880px, about 106 characters at the prose size of 17px */
+
+  /* "Who I am" gets its own, wider measure. Justifying its three paragraphs at 737px left
+     6 of 11 lines stretched past 1.5x, with one gap at 2.76x, nearly three times a normal
+     space. Widening was chosen over dropping the justification:
+
+       737px   worst 2.76x   average 1.60x   6 of 11
+       800px   worst 2.04x   average 1.43x   3 of 11
+       880px   worst 2.02x   average 1.45x   4 of 11
+       960px   worst 1.63x   average 1.25x   1 of 10
+
+     960 does not fit beside a heading: the container gives 1072 usable, so 112 would be
+     left for the heading and the gap, and the gap alone is 56. That is why the heading
+     for this one section sits above its text rather than to its left. */
+  --measure-wide: 60rem;   /* 960px */
   --gap: clamp(1.25rem, 3vw, 2.5rem);
   --pad: clamp(1.25rem, 5vw, 5rem);
 
@@ -842,10 +856,7 @@ p, .assay-tagline, .cred-detail, .streams dd { text-wrap: pretty; }
 /* "Who I am" was a narrow column with a heading floating in a lot of nothing.
    The heading column is now only as wide as it needs to be and sticks while the
    prose scrolls past it, which is what makes the reference sites feel composed. */
-@media (min-width: 60rem) {
-  .about { grid-template-columns: minmax(0, 0.55fr) minmax(0, 1.45fr); }
-  .about h2 { position: sticky; top: 2.5rem; }
-}
+
 
 /* --- credentials --------------------------------------------------------- */
 
@@ -1249,3 +1260,8 @@ p, .assay-tagline, .cred-detail, .streams dd { text-wrap: pretty; }
     -webkit-hyphens: auto;
   }
 }
+
+/* "Who I am" runs its text the full width of the page under its heading, rather than
+   beside it, which is what buys the 960px the justification needed. */
+.about-body { max-width: var(--measure-wide); }
+.about-body p { max-width: var(--measure-wide); }

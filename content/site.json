@@ -10,7 +10,6 @@
       "lang_name": "English",
       "switch_to": "Español",
       "nav_work": "Work",
-      "nav_notes": "Notes",
       "nav_contact": "Contact",
       "back": "All work",
       "feed": "The problem",
@@ -33,7 +32,6 @@
       "lang_name": "Español",
       "switch_to": "English",
       "nav_work": "Proyectos",
-      "nav_notes": "Apuntes",
       "nav_contact": "Contacto",
       "back": "Todos los proyectos",
       "feed": "El problema",
@@ -75,50 +73,6 @@
     "es": {
       "title": "Los proyectos",
       "text": "{N} proyectos, contados como una planta reporta una campaña: qué entró, cómo se separó, qué salió y cuánto dio de verdad al ensayarlo."
-    }
-  },
-  "notes": {
-    "en": {
-      "title": "Notes",
-      "text": "Every concept I had to learn became a written note, in Spanish, built on my own data rather than textbook examples, and including the mistakes. They are here because the reasoning is the part worth reading.",
-      "items": [
-        {
-          "label": "Machine learning from zero",
-          "detail": "31 notes, 10 modules, 89 pages",
-          "file": "docs/ML_desde_cero_Apuntes_completos.pdf"
-        },
-        {
-          "label": "Froth, study notes",
-          "detail": "Spanish edition",
-          "file": "docs/Froth_Apuntes_completos_ES.pdf"
-        },
-        {
-          "label": "Froth, study notes",
-          "detail": "English edition",
-          "file": "docs/Froth_Study_Notes_EN.pdf"
-        }
-      ]
-    },
-    "es": {
-      "title": "Apuntes",
-      "text": "Cada concepto que tuve que aprender se convirtió en un apunte escrito, en español, sobre mis propios datos y no sobre ejemplos de libro, con los tropiezos incluidos. Están aquí porque el razonamiento es lo que vale la pena leer.",
-      "items": [
-        {
-          "label": "Machine learning desde cero",
-          "detail": "31 apuntes, 10 módulos, 89 páginas",
-          "file": "docs/ML_desde_cero_Apuntes_completos.pdf"
-        },
-        {
-          "label": "Froth, apuntes del proyecto",
-          "detail": "Edición en español",
-          "file": "docs/Froth_Apuntes_completos_ES.pdf"
-        },
-        {
-          "label": "Froth, study notes",
-          "detail": "Edición en inglés",
-          "file": "docs/Froth_Study_Notes_EN.pdf"
-        }
-      ]
     }
   },
   "contact": {
@@ -167,7 +121,7 @@
           "The interesting engineering was not the clustering, it was the knobs. Every threshold in it is recalculated per corpus instead of shipped as a default: the network cap of 30 papers per cluster was picked from a measured table (no cap gave 2 islands and 0 bridges; 60 gave 8 and 17; 30 gave 14 and 25; 20 gave 21 and 23), and the bridge rule (a paper whose neighbours mostly sit outside its own subtopic) was re-measured here rather than inherited.",
           "The result I did not expect: fine tuning the embedding model on a small curated set of 1,290 pairs matched or beat training on 4,045. I tested it twice, once by a clustering metric and once double blind on my own judgement, and the small model won both times. The question of whether training on more topics helps is settled, and the answer is no."
         ],
-        "mark": "42% with no strong link",
+        "mark": "1,290 pairs beat 4,045",
         "area": "NLP · Clustering · Data visualisation"
       },
       "es": {
@@ -184,7 +138,7 @@
           "La ingeniería interesante no fue el agrupamiento, fueron las perillas. Cada umbral se recalcula por corpus en vez de venir fijado: el tope de 30 papers por subtema salió de una tabla medida (sin tope daban 2 islas y 0 puentes; con 60, ocho y 17; con 30, catorce y 25; con 20, veintiuna y 23), y la regla del puente (un paper cuyos vecinos están mayormente fuera de su propio subtema) se volvió a medir aquí en vez de heredarla.",
           "El resultado que no esperaba: afinar el modelo de vectores con un conjunto pequeño y curado de 1.290 pares igualó o superó al entrenamiento con 4.045. Lo probé dos veces, una con una métrica de agrupamiento y otra a doble ciego con mi propio criterio, y el modelo pequeño ganó las dos. La pregunta de si entrenar sobre más temas ayuda está cerrada, y la respuesta es no."
         ],
-        "mark": "42 % sin enlace fuerte",
+        "mark": "1.290 pares le ganaron a 4.045",
         "area": "PLN · Clustering · Visualización de datos"
       },
       "year": "2026",
@@ -274,7 +228,7 @@
           "The rule I care about most here is where the boundary sits. Only the public course description page is ever requested, once per course. Nothing behind the login is downloaded, no video is touched, and the cheatsheets are notes rewritten from scratch rather than a copy of the course. The cached page is Coursera's markup, so it stays out of the repository.",
           "The site itself has no dependencies at all, just the Python standard library, which means it still builds on a machine where installing anything is slow."
         ],
-        "mark": "23 rounds of correction",
+        "mark": "12 case studies on real data",
         "area": "Statistics · Regression · Model evaluation"
       },
       "es": {
@@ -292,7 +246,7 @@
           "La regla que más me importa aquí es dónde está la raya. Solo se pide la página pública de descripción del curso, una vez por curso. No se descarga nada detrás del login, no se toca ningún video, y los cheatsheets son apuntes reescritos desde cero, no una copia del curso. La página cacheada es marcado de Coursera, así que no entra al repositorio.",
           "El sitio no tiene ni una dependencia, solo la librería estándar de Python, y eso significa que sigue compilando en una máquina donde instalar cualquier cosa es lento."
         ],
-        "mark": "23 rondas de corrección",
+        "mark": "12 casos sobre datos reales",
         "area": "Estadística · Regresión · Evaluación de modelos"
       },
       "year": "2026",
@@ -355,27 +309,13 @@
       "hidden_reason": "Pulled 2026-08-21: too many bugs to show. Everything written about it stays here; flip hidden to false when it is fixed."
     }
   ],
-  "notes_files": [
-    {
-      "out": "docs/ML_desde_cero_Apuntes_completos.pdf",
-      "src": "Exc-1-Learn Machine Learning/1_Apuntes/ML_desde_cero_Apuntes_completos.pdf"
-    },
-    {
-      "out": "docs/Froth_Apuntes_completos_ES.pdf",
-      "src": "Froth/2_Froth publico (GitHub)/1_Apuntes/Froth_Apuntes_completos_ES.pdf"
-    },
-    {
-      "out": "docs/Froth_Study_Notes_EN.pdf",
-      "src": "Froth/2_Froth publico (GitHub)/1_Apuntes/Froth_Study_Notes_EN.pdf"
-    }
-  ],
   "about": {
     "en": {
       "title": "Who I am",
       "body": [
-        "I am a mining and metallurgy engineer, currently on the Erasmus Mundus EMerald master in Georesources Engineering, which runs across Belgium, France and Sweden. I graduated first in my class at Universidad Nacional de Colombia, on the scholarship for best academic average.",
-        "What I want to work on is the part of the circular economy that gets skipped: recycling alone cannot feed it. A perfect loop only returns what was put in decades ago, so the metals the transition needs will still come out of ore, and out of ore that is poorer and more complex every year. That makes primary and secondary resources one problem, not two.",
-        "My angle on it is measurement. A plant cannot correct what it only learns about hours later. The {n} projects below are how I learned to handle data at that standard. Every one closes with a measured result, including the ones that disappointed."
+        "I am a mining and metallurgy engineer, currently on the Erasmus Mundus EMerald master's in Georesources Engineering, which runs across Belgium, France and Sweden. I graduated first in my class at Universidad Nacional de Colombia, on the scholarship for best academic average.",
+        "The circular economy has a gap that most people skip past. Recycling can only give back metal that was already mined, decades ago, when the world used far less of it. Copper takes about forty years to come back, so even perfect recycling would cover only about half of what is needed today. The rest still has to be dug out of ore, and the ore left is poorer and more complex every year. That is why primary and secondary resources are one problem, not two.",
+        "My own angle is data analysis. Clustering thousands of papers into a map you can actually read, predicting what a plant will do in the next hour, testing whether a difference between two groups is real. The {n} projects below all run on real data rather than teaching sets, and each one ends with a number anybody can check."
       ],
       "marks": [
         {
@@ -396,8 +336,8 @@
       "title": "Quién soy",
       "body": [
         "Soy ingeniero de minas y metalurgia, ahora en el máster Erasmus Mundus EMerald de Georesources Engineering, que se cursa entre Bélgica, Francia y Suecia. Me gradué primero de mi promoción en la Universidad Nacional de Colombia, con la beca al mejor promedio académico.",
-        "Lo que quiero trabajar es la parte de la economía circular que se suele saltar: reciclar no alcanza para alimentarla. Un bucle perfecto solo devuelve lo que se puso hace décadas, así que los metales que la transición necesita van a seguir saliendo de mineral, y de mineral cada año más pobre y más complejo. Eso hace que los recursos primarios y los secundarios sean un problema, no dos.",
-        "Mi ángulo sobre eso es la medición. Una planta no corrige lo que solo se entera horas tarde. Los {n} proyectos de abajo son cómo aprendí a tratar datos a ese nivel. Todos cierran con un resultado medido, también los que decepcionaron."
+        "La economía circular tiene un hueco del que casi nadie habla. Reciclar solo puede devolver metal que ya se extrajo, hace décadas, cuando el mundo consumía mucho menos. El cobre tarda unos cuarenta años en volver, así que ni un reciclaje perfecto cubriría más de la mitad de lo que hace falta hoy. El resto sigue saliendo de mineral, y el que queda es cada año más pobre y más complejo. Por eso los recursos primarios y los secundarios son un problema, no dos.",
+        "Mi ángulo propio es el análisis de datos. Agrupar miles de artículos en un mapa que de verdad se puede leer, predecir qué hará una planta en la próxima hora, comprobar si la diferencia entre dos grupos es real. Los {n} proyectos de abajo corren sobre datos reales, no sobre conjuntos de práctica, y cada uno termina en una cifra que cualquiera puede comprobar."
       ],
       "marks": [
         {

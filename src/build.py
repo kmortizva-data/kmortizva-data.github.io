@@ -94,7 +94,6 @@ def shell(*, title: str, desc: str, lang: str, depth: int, switch_href: str,
   <nav>
     <a href="{home}#about">{esc(ui["nav_about"])}</a>
     <a href="{home}#work">{esc(ui["nav_work"])}</a>
-    <a href="{home}#notes">{esc(ui["nav_notes"])}</a>
     <a href="{switch}" rel="alternate" hreflang="{other_lang}">{esc(ui["switch_to"])}</a>
     <a class="cta" href="mailto:{esc(site["email"])}">{esc(ui["cta"])}</a>
   </nav>
@@ -327,18 +326,10 @@ def home_page(data: dict, lang: str) -> str:
     ui = data["ui"][lang]
     hero = data["hero"][lang]
     work = data["work_intro"][lang]
-    notes = data["notes"][lang]
     contact = data["contact"][lang]
     depth = 0 if lang == "en" else 1
     up = rel(depth)
     live_count = len([p for p in shown_projects(data) if not p.get("archive")])
-
-    note_items = "".join(
-        f'<li><a href="{up}{esc(n["file"])}">'
-        f'<span class="n-label">{esc(n["label"])}</span>'
-        f'<span class="n-detail">{esc(n["detail"])}</span></a></li>'
-        for n in notes["items"]
-    )
 
     body = f"""<section class="wrap hero">
   <p class="eyebrow">{esc(hero["eyebrow"])}</p>
@@ -368,14 +359,6 @@ def home_page(data: dict, lang: str) -> str:
 </section>
 
 {archive_section(data, lang, ui, depth)}
-
-<section id="notes" class="wrap section band">
-  <div class="section-head reveal">
-    <h2>{esc(notes["title"])}</h2>
-    <p>{esc(notes["text"])}</p>
-  </div>
-  <ul class="notes-list reveal">{note_items}</ul>
-</section>
 
 <section id="contact" class="wrap section">
   <div class="section-head reveal">
@@ -460,19 +443,6 @@ def main() -> int:
     shutil.copy2(TEMPLATES / "style.css", ROOT / "style.css")
     shutil.copy2(TEMPLATES / "theme.js", ROOT / "theme.js")
 
-    # The PDFs are built inside their own projects, which sit next to this site
-    # under Portafolio/. Copying them on every build means a recompiled note reaches
-    # the site by rebuilding, instead of going stale until somebody remembers.
-    missing_pdfs = []
-    for note in data.get("notes_files", []):
-        source = ROOT.parent / note["src"]
-        if not source.exists():
-            missing_pdfs.append(note["src"])
-            continue
-        target = ROOT / note["out"]
-        target.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(source, target)
-
     # GitHub Pages runs Jekyll unless told otherwise, and Jekyll silently drops
     # folders whose names start with an underscore. Nothing here does today, but
     # the file costs nothing and removes a whole class of "it worked locally" bug.
@@ -484,8 +454,6 @@ def main() -> int:
     print(f"  {pages} pages written, CNAME -> {data['domain']}")
     if missing:
         print(f"  ! still no screenshot for: {', '.join(missing)}")
-    if missing_pdfs:
-        print(f"  ! note PDF not found, its link on the site will 404: {', '.join(missing_pdfs)}")
     return 0
 
 
