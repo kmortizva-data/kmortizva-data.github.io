@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Silica in an iron flotation plant - Kevin Ortiz</title>
-<meta name="description" content="Can a model call the concentrate grade before the lab does? I spent ten modules finding out that it cannot, and why.">
+<meta name="description" content="Can a model call the concentrate grade before the lab does? Fourteen modules finding out that it cannot, and why.">
 <meta property="og:title" content="Silica in an iron flotation plant - Kevin Ortiz">
-<meta property="og:description" content="Can a model call the concentrate grade before the lab does? I spent ten modules finding out that it cannot, and why.">
+<meta property="og:description" content="Can a model call the concentrate grade before the lab does? Fourteen modules finding out that it cannot, and why.">
 <meta property="og:type" content="website">
 <link rel="alternate" hreflang="es" href="../es/proyectos/silica.html">
 <script>document.documentElement.className="js"</script>
@@ -27,15 +27,15 @@
 <main id="main">
 <article class="wrap section">
   <a class="back" href="../index.html#work">All work</a>
-  <p class="eyebrow">Complete. 30 of 30 notes, 10 of 10 modules.</p>
+  <p class="eyebrow">Complete. 14 modules, 56 figures, every number recomputed.</p>
   <h1 class="project-title">Silica in an iron flotation plant</h1>
-  <p class="project-tagline">Can a model call the concentrate grade before the lab does? I spent ten modules finding out that it cannot, and why.</p>
+  <p class="project-tagline">Can a model call the concentrate grade before the lab does? Fourteen modules finding out that it cannot, and why.</p>
 
   <figure class="figure"><img src="../assets/shots/silica-horizons.png" alt="Model skill against prediction horizon, compared with a persistence baseline" width="1440" height="900" decoding="async"><figcaption>Model skill against prediction horizon, compared with a persistence baseline</figcaption></figure>
 
   <div class="assay assay-solo" data-accent="iron">
     <div class="assay-body">
-      <dl class="streams"><div><dt>The problem</dt><dd>737,453 rows and 24 sensors from a real iron ore flotation plant, March to September 2017.</dd></div><div><dt>How I solved it</dt><dd>Trees, forests, gradient boosting, a neural network, and lag features. Then, crucially, a persistence baseline to compare them against.</dd></div><div><dt>The result</dt><dd>A verdict, 31 written notes and an 89 page volume.</dd></div></dl>
+      <dl class="streams"><div><dt>The problem</dt><dd>A flotation plant learns its concentrate grade hours late, from the lab. If a model could call it in real time, the operator could correct while correcting still matters.</dd></div><div><dt>How I solved it</dt><dd>Trees, forests, gradient boosting, a neural network, and lag features. Then, crucially, a persistence baseline to compare them against.</dd></div><div><dt>The result</dt><dd>A measured no. Machine learning adds nine thousandths of R² over repeating the last lab value, so the deliverable is a recommendation not to deploy, and the list of what would have to change.</dd></div></dl>
       <div class="assay-figure">
         <p class="eyebrow">Measured</p>
         <q>the model adds +0.009 R² over doing nothing</q>
@@ -57,6 +57,8 @@
   <span><a href="mailto:kmortizva@datageeksunited.com">kmortizva@datageeksunited.com</a></span>
   <span><a href="https://github.com/kmortizva-data">github.com/kmortizva-data</a></span>
 </footer>
+<div class="curtain" aria-hidden="true"></div>
+<script src="../assets/lenis.min.js" defer></script>
 <script src="../theme.js" defer></script>
 </body>
 </html>

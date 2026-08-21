@@ -25,7 +25,9 @@
       "skip": "Skip to content",
       "nav_about": "About",
       "cta": "Get in touch",
-      "see_work": "See the work"
+      "see_work": "See the work",
+      "archive_title": "Archive",
+      "archive_note": "Earlier work, kept where it can be found."
     },
     "es": {
       "lang_name": "Español",
@@ -46,21 +48,23 @@
       "skip": "Ir al contenido",
       "nav_about": "Quién soy",
       "cta": "Escríbeme",
-      "see_work": "Ver los proyectos"
+      "see_work": "Ver los proyectos",
+      "archive_title": "Archivo",
+      "archive_note": "Trabajo anterior, donde se puede encontrar."
     }
   },
   "hero": {
     "en": {
-      "eyebrow": "Mineral processing engineer",
-      "headline": "I build software that does to data what a plant does to ore.",
-      "lede": "Take in a lot of low grade material. Pull out the part worth keeping. Report the grade as it is, including when it disappoints.",
-      "meta": "Flotation, hydrometallurgy, Li / Ta / Nb / W. Learning machine learning by building things with it."
+      "eyebrow": "Erasmus Mundus EMerald · Belgium / France / Sweden",
+      "headline": "Getting more out of less ore, and reporting what it really costs.",
+      "lede": "Mineral processing engineer, working on flotation, hydrometallurgy and the critical metals Europe is short of.",
+      "meta": "Looking for a doctoral position from 2027. Below: four things I built, and what each one actually measured."
     },
     "es": {
-      "eyebrow": "Ingeniero de procesamiento de minerales",
-      "headline": "Construyo software que le hace a los datos lo que una planta le hace al mineral.",
-      "lede": "Entra mucho material de baja ley. Sale la parte que vale. Y la ley se reporta como es, también cuando decepciona.",
-      "meta": "Flotación, hidrometalurgia, Li / Ta / Nb / W. Aprendiendo machine learning construyendo cosas con él."
+      "eyebrow": "Erasmus Mundus EMerald · Bélgica / Francia / Suecia",
+      "headline": "Sacar más de menos mineral, y reportar lo que de verdad cuesta.",
+      "lede": "Ingeniero de procesamiento de minerales. Flotación, hidrometalurgia y los metales críticos que a Europa le faltan.",
+      "meta": "Busco doctorado a partir de 2027. Abajo, cuatro cosas que construí y lo que midió cada una."
     }
   },
   "work_intro": {
@@ -119,14 +123,14 @@
   },
   "contact": {
     "en": {
-      "title": "Contact",
-      "text": "Open to doctoral positions and to process engineering work where the data side matters.",
+      "title": "Get in touch",
+      "text": "I am looking for a doctoral position in mineral processing or extractive metallurgy, in Europe, starting 2027. Critical raw materials, flotation, hydrometallurgy, or the circular economy side of any of them. If that overlaps with your group, I would like to hear from you.",
       "email_label": "Email",
       "github_label": "GitHub"
     },
     "es": {
       "title": "Contacto",
-      "text": "Abierto a posiciones doctorales y a trabajo de ingeniería de procesos donde la parte de datos importe.",
+      "text": "Busco un doctorado en procesamiento de minerales o metalurgia extractiva, en Europa, a partir de 2027. Materias primas críticas, flotación, hidrometalurgia, o la parte de economía circular de cualquiera de las tres. Si eso se cruza con tu grupo, escríbeme.",
       "email_label": "Correo",
       "github_label": "GitHub"
     }
@@ -152,9 +156,9 @@
       "en": {
         "name": "Froth",
         "tagline": "Maps a scientific field by meaning, so a literature review stops being five cherry picked papers.",
-        "feed": "A topic, and every paper OpenAlex has on it. Up to 10,921 in one mapped corpus.",
+        "feed": "A literature review is meant to cover a field. In practice you read the twenty papers a keyword search happened to surface, and never find out what you missed.",
         "process": "Each paper becomes a vector by meaning, not by keyword (SPECTER). Density clustering finds the subtopics. Three views draw them: bubbles, a force directed network, and a reading guide.",
-        "concentrate": "44 named subtopics, the papers that bridge between them, and a logbook you fill as you read.",
+        "concentrate": "A field you can see the shape of: 44 named subtopics, the papers that bridge between them, and an honest count of what the map still leaves unconnected.",
         "assay": "42% of the papers drawn share no link at similarity 0.75",
         "assay_detail": "Known, measured, and not hidden: at the current threshold nearly half the drawn nodes sit unconnected. Before the last round it was 36%, so this got worse, not better.",
         "status": "v1 frozen and approved. A scale edition is in development.",
@@ -163,14 +167,15 @@
           "The interesting engineering was not the clustering, it was the knobs. Every threshold in it is recalculated per corpus instead of shipped as a default: the network cap of 30 papers per cluster was picked from a measured table (no cap gave 2 islands and 0 bridges; 60 gave 8 and 17; 30 gave 14 and 25; 20 gave 21 and 23), and the bridge rule (a paper whose neighbours mostly sit outside its own subtopic) was re-measured here rather than inherited.",
           "The result I did not expect: fine tuning the embedding model on a small curated set of 1,290 pairs matched or beat training on 4,045. I tested it twice, once by a clustering metric and once double blind on my own judgement, and the small model won both times. The question of whether training on more topics helps is settled, and the answer is no."
         ],
-        "mark": "42% with no strong link"
+        "mark": "42% with no strong link",
+        "area": "Literature · NLP"
       },
       "es": {
         "name": "Froth",
         "tagline": "Mapea un campo científico por significado, para que una revisión de literatura deje de ser cinco papers escogidos a dedo.",
-        "feed": "Un tema, y todos los papers que OpenAlex tenga de él. Hasta 10.921 en un corpus ya mapeado.",
+        "feed": "Una revisión de literatura debería cubrir un campo. En la práctica lees los veinte papers que la búsqueda por palabra clave sacó a flote, y nunca te enteras de lo que te perdiste.",
         "process": "Cada paper se convierte en un vector por significado, no por palabra clave (SPECTER). Un agrupamiento por densidad encuentra los subtemas. Tres vistas los dibujan: burbujas, red con física y guía de lectura.",
-        "concentrate": "44 subtemas con nombre, los papers que hacen de puente entre ellos, y una bitácora que llenas mientras lees.",
+        "concentrate": "Un campo cuya forma se ve: 44 subtemas con nombre, los papers que hacen de puente entre ellos, y una cuenta honesta de lo que el mapa todavía deja suelto.",
         "assay": "el 42% de los papers dibujados no comparte ni un enlace con similitud 0,75",
         "assay_detail": "Sabido, medido y sin esconder: con el umbral actual casi la mitad de los nodos dibujados quedan sueltos. Antes de la última ronda era el 36%, así que esto empeoró, no mejoró.",
         "status": "v1 congelada y aprobada. La edición de escala sigue en desarrollo.",
@@ -179,8 +184,11 @@
           "La ingeniería interesante no fue el agrupamiento, fueron las perillas. Cada umbral se recalcula por corpus en vez de venir fijado: el tope de 30 papers por subtema salió de una tabla medida (sin tope daban 2 islas y 0 puentes; con 60, ocho y 17; con 30, catorce y 25; con 20, veintiuna y 23), y la regla del puente (un paper cuyos vecinos están mayormente fuera de su propio subtema) se volvió a medir aquí en vez de heredarla.",
           "El resultado que no esperaba: afinar el modelo de vectores con un conjunto pequeño y curado de 1.290 pares igualó o superó al entrenamiento con 4.045. Lo probé dos veces, una con una métrica de agrupamiento y otra a doble ciego con mi propio criterio, y el modelo pequeño ganó las dos. La pregunta de si entrenar sobre más temas ayuda está cerrada, y la respuesta es no."
         ],
-        "mark": "42 % sin enlace fuerte"
-      }
+        "mark": "42 % sin enlace fuerte",
+        "area": "Literatura · PLN"
+      },
+      "year": "2026",
+      "archive": false
     },
     {
       "slug": "silica",
@@ -201,36 +209,40 @@
       ],
       "en": {
         "name": "Silica in an iron flotation plant",
-        "tagline": "Can a model call the concentrate grade before the lab does? I spent ten modules finding out that it cannot, and why.",
-        "feed": "737,453 rows and 24 sensors from a real iron ore flotation plant, March to September 2017.",
+        "tagline": "Can a model call the concentrate grade before the lab does? Fourteen modules finding out that it cannot, and why.",
+        "feed": "A flotation plant learns its concentrate grade hours late, from the lab. If a model could call it in real time, the operator could correct while correcting still matters.",
         "process": "Trees, forests, gradient boosting, a neural network, and lag features. Then, crucially, a persistence baseline to compare them against.",
-        "concentrate": "A verdict, 31 written notes and an 89 page volume.",
+        "concentrate": "A measured no. Machine learning adds nine thousandths of R² over repeating the last lab value, so the deliverable is a recommendation not to deploy, and the list of what would have to change.",
         "assay": "the model adds +0.009 R² over doing nothing",
         "assay_detail": "Persistence, meaning \"assume it stays where it is\", scores R² 0.632 at one hour. The trained model scores 0.641. Past five hours both go negative. At twelve hours the model is actively worse than the baseline.",
-        "status": "Complete. 30 of 30 notes, 10 of 10 modules.",
+        "status": "Complete. 14 modules, 56 figures, every number recomputed.",
         "body": [
           "Halfway through, this project looked like a success. Adding hourly memory and gradient boosting took R² from 0.04 to 0.64, which is the kind of jump you put on a slide.",
           "Then I measured what the process gives you for free. Silica does not move much in an hour, so simply predicting that the next value equals the last one already scores 0.632. Almost the entire jump was the inertia of the plant, not the skill of the model. That correction stayed in the notes, because catching it is worth more than the number was.",
           "The part I would actually take to an operations meeting came from clustering, not prediction. K means found three operating states, and one of them dominates March and April and then vanishes. The plant changed how it was run, which explains a drift that had been quietly degrading every model since module two. Monthly error climbs 0.44 in June, 0.65 in August, 0.76 in September. The data cannot tell you tomorrow's grade, but it can tell you the plant is not the plant it was."
         ],
-        "mark": "+0.009 R² over nothing"
+        "mark": "+0.009 R² over nothing",
+        "area": "Process data · Machine learning"
       },
       "es": {
         "name": "Sílice en una planta de flotación de hierro",
-        "tagline": "¿Puede un modelo cantar la ley del concentrado antes que el laboratorio? Pasé diez módulos averiguando que no, y por qué.",
-        "feed": "737.453 filas y 24 sensores de una planta real de flotación de hierro, de marzo a septiembre de 2017.",
+        "tagline": "¿Puede un modelo cantar la ley del concentrado antes que el laboratorio? Catorce módulos para averiguar que no, y por qué.",
+        "feed": "Una planta de flotación se entera de la ley de su concentrado horas tarde, por el laboratorio. Si un modelo la cantara en tiempo real, el operador podría corregir cuando corregir todavía sirve.",
         "process": "Árboles, bosques, gradient boosting, una red neuronal y variables con memoria. Y después, lo decisivo: un baseline de persistencia contra el cual compararlos.",
-        "concentrate": "Un veredicto, 31 apuntes escritos y un volumen de 89 páginas.",
+        "concentrate": "Un no, medido. El machine learning aporta nueve milésimas de R² sobre repetir el último análisis, así que el entregable es una recomendación de no desplegar y la lista de qué tendría que cambiar.",
         "assay": "el modelo aporta +0,009 de R² sobre no hacer nada",
         "assay_detail": "La persistencia, o sea \"supón que se queda donde está\", da R² 0,632 a una hora. El modelo entrenado da 0,641. Pasadas cinco horas los dos se van a negativo. A doce horas el modelo es directamente peor que el baseline.",
-        "status": "Terminado. 30 de 30 apuntes, 10 de 10 módulos.",
+        "status": "Terminado. 14 módulos, 56 figuras, cada cifra recalculada.",
         "body": [
           "A mitad de camino esto parecía un éxito. Añadir memoria horaria y gradient boosting subió el R² de 0,04 a 0,64, que es el salto que uno pone en una diapositiva.",
           "Después medí lo que el proceso te regala. La sílice no se mueve mucho en una hora, así que predecir simplemente que el siguiente valor es igual al último ya da 0,632. Casi todo el salto era la inercia de la planta, no la habilidad del modelo. Esa corrección se quedó escrita en los apuntes, porque pillarla vale más que el número que tumbó.",
           "Lo que sí me llevaría a una reunión de operaciones no salió de predecir, salió de agrupar. K-medias encontró tres estados de operación, y uno de ellos manda en marzo y abril y luego desaparece. La planta cambió su forma de operar, y eso explica una deriva que llevaba degradando todos los modelos desde el módulo dos. El error mensual sube: 0,44 en junio, 0,65 en agosto, 0,76 en septiembre. Los datos no te dicen la ley de mañana, pero sí te dicen que la planta ya no es la que era."
         ],
-        "mark": "+0,009 de R² sobre nada"
-      }
+        "mark": "+0,009 de R² sobre nada",
+        "area": "Datos de proceso · Machine learning"
+      },
+      "year": "2026",
+      "archive": false
     },
     {
       "slug": "concentra",
@@ -250,37 +262,41 @@
       "en": {
         "name": "Concentra",
         "tagline": "Turns the public syllabus of a course into a study sheet you can actually consult later.",
-        "feed": "The publicly visible syllabus of a Coursera course. One request, cached, nothing behind the login.",
+        "feed": "You finish an online course and three weeks later you have the certificate and none of the content. Notes taken while watching are not notes anyone can consult.",
         "process": "The module map is generated from the syllabus, never typed by hand. Around it I write the glossary, the recipe, the pitfalls and the review questions, with analogies from metallurgy.",
-        "concentrate": "One self contained HTML sheet per module, offline, dark and light, and it prints to PDF cleanly.",
+        "concentrate": "A sheet per module that still works a year later: a worked example before the theory, code explained line by line with its real output, and the traps written down.",
         "assay": "23 rounds of correction for the first course alone",
         "assay_detail": "Course 3 took 23 passes before it was right. The procedure that came out of that is written down in MANUAL.md, and three automated checks now have to pass before anything is committed. Skipping it means doing the work three times.",
-        "status": "4 courses, 21 lessons. Course 5 in progress.",
+        "status": "5 courses, 25 modules, 12 case studies.",
         "body": [
           "I pay for the courses, watch them, and forget them. There was nowhere to look things up afterwards in a condensed form, so I built one.",
           "The metaphor is deliberate and it matches Froth: the course is the feed, the cheatsheet is the concentrate.",
           "The rule I care about most here is where the boundary sits. Only the public course description page is ever requested, once per course. Nothing behind the login is downloaded, no video is touched, and the cheatsheets are notes rewritten from scratch rather than a copy of the course. The cached page is Coursera's markup, so it stays out of the repository.",
           "The site itself has no dependencies at all, just the Python standard library, which means it still builds on a machine where installing anything is slow."
         ],
-        "mark": "23 rounds of correction"
+        "mark": "23 rounds of correction",
+        "area": "Study tools · Text"
       },
       "es": {
         "name": "Concentra",
         "tagline": "Convierte el temario público de un curso en una hoja de estudio que sí puedes consultar después.",
-        "feed": "El temario público de un curso de Coursera. Una sola petición, cacheada, nada detrás del login.",
+        "feed": "Terminas un curso en línea y tres semanas después tienes el certificado y nada del contenido. Los apuntes tomados mientras miras no son apuntes que se puedan consultar.",
         "process": "El mapa de módulos se genera del temario, nunca se escribe a mano. Alrededor escribo el glosario, la receta, los tropiezos y las preguntas de repaso, con analogías de metalurgia.",
-        "concentrate": "Una hoja HTML autocontenida por módulo, offline, en claro y oscuro, y que imprime a PDF limpio.",
+        "concentrate": "Una hoja por módulo que sigue sirviendo un año después: ejemplo resuelto antes que la teoría, código explicado línea por línea con su salida real, y las trampas escritas.",
         "assay": "23 rondas de corrección solo para el primer curso",
         "assay_detail": "El Curso 3 necesitó 23 pasadas hasta quedar bien. El procedimiento que salió de ahí está escrito en MANUAL.md, y hoy tres verificadores automáticos tienen que pasar antes de cada commit. Saltárselo es repetir el trabajo tres veces.",
-        "status": "4 cursos, 21 lecciones. Curso 5 en marcha.",
+        "status": "5 cursos, 25 módulos, 12 casos de estudio.",
         "body": [
           "Pago los cursos, los veo y se me olvidan. No tenía dónde consultarlos después de forma condensada, así que me lo construí.",
           "La metáfora es a propósito y rima con Froth: el curso es la alimentación, el cheatsheet es el concentrado.",
           "La regla que más me importa aquí es dónde está la raya. Solo se pide la página pública de descripción del curso, una vez por curso. No se descarga nada detrás del login, no se toca ningún video, y los cheatsheets son apuntes reescritos desde cero, no una copia del curso. La página cacheada es marcado de Coursera, así que no entra al repositorio.",
           "El sitio no tiene ni una dependencia, solo la librería estándar de Python, y eso significa que sigue compilando en una máquina donde instalar cualquier cosa es lento."
         ],
-        "mark": "23 rondas de corrección"
-      }
+        "mark": "23 rondas de corrección",
+        "area": "Herramientas de estudio · Texto"
+      },
+      "year": "2026",
+      "archive": false
     },
     {
       "slug": "bg-remover",
@@ -300,9 +316,9 @@
       "en": {
         "name": "bg-remover",
         "tagline": "Cuts the background out of a photo on your own machine, and lets you repair the edges the model got wrong.",
-        "feed": "A 12 megapixel phone photo, downscaled once to 2000 px on the long side.",
+        "feed": "Cutting a background out usually means uploading your photo to someone else's server, and then accepting whatever edge the model decided on.",
         "process": "A segmentation model returns only the alpha mask, never a finished cutout. The browser holds the original pixels, the model's mask and a working copy as three separate layers.",
-        "concentrate": "A PNG with real transparency, and two brushes that can actually fix an edge.",
+        "concentrate": "A cutout that never leaves your machine, and two brushes that actually fix the edges the model got wrong.",
         "assay": "the first cut takes 13 to 15 seconds, every one after that takes 2",
         "assay_detail": "DirectML compiles its GPU shaders on the first inference. Nothing is broken, but a user cannot tell a fifteen second wait from a hang, so the overlay counts the seconds out loud instead of spinning silently.",
         "status": "Working and verified in a browser. Paused.",
@@ -312,14 +328,15 @@
           "That is what makes Restore behave correctly. It does not force a pixel to full opacity, it copies back whatever the model originally predicted. A wisp of hair the model judged 60% transparent returns to 60%, instead of turning into a hard opaque blob. That single detail is the difference between a brush that repairs an edge and one that ruins it.",
           "It runs on DirectML rather than CUDA, because getting CUDA working for this GPU generation on Windows cost more than it was worth, and it logs which execution provider actually ended up active rather than assuming the GPU won."
         ],
-        "mark": "13 s, then 2 s"
+        "mark": "13 s, then 2 s",
+        "area": "Imaging · On-device ML"
       },
       "es": {
         "name": "bg-remover",
         "tagline": "Quita el fondo de una foto en tu propia máquina, y te deja reparar los bordes que el modelo se comió.",
-        "feed": "Una foto de celular de 12 megapíxeles, reducida una sola vez a 2000 px por el lado mayor.",
+        "feed": "Quitar un fondo suele significar subir tu foto al servidor de otro, y después aguantar el borde que el modelo haya decidido.",
         "process": "Un modelo de segmentación devuelve solo la máscara alfa, nunca un recorte terminado. El navegador guarda los píxeles originales, la máscara del modelo y una copia de trabajo como tres capas separadas.",
-        "concentrate": "Un PNG con transparencia de verdad, y dos pinceles que sí pueden arreglar un borde.",
+        "concentrate": "Un recorte que nunca sale de tu máquina, y dos pinceles que sí arreglan los bordes que el modelo se comió.",
         "assay": "el primer recorte tarda de 13 a 15 segundos, los siguientes tardan 2",
         "assay_detail": "DirectML compila los shaders de la GPU en la primera inferencia. No está roto, pero un usuario no distingue una espera de quince segundos de un cuelgue, así que el overlay cuenta los segundos en voz alta en vez de girar en silencio.",
         "status": "Funciona y está verificado en navegador. Pausado.",
@@ -329,8 +346,11 @@
           "Eso es lo que hace que Restaurar se comporte bien. No fuerza el píxel al 100% de opacidad: copia de vuelta lo que el modelo había predicho originalmente. Un mechón de pelo que el modelo juzgó 60% transparente vuelve al 60%, en vez de convertirse en un pegote opaco. Ese detalle solo es la diferencia entre un pincel que repara un borde y uno que lo arruina.",
           "Corre sobre DirectML y no sobre CUDA, porque hacer funcionar CUDA para esta generación de GPU en Windows costaba más de lo que valía, y registra qué proveedor de ejecución quedó activo de verdad en vez de dar por hecho que ganó la GPU."
         ],
-        "mark": "13 s, luego 2 s"
-      }
+        "mark": "13 s, luego 2 s",
+        "area": "Imagen · ML en tu máquina"
+      },
+      "year": "2025",
+      "archive": false
     }
   ],
   "notes_files": [
@@ -351,64 +371,126 @@
     "en": {
       "title": "Who I am",
       "body": [
-        "I am a mineral processing engineer. Flotation, hydrometallurgy, and the critical metals behind them: lithium, tantalum, niobium, tungsten. I trained on the EMerald master's programme.",
-        "Two years ago I could not write a line of Python. I learned by building the four things below, and by writing down every concept I had to understand before I could use it.",
-        "What I bring to software is the habit a plant teaches you: measure before you claim, compare against the right baseline, and report the grade as it came out. A negative result that is properly measured is still a result, and it saves more money than a flattering one."
+        "I am a mining and metallurgy engineer, currently on the Erasmus Mundus EMerald master in Georesources Engineering, which runs across Belgium, France and Sweden. I graduated first in my class at Universidad Nacional de Colombia, on the scholarship for best academic average.",
+        "What I want to work on is the part of the circular economy that gets skipped: recycling alone cannot feed it. A perfect loop only returns what was put in decades ago, so the metals the transition needs will still come out of ore — and out of ore that is poorer and more complex every year. That makes primary and secondary resources one problem, not two.",
+        "My angle on it is measurement. You cannot recover what you cannot characterise, and a plant cannot correct what it learns about hours late. The four projects below are how I learned to handle data at that standard. Every one closes with a measured result, including the ones that disappointed, because a number nobody can reproduce is not a number."
       ],
       "marks": [
         {
-          "value": "4",
-          "label": "projects built end to end"
+          "value": "1st",
+          "label": "of my graduating class, Universidad Nacional"
         },
         {
-          "value": "45",
-          "label": "written study notes"
+          "value": "EMJM",
+          "label": "Erasmus Mundus scholarship, awarded on merit"
         },
         {
-          "value": "2 yr",
-          "label": "from zero Python"
+          "value": "3",
+          "label": "countries in the EMerald master"
         }
       ]
     },
     "es": {
       "title": "Quién soy",
       "body": [
-        "Soy ingeniero de procesamiento de minerales. Flotación, hidrometalurgia y los metales críticos que hay detrás: litio, tantalio, niobio, wolframio. Me formé en el máster EMerald.",
-        "Hace dos años no sabía escribir una línea de Python. Aprendí construyendo los cuatro proyectos de aquí abajo, y escribiendo un apunte de cada concepto que tuve que entender antes de poder usarlo.",
-        "Lo que traigo al software es la costumbre que enseña una planta: medir antes de afirmar, comparar contra el rival correcto, y reportar la ley como salió. Un resultado negativo bien medido sigue siendo un resultado, y ahorra más dinero que uno que quede bien."
+        "Soy ingeniero de minas y metalurgia, ahora en el máster Erasmus Mundus EMerald de Georesources Engineering, que se cursa entre Bélgica, Francia y Suecia. Me gradué primero de mi promoción en la Universidad Nacional de Colombia, con la beca al mejor promedio académico.",
+        "Lo que quiero trabajar es la parte de la economía circular que se suele saltar: reciclar no alcanza para alimentarla. Un bucle perfecto solo devuelve lo que se puso hace décadas, así que los metales que la transición necesita van a seguir saliendo de mineral, y de mineral cada año más pobre y más complejo. Eso hace que los recursos primarios y los secundarios sean un problema, no dos.",
+        "Mi ángulo sobre eso es la medición. No se recupera lo que no se sabe caracterizar, y una planta no corrige lo que se entera horas tarde. Los cuatro proyectos de abajo son cómo aprendí a tratar datos a ese nivel. Todos cierran con un resultado medido, también los que decepcionaron, porque un número que nadie puede reproducir no es un número."
       ],
       "marks": [
         {
-          "value": "4",
-          "label": "proyectos de principio a fin"
+          "value": "1º",
+          "label": "de mi promoción, Universidad Nacional"
         },
         {
-          "value": "45",
-          "label": "apuntes escritos"
+          "value": "EMJM",
+          "label": "beca Erasmus Mundus, por concurso"
         },
         {
-          "value": "2 años",
-          "label": "desde cero en Python"
+          "value": "3",
+          "label": "países en el máster EMerald"
         }
       ]
     }
   },
   "marquee": {
     "en": [
-      "+0.009 R² over doing nothing",
-      "42% of papers share no strong link",
-      "23 rounds of correction",
-      "13 s the first cutout, 2 s the rest",
-      "737,453 rows of real plant data",
-      "0 of 4 horizons where ML helps"
+      "Froth flotation",
+      "Hydrometallurgy",
+      "Mineral characterisation",
+      "Li · Ta · Nb · W",
+      "Circular economy",
+      "Python",
+      "PyTorch",
+      "Conformal prediction",
+      "Time series",
+      "ArcGIS · Datamine · Deswik"
     ],
     "es": [
-      "+0,009 de R² sobre no hacer nada",
-      "42 % de los papers sin un solo enlace fuerte",
-      "23 rondas de corrección",
-      "13 s el primer recorte, 2 s los siguientes",
-      "737.453 filas de planta real",
-      "0 de 4 horizontes donde el ML aporta"
+      "Flotación de espumas",
+      "Hidrometalurgia",
+      "Caracterización mineral",
+      "Li · Ta · Nb · W",
+      "Economía circular",
+      "Python",
+      "PyTorch",
+      "Predicción conforme",
+      "Series de tiempo",
+      "ArcGIS · Datamine · Deswik"
     ]
+  },
+  "credentials": {
+    "en": {
+      "title": "Credentials",
+      "note": "Everything below is on the CV and can be checked.",
+      "items": [
+        {
+          "label": "MSc Georesources Engineering",
+          "detail": "Erasmus Mundus EMerald, 2025 to 2027. Université de Liège, Université de Lorraine and Luleå University of Technology, on an EMJM scholarship.",
+          "tag": "Belgium · France · Sweden"
+        },
+        {
+          "label": "BEng Mining & Metallurgy Engineering",
+          "detail": "Universidad Nacional de Colombia, 2024. Graduated first of the class, on the scholarship for best academic average.",
+          "tag": "First place"
+        },
+        {
+          "label": "Fellowships and honours",
+          "detail": "COLFUTURO National Fellowship for Academic Excellence, Prodeminas scholarship, Dean's list, honour roll.",
+          "tag": "Colombia"
+        },
+        {
+          "label": "Languages",
+          "detail": "Spanish native. English C1, TOEFL iBT 106 of 120. French elementary and improving, since a third of the master happens in France.",
+          "tag": "ES · EN · FR"
+        }
+      ]
+    },
+    "es": {
+      "title": "Credenciales",
+      "note": "Todo lo de abajo está en el CV y se puede comprobar.",
+      "items": [
+        {
+          "label": "Máster en Ingeniería de Georecursos",
+          "detail": "Erasmus Mundus EMerald, de 2025 a 2027. Universidad de Lieja, Universidad de Lorena y Universidad Tecnológica de Luleå, con beca EMJM.",
+          "tag": "Bélgica · Francia · Suecia"
+        },
+        {
+          "label": "Ingeniería de Minas y Metalurgia",
+          "detail": "Universidad Nacional de Colombia, 2024. Primero de la promoción, con la beca al mejor promedio académico.",
+          "tag": "Primer puesto"
+        },
+        {
+          "label": "Becas y distinciones",
+          "detail": "Beca nacional COLFUTURO a la excelencia académica, beca Prodeminas, cuadro de honor, lista del decano.",
+          "tag": "Colombia"
+        },
+        {
+          "label": "Idiomas",
+          "detail": "Español nativo. Inglés C1, TOEFL iBT 106 de 120. Francés básico y mejorando, porque un tercio del máster ocurre en Francia.",
+          "tag": "ES · EN · FR"
+        }
+      ]
+    }
   }
 }

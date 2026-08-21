@@ -760,3 +760,400 @@ a { color: inherit; }
 /* The band paints its ground with a spread shadow, which is fine, but the negative
    clip has to stay tied to the width so it cannot become a scroll source. */
 .band { clip-path: inset(0 -100vw); box-shadow: 0 0 0 100vw var(--surface); }
+
+/* ===========================================================================
+   Craft pass: typography, the credentials block, and the scroll grammar.
+   =========================================================================== */
+
+/* --- typography ---------------------------------------------------------- */
+
+/* The ragged breaks Kevin flagged. There is exact CSS for this and it was simply
+   not here: balance keeps a heading's lines even, pretty stops a paragraph from
+   dropping one word onto its own last line. */
+h1, h2, h3, .assay-name, .section-head h2, .about h2 { text-wrap: balance; }
+p, .assay-tagline, .cred-detail, .streams dd { text-wrap: pretty; }
+
+/* At 6rem the default tracking reads loose. Display sizes want it tighter, body
+   sizes do not. */
+.hero h1 { letter-spacing: -0.035em; line-height: 0.98; }
+.section-head h2, .about h2 { letter-spacing: -0.025em; }
+
+.hero .lede { line-height: 1.4; color: var(--ink); }
+.hero .meta { line-height: 1.7; }
+.about-body p { line-height: 1.7; }
+
+/* "Who I am" was a narrow column with a heading floating in a lot of nothing.
+   The heading column is now only as wide as it needs to be and sticks while the
+   prose scrolls past it, which is what makes the reference sites feel composed. */
+@media (min-width: 60rem) {
+  .about { grid-template-columns: minmax(0, 0.55fr) minmax(0, 1.45fr); }
+  .about h2 { position: sticky; top: 2.5rem; }
+}
+
+/* --- credentials --------------------------------------------------------- */
+
+.creds {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 1px;
+  background: var(--rule);
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.creds li {
+  background: var(--surface);
+  padding: clamp(1.25rem, 3vw, 1.9rem);
+  display: grid;
+  gap: 0.35rem 2rem;
+  align-items: baseline;
+  transition: background 0.25s ease;
+}
+
+@media (min-width: 54rem) {
+  .creds li { grid-template-columns: minmax(0, 13rem) minmax(0, 1fr); }
+  .cred-tag { grid-row: 1; grid-column: 1; }
+  .cred-label { grid-row: 1; grid-column: 2; }
+  .cred-detail { grid-row: 2; grid-column: 2; }
+}
+
+.creds li:hover { background: var(--raised); }
+
+.cred-tag {
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--hi);
+}
+
+.cred-label {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: clamp(1.05rem, 0.95rem + 0.5vw, 1.35rem);
+  letter-spacing: -0.012em;
+  color: var(--ink);
+}
+
+.cred-detail {
+  color: var(--ink-soft);
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  max-width: 62ch;
+}
+
+/* --- the scroll grammar -------------------------------------------------- */
+
+/* Read off the reference site rather than guessed: elements start faded and
+   pushed down, the distance scales with how important the element is (16 px for a
+   small line, 24 for a title, 36 for an item in a list), the trigger fires when
+   the block reaches 82% down the viewport, it plays once, and the easing is
+   power2.out, which is easeOutCubic.
+
+   Doing it in CSS instead of GSAP costs about thirty lines and no dependency. */
+@media (prefers-reduced-motion: no-preference) {
+  html.js .reveal {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 0.75s cubic-bezier(0.215, 0.61, 0.355, 1),
+                transform 0.75s cubic-bezier(0.215, 0.61, 0.355, 1);
+  }
+  html.js .reveal.in { opacity: 1; transform: none; }
+
+  /* The small line leads and the heading follows, overlapping by 0.35 s. */
+  html.js .reveal .eyebrow,
+  html.js .reveal .cred-tag {
+    opacity: 0;
+    transform: translateY(16px);
+    transition: opacity 0.6s cubic-bezier(0.215, 0.61, 0.355, 1),
+                transform 0.6s cubic-bezier(0.215, 0.61, 0.355, 1);
+  }
+  html.js .reveal.in .eyebrow,
+  html.js .reveal.in .cred-tag { opacity: 1; transform: none; }
+
+  html.js .reveal h2, html.js .reveal h3 { transition-delay: 0.25s; }
+
+  /* Lists and card grids come in as a staggered batch, not one trigger each. */
+  html.js .creds li, html.js .assay { transform: translateY(36px); }
+  html.js .creds li:nth-child(2), html.js .assay:nth-child(2) { transition-delay: 0.08s; }
+  html.js .creds li:nth-child(3), html.js .assay:nth-child(3) { transition-delay: 0.16s; }
+  html.js .creds li:nth-child(4), html.js .assay:nth-child(4) { transition-delay: 0.24s; }
+  html.js .creds li:nth-child(5) { transition-delay: 0.32s; }
+}
+
+/* --- the headline, word by word ------------------------------------------ */
+
+/* Each word is a clipping box with the word inside it, so the words rise out of
+   nothing instead of fading in place. The padding/margin pair gives descenders
+   (g, y, p) room to exist without the clip cutting them off. */
+.split .w {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: bottom;
+  padding-bottom: 0.14em;
+  margin-bottom: -0.14em;
+}
+.split .w > span { display: inline-block; }
+
+@media (prefers-reduced-motion: no-preference) {
+  html.js .split .w > span {
+    transform: translateY(110%);
+    transition: transform 0.85s cubic-bezier(0.215, 0.61, 0.355, 1);
+    /* 45 ms between words: fast enough that the line reads as one gesture. */
+    transition-delay: calc(var(--w) * 0.045s + 0.12s);
+  }
+  html.js.ready .split .w > span { transform: none; }
+
+  /* The lines under the headline follow it rather than racing it. */
+  html.js .hero .lede, html.js .hero .meta, html.js .hero .hero-actions {
+    opacity: 0;
+    transform: translateY(16px);
+    transition: opacity 0.7s cubic-bezier(0.215, 0.61, 0.355, 1),
+                transform 0.7s cubic-bezier(0.215, 0.61, 0.355, 1);
+  }
+  html.js .hero .lede { transition-delay: 0.45s; }
+  html.js .hero .meta { transition-delay: 0.58s; }
+  html.js .hero .hero-actions { transition-delay: 0.7s; }
+  html.js.ready .hero .lede,
+  html.js.ready .hero .meta,
+  html.js.ready .hero .hero-actions { opacity: 1; transform: none; }
+}
+
+/* --- the page transition curtain ----------------------------------------- */
+
+/* Deliberately a CSS animation rather than something theme.js drives: if the script
+   never loads, the curtain still lifts and the page is never left covered. It also
+   never takes clicks, so at worst it is a half-second of dark. */
+.curtain {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  background: var(--bg);
+  pointer-events: none;
+  clip-path: inset(0 0 100% 0);       /* parked: fully clipped, invisible */
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html.js .curtain {
+    animation: curtain-lift 0.5s cubic-bezier(0.76, 0, 0.24, 1) forwards;
+  }
+  html.js .curtain.on {
+    animation: curtain-drop 0.3s cubic-bezier(0.76, 0, 0.24, 1) forwards;
+  }
+}
+
+@keyframes curtain-lift {            /* arriving: the cover rises away */
+  from { clip-path: inset(0 0 0 0); }
+  to   { clip-path: inset(0 0 100% 0); }
+}
+@keyframes curtain-drop {            /* leaving: it falls back over the page */
+  from { clip-path: inset(0 0 100% 0); }
+  to   { clip-path: inset(0 0 0 0); }
+}
+
+/* --- the hero, filling its width ----------------------------------------- */
+
+/* The headline runs nearly the full width and the lede under it stopped at 46
+   characters, which left the right half of the first screen empty. The lede gets a
+   proper measure and the standing line moves beside it instead of under it. */
+.hero-foot {
+  margin-top: 1.75rem;
+  display: grid;
+  gap: 1.75rem 3rem;
+}
+
+@media (min-width: 52rem) {
+  .hero-foot {
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+    align-items: start;
+  }
+  .hero .meta { margin-top: 0.35rem; }
+}
+
+.hero .lede { max-width: 62ch; margin: 0; }
+
+/* --- justified prose ------------------------------------------------------ */
+
+/* Kevin asked for justified text. Justifying without hyphenation is what opens the
+   rivers of white space people blame justification for, so the two ship together:
+   the browser is allowed to break words, and the last line is left alone.
+
+   Only long prose. Headings, index rows and anything short stay ragged right, where
+   justification has too few words per line to distribute and looks broken. */
+/* Kevin asked for justified text. Whether that is an improvement depends entirely on how
+   far each space has to stretch to reach the right margin, so it was measured rather than
+   eyeballed. At the natural 4.4 px space, across the three paragraphs:
+
+     column 335px (40 chars)   worst gap 3.12x     6 of 7 lines past 1.5x
+     column 420px (50 chars)   worst gap 3.95x     5 of 6
+     column 520px (62 chars)   worst gap 2.38x     1 of 4
+     column 752px (78 chars)   worst gap 1.48x     0 of 11    <- no rivers
+
+   So justification is right on a wide column and indefensible on a phone. The switch is a
+   container query, which measures the column itself; a viewport breakpoint would only be
+   guessing at the column width through the layout.
+
+   Chrome refuses to hyphenate here whatever hyphenate-limit-chars says, so width is the
+   only lever that works. hyphens stays declared because Firefox and Safari do honour it.
+
+   Ragged is the default, so a browser without container queries gets the safe one. */
+.about-body, .prose { container-type: inline-size; }
+
+.about-body p,
+.prose p {
+  max-width: 78ch;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+}
+
+@container (min-width: 33rem) {
+  .about-body p,
+  .prose p {
+    text-align: justify;
+    text-wrap: initial;          /* pretty and justify fight; justify wins here */
+    text-align-last: start;      /* never stretch the last line of a paragraph */
+  }
+}
+
+/* ===========================================================================
+   The work as an index.
+
+   Four tall cards became four rows and a picture. The rows carry the name and the
+   measured number, because those are what a reader is scanning for; only the image
+   changes on hover, so nothing is lost without a mouse.
+   =========================================================================== */
+
+.index-layout { display: grid; gap: clamp(1.5rem, 4vw, 3rem); }
+
+@media (min-width: 60rem) {
+  .index-layout { grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); }
+}
+
+.index { list-style: none; margin: 0; padding: 0; }
+
+.index-row { border-top: 1px solid var(--rule); }
+.index-row:last-child { border-bottom: 1px solid var(--rule); }
+
+.index-row > a {
+  display: grid;
+  grid-template-areas: "num name" "num assay" "num area";
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.3rem 1.25rem;
+  padding: clamp(1.25rem, 3vw, 1.9rem) 0.5rem;
+  text-decoration: none;
+  color: inherit;
+  border: 0;
+  transition: background 0.3s ease, padding-left 0.3s cubic-bezier(0.215, 0.61, 0.355, 1);
+}
+
+.index-row > a:hover,
+.index-row > a:focus-visible { background: var(--surface); padding-left: 1.25rem; }
+
+.index-num {
+  grid-area: num;
+  font-family: var(--mono);
+  font-size: 0.8125rem;
+  color: var(--ink-faint);
+  padding-top: 0.45rem;
+}
+
+.index-name {
+  grid-area: name;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: clamp(1.35rem, 1.1rem + 1.1vw, 2rem);
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  color: var(--ink);
+}
+
+/* The number the project measured. It is the reason this is an index and not a menu. */
+.index-assay {
+  grid-area: assay;
+  font-family: var(--mono);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--tint, var(--hi));
+}
+
+.index-area {
+  grid-area: area;
+  font-size: 0.8125rem;
+  color: var(--ink-faint);
+}
+
+/* Each project tints its own row. Same --tint indirection the cards already use, so
+   the accent for a project is declared once and both places follow it. */
+.index-row[data-accent="amber"] { --tint: var(--froth); }
+.index-row[data-accent="iron"]  { --tint: var(--iron); }
+.index-row[data-accent="mint"]  { --tint: var(--mint); }
+.index-row[data-accent="slate"] { --tint: var(--slate); }
+
+/* --- the preview panel ---------------------------------------------------- */
+
+.index-panel {
+  position: sticky;
+  top: 5rem;
+  align-self: start;
+  aspect-ratio: 1440 / 900;
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--surface);
+}
+
+.index-pane {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+.index-pane.on { opacity: 1; }
+.index-pane img { width: 100%; height: 100%; object-fit: cover; object-position: top center; }
+
+/* Below the two column breakpoint the panel has nowhere to sit, so the picture moves
+   inside the row. Dropping images on a phone would gut a portfolio on the device most
+   people will open it on. */
+.index-thumb { display: none; }
+
+@media (max-width: 59.99rem) {
+  .index-panel { display: none; }
+  .index-row > a { grid-template-areas: "num thumb" "num name" "num assay" "num area"; }
+  .index-thumb {
+    display: block;
+    grid-area: thumb;
+    margin-bottom: 0.85rem;
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .index-thumb img { width: 100%; height: auto; display: block; }
+}
+
+/* --- the archive ---------------------------------------------------------- */
+
+.archive { list-style: none; margin: 0; padding: 0; }
+.archive-row { border-top: 1px solid var(--rule); }
+.archive-row:last-child { border-bottom: 1px solid var(--rule); }
+
+.archive-row > a {
+  display: grid;
+  gap: 0.25rem 1.5rem;
+  padding: 1rem 0.5rem;
+  text-decoration: none;
+  color: inherit;
+  border: 0;
+  transition: background 0.3s ease;
+}
+.archive-row > a:hover, .archive-row > a:focus-visible { background: var(--surface); }
+
+@media (min-width: 46rem) {
+  .archive-row > a { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto; align-items: baseline; }
+}
+
+.archive-name { font-weight: 600; color: var(--ink); }
+.archive-area { color: var(--ink-soft); font-size: 0.9375rem; }
+.archive-year { font-family: var(--mono); font-size: 0.8125rem; color: var(--ink-faint); }

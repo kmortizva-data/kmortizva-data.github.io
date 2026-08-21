@@ -35,7 +35,7 @@
 
   <div class="assay assay-solo" data-accent="slate">
     <div class="assay-body">
-      <dl class="streams"><div><dt>El problema</dt><dd>Una foto de celular de 12 megapíxeles, reducida una sola vez a 2000 px por el lado mayor.</dd></div><div><dt>Cómo lo resolví</dt><dd>Un modelo de segmentación devuelve solo la máscara alfa, nunca un recorte terminado. El navegador guarda los píxeles originales, la máscara del modelo y una copia de trabajo como tres capas separadas.</dd></div><div><dt>El resultado</dt><dd>Un PNG con transparencia de verdad, y dos pinceles que sí pueden arreglar un borde.</dd></div></dl>
+      <dl class="streams"><div><dt>El problema</dt><dd>Quitar un fondo suele significar subir tu foto al servidor de otro, y después aguantar el borde que el modelo haya decidido.</dd></div><div><dt>Cómo lo resolví</dt><dd>Un modelo de segmentación devuelve solo la máscara alfa, nunca un recorte terminado. El navegador guarda los píxeles originales, la máscara del modelo y una copia de trabajo como tres capas separadas.</dd></div><div><dt>El resultado</dt><dd>Un recorte que nunca sale de tu máquina, y dos pinceles que sí arreglan los bordes que el modelo se comió.</dd></div></dl>
       <div class="assay-figure">
         <p class="eyebrow">Medido</p>
         <q>el primer recorte tarda de 13 a 15 segundos, los siguientes tardan 2</q>
@@ -57,6 +57,8 @@
   <span><a href="mailto:kmortizva@datageeksunited.com">kmortizva@datageeksunited.com</a></span>
   <span><a href="https://github.com/kmortizva-data">github.com/kmortizva-data</a></span>
 </footer>
+<div class="curtain" aria-hidden="true"></div>
+<script src="../../assets/lenis.min.js" defer></script>
 <script src="../../theme.js" defer></script>
 </body>
 </html>

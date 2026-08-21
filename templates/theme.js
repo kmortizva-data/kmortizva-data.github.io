@@ -2,19 +2,110 @@
    which read as a bug rather than as an option, so the light theme and the toggle are
    both gone and the page is dark, full stop.
 
-   Everything below is an enhancement: with JavaScript off, or with reduced motion asked
-   for, the page is fully readable and nothing moves. */
+   Everything below is an enhancement. With JavaScript off, or with reduced motion asked
+   for, the page is fully readable, nothing moves, and the transition curtain lifts by
+   itself because that part is a CSS animation rather than something this file drives. */
 (function () {
+  var root = document.documentElement;
   var reduced = window.matchMedia &&
                 window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  /* ---------------------------------------------------------------- entrance */
+
+  /* The hero is hidden by CSS from the first paint and "ready" releases it. Two nested
+     frames, because a transition asked for in the same frame an element first paints in
+     is skipped by the browser rather than played. */
+  function release() {
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () { root.classList.add("ready"); });
+    });
+  }
+  release();
+
+  /* ----------------------------------------------------------------- curtain */
+
+  var curtain = document.querySelector(".curtain");
+
+  /* Coming back with the Back button can restore the page exactly as it was left, mid
+     transition, which would mean arriving at a covered screen. */
+  window.addEventListener("pageshow", function () {
+    if (curtain) curtain.classList.remove("on");
+  });
+
+  if (curtain && !reduced) {
+    document.addEventListener("click", function (event) {
+      var link = event.target.closest && event.target.closest("a");
+      if (!link) return;
+      var href = link.getAttribute("href");
+      if (!href || href.charAt(0) === "#" || link.target === "_blank") return;
+      if (link.hasAttribute("download")) return;
+      if (link.host && link.host !== window.location.host) return;   /* leaving the site */
+      if (event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0) return;
+
+      event.preventDefault();
+      curtain.classList.add("on");
+      window.setTimeout(function () { window.location.href = link.href; }, 280);
+    });
+  }
+
+  /* ------------------------------------------------------------- work index */
+
+  /* Hovering or tabbing to a row swaps which screenshot the panel shows. The first pane
+     is already marked visible in the HTML, so with this file absent the panel still
+     shows a real image and every row is still a plain link to its project. */
+  var panel = document.querySelector(".index-panel");
+  if (panel) {
+    var panes = panel.querySelectorAll(".index-pane");
+
+    function showPane(slug) {
+      Array.prototype.forEach.call(panes, function (pane) {
+        pane.classList.toggle("on", pane.getAttribute("data-slug") === slug);
+      });
+    }
+
+    Array.prototype.forEach.call(document.querySelectorAll(".index-row"), function (row) {
+      var slug = row.getAttribute("data-slug");
+      /* mouseenter for the cursor, focusin for the keyboard: the panel has to follow
+         both or tabbing through the list shows the wrong picture. */
+      row.addEventListener("mouseenter", function () { showPane(slug); });
+      row.addEventListener("focusin", function () { showPane(slug); });
+    });
+  }
 
   var reveals = document.querySelectorAll(".reveal");
 
   if (reduced || !("IntersectionObserver" in window)) {
-    reveals.forEach(function (el) { el.classList.add("in"); });
+    Array.prototype.forEach.call(reveals, function (el) { el.classList.add("in"); });
     return;
   }
 
+  /* ------------------------------------------------------------ smooth scroll */
+
+  /* Lenis is vendored next to this file. If it failed to load for any reason the page
+     simply scrolls the way the browser scrolls, which is not a defect. */
+  var lenis = null;
+  if (typeof window.Lenis === "function") {
+    lenis = new window.Lenis({ duration: 1.1, smoothWheel: true });
+    (function frame(time) {
+      lenis.raf(time);
+      requestAnimationFrame(frame);
+    })(0);
+
+    /* The in-page nav links have to go through Lenis or they fight it. */
+    document.addEventListener("click", function (event) {
+      var link = event.target.closest && event.target.closest('a[href*="#"]');
+      if (!link) return;
+      var id = link.getAttribute("href").split("#")[1];
+      var target = id && document.getElementById(id);
+      if (!target) return;
+      event.preventDefault();
+      lenis.scrollTo(target, { offset: -24 });
+    });
+  }
+
+  /* ----------------------------------------------------------------- reveals */
+
+  /* Fire when the block has reached 82% of the way down the viewport, once each. */
   var io = new IntersectionObserver(function (entries) {
     entries.forEach(function (entry) {
       if (entry.isIntersecting) {
@@ -22,8 +113,10 @@
         io.unobserve(entry.target);
       }
     });
-  }, { rootMargin: "0px 0px -8% 0px" });
-  reveals.forEach(function (el) { io.observe(el); });
+  }, { rootMargin: "0px 0px -18% 0px" });
+  Array.prototype.forEach.call(reveals, function (el) { io.observe(el); });
+
+  /* ---------------------------------------------------------------- parallax */
 
   /* A restrained parallax on the screenshots: the image drifts a few pixels against the
      scroll, which makes a static grid feel alive without anyone noticing why. The work is
@@ -53,6 +146,7 @@
     }
   }
 
+  if (lenis) lenis.on("scroll", onScroll);
   window.addEventListener("scroll", onScroll, { passive: true });
   window.addEventListener("resize", onScroll, { passive: true });
   place();

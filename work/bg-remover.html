@@ -35,7 +35,7 @@
 
   <div class="assay assay-solo" data-accent="slate">
     <div class="assay-body">
-      <dl class="streams"><div><dt>The problem</dt><dd>A 12 megapixel phone photo, downscaled once to 2000 px on the long side.</dd></div><div><dt>How I solved it</dt><dd>A segmentation model returns only the alpha mask, never a finished cutout. The browser holds the original pixels, the model&#x27;s mask and a working copy as three separate layers.</dd></div><div><dt>The result</dt><dd>A PNG with real transparency, and two brushes that can actually fix an edge.</dd></div></dl>
+      <dl class="streams"><div><dt>The problem</dt><dd>Cutting a background out usually means uploading your photo to someone else&#x27;s server, and then accepting whatever edge the model decided on.</dd></div><div><dt>How I solved it</dt><dd>A segmentation model returns only the alpha mask, never a finished cutout. The browser holds the original pixels, the model&#x27;s mask and a working copy as three separate layers.</dd></div><div><dt>The result</dt><dd>A cutout that never leaves your machine, and two brushes that actually fix the edges the model got wrong.</dd></div></dl>
       <div class="assay-figure">
         <p class="eyebrow">Measured</p>
         <q>the first cut takes 13 to 15 seconds, every one after that takes 2</q>
@@ -57,6 +57,8 @@
   <span><a href="mailto:kmortizva@datageeksunited.com">kmortizva@datageeksunited.com</a></span>
   <span><a href="https://github.com/kmortizva-data">github.com/kmortizva-data</a></span>
 </footer>
+<div class="curtain" aria-hidden="true"></div>
+<script src="../assets/lenis.min.js" defer></script>
 <script src="../theme.js" defer></script>
 </body>
 </html>
