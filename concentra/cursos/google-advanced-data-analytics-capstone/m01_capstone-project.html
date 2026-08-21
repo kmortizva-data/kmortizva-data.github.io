@@ -1,0 +1,501 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Capstone Project — Google Advanced Data Analytics Capstone</title>
+<style>
+/* ============================================================================
+   Concentra — design tokens and shared components.
+   Inlined into every generated page by load_style(), so pages stay self-contained
+   and work offline from file:// with no external requests.
+
+   Direction: an assay lab, not a tech dashboard. The palette is taken from ore
+   and lab materials (chalcopyrite brass, malachite, hematite, quartz) on warm
+   graphite rather than the blue-black + neon of a generic dark UI. Type is
+   Bahnschrift, the DIN-descended grotesque that Windows ships and that lives on
+   machinery plates and technical drawings, over Corbel for reading.
+   ========================================================================== */
+
+:root {
+  /* Ground and surfaces: warm graphite, the colour of rock dust, not blue-black */
+  --rock: #1a1714;
+  --bench: #221e19;
+  --core: #2b251f;
+  --seam: #3d352c;
+
+  /* Ore palette. No blue and no purple anywhere: those are the tones that make a
+     page read as generated, and this palette comes from the ores instead. */
+  --brass: #c9a227;      /* chalcopyrite, the primary accent */
+  --malachite: #5d9b7a;  /* verified output, results that came out right */
+  --hematite: #b04a35;   /* iron oxide, pitfalls and warnings */
+
+  /* Text */
+  --quartz: #ece7de;
+  --dust: #9a9186;
+  --shadowed: #6f675c;
+
+  --display: Bahnschrift, 'DIN Alternate', 'Segoe UI Semibold', system-ui, sans-serif;
+  --body: Corbel, Candara, 'Segoe UI', system-ui, sans-serif;
+  --data: Consolas, 'Cascadia Mono', ui-monospace, monospace;
+
+  /* In px, not ch: ch scales with font-size, so a heading ended up wider than a
+     paragraph and the page had four different right edges instead of two. */
+  --measure: 640px;
+  --wide: 900px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--rock);
+  color: var(--quartz);
+  font-family: var(--body);
+  font-size: 16px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection { background: var(--brass); color: var(--rock); }
+
+:focus-visible {
+  outline: 2px solid var(--brass);
+  outline-offset: 3px;
+}
+
+/* --------------------------------------------------------------- the signature
+   A sieve series: ticks that get finer from left to right, coarse feed to fine
+   concentrate. It is the one ornament on the page and appears exactly twice —
+   under the wordmark and under a page title. */
+.mesh {
+  height: 10px;
+  background-image:
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 16px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 9px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 5px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 3px);
+  background-size: 25% 100%;
+  background-position: 0 0, 25% 0, 50% 0, 75% 0;
+  background-repeat: no-repeat;
+  opacity: .8;
+  transform-origin: left center;
+  animation: sieve .55s cubic-bezier(.2, .8, .3, 1) both;
+}
+@keyframes sieve { from { transform: scaleX(0); opacity: 0; } to { transform: scaleX(1); opacity: .8; } }
+@media (prefers-reduced-motion: reduce) {
+  .mesh { animation: none; }
+  * { transition: none !important; }
+}
+
+/* ------------------------------------------------------------------ page head */
+.header {
+  border-bottom: 1px solid var(--seam);
+  padding: 3.2rem 2rem 0;
+  background: linear-gradient(180deg, #221d16 0%, var(--rock) 100%);
+}
+.header-content { max-width: 1080px; margin: 0 auto; }
+
+.eyebrow {
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--brass);
+  margin-bottom: 1rem;
+}
+.eyebrow a { color: inherit; text-decoration: none; border-bottom: 1px solid transparent; }
+.eyebrow a:hover { border-bottom-color: var(--brass); }
+
+.header h1 {
+  font-family: var(--display);
+  font-size: clamp(2rem, 4.5vw, 3.1rem);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -.015em;
+  color: var(--quartz);
+  max-width: 20ch;
+}
+.header .subtitle {
+  color: var(--dust);
+  max-width: var(--measure);
+  margin-top: 1rem;
+  font-size: 1.02rem;
+}
+.header .mesh { margin: 1.8rem 0 0; }
+
+/* An assay line: the real composition of the module, in lab-report shorthand. */
+.assay {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.4rem;
+  font-family: var(--data);
+  font-size: .78rem;
+  color: var(--shadowed);
+  padding: .9rem 0 1.6rem;
+  letter-spacing: .04em;
+}
+.assay b { color: var(--dust); font-weight: 400; }
+
+/* --------------------------------------------------------------------- layout */
+/* The container hugs the widest block, so there is no orphan edge past the content. */
+.container { max-width: var(--wide); margin: 3rem auto 5rem; padding: 0 2rem; }
+
+/* Two deliberate right edges and no more: prose stops at the reading measure, and
+   only the things that genuinely need room (code, output, figures, big tables) run
+   out to the full column. */
+.section-block {
+  border-top: 1px solid var(--seam);
+  padding: 2rem 0 2.4rem;
+}
+.section-block > p,
+.section-block > ul,
+.section-block > ol,
+.section-block h3.sub,
+.section-block h4.sub,
+.section-block blockquote,
+details > *:not(summary) { max-width: var(--measure); }
+.section-block:first-child { border-top: 0; padding-top: .5rem; }
+
+/* The kicker names what kind of content follows: context, method, pitfalls.
+   It replaces decorative icons with something that actually classifies. */
+.kicker {
+  font-family: var(--data);
+  font-size: .68rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  display: block;
+  margin-bottom: .5rem;
+}
+.section-title {
+  font-family: var(--display);
+  font-size: 1.55rem;
+  font-weight: 600;
+  letter-spacing: -.01em;
+  line-height: 1.2;
+  margin-bottom: 1.2rem;
+  color: var(--quartz);
+}
+.is-warning .kicker { color: var(--hematite); }
+.is-warning .section-title { color: #e8c4b8; }
+.is-bridge .kicker, .is-decision .kicker { color: var(--malachite); }
+.is-toy .kicker, .is-result .kicker, .is-question .kicker { color: var(--brass); }
+
+/* ---------------------------------------------------------------------- prose */
+/* Justified with hyphenation. In Spanish, justifying without hyphens opens rivers of
+   white space and reads worse than ragged right; lang="es" is what feeds the
+   dictionary. Tables, code, captions and summaries stay ragged on purpose. */
+.section-block p,
+.section-block li,
+details > *:not(summary) {
+  text-align: justify;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+}
+.section-block p { margin-bottom: 1rem; }
+.section-block p:last-child { margin-bottom: 0; }
+/* Indent with padding, not margin, so the bullet sits inside the measure instead of
+   pushing the list 1.2rem past the right edge of the paragraphs. */
+.section-block ul, .section-block ol { margin: 0 0 1rem; padding-left: 1.2rem; }
+.section-block li { margin-bottom: .55rem; padding-left: .2rem; }
+.section-block li::marker { color: var(--brass); }
+td, th, figcaption, .res li, .assay { text-align: left; hyphens: manual; }
+a { color: var(--brass); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+a:hover { text-decoration-thickness: 2px; }
+strong { color: #fff; font-weight: 700; }
+em { color: var(--dust); font-style: italic; }
+
+h3.sub {
+  font-family: var(--display);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--brass);
+  margin: 2rem 0 .7rem;
+  letter-spacing: -.005em;
+}
+h3.sub:first-child { margin-top: 0; }
+h4.sub {
+  font-family: var(--display);
+  font-size: .98rem;
+  font-weight: 600;
+  color: var(--dust);
+  margin: 1.3rem 0 .5rem;
+}
+
+code {
+  font-family: var(--data);
+  font-size: .9em;
+  background: var(--core);
+  border-radius: 3px;
+  padding: .08rem .32rem;
+  color: var(--brass);
+}
+pre {
+  background: #14110e;
+  border: 1px solid var(--seam);
+  border-left: 2px solid var(--seam);
+  border-radius: 2px;
+  padding: 1.1rem 1.2rem;
+  overflow-x: auto;
+  margin-bottom: 1rem;
+}
+pre code {
+  background: none; padding: 0; color: var(--quartz);
+  font-size: .87rem; line-height: 1.6;
+}
+
+/* What the code prints. Malachite: the material that came out of the process. */
+.output {
+  position: relative;
+  border: 1px solid rgba(93, 155, 122, .32);
+  border-left: 2px solid var(--malachite);
+  border-radius: 2px;
+  background: rgba(93, 155, 122, .06);
+  padding: 1.7rem 1.2rem 1rem;
+  margin-bottom: 1rem;
+  overflow-x: auto;
+}
+.output-tag {
+  position: absolute; top: .5rem; left: 1.2rem;
+  font-family: var(--data); font-size: .64rem;
+  letter-spacing: .18em; text-transform: uppercase; color: var(--malachite);
+}
+.output pre {
+  background: none; border: 0; padding: 0; margin: 0;
+  font-family: var(--data); font-size: .85rem;
+  color: var(--quartz); white-space: pre-wrap;
+}
+
+/* Line by line explanation of a code block, for a reader new to programming.
+   Two columns: the fragment of code, and what it does. */
+.annot {
+  display: grid;
+  grid-template-columns: minmax(9rem, auto) 1fr;
+  gap: .1rem 1.2rem;
+  align-items: baseline;
+  max-width: var(--wide);
+  margin: -.4rem 0 1.4rem;
+  padding: .9rem 1.1rem 1rem;
+  border: 1px solid var(--seam);
+  border-top: 0;
+  border-radius: 0 0 2px 2px;
+  background: rgba(201, 162, 39, .04);
+}
+.annot-head {
+  grid-column: 1 / -1;
+  font-family: var(--data);
+  font-size: .64rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  margin-bottom: .5rem;
+}
+.annot dt { padding: .35rem 0; }
+.annot dt code {
+  background: var(--core);
+  color: var(--brass);
+  font-size: .82rem;
+  white-space: nowrap;
+}
+.annot dd {
+  padding: .35rem 0;
+  margin: 0;
+  color: var(--dust);
+  font-size: .93rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(61, 53, 44, .5);
+}
+.annot dt { border-bottom: 1px solid rgba(61, 53, 44, .5); }
+.annot dt:last-of-type, .annot dd:last-of-type { border-bottom: 0; }
+/* The code block sits directly on top of its annotation, as one unit. */
+pre:has(+ .annot) { margin-bottom: 0; border-radius: 2px 2px 0 0; }
+
+@media (max-width: 640px) {
+  .annot { grid-template-columns: 1fr; gap: 0; }
+  .annot dt { border-bottom: 0; padding-bottom: 0; }
+  .annot dd { padding-top: .15rem; }
+}
+
+blockquote {
+  border-left: 2px solid var(--brass);
+  padding: .3rem 0 .3rem 1.3rem;
+  margin: 0 0 1rem;
+  font-family: var(--display);
+  font-size: 1.2rem;
+  font-weight: 400;
+  line-height: 1.4;
+  color: var(--quartz);
+}
+
+/* Tables read as assay data: mono figures, hairline rules, no zebra fill.
+   They take the width they need instead of being stretched to the full column,
+   which is what left a two-column table floating in empty space. */
+.table-wrap { overflow-x: auto; margin-bottom: 1rem; }
+table { border-collapse: collapse; width: auto; max-width: 100%; font-size: .93rem; }
+th, td {
+  border-bottom: 1px solid var(--seam);
+  padding: .55rem .8rem .55rem 0;
+  text-align: left;
+  vertical-align: top;
+}
+th {
+  font-family: var(--data);
+  font-size: .7rem;
+  font-weight: 400;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  border-bottom-color: var(--brass);
+}
+td:first-child { color: var(--quartz); }
+
+/* Review questions: closed by default, so they work as recall practice. */
+details {
+  border-top: 1px solid var(--seam);
+  padding: .9rem 0;
+}
+details:last-child { border-bottom: 1px solid var(--seam); }
+summary {
+  cursor: pointer;
+  font-family: var(--display);
+  font-size: 1.02rem;
+  font-weight: 600;
+  color: var(--quartz);
+  list-style: none;
+  display: flex;
+  gap: .7rem;
+  align-items: baseline;
+}
+summary::-webkit-details-marker { display: none; }
+summary::before {
+  content: '+';
+  font-family: var(--data);
+  color: var(--brass);
+  font-size: .95rem;
+}
+details[open] summary::before { content: '−'; }
+details[open] summary { color: var(--brass); margin-bottom: .7rem; }
+details > *:not(summary) { color: var(--dust); }
+
+figure.fig {
+  margin: 1.6rem 0;
+  border: 1px solid var(--seam);
+  padding: .7rem;
+  background: var(--bench);
+}
+figure.fig img { width: 100%; height: auto; display: block; }
+/* The interactive twin of a figure. Its aspect matches the still one, 10 by 4.4, so a
+   case sheet keeps the same rhythm whichever kind of figure comes next. */
+figure.fig.is-live iframe {
+  width: 100%;
+  /* Matches INTERACTIVE_HEIGHT in src/make_figures.py. It used to be an aspect ratio, and
+     that made the figure's height depend on the window: the caption and the legend are
+     placed at fractions of the plot area, so on a wide screen they were pushed past the
+     bottom margin, clipping the caption and covering the x-axis title. */
+  height: 520px;
+  border: 0;
+  display: block;
+}
+figure.fig figcaption {
+  font-family: var(--data);
+  font-size: .72rem;
+  color: var(--shadowed);
+  margin-top: .6rem;
+  letter-spacing: .04em;
+}
+
+/* File listings on a case sheet */
+.res { list-style: none; margin-left: 0 !important; }
+.res li {
+  display: flex; align-items: baseline; gap: .8rem; flex-wrap: wrap;
+  padding: .5rem 0; border-bottom: 1px solid var(--seam); margin-bottom: 0;
+}
+.res .path { font-family: var(--data); font-size: .74rem; color: var(--shadowed); }
+.res .size { font-family: var(--data); font-size: .74rem; color: var(--shadowed); margin-left: auto; }
+.res .gone { font-family: var(--data); font-size: .74rem; color: var(--hematite); }
+
+.footer {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 2rem 4rem;
+  color: var(--shadowed);
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .03em;
+}
+
+@media (max-width: 640px) {
+  body { font-size: 15px; }
+  .header { padding: 2rem 1.2rem 0; }
+  .container { padding: 0 1.2rem; margin-top: 2rem; }
+  .footer { padding: 0 1.2rem 3rem; }
+}
+
+@media print {
+  body { background: #fff; color: #16130f; }
+  .header { background: none; border-bottom: 1px solid #bbb; padding-top: 0; }
+  .header h1, .section-title, summary { color: #16130f; }
+  .mesh { animation: none; }
+  .section-block { break-inside: avoid; max-width: none; }
+  pre, .output { background: #f6f4f0; border-color: #ccc; }
+  details:not([open]) > *:not(summary) { display: block; }
+  a { color: #16130f; }
+}
+
+</style>
+</head>
+<body>
+<header class="header">
+  <div class="header-content">
+    <div class="eyebrow"><a href="https://www.coursera.org/learn/google-advanced-data-analytics-capstone">Google Advanced Data Analytics Capstone</a> / Módulo 1</div>
+    <h1>Capstone Project</h1>
+    <p class="subtitle">El mismo hallazgo de Waze escrito a cinco tamaños, medido en tu propia biblioteca: de los 69 números que guardó el guion a la única frase que alguien va a leer. De ahí sale cómo se empaqueta un proyecto y qué tiene que decir un currículum.</p>
+    <div class="mesh" role="presentation"></div>
+    <div class="assay"><span><b>4 h</b> de curso</span><span><b>7</b> vídeos</span><span><b>6</b> lecturas</span><span><b>3</b> tareas</span><span><b>2</b> prácticas</span></div>
+  </div>
+</header>
+<main class="container">
+<section class="section-block "><span class="kicker">Contexto</span><h2 class="section-title">Qué resuelve este módulo</h2><p>Los cinco cursos anteriores enseñaban a <strong>obtener</strong> un resultado. Este enseña a que ese resultado <strong>le llegue a alguien</strong>, que es un problema distinto y en el que se pierde mucho trabajo bueno.</p><p>El módulo trae dos cosas: qué se espera de un proyecto Capstone, y cómo se convierte un análisis terminado en algo que un desconocido lea en dos minutos y quiera preguntarte más.</p><p>Y una aclaración de la propia página, porque cambia cómo lo abordas: <strong>el proyecto Capstone es opcional</strong>, y reúne conceptos de los seis cursos anteriores sobre un escenario nuevo, Salifort Motors. Su laboratorio vive detrás del login, así que ese lo haces tú en la plataforma. Lo que se construye aquí es lo otro: el empaquetado.</p></section>
+<section class="section-block is-toy"><span class="kicker">Ejemplo</span><h2 class="section-title">Antes de la teoría: un ejemplo de juguete</h2><p>No hace falta inventarlo: está en tu biblioteca. Cogemos <strong>un solo hallazgo</strong>, el del proyecto de Waze del Curso 5, y medimos en qué se convierte según el tamaño del documento.</p><h3 class="sub h3">Paso 1. Contar lo que hay</h3><p>El guion escribió un archivo de resultados. Dentro hay:</p><pre><code>números guardados por el guion   =  69</code></pre><p>Sesenta y nueve cifras: tamaños de las particiones, métricas de cada modelo, perillas elegidas, tiempos de la búsqueda, importancias de nueve variables. Todo verificado, todo publicable.</p><h3 class="sub h3">Paso 2. Contar lo que sobrevive a cada tamaño</h3><p>Ahora los cuatro documentos que cuentan ese mismo hallazgo, medidos:</p><div class="table-wrap"><table><thead><tr><th>Documento</th><th>Palabras</th><th>Cifras que cita</th></tr></thead><tbody><tr><td>Una frase</td><td><strong>11</strong></td><td><strong>1</strong></td></tr><tr><td>Resumen ejecutivo</td><td>804</td><td>35</td></tr><tr><td>Ficha de caso</td><td>1.200</td><td>28</td></tr><tr><td>Informe PACE</td><td>706</td><td><strong>0</strong></td></tr><tr><td>El archivo de resultados</td><td><em>(no es prosa)</em></td><td><strong>69</strong></td></tr></tbody></table></div><h3 class="sub h3">Paso 3. Leer la tabla, que dice tres cosas</h3><p><strong>La primera: de 69 a 1.</strong> El embudo es brutal, y no es un defecto. Si la frase citara las sesenta y nueve, no sería una frase.</p><p><strong>La segunda: la ficha es más larga que el resumen y cita menos cifras.</strong> 1.200 palabras contra 804, y 28 cifras contra 35. No es un descuido: <strong>hacen trabajos distintos</strong>. El resumen es denso porque quien lo lee quiere los números; la ficha es larga porque quien la lee quiere entender <strong>por qué</strong> esos números, y eso se cuenta con frases, no con datos.</p><p><strong>La tercera, y es la mejor: el plan PACE cita cero cifras.</strong> Ni una, en 706 palabras. Y no puede ser de otra manera, porque <strong>se escribe antes de tener resultados</strong>. Es el documento que dice qué esperas encontrar, y una expectativa escrita después de ver el resultado no es una expectativa.</p><h3 class="sub h3">Paso 4. La frase de 11 palabras</h3><blockquote><em>Ajustar el bosque casi cierra la distancia y no la cierra.</em></blockquote><p>Once palabras y una cifra implícita. Eso es lo que alguien va a recordar de un proyecto que costó tres búsquedas en rejilla, 88 combinaciones de perillas y cinco figuras.</p><p><strong>Si esa frase no existe, el proyecto no se ha terminado.</strong> Se ha parado.</p></section>
+<section class="section-block "><span class="kicker">Términos</span><h2 class="section-title">Glosario</h2><ul><li><strong>Proyecto Capstone.</strong> El proyecto final del certificado, opcional, que reúne conceptos de los seis cursos anteriores sobre un escenario nuevo.</li><li><strong>Portafolio.</strong> La colección de trabajo que enseñas para que alguien decida si hablar contigo. No es un repositorio: es una selección.</li><li><strong>Resumen ejecutivo.</strong> Una o dos páginas con el resultado, la decisión y los límites. Lo lee quien paga.</li><li><strong>Ficha de caso.</strong> El relato del análisis: qué se preguntó, qué se encontró y por qué se puede creer. Lo lee quien duda.</li><li><strong>Plan PACE.</strong> El documento de estrategia, escrito <strong>antes</strong> de analizar. Plan, Analyze, Construct, Execute.</li><li><strong>Archivo de resultados.</strong> El JSON que el código escribe con todos los números publicables. Es la única fuente de la que pueden salir las cifras de los demás documentos.</li><li><strong>Currículum.</strong> Un documento de una o dos páginas cuyo trabajo es conseguir una conversación, no describir tu vida.</li><li><strong>Sistema de seguimiento de candidatos.</strong> El programa que lee tu currículum antes que una persona. En inglés, <em>applicant tracking system</em> o ATS.</li></ul></section>
+<section class="section-block is-recipe"><span class="kicker">Método</span><h2 class="section-title">Paso a paso</h2><h3 class="sub h3">Paso 1. Escribir la frase antes que nada</h3><p>Cuando el análisis está terminado, lo primero que se escribe es <strong>la frase</strong>. Si no sale, o sale enrevesada, es que el análisis todavía no ha llegado a una conclusión.</p><p>Tres pruebas para saber si la frase sirve:</p><ol><li><strong>¿Cabe en un renglón?</strong> Once palabras es un buen objetivo.</li><li><strong>¿Cambia una decisión?</strong> «El bosque no gana» cambia qué se despliega. «Se ajustaron los hiperparámetros» no cambia nada.</li><li><strong>¿Se entiende sin el resto del documento?</strong> Si necesita contexto, no es la frase.</li></ol><h3 class="sub h3">Paso 2. Montar las capas hacia afuera</h3><p>De la frase se sale hacia fuera, no al revés:</p><div class="table-wrap"><table><thead><tr><th>Capa</th><th>Quién la lee</th><th>Qué le das</th></tr></thead><tbody><tr><td>Una frase</td><td>Quien decide</td><td>El resultado</td></tr><tr><td>Resumen ejecutivo</td><td>Quien paga</td><td>Los números y la decisión</td></tr><tr><td>Ficha de caso</td><td>Quien duda</td><td>Por qué se puede creer</td></tr><tr><td>Plan PACE</td><td>Quien audita</td><td>Qué esperabas antes de mirar</td></tr><tr><td>Guion y cuaderno</td><td>Quien reproduce</td><td>Todo</td></tr></tbody></table></div><p><strong>Las cinco cuentan la misma historia.</strong> Si la frase y el informe no coinciden, el problema no es de formato.</p><h3 class="sub h3">Paso 3. La regla que hace imposible que se contradigan</h3><p><strong>Ningún documento cita una cifra que no esté en el archivo de resultados.</strong> Esa regla es la que evita que el resumen diga 0,7379 y la ficha 0,7348 porque alguien reajustó algo y olvidó un párrafo.</p><p>No es burocracia: es la diferencia entre un portafolio que aguanta que lo miren y uno que se cae a la segunda pregunta.</p><h3 class="sub h3">Paso 4. Qué hace bueno a un proyecto de portafolio</h3><p>No es el modelo. Es esto, y en este orden:</p><ol><li><strong>Una pregunta que alguien tenía.</strong> «Predecir el abandono para actuar antes» es una pregunta; «aplicar random forest» es un ejercicio.</li><li><strong>Una decisión que cambia con la respuesta.</strong></li><li><strong>Un número defendible</strong>, con su conjunto de prueba mirado una sola vez.</li><li><strong>Lo que no funcionó</strong>, con el mismo detalle que lo que funcionó.</li><li><strong>Los límites</strong>, escritos por ti antes de que te los encuentren.</li></ol><p>Fíjate en el cuarto. Un proyecto sin un solo callejón sin salida no parece impecable, <strong>parece incompleto</strong>, y quien entrevista lo nota.</p><h3 class="sub h3">Paso 5. Comunicar lo que sabes hacer, que no es lo mismo que listarlo</h3><p>Antes del currículum hay un paso que el módulo trata aparte: <strong>saber decir qué sabes hacer</strong>. Y la trampa es que la lista de herramientas no lo dice.</p><p>«Python, SQL, scikit-learn» es un inventario. Lo que alguien necesita saber es <strong>qué problema resuelves con eso</strong>, y eso se cuenta en tres piezas:</p><div class="table-wrap"><table><thead><tr><th>Pieza</th><th>Qué es</th><th>Ejemplo tuyo</th></tr></thead><tbody><tr><td>La habilidad</td><td>Lo que sabes hacer</td><td>Comparar un modelo contra una referencia honesta</td></tr><tr><td>La baza</td><td>Por qué tú</td><td>Vienes de operar procesos, así que preguntas de dónde salió el dato</td></tr><tr><td>La prueba</td><td>Dónde se ve</td><td>El proyecto donde una pregunta empató con trescientos árboles</td></tr></tbody></table></div><p><strong>Sin la tercera, las dos primeras son una afirmación.</strong> Con ella son un hecho verificable, y la conversación deja de ir sobre si sabes y pasa a ir sobre lo que hiciste.</p><p>Y hay una baza tuya que conviene no esconder: <strong>no vienes de informática</strong>. Alguien que ha llevado una planta sabe que un dato imposible existe y que un promedio esconde una deriva. Eso, en esta biblioteca, ya produjo el hallazgo de los 461 usuarios que conducen lo imposible, que ningún curso posterior había marcado.</p><h3 class="sub h3">Paso 6. El currículum, que es otro documento con la misma lógica</h3><p>Un currículum no describe tu vida: <strong>consigue una conversación</strong>. Y lo lee primero un programa, así que hay dos lectores con necesidades distintas.</p><div class="table-wrap"><table><thead><tr><th>Para el programa</th><th>Para la persona</th></tr></thead><tbody><tr><td>Las palabras de la oferta, tal cual</td><td>Un resultado con número</td></tr><tr><td>Texto plano, sin columnas ni tablas raras</td><td>Una frase que se recuerde</td></tr><tr><td>Un formato que sepa leer</td><td>Que se lea en siete segundos</td></tr></tbody></table></div><p>Y la regla que ordena el contenido: <strong>cada línea es un resultado, no una tarea</strong>. «Responsable del análisis de abandono» es una tarea. «Modelo de abandono sobre 14.299 usuarios que identificó el umbral como la causa real del 8 % de detección» es un resultado.</p><p>Los tuyos ya están medidos y escritos. Es cuestión de sacarlos del informe.</p></section>
+<section class="section-block is-recipe"><span class="kicker">Código</span><h2 class="section-title">El código, por partes</h2><h3 class="sub h3">Paso 1. Medir el embudo de tu propio proyecto</h3><p>El ejemplo de juguete, hecho por la máquina.</p><pre><code class="language-python">import json
+import re
+from pathlib import Path
+
+report = Path(&quot;projects/curso5/waze/04_reports/model_results.json&quot;)
+summary = Path(&quot;projects/curso5/waze/04_reports/executive_summary.md&quot;)
+
+def stored(node):
+    &quot;&quot;&quot;Every number the script wrote, however deep it sits.&quot;&quot;&quot;
+    if isinstance(node, dict):
+        return set().union(*(stored(v) for v in node.values())) if node else set()
+    if isinstance(node, list):
+        return set().union(*(stored(v) for v in node)) if node else set()
+    if isinstance(node, bool) or not isinstance(node, (int, float)):
+        return set()
+    return {float(node)}
+
+numbers = stored(json.loads(report.read_text(encoding=&quot;utf-8&quot;)))
+cited = set(re.findall(r&quot;0,\d{3,4}&quot;, summary.read_text(encoding=&quot;utf-8&quot;)))
+print(f&quot;guardados por el guion: {len(numbers)}&quot;)
+print(f&quot;citados en el resumen:  {len(cited)}&quot;)</code></pre><dl class="annot"><div class="annot-head">línea por línea</div><dt><code>def stored(node):</code></dt><dd>Una función <strong>recursiva</strong>: se llama a sí misma. Hace falta porque el JSON tiene diccionarios dentro de diccionarios y no se sabe de antemano cuántos niveles hay.</dd><dt><code>set().union(*(...))</code></dt><dd>El asterisco desempaqueta: convierte una lista de conjuntos en argumentos sueltos para <code>union</code>. Sin él le pasarías <strong>un</strong> argumento que es una lista, y fallaría.</dd><dt><code>if ... else set()</code></dt><dd>La guarda para un diccionario vacío. <code>union()</code> sin argumentos da error, así que un nodo vacío devuelve el conjunto vacío.</dd><dt><code>isinstance(node, bool)</code></dt><dd>Se comprueba <strong>antes</strong> que el número, porque en Python <code>True</code> es un entero que vale 1. Sin esta línea, cada <code>true</code> del JSON contaría como el número 1.</dd><dt><code>re.findall(r&quot;0,\d{3,4}&quot;, ...)</code></dt><dd>Busca cifras escritas a la española, con coma. <code>\d{3,4}</code> son tres o cuatro dígitos. La <code>r</code> delante evita tener que escribir la barra dos veces.</dd><dt><code>set(...)</code></dt><dd>Convierte la lista en conjunto, así que una cifra repetida en dos párrafos cuenta una vez. Es lo que se quiere: mide <strong>cuántas cifras distintas</strong> se citan.</dd></dl><div class="output"><span class="output-tag">sale</span><pre>guardados por el guion: 69
+citados en el resumen:  35</pre></div><p>Sesenta y nueve guardados, treinta y cinco citados. <strong>La mitad del trabajo medido no aparece en el resumen</strong>, y está bien que no aparezca: está ahí para cuando alguien pregunte.</p><h3 class="sub h3">Paso 2. Ver qué cursos tocaron cada escenario</h3><p>La materia prima del entregable de este curso.</p><pre><code class="language-python">courses = {&quot;curso2&quot;: &quot;Curso 2&quot;, &quot;curso4&quot;: &quot;Curso 4&quot;, &quot;curso5&quot;: &quot;Curso 5&quot;}
+
+for case in (&quot;waze&quot;, &quot;tiktok&quot;, &quot;automatidata&quot;):
+    row = []
+    for folder, label in courses.items():
+        path = Path(f&quot;projects/{folder}/{case}/04_reports/model_results.json&quot;)
+        row.append(label if path.exists() else &quot;  -   &quot;)
+    print(f&quot;{case:14} {&#x27; &#x27;.join(row)}&quot;)</code></pre><dl class="annot"><div class="annot-head">línea por línea</div><dt><code>courses = {...}</code></dt><dd>Un diccionario que hace de tabla de traducción, de nombre de carpeta a etiqueta legible. Guardar ese par junto evita repartir la correspondencia por el código.</dd><dt><code>for folder, label in courses.items()</code></dt><dd><code>items()</code> recorre clave y valor a la vez. Sin él tendrías que buscar el valor dentro del bucle.</dd><dt><code>path.exists()</code></dt><dd>Pregunta al disco si el archivo está. Es lo que convierte «qué cursos tocaron este caso» en algo comprobado en vez de recordado.</dd><dt><code>row.append(label if path.exists() else &quot;  -   &quot;)</code></dt><dd>Un condicional en una línea. Los espacios del guion son para que las columnas queden alineadas al imprimir.</dd><dt><code>&#x27; &#x27;.join(row)</code></dt><dd>Pega los elementos de la lista con un espacio entre ellos. Es la forma normal de imprimir una fila.</dd></dl><div class="output"><span class="output-tag">sale</span><pre>waze           Curso 2 Curso 4 Curso 5
+tiktok         Curso 2 Curso 4 Curso 5
+automatidata   Curso 2 Curso 4 Curso 5</pre></div><p>Tres escenarios por tres cursos con proyecto propio, más el Curso 3 que usó tus archivos: <strong>doce análisis sobre tres archivos</strong>. Eso es lo que ningún portafolio de este certificado suele tener, y es lo que el módulo 3 convierte en el entregable.</p></section>
+<section class="section-block is-warning"><span class="kicker">Trampas</span><h2 class="section-title">Ojo</h2><ul><li><strong>Si no puedes escribir la frase, el análisis no ha terminado.</strong> No es un problema de redacción.</li><li><strong>Un portafolio que solo enseña éxitos parece incompleto.</strong> Lo que no funcionó es lo que demuestra que sabes distinguirlo.</li><li><strong>Nadie va a leer tu cuaderno.</strong> Es el sustento, no el entregable.</li><li><strong>Una cifra que aparece en dos documentos con dos valores destruye la confianza</strong> en los dos. Por eso todo sale de un solo archivo.</li><li><strong>El plan PACE se escribe antes.</strong> Escribirlo después es inventarse una expectativa que ya sabes que se cumplió.</li><li><strong>Repetir el tutorial no es un proyecto.</strong> Si usas los datasets del curso, haz una pregunta que el exemplar no hizo.</li><li><strong>Métricas sin decisión no dicen nada.</strong> Un AUC de 0,86 no es un resultado; «se contacta al 20 % de mayor riesgo y se recupera al 62 %» sí.</li></ul></section>
+<section class="section-block is-bridge"><span class="kicker">Analogía</span><h2 class="section-title">Puente metalúrgico</h2><p>El informe de una campaña de pruebas tiene exactamente estas capas, y tú ya las has visto ordenadas así.</p><div class="table-wrap"><table><thead><tr><th>En el certificado</th><th>En el informe de campaña</th></tr></thead><tbody><tr><td>Una frase</td><td>La recomendación, en la portada</td></tr><tr><td>Resumen ejecutivo</td><td>El resumen para el comité</td></tr><tr><td>Ficha de caso</td><td>El cuerpo, con las condiciones y por qué se eligieron</td></tr><tr><td>Plan PACE</td><td>El programa de pruebas, firmado antes de empezar</td></tr><tr><td>Guion y cuaderno</td><td>Los anexos con los balances y las hojas de ensayo</td></tr></tbody></table></div><p>Y el paralelo aguanta hasta el detalle incómodo. <strong>El programa de pruebas se firma antes de hacerlas</strong>, igual que el plan PACE no cita ni una cifra. Un programa redactado al final, con las condiciones que resultaron ganar ya escritas como si se hubieran previsto, no engaña a nadie que haya llevado una campaña.</p><p>Y las pruebas que salieron mal van en el cuerpo, no se tiran. Un informe que solo enseña las condiciones ganadoras deja al lector sin saber <strong>qué se probó y no funcionó</strong>, que es la mitad de la información útil para el que venga después.</p><p>La diferencia está en quién lee. En planta el comité conoce el proceso; en un portafolio el lector no te conoce a ti, así que la frase de la portada tiene que trabajar todavía más.</p></section>
+<section class="section-block is-review"><span class="kicker">Repaso</span><h2 class="section-title">Repaso</h2><details><summary>¿Por qué el plan PACE del proyecto de Waze cita cero cifras en 706 palabras?</summary><p>Porque se escribe <strong>antes</strong> de analizar. Su trabajo es dejar por escrito qué se va a hacer y qué se espera encontrar, y en ese momento no hay resultados que citar. Eso es justo lo que le da valor después: cuando el proyecto termina, se puede comprobar si lo que pasó se parece a lo que se esperaba, y esa comprobación solo vale si la expectativa estaba escrita antes. Un plan redactado al final, con las conclusiones ya sabidas, no es un plan sino una racionalización.</p></details><details><summary>El resumen ejecutivo tiene 804 palabras y cita 35 cifras; la ficha tiene 1.200 y cita 28. ¿Por qué la más larga cita menos?</summary><p>Porque hacen trabajos distintos. El resumen lo lee quien decide y quiere los números, así que es corto y denso. La ficha la lee quien duda y quiere entender <strong>por qué</strong> esos números son creíbles, y eso se explica con frases: cómo se partieron los datos, qué se descartó y por qué, qué no funcionó. Más palabras por cifra no es relleno, es la explicación que convierte un número en algo defendible.</p></details><details><summary>¿Qué distingue una línea de currículum que funciona de una que no?</summary><p>Que describa un resultado en vez de una tarea. «Responsable del análisis de abandono» dice qué te asignaron; «modelo de abandono sobre 14.299 usuarios que identificó el umbral como la causa real de que solo se detectara el 8 %» dice qué conseguiste, con una cifra que se puede preguntar. Y hay un segundo lector antes que la persona: el programa que filtra currículos, que necesita las palabras de la oferta tal cual y un formato plano que sepa leer.</p></details><details><summary>¿Por qué un proyecto que solo enseña lo que salió bien es peor que uno que enseña los fallos?</summary><p>Porque el trabajo real produce callejones sin salida, y un portafolio sin ninguno solo puede significar dos cosas: que el proyecto fue trivial o que se han escondido. Las dos restan. Contar lo que no funcionó demuestra que sabes distinguir un resultado de un artefacto, que es la habilidad que se está evaluando. En los proyectos de esta biblioteca eso es la mitad del contenido: una segmentación que no encontró grupos, un modelo que empata con una sola pregunta, un encargo que no se puede cumplir con los datos disponibles.</p></details><details><summary>¿Por qué todas las cifras publicadas tienen que salir de un único archivo de resultados?</summary><p>Para que sea mecánicamente imposible que dos documentos se contradigan. Si el resumen dice 0,7379 y la ficha dice 0,7348 porque alguien reajustó algo y actualizó un archivo pero no el otro, quien lo lea deja de fiarse de los dos, y con razón. Escribiendo el código de forma que guarde todo lo publicable en un solo sitio, y prohibiéndose citar cualquier cosa que no esté ahí, el problema desaparece en vez de depender de acordarse.</p></details></section>
+</main>
+<footer class="footer">
+  Concentra / destilado del temario público del curso / 2026-08-20
+</footer>
+</body>
+</html>

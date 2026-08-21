@@ -1,0 +1,509 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Introduction to hypothesis testing — The Power of Statistics</title>
+<style>
+/* ============================================================================
+   Concentra — design tokens and shared components.
+   Inlined into every generated page by load_style(), so pages stay self-contained
+   and work offline from file:// with no external requests.
+
+   Direction: an assay lab, not a tech dashboard. The palette is taken from ore
+   and lab materials (chalcopyrite brass, malachite, hematite, quartz) on warm
+   graphite rather than the blue-black + neon of a generic dark UI. Type is
+   Bahnschrift, the DIN-descended grotesque that Windows ships and that lives on
+   machinery plates and technical drawings, over Corbel for reading.
+   ========================================================================== */
+
+:root {
+  /* Ground and surfaces: warm graphite, the colour of rock dust, not blue-black */
+  --rock: #1a1714;
+  --bench: #221e19;
+  --core: #2b251f;
+  --seam: #3d352c;
+
+  /* Ore palette. No blue and no purple anywhere: those are the tones that make a
+     page read as generated, and this palette comes from the ores instead. */
+  --brass: #c9a227;      /* chalcopyrite, the primary accent */
+  --malachite: #5d9b7a;  /* verified output, results that came out right */
+  --hematite: #b04a35;   /* iron oxide, pitfalls and warnings */
+
+  /* Text */
+  --quartz: #ece7de;
+  --dust: #9a9186;
+  --shadowed: #6f675c;
+
+  --display: Bahnschrift, 'DIN Alternate', 'Segoe UI Semibold', system-ui, sans-serif;
+  --body: Corbel, Candara, 'Segoe UI', system-ui, sans-serif;
+  --data: Consolas, 'Cascadia Mono', ui-monospace, monospace;
+
+  /* In px, not ch: ch scales with font-size, so a heading ended up wider than a
+     paragraph and the page had four different right edges instead of two. */
+  --measure: 640px;
+  --wide: 900px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--rock);
+  color: var(--quartz);
+  font-family: var(--body);
+  font-size: 16px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection { background: var(--brass); color: var(--rock); }
+
+:focus-visible {
+  outline: 2px solid var(--brass);
+  outline-offset: 3px;
+}
+
+/* --------------------------------------------------------------- the signature
+   A sieve series: ticks that get finer from left to right, coarse feed to fine
+   concentrate. It is the one ornament on the page and appears exactly twice —
+   under the wordmark and under a page title. */
+.mesh {
+  height: 10px;
+  background-image:
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 16px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 9px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 5px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 3px);
+  background-size: 25% 100%;
+  background-position: 0 0, 25% 0, 50% 0, 75% 0;
+  background-repeat: no-repeat;
+  opacity: .8;
+  transform-origin: left center;
+  animation: sieve .55s cubic-bezier(.2, .8, .3, 1) both;
+}
+@keyframes sieve { from { transform: scaleX(0); opacity: 0; } to { transform: scaleX(1); opacity: .8; } }
+@media (prefers-reduced-motion: reduce) {
+  .mesh { animation: none; }
+  * { transition: none !important; }
+}
+
+/* ------------------------------------------------------------------ page head */
+.header {
+  border-bottom: 1px solid var(--seam);
+  padding: 3.2rem 2rem 0;
+  background: linear-gradient(180deg, #221d16 0%, var(--rock) 100%);
+}
+.header-content { max-width: 1080px; margin: 0 auto; }
+
+.eyebrow {
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--brass);
+  margin-bottom: 1rem;
+}
+.eyebrow a { color: inherit; text-decoration: none; border-bottom: 1px solid transparent; }
+.eyebrow a:hover { border-bottom-color: var(--brass); }
+
+.header h1 {
+  font-family: var(--display);
+  font-size: clamp(2rem, 4.5vw, 3.1rem);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -.015em;
+  color: var(--quartz);
+  max-width: 20ch;
+}
+.header .subtitle {
+  color: var(--dust);
+  max-width: var(--measure);
+  margin-top: 1rem;
+  font-size: 1.02rem;
+}
+.header .mesh { margin: 1.8rem 0 0; }
+
+/* An assay line: the real composition of the module, in lab-report shorthand. */
+.assay {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.4rem;
+  font-family: var(--data);
+  font-size: .78rem;
+  color: var(--shadowed);
+  padding: .9rem 0 1.6rem;
+  letter-spacing: .04em;
+}
+.assay b { color: var(--dust); font-weight: 400; }
+
+/* --------------------------------------------------------------------- layout */
+/* The container hugs the widest block, so there is no orphan edge past the content. */
+.container { max-width: var(--wide); margin: 3rem auto 5rem; padding: 0 2rem; }
+
+/* Two deliberate right edges and no more: prose stops at the reading measure, and
+   only the things that genuinely need room (code, output, figures, big tables) run
+   out to the full column. */
+.section-block {
+  border-top: 1px solid var(--seam);
+  padding: 2rem 0 2.4rem;
+}
+.section-block > p,
+.section-block > ul,
+.section-block > ol,
+.section-block h3.sub,
+.section-block h4.sub,
+.section-block blockquote,
+details > *:not(summary) { max-width: var(--measure); }
+.section-block:first-child { border-top: 0; padding-top: .5rem; }
+
+/* The kicker names what kind of content follows: context, method, pitfalls.
+   It replaces decorative icons with something that actually classifies. */
+.kicker {
+  font-family: var(--data);
+  font-size: .68rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  display: block;
+  margin-bottom: .5rem;
+}
+.section-title {
+  font-family: var(--display);
+  font-size: 1.55rem;
+  font-weight: 600;
+  letter-spacing: -.01em;
+  line-height: 1.2;
+  margin-bottom: 1.2rem;
+  color: var(--quartz);
+}
+.is-warning .kicker { color: var(--hematite); }
+.is-warning .section-title { color: #e8c4b8; }
+.is-bridge .kicker, .is-decision .kicker { color: var(--malachite); }
+.is-toy .kicker, .is-result .kicker, .is-question .kicker { color: var(--brass); }
+
+/* ---------------------------------------------------------------------- prose */
+/* Justified with hyphenation. In Spanish, justifying without hyphens opens rivers of
+   white space and reads worse than ragged right; lang="es" is what feeds the
+   dictionary. Tables, code, captions and summaries stay ragged on purpose. */
+.section-block p,
+.section-block li,
+details > *:not(summary) {
+  text-align: justify;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+}
+.section-block p { margin-bottom: 1rem; }
+.section-block p:last-child { margin-bottom: 0; }
+/* Indent with padding, not margin, so the bullet sits inside the measure instead of
+   pushing the list 1.2rem past the right edge of the paragraphs. */
+.section-block ul, .section-block ol { margin: 0 0 1rem; padding-left: 1.2rem; }
+.section-block li { margin-bottom: .55rem; padding-left: .2rem; }
+.section-block li::marker { color: var(--brass); }
+td, th, figcaption, .res li, .assay { text-align: left; hyphens: manual; }
+a { color: var(--brass); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+a:hover { text-decoration-thickness: 2px; }
+strong { color: #fff; font-weight: 700; }
+em { color: var(--dust); font-style: italic; }
+
+h3.sub {
+  font-family: var(--display);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--brass);
+  margin: 2rem 0 .7rem;
+  letter-spacing: -.005em;
+}
+h3.sub:first-child { margin-top: 0; }
+h4.sub {
+  font-family: var(--display);
+  font-size: .98rem;
+  font-weight: 600;
+  color: var(--dust);
+  margin: 1.3rem 0 .5rem;
+}
+
+code {
+  font-family: var(--data);
+  font-size: .9em;
+  background: var(--core);
+  border-radius: 3px;
+  padding: .08rem .32rem;
+  color: var(--brass);
+}
+pre {
+  background: #14110e;
+  border: 1px solid var(--seam);
+  border-left: 2px solid var(--seam);
+  border-radius: 2px;
+  padding: 1.1rem 1.2rem;
+  overflow-x: auto;
+  margin-bottom: 1rem;
+}
+pre code {
+  background: none; padding: 0; color: var(--quartz);
+  font-size: .87rem; line-height: 1.6;
+}
+
+/* What the code prints. Malachite: the material that came out of the process. */
+.output {
+  position: relative;
+  border: 1px solid rgba(93, 155, 122, .32);
+  border-left: 2px solid var(--malachite);
+  border-radius: 2px;
+  background: rgba(93, 155, 122, .06);
+  padding: 1.7rem 1.2rem 1rem;
+  margin-bottom: 1rem;
+  overflow-x: auto;
+}
+.output-tag {
+  position: absolute; top: .5rem; left: 1.2rem;
+  font-family: var(--data); font-size: .64rem;
+  letter-spacing: .18em; text-transform: uppercase; color: var(--malachite);
+}
+.output pre {
+  background: none; border: 0; padding: 0; margin: 0;
+  font-family: var(--data); font-size: .85rem;
+  color: var(--quartz); white-space: pre-wrap;
+}
+
+/* Line by line explanation of a code block, for a reader new to programming.
+   Two columns: the fragment of code, and what it does. */
+.annot {
+  display: grid;
+  grid-template-columns: minmax(9rem, auto) 1fr;
+  gap: .1rem 1.2rem;
+  align-items: baseline;
+  max-width: var(--wide);
+  margin: -.4rem 0 1.4rem;
+  padding: .9rem 1.1rem 1rem;
+  border: 1px solid var(--seam);
+  border-top: 0;
+  border-radius: 0 0 2px 2px;
+  background: rgba(201, 162, 39, .04);
+}
+.annot-head {
+  grid-column: 1 / -1;
+  font-family: var(--data);
+  font-size: .64rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  margin-bottom: .5rem;
+}
+.annot dt { padding: .35rem 0; }
+.annot dt code {
+  background: var(--core);
+  color: var(--brass);
+  font-size: .82rem;
+  white-space: nowrap;
+}
+.annot dd {
+  padding: .35rem 0;
+  margin: 0;
+  color: var(--dust);
+  font-size: .93rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(61, 53, 44, .5);
+}
+.annot dt { border-bottom: 1px solid rgba(61, 53, 44, .5); }
+.annot dt:last-of-type, .annot dd:last-of-type { border-bottom: 0; }
+/* The code block sits directly on top of its annotation, as one unit. */
+pre:has(+ .annot) { margin-bottom: 0; border-radius: 2px 2px 0 0; }
+
+@media (max-width: 640px) {
+  .annot { grid-template-columns: 1fr; gap: 0; }
+  .annot dt { border-bottom: 0; padding-bottom: 0; }
+  .annot dd { padding-top: .15rem; }
+}
+
+blockquote {
+  border-left: 2px solid var(--brass);
+  padding: .3rem 0 .3rem 1.3rem;
+  margin: 0 0 1rem;
+  font-family: var(--display);
+  font-size: 1.2rem;
+  font-weight: 400;
+  line-height: 1.4;
+  color: var(--quartz);
+}
+
+/* Tables read as assay data: mono figures, hairline rules, no zebra fill.
+   They take the width they need instead of being stretched to the full column,
+   which is what left a two-column table floating in empty space. */
+.table-wrap { overflow-x: auto; margin-bottom: 1rem; }
+table { border-collapse: collapse; width: auto; max-width: 100%; font-size: .93rem; }
+th, td {
+  border-bottom: 1px solid var(--seam);
+  padding: .55rem .8rem .55rem 0;
+  text-align: left;
+  vertical-align: top;
+}
+th {
+  font-family: var(--data);
+  font-size: .7rem;
+  font-weight: 400;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  border-bottom-color: var(--brass);
+}
+td:first-child { color: var(--quartz); }
+
+/* Review questions: closed by default, so they work as recall practice. */
+details {
+  border-top: 1px solid var(--seam);
+  padding: .9rem 0;
+}
+details:last-child { border-bottom: 1px solid var(--seam); }
+summary {
+  cursor: pointer;
+  font-family: var(--display);
+  font-size: 1.02rem;
+  font-weight: 600;
+  color: var(--quartz);
+  list-style: none;
+  display: flex;
+  gap: .7rem;
+  align-items: baseline;
+}
+summary::-webkit-details-marker { display: none; }
+summary::before {
+  content: '+';
+  font-family: var(--data);
+  color: var(--brass);
+  font-size: .95rem;
+}
+details[open] summary::before { content: '−'; }
+details[open] summary { color: var(--brass); margin-bottom: .7rem; }
+details > *:not(summary) { color: var(--dust); }
+
+figure.fig {
+  margin: 1.6rem 0;
+  border: 1px solid var(--seam);
+  padding: .7rem;
+  background: var(--bench);
+}
+figure.fig img { width: 100%; height: auto; display: block; }
+/* The interactive twin of a figure. Its aspect matches the still one, 10 by 4.4, so a
+   case sheet keeps the same rhythm whichever kind of figure comes next. */
+figure.fig.is-live iframe {
+  width: 100%;
+  /* Matches INTERACTIVE_HEIGHT in src/make_figures.py. It used to be an aspect ratio, and
+     that made the figure's height depend on the window: the caption and the legend are
+     placed at fractions of the plot area, so on a wide screen they were pushed past the
+     bottom margin, clipping the caption and covering the x-axis title. */
+  height: 520px;
+  border: 0;
+  display: block;
+}
+figure.fig figcaption {
+  font-family: var(--data);
+  font-size: .72rem;
+  color: var(--shadowed);
+  margin-top: .6rem;
+  letter-spacing: .04em;
+}
+
+/* File listings on a case sheet */
+.res { list-style: none; margin-left: 0 !important; }
+.res li {
+  display: flex; align-items: baseline; gap: .8rem; flex-wrap: wrap;
+  padding: .5rem 0; border-bottom: 1px solid var(--seam); margin-bottom: 0;
+}
+.res .path { font-family: var(--data); font-size: .74rem; color: var(--shadowed); }
+.res .size { font-family: var(--data); font-size: .74rem; color: var(--shadowed); margin-left: auto; }
+.res .gone { font-family: var(--data); font-size: .74rem; color: var(--hematite); }
+
+.footer {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 2rem 4rem;
+  color: var(--shadowed);
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .03em;
+}
+
+@media (max-width: 640px) {
+  body { font-size: 15px; }
+  .header { padding: 2rem 1.2rem 0; }
+  .container { padding: 0 1.2rem; margin-top: 2rem; }
+  .footer { padding: 0 1.2rem 3rem; }
+}
+
+@media print {
+  body { background: #fff; color: #16130f; }
+  .header { background: none; border-bottom: 1px solid #bbb; padding-top: 0; }
+  .header h1, .section-title, summary { color: #16130f; }
+  .mesh { animation: none; }
+  .section-block { break-inside: avoid; max-width: none; }
+  pre, .output { background: #f6f4f0; border-color: #ccc; }
+  details:not([open]) > *:not(summary) { display: block; }
+  a { color: #16130f; }
+}
+
+</style>
+</head>
+<body>
+<header class="header">
+  <div class="header-content">
+    <div class="eyebrow"><a href="https://www.coursera.org/learn/the-power-of-statistics">The Power of Statistics</a> / Módulo 5</div>
+    <h1>Introduction to hypothesis testing</h1>
+    <p class="subtitle">Donde converge todo el curso. Dos turnos de planta con cinco mediciones cada uno enseñan por qué mirar la diferencia de medias no basta, y por qué un efecto grande puede salir no significativo mientras uno diminuto sale significativísimo.</p>
+    <div class="mesh" role="presentation"></div>
+    <div class="assay"><span><b>5 h</b> de curso</span><span><b>8</b> vídeos</span><span><b>8</b> lecturas</span><span><b>5</b> tareas</span><span><b>3</b> prácticas</span></div>
+  </div>
+</header>
+<main class="container">
+<section class="section-block "><span class="kicker">Contexto</span><h2 class="section-title">Qué resuelve este módulo</h2><p>Aquí se junta todo: la probabilidad del módulo 2, el muestreo del 3 y los intervalos del 4 se combinan para responder la pregunta de negocio más repetida que existe.</p><p><strong>¿Esta diferencia que estoy viendo es real, o es casualidad de la muestra que me tocó?</strong></p><p>Es literalmente lo que hiciste en tus tres proyectos. Comparar dos grupos y decidir si la diferencia justifica actuar. Este módulo es la teoría que hay debajo de esos scripts.</p></section>
+<section class="section-block is-toy"><span class="kicker">Ejemplo</span><h2 class="section-title">Antes de la teoría: un ejemplo de juguete</h2><p>La planta trabaja en dos turnos y sospechas que el de día recupera más. Tienes <strong>cinco mediciones de recuperación</strong> de cada uno, en porcentaje:</p><pre><code>Turno día    84   86   85   88   87
+Turno noche  83   85   82   86   84</code></pre><h3 class="sub h3">Paso 1. La diferencia que salta a la vista</h3><pre><code>media día   = (84 + 86 + 85 + 88 + 87) / 5 = 430 / 5 = 86.0
+media noche = (83 + 85 + 82 + 86 + 84) / 5 = 420 / 5 = 84.0
+
+diferencia = 2.0 puntos de recuperación</code></pre><p><strong>Dos puntos de recuperación.</strong> En una planta real eso es dinero de verdad, y cualquier jefe de turno querría actuar de inmediato. La pregunta es si esos dos puntos son un patrón o si es lo que pasa cuando mides solo cinco veces.</p><h3 class="sub h3">Paso 2. Cuánto baila cada turno por su cuenta</h3><p>Antes de creerse la diferencia hay que mirar cuánto varían las mediciones <strong>dentro</strong> de cada turno. Las distancias a su propia media:</p><div class="table-wrap"><table><thead><tr><th>Turno día</th><th>Distancia a 86</th><th>Al cuadrado</th><th></th><th>Turno noche</th><th>Distancia a 84</th><th>Al cuadrado</th></tr></thead><tbody><tr><td>84</td><td>−2</td><td>4</td><td></td><td>83</td><td>−1</td><td>1</td></tr><tr><td>86</td><td>0</td><td>0</td><td></td><td>85</td><td>+1</td><td>1</td></tr><tr><td>85</td><td>−1</td><td>1</td><td></td><td>82</td><td>−2</td><td>4</td></tr><tr><td>88</td><td>+2</td><td>4</td><td></td><td>86</td><td>+2</td><td>4</td></tr><tr><td>87</td><td>+1</td><td>1</td><td></td><td>84</td><td>0</td><td>0</td></tr><tr><td></td><td><strong>suma</strong></td><td><strong>10</strong></td><td></td><td></td><td><strong>suma</strong></td><td><strong>10</strong></td></tr></tbody></table></div><p>Los dos turnos tienen la misma variabilidad. Dividiendo entre 4, que es n menos uno:</p><pre><code>varianza de cada turno = 10 / 4 = 2.5
+desviación de cada turno = √2.5 = 1.5811</code></pre><p>Ojo a lo que esto significa: <strong>dentro de un mismo turno las mediciones ya se mueven casi 1,6 puntos</strong>. Y la diferencia entre turnos que queremos defender es de 2. Empieza a no estar tan claro.</p><h3 class="sub h3">Paso 3. ¿Cuánto podría bailar la diferencia solo por azar?</h3><p>Esta es la pregunta clave, y se responde con el error estándar del módulo 3, aplicado ahora a la <strong>diferencia</strong> entre dos medias:</p><pre><code>error estándar = √(2.5/5 + 2.5/5) = √(0.5 + 0.5) = √1 = 1.0</code></pre><p>Un punto exacto. O sea: aunque los dos turnos fueran idénticos, sus medias muestrales diferirían típicamente en torno a <strong>1 punto</strong> solo por azar.</p><h3 class="sub h3">Paso 4. El estadístico t es una división</h3><p>Ahora comparamos la diferencia observada contra esa variación por azar:</p><pre><code>t = diferencia observada / error estándar = 2.0 / 1.0 = 2.0</code></pre><p><strong>La diferencia es dos veces lo que el azar produce normalmente.</strong> Eso es todo lo que significa un estadístico t: cuántas &quot;unidades de azar&quot; mide tu diferencia.</p><h3 class="sub h3">Paso 5. Y el veredicto, que sorprende</h3><p>Con <code>t = 2.0</code> y 8 grados de libertad, el valor p sale:</p><pre><code>p = 0.0805</code></pre><p>Es <strong>mayor</strong> que 0,05, así que <strong>no se rechaza la hipótesis nula</strong>. Con estos datos no hay evidencia suficiente para afirmar que los turnos difieren.</p><p>Dos puntos de recuperación, que parecían clarísimos, no se sostienen. Y el intervalo de confianza del módulo 4 lo dice igual de claro:</p><pre><code>IC 95% de la diferencia = [−0.306 , 4.306]</code></pre><p><strong>Cruza el cero.</strong> La diferencia real podría ser cero, o incluso negativa.</p><h3 class="sub h3">Paso 6. Pero cuidado con la conclusión contraria</h3><p>Aquí viene lo que más se malinterpreta. Calcula el tamaño del efecto:</p><pre><code>d de Cohen = 2.0 / 1.5811 = 1.2649</code></pre><p>Por convención, cualquier valor por encima de 0,8 es un efecto <strong>grande</strong>. O sea: el efecto que observamos es enorme, y aun así el test dice que no.</p><p>¿Cómo puede ser? Porque solo hay cinco mediciones por turno. El test no está diciendo &quot;no hay diferencia&quot;: está diciendo <strong>&quot;con cinco datos no puedo distinguirla del ruido&quot;</strong>.</p><p>Compruébalo tomando veinte mediciones por turno en vez de cinco, con exactamente las mismas medias y la misma variabilidad:</p><pre><code>n = 5   →   t = 2.00   p = 0.0805      no significativo
+n = 20  →   t = 4.36   p = 0.000096    significativo</code></pre><p>Los mismos 2 puntos de diferencia. Lo único que cambió fue cuántas veces mediste.</p></section>
+<section class="section-block "><span class="kicker">Términos</span><h2 class="section-title">Glosario</h2><ul><li><strong>Hipótesis nula (H₀).</strong> La afirmación de &quot;aquí no pasa nada&quot;, que no hay diferencia. Se asume verdadera hasta que la evidencia diga lo contrario.</li><li><strong>Hipótesis alternativa (Hₐ).</strong> Lo que se sospecha: sí hay diferencia. Nunca se prueba directamente, se acumula evidencia en contra de H₀.</li><li><strong>En qué se diferencian las dos hipótesis.</strong> No son dos opiniones en igualdad de condiciones, y esa asimetría es todo el método:</li></ul><div class="table-wrap"><table><thead><tr><th></th><th>Hipótesis nula</th><th>Hipótesis alternativa</th></tr></thead><tbody><tr><td>Qué afirma</td><td>No hay efecto ni diferencia</td><td>Sí lo hay</td></tr><tr><td>De quién es la carga de la prueba</td><td>De nadie: <strong>se asume cierta de partida</strong></td><td><strong>De ti</strong>: hay que acumular evidencia</td></tr><tr><td>Qué se calcula</td><td>El valor p <strong>suponiéndola verdadera</strong></td><td>Nada directamente</td></tr><tr><td>Qué desenlaces admite</td><td>Se rechaza, o no se rechaza</td><td>Se respalda, o se queda sin respaldo</td></tr><tr><td>Cómo se escribe</td><td>Con un igual: μ₁ = μ₂</td><td>Con un distinto, mayor o menor: μ₁ ≠ μ₂</td></tr></tbody></table></div><p>Las dos se escriben <strong>antes</strong> de mirar los datos, y la alternativa decide si la prueba es de una cola o de dos.</p><ul><li><strong>Nivel de significancia (α).</strong> El riesgo que aceptas de gritar &quot;¡hay diferencia!&quot; cuando no la hay. Por convención 0,05.</li><li><strong>Valor p.</strong> La probabilidad de observar un resultado tan extremo como el tuyo **si H₀ fuera verdadera**. Pequeño significa que tu resultado sería raro en un mundo sin efecto.</li><li><strong>Estadístico t.</strong> La diferencia observada dividida entre el error estándar. Cuántas unidades de azar mide tu diferencia.</li><li><strong>Error tipo I.</strong> Rechazar H₀ cuando era verdadera. Un falso positivo. Su probabilidad es α.</li><li><strong>Error tipo II.</strong> No rechazar H₀ cuando era falsa. Un falso negativo, que es lo que nos pasó con cinco mediciones.</li><li><strong>Poder estadístico.</strong> La probabilidad de detectar un efecto que sí existe. Sube con el tamaño de muestra y con el tamaño del efecto.</li><li><strong>Tamaño del efecto (d de Cohen).</strong> Cuán grande es la diferencia en unidades de desviación estándar. Por debajo de 0,2 es despreciable, cerca de 0,5 es medio, por encima de 0,8 es grande.</li><li><strong>Prueba de una cola.</strong> La alternativa especifica dirección, como &quot;el día recupera más&quot;. <strong>De dos colas</strong>, solo dice que difieren.</li><li><strong>Prueba t de una muestra.</strong> Compara una media contra un valor de referencia fijo.</li><li><strong>Prueba t de dos muestras.</strong> Compara las medias de dos grupos independientes.</li><li><strong>Prueba de proporciones.</strong> Compara dos tasas o porcentajes.</li><li><strong>A/B testing.</strong> Una prueba de hipótesis de dos muestras aplicada a producto: repartes usuarios al azar entre dos versiones y comparas una métrica.</li></ul></section>
+<section class="section-block is-recipe"><span class="kicker">Método</span><h2 class="section-title">Paso a paso</h2><h3 class="sub h3">Paso 1. Escribe H₀ y Hₐ antes de mirar los datos</h3><p>En el ejemplo: H₀ es que los dos turnos recuperan igual, Hₐ es que no. Si las escribes después de ver el resultado, estás adaptando la pregunta a la respuesta y la prueba pierde todo su valor.</p><h3 class="sub h3">Paso 2. Fija α también antes</h3><p>0,05 por convención. Se baja a 0,01 cuando un falso positivo sale caro, como parar una planta o retirar un lote.</p><h3 class="sub h3">Paso 3. Elige la prueba según lo que compares</h3><div class="table-wrap"><table><thead><tr><th>Lo que comparas</th><th>Prueba</th></tr></thead><tbody><tr><td>Una media contra un valor fijo</td><td>t de una muestra</td></tr><tr><td>Medias de dos grupos independientes</td><td>t de dos muestras, con Welch por defecto</td></tr><tr><td>Dos proporciones o tasas</td><td>prueba z de proporciones</td></tr></tbody></table></div><h3 class="sub h3">Paso 4. Calcula y decide, con la frase correcta</h3><pre><code>si p &lt; α   →  se rechaza H₀: hay evidencia de diferencia
+si p ≥ α   →  NO se rechaza H₀: no hay evidencia suficiente</code></pre><p>Fíjate en la asimetría del lenguaje. Nunca se dice &quot;aceptamos H₀&quot; ni &quot;hemos demostrado que son iguales&quot;. Lo correcto es <strong>&quot;no hay evidencia suficiente&quot;</strong>, porque puede que el efecto exista y tu muestra sea demasiado pequeña para verlo, que es exactamente lo que pasó en el ejemplo de juguete.</p><h3 class="sub h3">Paso 5. Reporta el tamaño del efecto, siempre</h3><p>Un valor p solo no dice nada útil, porque <strong>depende del tamaño de muestra</strong>. Las dos caras de la misma moneda:</p><div class="table-wrap"><table><thead><tr><th>Situación</th><th>Qué pasa</th><th>Ejemplo real</th></tr></thead><tbody><tr><td>Muestra pequeña, efecto grande</td><td>p alto, pero el efecto es real y no lo detectas</td><td>Los dos turnos: d = 1,26 y p = 0,08</td></tr><tr><td>Muestra enorme, efecto diminuto</td><td>p bajísimo, pero da igual en la práctica</td><td>Automatidata: d = 0,09 y p = 6,8e-12</td></tr></tbody></table></div><p>Sin el tamaño del efecto no puedes distinguir estos dos casos, y son opuestos.</p><h3 class="sub h3">Paso 6. El mismo método fuera de la planta: el caso Ipsos</h3><p>El curso presenta un estudio de caso de <strong>Ipsos</strong>, una empresa de investigación de mercado, sobre cómo se usa el contraste de hipótesis para ayudar a los anunciantes a hacer anuncios más eficaces. El detalle del caso está en la plataforma; lo que interesa aquí es que <strong>es exactamente la prueba que acabas de hacer con dos turnos</strong>, con otro vocabulario:</p><div class="table-wrap"><table><thead><tr><th>En la planta</th><th>En la investigación de mercado</th></tr></thead><tbody><tr><td>Turno de día contra turno de noche</td><td>Versión A del anuncio contra versión B</td></tr><tr><td>Recuperación medida en cada lote</td><td>Recuerdo de marca o intención de compra en cada persona</td></tr><tr><td>Asignar el mineral a un turno</td><td><strong>Repartir la audiencia al azar</strong> entre las dos versiones</td></tr><tr><td>H₀: los dos turnos recuperan igual</td><td>H₀: los dos anuncios funcionan igual</td></tr><tr><td>α = 0,05</td><td>α = 0,05</td></tr></tbody></table></div><p>Y hay una diferencia que juega a favor: <strong>en publicidad sí se puede asignar al azar</strong>. En planta no eliges qué mineral le toca a cada turno, así que arrastras variables de confusión; al repartir una audiencia al azar, esas variables se reparten solas y la conclusión se acerca mucho más a una causa.</p><p><strong>Tres trampas propias de ese contexto</strong>, que son las mismas del módulo con otra ropa:</p><ul><li><strong>Muestra insuficiente.</strong> Las diferencias entre dos anuncios suelen ser pequeñas, así que el problema del turno de día vuelve a aparecer: efecto real y p alto por falta de datos. Por eso el tamaño de muestra se calcula <strong>antes</strong> de lanzar la prueba.</li><li><strong>Efecto novedad.</strong> Un anuncio nuevo llama la atención por ser nuevo. Medir demasiado pronto mide la novedad y no el anuncio, y la diferencia se desvanece semanas después.</li><li><strong>Probar muchas versiones a la vez.</strong> Comparar seis anuncios de dos en dos son quince pruebas, y con α de 0,05 en cada una el riesgo de un falso ganador se dispara. Es el problema de las comparaciones múltiples, y el Curso 4 lo resuelve con ANOVA.</li></ul><p>Lo que no cambia entre una planta y una agencia es el método. <strong>Lo que cambia es el coste de equivocarse</strong>, y eso es precisamente lo que decide el α: rechazar un reactivo bueno cuesta una campaña de pruebas; lanzar el anuncio equivocado cuesta el presupuesto del trimestre.</p></section>
+<section class="section-block is-recipe"><span class="kicker">Código</span><h2 class="section-title">El código, por partes</h2><h3 class="sub h3">Paso 1. La prueba del ejemplo de juguete, en tres líneas</h3><pre><code class="language-python">import numpy as np
+from scipy import stats
+
+dia = np.array([84, 86, 85, 88, 87])
+noche = np.array([83, 85, 82, 86, 84])
+
+t_stat, p_value = stats.ttest_ind(dia, noche, equal_var=False)
+print(f&quot;diferencia = {dia.mean() - noche.mean():.1f} puntos&quot;)
+print(f&quot;t = {t_stat:.4f}   p = {p_value:.4f}&quot;)</code></pre><dl class="annot"><div class="annot-head">línea por línea</div><dt><code>stats.ttest_ind(...)</code></dt><dd>La prueba t para dos grupos <strong>independientes</strong>, que es lo que significa el <code>ind</code>. Existe otra versión, <code>ttest_rel</code>, para cuando los datos están emparejados (la misma máquina antes y después). Usar la equivocada da un resultado distinto sin avisar.</dd><dt><code>dia, noche</code></dt><dd>El orden importa para el <strong>signo</strong>: la función resta el segundo al primero. Si los pusieras al revés, <code>t</code> saldría negativo y la conclusión sería la misma, pero la diferencia cambiaría de signo.</dd><dt><code>equal_var=False</code></dt><dd>Pide la prueba de <strong>Welch</strong>, que no exige que los dos grupos tengan la misma variabilidad. Es la opción segura por defecto, como se explicó en el método.</dd><dt><code>t_stat, p_value =</code></dt><dd>La función devuelve dos números y se recogen en dos nombres. Siempre en ese orden: primero el estadístico, después el valor p.</dd></dl><div class="output"><span class="output-tag">sale</span><pre>diferencia = 2.0 puntos
+t = 2.0000   p = 0.0805</pre></div><p>Los mismos 2,0 y 0,0805 que sacamos a mano.</p><h3 class="sub h3">Paso 2. La decisión, redactada como se debe redactar</h3><pre><code class="language-python">alpha = 0.05
+if p_value &lt; alpha:
+    print(&quot;Se rechaza H0: hay evidencia de diferencia entre turnos.&quot;)
+else:
+    print(&quot;No se rechaza H0: no hay evidencia suficiente de diferencia.&quot;)</code></pre><dl class="annot"><div class="annot-head">línea por línea</div><dt><code>if ... :</code></dt><dd>Un <strong>condicional</strong>. Se lee &quot;si se cumple esto, haz lo de abajo&quot;. Igual que en el bucle del módulo 2, los dos puntos anuncian bloque y la sangría marca qué pertenece a él.</dd><dt><code>p_value &lt; alpha</code></dt><dd>La comparación devuelve verdadero o falso, y eso es lo que decide qué rama se ejecuta.</dd><dt><code>else:</code></dt><dd>&quot;Y si no se cumple, haz esto otro&quot;. Solo se ejecuta una de las dos ramas, nunca las dos.</dd><dt><code>alpha = 0.05</code></dt><dd>El umbral está en una variable con nombre, no escrito a mano dentro del <code>if</code>. Así se cambia en un solo sitio y queda registrado cuál se usó.</dd><dt><code>&quot;No se rechaza H0...&quot;</code></dt><dd><strong>El texto está redactado a propósito.</strong> No dice que los turnos sean iguales, dice que no hay evidencia suficiente. Esa diferencia es el contenido del módulo y conviene que hasta el mensaje del programa la respete.</dd></dl><div class="output"><span class="output-tag">sale</span><pre>No se rechaza H0: no hay evidencia suficiente de diferencia.</pre></div><h3 class="sub h3">Paso 3. El tamaño del efecto, que le da la vuelta a la lectura</h3><pre><code class="language-python">pooled = np.sqrt((dia.var(ddof=1) + noche.var(ddof=1)) / 2)
+d = (dia.mean() - noche.mean()) / pooled
+print(f&quot;d de Cohen = {d:.4f}&quot;)</code></pre><dl class="annot"><div class="annot-head">línea por línea</div><dt><code>pooled</code></dt><dd>La desviación <strong>combinada</strong> de los dos grupos, o sea la variabilidad típica de una medición cualquiera sin importar de qué turno venga.</dd><dt><code>(var + var) / 2</code></dt><dd>Promediar las dos varianzas. Este atajo solo vale porque los dos grupos tienen el mismo tamaño; con tamaños distintos hay que ponderar por el número de datos de cada uno.</dd><dt><code>ddof=1</code></dt><dd>El mismo argumento del módulo 1, y por la misma razón: dividir entre n menos uno.</dd><dt><code>d = diferencia / pooled</code></dt><dd>La idea entera del tamaño del efecto: medir la diferencia <strong>en unidades de la variabilidad natural del proceso</strong>, en vez de en puntos de recuperación. Así se puede comparar con cualquier otro estudio de cualquier otro tema.</dd></dl><div class="output"><span class="output-tag">sale</span><pre>d de Cohen = 1.2649</pre></div><p>Un efecto grande que la prueba no detecta. Eso no es un fallo de la estadística, es una señal de que hacen falta más mediciones.</p><h3 class="sub h3">Paso 4. Comprobar que el problema era el tamaño de muestra</h3><pre><code class="language-python">dia_20 = np.tile(dia, 4)
+noche_20 = np.tile(noche, 4)
+
+t4, p4 = stats.ttest_ind(dia_20, noche_20, equal_var=False)
+print(f&quot;medias: {dia_20.mean():.1f} vs {noche_20.mean():.1f}  (identicas)&quot;)
+print(f&quot;t = {t4:.4f}   p = {p4:.6f}&quot;)</code></pre><dl class="annot"><div class="annot-head">línea por línea</div><dt><code>np.tile(dia, 4)</code></dt><dd>Repite el array cuatro veces seguidas. De cinco mediciones pasan a veinte, y <strong>las medias y la desviación no cambian nada</strong> porque son exactamente los mismos valores repetidos.</dd><dt><code>:.6f</code></dt><dd>Seis decimales, porque con cuatro el valor p saldría como 0.0001 y se perdería la magnitud real del cambio.</dd></dl><div class="output"><span class="output-tag">sale</span><pre>medias: 86.0 vs 84.0  (identicas)
+t = 4.3589   p = 0.000096</pre></div><p>Este bloque es un experimento controlado sobre la propia estadística: <strong>lo único que se movió fue el número de mediciones</strong>, y el veredicto cambió por completo. Es lo que hay que recordar cuando alguien diga &quot;el test dio que no hay diferencia&quot;.</p><h3 class="sub h3">Paso 5. Comparar dos proporciones sin librerías extra</h3><p>Cuando lo que comparas son tasas y no medias. Por ejemplo, 120 conversiones de 1.000 usuarios en la versión A frente a 150 de 1.000 en la B.</p><pre><code class="language-python">exitos = np.array([120, 150])
+totales = np.array([1000, 1000])
+
+p1, p2 = exitos / totales
+combinada = exitos.sum() / totales.sum()
+error = np.sqrt(combinada * (1 - combinada) * (1 / totales[0] + 1 / totales[1]))
+z = (p1 - p2) / error
+
+print(f&quot;tasas: {p1:.1%} vs {p2:.1%}&quot;)
+print(f&quot;z = {z:.4f}   p = {2 * (1 - stats.norm.cdf(abs(z))):.4f}&quot;)</code></pre><dl class="annot"><div class="annot-head">línea por línea</div><dt><code>exitos / totales</code></dt><dd>Dividir dos arrays los divide <strong>elemento a elemento</strong>: 120 entre 1000 y 150 entre 1000, en una sola operación. Con listas normales de Python esto no funcionaría.</dd><dt><code>p1, p2 =</code></dt><dd>Y el resultado, que son dos números, se reparte en dos nombres.</dd><dt><code>combinada</code></dt><dd>La tasa que saldría si los dos grupos fueran en realidad el mismo. La prueba parte de suponer que no hay diferencia, así que estima el error <strong>bajo ese supuesto</strong>.</dd><dt><code>totales[0]</code></dt><dd>Los corchetes con un número sacan un elemento por su posición. <strong>Python empieza a contar en cero</strong>, así que <code>[0]</code> es el primero y <code>[1]</code> el segundo.</dd><dt><code>abs(z)</code></dt><dd>El valor absoluto, o sea sin signo. Hace falta porque la cola se mide hacia el mismo lado sin importar si la diferencia salió positiva o negativa.</dd><dt><code>2 * (1 - cdf(...))</code></dt><dd>El <strong>por dos</strong> es lo que convierte esto en una prueba de dos colas: se cuenta la cola de arriba y la de abajo. Quitar ese 2 daría una prueba de una cola, con un valor p la mitad de grande.</dd></dl><div class="output"><span class="output-tag">sale</span><pre>tasas: 12.0% vs 15.0%
+z = -1.9630   p = 0.0496</pre></div><p>Fíjate en el resultado: <code>p = 0.0496</code>, por debajo de 0,05 <strong>por seis milésimas</strong>. Con dos conversiones menos en la versión B habría salido no significativo. Eso enseña mejor que ningún discurso que 0,05 es una convención y no una frontera de la naturaleza.</p></section>
+<section class="section-block is-warning"><span class="kicker">Trampas</span><h2 class="section-title">Ojo</h2><ul><li><strong>El valor p no es la probabilidad de que H₀ sea verdadera.</strong> Es la probabilidad de ver un resultado así de extremo <strong>si H₀ lo fuera</strong>. Es una afirmación condicional sobre los datos, no sobre la hipótesis.</li><li><strong>&quot;No significativo&quot; no es &quot;no hay diferencia&quot;.</strong> El ejemplo de juguete tiene un efecto grande, d de 1,26, y aun así p sale 0,08. La conclusión correcta es que faltan datos.</li><li><strong>Con muestra enorme, cualquier diferencia trivial sale significativa.</strong> Automatidata dio p de 6,8e-12 para una diferencia de 1,22 dólares con d de 0,09. Significativo e irrelevante a la vez.</li><li><strong>Nunca digas &quot;aceptamos H₀&quot;.</strong> No rechazar no es demostrar. La redacción correcta es &quot;no hay evidencia suficiente&quot;.</li><li><strong>Elegir prueba de una cola después de ver los datos es hacer trampa.</strong> La dirección se decide antes y por una razón de negocio, no porque así el p baja.</li><li><strong>Bajar α para evitar falsos positivos sube los falsos negativos.</strong> Los dos errores están en tensión, y lo único que mejora ambos a la vez es más muestra.</li><li><strong>0,05 es una convención.</strong> El ejemplo de proporciones sale en 0,0496 y podría haber salido en 0,0504 con dos casos menos. Tratar esa frontera como sagrada es un error de criterio.</li></ul></section>
+<section class="section-block is-bridge"><span class="kicker">Analogía</span><h2 class="section-title">Puente metalúrgico</h2><p>Una prueba de hipótesis es exactamente <strong>decidir si un cambio de operación movió de verdad la recuperación</strong>, y el ejemplo de juguete es literalmente eso.</p><p>Reaccionar a cada fluctuación de dos puntos como si fuera señal real, ajustando reactivo cada turno, es cometer un <strong>error tipo I</strong> una y otra vez. El resultado no es una planta mejor afinada: es una planta más inestable, porque estás persiguiendo ruido. Esa es la razón de que exista el control estadístico de procesos.</p><p>Y el par de errores tiene su traducción directa en control de calidad:</p><div class="table-wrap"><table><thead><tr><th></th><th>Qué es</th><th>Qué cuesta</th></tr></thead><tbody><tr><td><strong>Error tipo I</strong></td><td>Rechazar un lote que sí cumplía especificación</td><td>Reproceso innecesario</td></tr><tr><td><strong>Error tipo II</strong></td><td>Aceptar un lote que no cumplía</td><td>Reclamo del cliente</td></tr></tbody></table></div><p>Ningún protocolo de muestreo elimina los dos a la vez sin tomar más muestras. Cada planta decide cuál de los dos errores le duele más, y esa decisión es exactamente lo que en estadística se llama elegir α.</p></section>
+<section class="section-block is-review"><span class="kicker">Repaso</span><h2 class="section-title">Repaso</h2><details><summary>¿Qué es exactamente el valor p?</summary><p>Es la probabilidad de observar un resultado tan extremo como el obtenido, o más, asumiendo que la hipótesis nula es verdadera. No es la probabilidad de que la hipótesis nula sea cierta ni la probabilidad de que el resultado sea casualidad en un sentido general: es una afirmación condicional muy concreta sobre los datos bajo el supuesto de que no hay efecto. Un valor p pequeño significa que ese resultado sería raro en un mundo sin diferencia, lo cual es evidencia en contra de ese supuesto.</p></details><details><summary>En el ejemplo de los turnos hay una diferencia de 2 puntos y un efecto grande, pero p sale 0,08. ¿Qué se concluye?</summary><p>Que con cinco mediciones por turno no hay evidencia suficiente para afirmar que difieren, y nada más. No se concluye que sean iguales. De hecho el tamaño del efecto, d de 1,26, es grande, y el intervalo de confianza va de −0,31 a 4,31, lo que deja mucho margen para una diferencia real. La lectura correcta es que el estudio está falto de poder estadístico y lo que procede es tomar más mediciones, no descartar la sospecha.</p></details><details><summary>¿Cómo pueden convivir un valor p diminuto y un efecto irrelevante?</summary><p>Porque el valor p depende del tamaño de muestra además del tamaño del efecto. Con 22.532 viajes, la diferencia de 1,22 dólares del caso Automatidata produce un p de 6,8 por diez elevado a menos doce, y sin embargo su d de Cohen es 0,09, un efecto despreciable. El test solo responde a si la diferencia es distinguible del azar, no a si vale la pena actuar sobre ella. Por eso el tamaño del efecto es obligatorio en cualquier reporte serio.</p></details><details><summary>¿Por qué no se dice nunca &quot;aceptamos la hipótesis nula&quot;?</summary><p>Porque no rechazarla no equivale a demostrar que es cierta. Solo significa que los datos disponibles no bastaron para descartarla, y eso es compatible tanto con que no haya efecto como con que exista uno que no se pudo detectar. El ejemplo de los turnos muestra el segundo caso con claridad: el efecto era grande y aun así no se detectó. La formulación correcta, &quot;no hay evidencia suficiente&quot;, deja abierta esa posibilidad en lugar de cerrarla de forma indebida.</p></details><details><summary>Vas a comparar la recuperación de dos reactivos en planta. ¿Qué haces antes de tocar los datos?</summary><p>Escribo la hipótesis nula, que ambos reactivos dan la misma recuperación media, y la alternativa, junto con el nivel de significancia, todo antes de ver ningún resultado. Decido también el tamaño de muestra pensando en qué diferencia me interesaría detectar, que es justo el error que cometió el ejemplo de juguete al quedarse en cinco mediciones. Y verifico que la asignación no esté confundida con otra variable, por ejemplo que un reactivo no se haya probado solo en el turno de noche o solo con mineral de una zona concreta, porque entonces no sabría si estoy midiendo el reactivo o el turno.</p></details></section>
+</main>
+<footer class="footer">
+  Concentra / destilado del temario público del curso / 2026-08-20
+</footer>
+</body>
+</html>

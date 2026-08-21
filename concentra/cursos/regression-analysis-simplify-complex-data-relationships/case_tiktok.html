@@ -1,0 +1,483 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TikTok — Regression Analysis: Simplify Complex Data Relationships</title>
+<style>
+/* ============================================================================
+   Concentra — design tokens and shared components.
+   Inlined into every generated page by load_style(), so pages stay self-contained
+   and work offline from file:// with no external requests.
+
+   Direction: an assay lab, not a tech dashboard. The palette is taken from ore
+   and lab materials (chalcopyrite brass, malachite, hematite, quartz) on warm
+   graphite rather than the blue-black + neon of a generic dark UI. Type is
+   Bahnschrift, the DIN-descended grotesque that Windows ships and that lives on
+   machinery plates and technical drawings, over Corbel for reading.
+   ========================================================================== */
+
+:root {
+  /* Ground and surfaces: warm graphite, the colour of rock dust, not blue-black */
+  --rock: #1a1714;
+  --bench: #221e19;
+  --core: #2b251f;
+  --seam: #3d352c;
+
+  /* Ore palette. No blue and no purple anywhere: those are the tones that make a
+     page read as generated, and this palette comes from the ores instead. */
+  --brass: #c9a227;      /* chalcopyrite, the primary accent */
+  --malachite: #5d9b7a;  /* verified output, results that came out right */
+  --hematite: #b04a35;   /* iron oxide, pitfalls and warnings */
+
+  /* Text */
+  --quartz: #ece7de;
+  --dust: #9a9186;
+  --shadowed: #6f675c;
+
+  --display: Bahnschrift, 'DIN Alternate', 'Segoe UI Semibold', system-ui, sans-serif;
+  --body: Corbel, Candara, 'Segoe UI', system-ui, sans-serif;
+  --data: Consolas, 'Cascadia Mono', ui-monospace, monospace;
+
+  /* In px, not ch: ch scales with font-size, so a heading ended up wider than a
+     paragraph and the page had four different right edges instead of two. */
+  --measure: 640px;
+  --wide: 900px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--rock);
+  color: var(--quartz);
+  font-family: var(--body);
+  font-size: 16px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection { background: var(--brass); color: var(--rock); }
+
+:focus-visible {
+  outline: 2px solid var(--brass);
+  outline-offset: 3px;
+}
+
+/* --------------------------------------------------------------- the signature
+   A sieve series: ticks that get finer from left to right, coarse feed to fine
+   concentrate. It is the one ornament on the page and appears exactly twice —
+   under the wordmark and under a page title. */
+.mesh {
+  height: 10px;
+  background-image:
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 16px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 9px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 5px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 3px);
+  background-size: 25% 100%;
+  background-position: 0 0, 25% 0, 50% 0, 75% 0;
+  background-repeat: no-repeat;
+  opacity: .8;
+  transform-origin: left center;
+  animation: sieve .55s cubic-bezier(.2, .8, .3, 1) both;
+}
+@keyframes sieve { from { transform: scaleX(0); opacity: 0; } to { transform: scaleX(1); opacity: .8; } }
+@media (prefers-reduced-motion: reduce) {
+  .mesh { animation: none; }
+  * { transition: none !important; }
+}
+
+/* ------------------------------------------------------------------ page head */
+.header {
+  border-bottom: 1px solid var(--seam);
+  padding: 3.2rem 2rem 0;
+  background: linear-gradient(180deg, #221d16 0%, var(--rock) 100%);
+}
+.header-content { max-width: 1080px; margin: 0 auto; }
+
+.eyebrow {
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--brass);
+  margin-bottom: 1rem;
+}
+.eyebrow a { color: inherit; text-decoration: none; border-bottom: 1px solid transparent; }
+.eyebrow a:hover { border-bottom-color: var(--brass); }
+
+.header h1 {
+  font-family: var(--display);
+  font-size: clamp(2rem, 4.5vw, 3.1rem);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -.015em;
+  color: var(--quartz);
+  max-width: 20ch;
+}
+.header .subtitle {
+  color: var(--dust);
+  max-width: var(--measure);
+  margin-top: 1rem;
+  font-size: 1.02rem;
+}
+.header .mesh { margin: 1.8rem 0 0; }
+
+/* An assay line: the real composition of the module, in lab-report shorthand. */
+.assay {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.4rem;
+  font-family: var(--data);
+  font-size: .78rem;
+  color: var(--shadowed);
+  padding: .9rem 0 1.6rem;
+  letter-spacing: .04em;
+}
+.assay b { color: var(--dust); font-weight: 400; }
+
+/* --------------------------------------------------------------------- layout */
+/* The container hugs the widest block, so there is no orphan edge past the content. */
+.container { max-width: var(--wide); margin: 3rem auto 5rem; padding: 0 2rem; }
+
+/* Two deliberate right edges and no more: prose stops at the reading measure, and
+   only the things that genuinely need room (code, output, figures, big tables) run
+   out to the full column. */
+.section-block {
+  border-top: 1px solid var(--seam);
+  padding: 2rem 0 2.4rem;
+}
+.section-block > p,
+.section-block > ul,
+.section-block > ol,
+.section-block h3.sub,
+.section-block h4.sub,
+.section-block blockquote,
+details > *:not(summary) { max-width: var(--measure); }
+.section-block:first-child { border-top: 0; padding-top: .5rem; }
+
+/* The kicker names what kind of content follows: context, method, pitfalls.
+   It replaces decorative icons with something that actually classifies. */
+.kicker {
+  font-family: var(--data);
+  font-size: .68rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  display: block;
+  margin-bottom: .5rem;
+}
+.section-title {
+  font-family: var(--display);
+  font-size: 1.55rem;
+  font-weight: 600;
+  letter-spacing: -.01em;
+  line-height: 1.2;
+  margin-bottom: 1.2rem;
+  color: var(--quartz);
+}
+.is-warning .kicker { color: var(--hematite); }
+.is-warning .section-title { color: #e8c4b8; }
+.is-bridge .kicker, .is-decision .kicker { color: var(--malachite); }
+.is-toy .kicker, .is-result .kicker, .is-question .kicker { color: var(--brass); }
+
+/* ---------------------------------------------------------------------- prose */
+/* Justified with hyphenation. In Spanish, justifying without hyphens opens rivers of
+   white space and reads worse than ragged right; lang="es" is what feeds the
+   dictionary. Tables, code, captions and summaries stay ragged on purpose. */
+.section-block p,
+.section-block li,
+details > *:not(summary) {
+  text-align: justify;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+}
+.section-block p { margin-bottom: 1rem; }
+.section-block p:last-child { margin-bottom: 0; }
+/* Indent with padding, not margin, so the bullet sits inside the measure instead of
+   pushing the list 1.2rem past the right edge of the paragraphs. */
+.section-block ul, .section-block ol { margin: 0 0 1rem; padding-left: 1.2rem; }
+.section-block li { margin-bottom: .55rem; padding-left: .2rem; }
+.section-block li::marker { color: var(--brass); }
+td, th, figcaption, .res li, .assay { text-align: left; hyphens: manual; }
+a { color: var(--brass); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+a:hover { text-decoration-thickness: 2px; }
+strong { color: #fff; font-weight: 700; }
+em { color: var(--dust); font-style: italic; }
+
+h3.sub {
+  font-family: var(--display);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--brass);
+  margin: 2rem 0 .7rem;
+  letter-spacing: -.005em;
+}
+h3.sub:first-child { margin-top: 0; }
+h4.sub {
+  font-family: var(--display);
+  font-size: .98rem;
+  font-weight: 600;
+  color: var(--dust);
+  margin: 1.3rem 0 .5rem;
+}
+
+code {
+  font-family: var(--data);
+  font-size: .9em;
+  background: var(--core);
+  border-radius: 3px;
+  padding: .08rem .32rem;
+  color: var(--brass);
+}
+pre {
+  background: #14110e;
+  border: 1px solid var(--seam);
+  border-left: 2px solid var(--seam);
+  border-radius: 2px;
+  padding: 1.1rem 1.2rem;
+  overflow-x: auto;
+  margin-bottom: 1rem;
+}
+pre code {
+  background: none; padding: 0; color: var(--quartz);
+  font-size: .87rem; line-height: 1.6;
+}
+
+/* What the code prints. Malachite: the material that came out of the process. */
+.output {
+  position: relative;
+  border: 1px solid rgba(93, 155, 122, .32);
+  border-left: 2px solid var(--malachite);
+  border-radius: 2px;
+  background: rgba(93, 155, 122, .06);
+  padding: 1.7rem 1.2rem 1rem;
+  margin-bottom: 1rem;
+  overflow-x: auto;
+}
+.output-tag {
+  position: absolute; top: .5rem; left: 1.2rem;
+  font-family: var(--data); font-size: .64rem;
+  letter-spacing: .18em; text-transform: uppercase; color: var(--malachite);
+}
+.output pre {
+  background: none; border: 0; padding: 0; margin: 0;
+  font-family: var(--data); font-size: .85rem;
+  color: var(--quartz); white-space: pre-wrap;
+}
+
+/* Line by line explanation of a code block, for a reader new to programming.
+   Two columns: the fragment of code, and what it does. */
+.annot {
+  display: grid;
+  grid-template-columns: minmax(9rem, auto) 1fr;
+  gap: .1rem 1.2rem;
+  align-items: baseline;
+  max-width: var(--wide);
+  margin: -.4rem 0 1.4rem;
+  padding: .9rem 1.1rem 1rem;
+  border: 1px solid var(--seam);
+  border-top: 0;
+  border-radius: 0 0 2px 2px;
+  background: rgba(201, 162, 39, .04);
+}
+.annot-head {
+  grid-column: 1 / -1;
+  font-family: var(--data);
+  font-size: .64rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  margin-bottom: .5rem;
+}
+.annot dt { padding: .35rem 0; }
+.annot dt code {
+  background: var(--core);
+  color: var(--brass);
+  font-size: .82rem;
+  white-space: nowrap;
+}
+.annot dd {
+  padding: .35rem 0;
+  margin: 0;
+  color: var(--dust);
+  font-size: .93rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(61, 53, 44, .5);
+}
+.annot dt { border-bottom: 1px solid rgba(61, 53, 44, .5); }
+.annot dt:last-of-type, .annot dd:last-of-type { border-bottom: 0; }
+/* The code block sits directly on top of its annotation, as one unit. */
+pre:has(+ .annot) { margin-bottom: 0; border-radius: 2px 2px 0 0; }
+
+@media (max-width: 640px) {
+  .annot { grid-template-columns: 1fr; gap: 0; }
+  .annot dt { border-bottom: 0; padding-bottom: 0; }
+  .annot dd { padding-top: .15rem; }
+}
+
+blockquote {
+  border-left: 2px solid var(--brass);
+  padding: .3rem 0 .3rem 1.3rem;
+  margin: 0 0 1rem;
+  font-family: var(--display);
+  font-size: 1.2rem;
+  font-weight: 400;
+  line-height: 1.4;
+  color: var(--quartz);
+}
+
+/* Tables read as assay data: mono figures, hairline rules, no zebra fill.
+   They take the width they need instead of being stretched to the full column,
+   which is what left a two-column table floating in empty space. */
+.table-wrap { overflow-x: auto; margin-bottom: 1rem; }
+table { border-collapse: collapse; width: auto; max-width: 100%; font-size: .93rem; }
+th, td {
+  border-bottom: 1px solid var(--seam);
+  padding: .55rem .8rem .55rem 0;
+  text-align: left;
+  vertical-align: top;
+}
+th {
+  font-family: var(--data);
+  font-size: .7rem;
+  font-weight: 400;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  border-bottom-color: var(--brass);
+}
+td:first-child { color: var(--quartz); }
+
+/* Review questions: closed by default, so they work as recall practice. */
+details {
+  border-top: 1px solid var(--seam);
+  padding: .9rem 0;
+}
+details:last-child { border-bottom: 1px solid var(--seam); }
+summary {
+  cursor: pointer;
+  font-family: var(--display);
+  font-size: 1.02rem;
+  font-weight: 600;
+  color: var(--quartz);
+  list-style: none;
+  display: flex;
+  gap: .7rem;
+  align-items: baseline;
+}
+summary::-webkit-details-marker { display: none; }
+summary::before {
+  content: '+';
+  font-family: var(--data);
+  color: var(--brass);
+  font-size: .95rem;
+}
+details[open] summary::before { content: '−'; }
+details[open] summary { color: var(--brass); margin-bottom: .7rem; }
+details > *:not(summary) { color: var(--dust); }
+
+figure.fig {
+  margin: 1.6rem 0;
+  border: 1px solid var(--seam);
+  padding: .7rem;
+  background: var(--bench);
+}
+figure.fig img { width: 100%; height: auto; display: block; }
+/* The interactive twin of a figure. Its aspect matches the still one, 10 by 4.4, so a
+   case sheet keeps the same rhythm whichever kind of figure comes next. */
+figure.fig.is-live iframe {
+  width: 100%;
+  /* Matches INTERACTIVE_HEIGHT in src/make_figures.py. It used to be an aspect ratio, and
+     that made the figure's height depend on the window: the caption and the legend are
+     placed at fractions of the plot area, so on a wide screen they were pushed past the
+     bottom margin, clipping the caption and covering the x-axis title. */
+  height: 520px;
+  border: 0;
+  display: block;
+}
+figure.fig figcaption {
+  font-family: var(--data);
+  font-size: .72rem;
+  color: var(--shadowed);
+  margin-top: .6rem;
+  letter-spacing: .04em;
+}
+
+/* File listings on a case sheet */
+.res { list-style: none; margin-left: 0 !important; }
+.res li {
+  display: flex; align-items: baseline; gap: .8rem; flex-wrap: wrap;
+  padding: .5rem 0; border-bottom: 1px solid var(--seam); margin-bottom: 0;
+}
+.res .path { font-family: var(--data); font-size: .74rem; color: var(--shadowed); }
+.res .size { font-family: var(--data); font-size: .74rem; color: var(--shadowed); margin-left: auto; }
+.res .gone { font-family: var(--data); font-size: .74rem; color: var(--hematite); }
+
+.footer {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 2rem 4rem;
+  color: var(--shadowed);
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .03em;
+}
+
+@media (max-width: 640px) {
+  body { font-size: 15px; }
+  .header { padding: 2rem 1.2rem 0; }
+  .container { padding: 0 1.2rem; margin-top: 2rem; }
+  .footer { padding: 0 1.2rem 3rem; }
+}
+
+@media print {
+  body { background: #fff; color: #16130f; }
+  .header { background: none; border-bottom: 1px solid #bbb; padding-top: 0; }
+  .header h1, .section-title, summary { color: #16130f; }
+  .mesh { animation: none; }
+  .section-block { break-inside: avoid; max-width: none; }
+  pre, .output { background: #f6f4f0; border-color: #ccc; }
+  details:not([open]) > *:not(summary) { display: block; }
+  a { color: #16130f; }
+}
+
+</style>
+</head>
+<body>
+<header class="header">
+  <div class="header-content">
+    <div class="eyebrow">Curso 4 · Regression Analysis: Simplify Complex Data Relationships / Caso de estudio</div>
+    <h1>TikTok</h1>
+    <p class="subtitle">Un umbral que no decide nada, porque el modelo manda a todo el mundo a uno de dos montones y no hay nadie en medio.</p>
+    <div class="mesh" role="presentation"></div>
+    <div class="assay"><span>19.084 vídeos</span><span>logística binomial</span><span>clases 93,7 contra 6,3</span><span>AUC 0,697</span></div>
+  </div>
+</header>
+<main class="container">
+<section class="section-block "><span class="kicker">Encargo</span><h2 class="section-title">El encargo</h2><p><strong>TikTok</strong> tiene una cola de reclamaciones de usuarios esperando revisión humana, y quiere descongestionarla. El objetivo final, que llega en el curso siguiente, es clasificar automáticamente si un vídeo contiene una <strong>reclamación</strong> o una <strong>opinión</strong>.</p><p>Este proyecto es el paso previo: montar una regresión logística completa sobre una variable binaria que ya se conoce, <code>verified_status</code>, y aprender qué se puede esperar de ella.</p></section>
+<section class="section-block is-question"><span class="kicker">Pregunta</span><h2 class="section-title">La pregunta</h2><blockquote>¿Se puede saber si una cuenta está verificada mirando el vídeo que publicó?</blockquote></section>
+<section class="section-block is-data"><span class="kicker">Datos</span><h2 class="section-title">Los datos</h2><p><code>tiktok_dataset_raw.csv</code>, <strong>19.382 vídeos</strong> y 12 columnas. Datos sintéticos creados por TikTok para el certificado.</p><p>Y un aviso que va por delante porque decide cómo se mide todo lo demás:</p><figure class="fig"><img src="../../projects/curso4/tiktok/03_figures/01_desbalance.9d29fb5f.png" alt="01_desbalance" loading="lazy"><figcaption>01_desbalance.png</figcaption></figure><p><strong>El 93,7 % de las cuentas no están verificadas.</strong> Un modelo que conteste siempre &quot;no está verificada&quot; acierta el 93,7 % de las veces y no detecta a nadie. Con este reparto, la exactitud deja de ser una métrica y pasa a ser una trampa. Es el ejemplo del módulo 5, ahora con datos reales.</p></section>
+<section class="section-block is-data"><span class="kicker">Limpieza</span><h2 class="section-title">Lo que hubo que arreglar</h2><p><strong>298 filas tienen datos ausentes</strong>, siempre en el mismo bloque de siete columnas, y se eliminan. Quedan 19.084. No hay duplicados.</p><p><strong>La clase mayoritaria se submuestrea</strong> hasta igualar a la minoritaria: 1.200 y 1.200, o sea 2.400 filas, descartando 16.684 vídeos. Sin eso, el camino más corto que tiene el modelo para reducir su error es no predecir nunca &quot;verificada&quot;.</p><p>Consecuencia que hay que tener presente al leer los resultados: <strong>la exactitud que se reporta se compara contra el 50 % de una moneda</strong>, no contra el 93,7 % del archivo original.</p><p><strong>Las categorías se codifican</strong> con una columna de unos y ceros por nivel menos uno: <code>is_claim</code> con la opinión como referencia, y <code>banned</code> y <code>under_review</code> con la cuenta activa como referencia.</p></section>
+<section class="section-block is-figures"><span class="kicker">Exploración</span><h2 class="section-title">Lo que mostró la exploración</h2><p>El material del curso apunta a la duración del vídeo como la variable interesante. En estos datos la duración media es de <strong>31,77 segundos en las cuentas verificadas y 32,47 en las no verificadas</strong>: siete décimas de segundo sobre vídeos de medio minuto.</p><p>La señal está en otro sitio:</p><figure class="fig"><img src="../../projects/curso4/tiktok/03_figures/02_senal.f3c6d765.png" alt="02_senal" loading="lazy"><figcaption>02_senal.png</figcaption></figure><p>La proporción se da la vuelta. Las cuentas sin verificar publican reclamaciones algo más de la mitad de las veces; las verificadas publican <strong>opiniones cuatro de cada cinco</strong>.</p></section>
+<section class="section-block is-recipe"><span class="kicker">Modelo</span><h2 class="section-title">El modelo, y por qué este modelo</h2><p>La variable a predecir es un sí o un no, así que corresponde <strong>regresión logística binomial</strong>, ajustada por máxima verosimilitud sobre 1.800 filas, con 600 reservadas.</p><figure class="fig"><img src="../../projects/curso4/tiktok/03_figures/03b_correlaciones.6d620f21.png" alt="03b_correlaciones" loading="lazy"><figcaption>03b_correlaciones.png</figcaption></figure><p>Los cinco contadores de interacción (visualizaciones, me gusta, compartidos, descargas y comentarios) están correlacionados entre sí <strong>por encima de 0,55</strong>, y descargas con comentarios llega a <strong>0,83</strong>. La duración, en cambio, no se parece a ninguno: <strong>0,013</strong> es lo más que llega, así que mide algo distinto y por eso se queda en el modelo.</p><p>Traducido a factores de inflación de la varianza, que es el número que decide:</p><figure class="fig"><img src="../../projects/curso4/tiktok/03_figures/03_multicolinealidad.7677fd35.png" alt="03_multicolinealidad" loading="lazy"><figcaption>03_multicolinealidad.png</figcaption></figure><p>Los de los cinco contadores van de 3,8 a 7,8. <strong>Ninguno alcanza el umbral de 10</strong>, así que quedarse con uno solo fue un criterio propio y no una obligación: aportan ruido y ninguno resultaba significativo.</p><p><strong>De las cinco variables del modelo, una sola tiene efecto demostrado:</strong></p><figure class="fig"><img src="../../projects/curso4/tiktok/03_figures/04_momios.b26796ef.png" alt="04_momios" loading="lazy"><figcaption>04_momios.png</figcaption></figure><div class="table-wrap"><table><thead><tr><th>Variable</th><th>Razón de momios</th><th>Intervalo del 95 %</th><th>p</th></tr></thead><tbody><tr><td><strong>El vídeo es una reclamación</strong></td><td><strong>0,20</strong></td><td>0,13 a 0,29</td><td>1,9e-16</td></tr><tr><td>Autor en revisión</td><td>0,78</td><td>0,54 a 1,13</td><td>0,196</td></tr><tr><td>Autor expulsado</td><td>0,76</td><td>0,48 a 1,20</td><td>0,234</td></tr><tr><td>Cada segundo de vídeo</td><td>1,00</td><td>0,99 a 1,00</td><td>0,63</td></tr><tr><td>Cada visualización</td><td>1,00</td><td>1,00 a 1,00</td><td>0,886</td></tr></tbody></table></div><p>Los cuatro últimos intervalos cruzan el 1, que es la línea de no efecto cuando se habla de momios. Publicar una reclamación <strong>multiplica por 0,20 los momios</strong> de ser una cuenta verificada.</p></section>
+<section class="section-block is-recipe"><span class="kicker">Supuestos</span><h2 class="section-title">Los supuestos, uno por uno</h2><div class="table-wrap"><table><thead><tr><th>Supuesto</th><th>Estado</th></tr></thead><tbody><tr><td>Resultado binario</td><td>Se cumple: verificada o no</td></tr><tr><td>Observaciones independientes</td><td>Razonable: vídeos distintos</td></tr><tr><td>Sin multicolinealidad</td><td>Se cumple tras quitar cuatro contadores, máximo 3,0</td></tr><tr><td>Linealidad en el logit</td><td>No comprobable de forma útil: la única variable con efecto es binaria</td></tr></tbody></table></div><p>El último merece una línea. El supuesto exige que la relación sea recta <strong>en escala de logit</strong>, no en probabilidad. Con una variable binaria como única predictora con efecto, solo hay dos valores posibles y por dos puntos siempre pasa una recta, así que el supuesto se cumple por construcción y no dice nada.</p></section>
+<section class="section-block is-result"><span class="kicker">Resultado</span><h2 class="section-title">El resultado, traducido</h2><p>Sobre las 600 cuentas de prueba:</p><figure class="fig"><img src="../../projects/curso4/tiktok/03_figures/05_matriz_confusion.d3bceef4.png" alt="05_matriz_confusion" loading="lazy"><figcaption>05_matriz_confusion.png</figcaption></figure><div class="table-wrap"><table><thead><tr><th>Métrica</th><th>Valor</th><th>Qué significa</th></tr></thead><tbody><tr><td>Sensibilidad</td><td><strong>0,827</strong></td><td>De cada 100 cuentas verificadas, pilla 83</td></tr><tr><td>Precisión</td><td><strong>0,641</strong></td><td>De cada 100 alarmas, 64 son ciertas</td></tr><tr><td>F1</td><td>0,722</td><td></td></tr><tr><td>Exactitud</td><td>0,682</td><td>Contra el 50 % de una moneda</td></tr><tr><td>AUC</td><td>0,697</td><td>0,5 sería azar</td></tr></tbody></table></div><p><strong>Y aquí está el hallazgo del caso</strong>, que salió de un resultado que parecía un fallo: los umbrales 0,4 y 0,5 daban métricas idénticas hasta el último decimal.</p><figure class="fig is-live"><iframe src="../../projects/curso4/tiktok/03_figures/06_probabilidades.9d22e1b6.html" loading="lazy" title="06_probabilidades"></iframe><figcaption>interactiva: pasa el ratón y haz zoom</figcaption></figure><p>No era un fallo. Las probabilidades que predice el modelo van de 0,204 a 0,651 y caen en <strong>dos montones separados por una banda vacía</strong>: cero casos entre 0,28 y 0,56. Cortar en 0,30, en 0,40 o en 0,55 produce exactamente las mismas 387 cuentas marcadas y los mismos 248 aciertos.</p><p>La causa es que el modelo se apoya en una sola variable binaria, así que <strong>se ha convertido en la regla &quot;¿es una reclamación?&quot; con dos pasos de aritmética por el medio</strong>. El umbral, que el módulo 5 presenta como una decisión de negocio, aquí no decide nada.</p><p>Es la misma forma que el hallazgo del Curso 3 en este mismo escenario, donde las visualizaciones resultaron ser dos poblaciones con un hueco entre ellas. Allí estaba en los datos; aquí, en la salida del modelo.</p></section>
+<section class="section-block is-decision"><span class="kicker">Decisión</span><h2 class="section-title">Qué se decide con esto</h2><ol><li><strong>No usarlo como clasificador automático.</strong> Un AUC de 0,697 y una de cada tres alarmas falsa no sostienen una decisión sin una persona delante.</li><li><strong>Sí usar el hallazgo.</strong> Lo que separa a los dos grupos es el tipo de contenido, no la actividad de la cuenta ni la duración del vídeo. Eso reorienta dónde buscar señal.</li><li><strong>Pasar al problema real.</strong> La variable que aquí resultó ser la única que importa es justamente la que hay que predecir en el curso siguiente, y la tubería completa ya está montada.</li></ol></section>
+<section class="section-block is-warning"><span class="kicker">Límites</span><h2 class="section-title">Limitaciones</h2><ul><li>Al equilibrar las clases se descartaron <strong>16.684 vídeos</strong>. El modelo aprende de una muestra que no se parece al reparto real de la plataforma.</li><li>El pseudo R² es de <strong>0,1046</strong>: el modelo explica poco. Es un resultado, no un fallo del procedimiento.</li><li><code>claim_status</code> es lo que el curso siguiente tiene que predecir. Usarla aquí como predictora es correcto para este ejercicio, pero **los dos proyectos no son independientes** y conviene recordarlo al comparar resultados.</li><li>Los datos son sintéticos. Las conclusiones valen como ejercicio y no describen TikTok.</li></ul></section><section class="section-block is-material"><span class="kicker">Archivos</span><h2 class="section-title">Material completo</h2><p>Estos tres proyectos no existían: se construyeron aquí. Los CSV se leen de tu carpeta del Curso 3 sin tocarlos, y todo lo demás es nuevo.</p><h3 class="sub">Informes y notas</h3><ul class="res"><li><a href="../../projects/curso4/tiktok/04_reports/pace_plan.md" target="_blank" rel="noopener">pace_plan.md</a> <span class="path">04_reports/pace_plan.md</span> <span class="size">5.1 KB</span></li><li><a href="../../projects/curso4/tiktok/04_reports/executive_summary.md" target="_blank" rel="noopener">executive_summary.md</a> <span class="path">04_reports/executive_summary.md</span> <span class="size">3.8 KB</span></li><li><a href="../../projects/curso4/tiktok/04_reports/model_results.json" target="_blank" rel="noopener">model_results.json</a> <span class="path">04_reports/model_results.json</span> <span class="size">3.1 KB</span></li></ul><h3 class="sub">Código</h3><ul class="res"><li><a href="../../projects/curso4/tiktok/02_scripts/tiktok_logistic.py" target="_blank" rel="noopener">tiktok_logistic.py</a> <span class="path">02_scripts/tiktok_logistic.py</span> <span class="size">29.6 KB</span></li><li><a href="../../projects/curso4/tiktok/tiktok_curso4.ipynb" target="_blank" rel="noopener">tiktok_curso4.ipynb</a> <span class="path">tiktok_curso4.ipynb</span> <span class="size">13.9 KB</span></li></ul></section>
+</main>
+<footer class="footer">
+  Concentra / esta ficha enlaza tus archivos donde ya estaban / 2026-08-20
+</footer>
+<script>
+// Same-frame links replace the current entry instead of pushing a new one, so the
+// browser's back button keeps following the sidebar routes of the shell.
+document.querySelectorAll('a.lead-link').forEach(link => {
+  link.addEventListener('click', event => {
+    event.preventDefault();
+    location.replace(link.getAttribute('href'));
+  });
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,693 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Nuts and Bolts of Machine Learning — el curso</title>
+<style>
+/* ============================================================================
+   Concentra — design tokens and shared components.
+   Inlined into every generated page by load_style(), so pages stay self-contained
+   and work offline from file:// with no external requests.
+
+   Direction: an assay lab, not a tech dashboard. The palette is taken from ore
+   and lab materials (chalcopyrite brass, malachite, hematite, quartz) on warm
+   graphite rather than the blue-black + neon of a generic dark UI. Type is
+   Bahnschrift, the DIN-descended grotesque that Windows ships and that lives on
+   machinery plates and technical drawings, over Corbel for reading.
+   ========================================================================== */
+
+:root {
+  /* Ground and surfaces: warm graphite, the colour of rock dust, not blue-black */
+  --rock: #1a1714;
+  --bench: #221e19;
+  --core: #2b251f;
+  --seam: #3d352c;
+
+  /* Ore palette. No blue and no purple anywhere: those are the tones that make a
+     page read as generated, and this palette comes from the ores instead. */
+  --brass: #c9a227;      /* chalcopyrite, the primary accent */
+  --malachite: #5d9b7a;  /* verified output, results that came out right */
+  --hematite: #b04a35;   /* iron oxide, pitfalls and warnings */
+
+  /* Text */
+  --quartz: #ece7de;
+  --dust: #9a9186;
+  --shadowed: #6f675c;
+
+  --display: Bahnschrift, 'DIN Alternate', 'Segoe UI Semibold', system-ui, sans-serif;
+  --body: Corbel, Candara, 'Segoe UI', system-ui, sans-serif;
+  --data: Consolas, 'Cascadia Mono', ui-monospace, monospace;
+
+  /* In px, not ch: ch scales with font-size, so a heading ended up wider than a
+     paragraph and the page had four different right edges instead of two. */
+  --measure: 640px;
+  --wide: 900px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--rock);
+  color: var(--quartz);
+  font-family: var(--body);
+  font-size: 16px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection { background: var(--brass); color: var(--rock); }
+
+:focus-visible {
+  outline: 2px solid var(--brass);
+  outline-offset: 3px;
+}
+
+/* --------------------------------------------------------------- the signature
+   A sieve series: ticks that get finer from left to right, coarse feed to fine
+   concentrate. It is the one ornament on the page and appears exactly twice —
+   under the wordmark and under a page title. */
+.mesh {
+  height: 10px;
+  background-image:
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 16px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 9px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 5px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 3px);
+  background-size: 25% 100%;
+  background-position: 0 0, 25% 0, 50% 0, 75% 0;
+  background-repeat: no-repeat;
+  opacity: .8;
+  transform-origin: left center;
+  animation: sieve .55s cubic-bezier(.2, .8, .3, 1) both;
+}
+@keyframes sieve { from { transform: scaleX(0); opacity: 0; } to { transform: scaleX(1); opacity: .8; } }
+@media (prefers-reduced-motion: reduce) {
+  .mesh { animation: none; }
+  * { transition: none !important; }
+}
+
+/* ------------------------------------------------------------------ page head */
+.header {
+  border-bottom: 1px solid var(--seam);
+  padding: 3.2rem 2rem 0;
+  background: linear-gradient(180deg, #221d16 0%, var(--rock) 100%);
+}
+.header-content { max-width: 1080px; margin: 0 auto; }
+
+.eyebrow {
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--brass);
+  margin-bottom: 1rem;
+}
+.eyebrow a { color: inherit; text-decoration: none; border-bottom: 1px solid transparent; }
+.eyebrow a:hover { border-bottom-color: var(--brass); }
+
+.header h1 {
+  font-family: var(--display);
+  font-size: clamp(2rem, 4.5vw, 3.1rem);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -.015em;
+  color: var(--quartz);
+  max-width: 20ch;
+}
+.header .subtitle {
+  color: var(--dust);
+  max-width: var(--measure);
+  margin-top: 1rem;
+  font-size: 1.02rem;
+}
+.header .mesh { margin: 1.8rem 0 0; }
+
+/* An assay line: the real composition of the module, in lab-report shorthand. */
+.assay {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.4rem;
+  font-family: var(--data);
+  font-size: .78rem;
+  color: var(--shadowed);
+  padding: .9rem 0 1.6rem;
+  letter-spacing: .04em;
+}
+.assay b { color: var(--dust); font-weight: 400; }
+
+/* --------------------------------------------------------------------- layout */
+/* The container hugs the widest block, so there is no orphan edge past the content. */
+.container { max-width: var(--wide); margin: 3rem auto 5rem; padding: 0 2rem; }
+
+/* Two deliberate right edges and no more: prose stops at the reading measure, and
+   only the things that genuinely need room (code, output, figures, big tables) run
+   out to the full column. */
+.section-block {
+  border-top: 1px solid var(--seam);
+  padding: 2rem 0 2.4rem;
+}
+.section-block > p,
+.section-block > ul,
+.section-block > ol,
+.section-block h3.sub,
+.section-block h4.sub,
+.section-block blockquote,
+details > *:not(summary) { max-width: var(--measure); }
+.section-block:first-child { border-top: 0; padding-top: .5rem; }
+
+/* The kicker names what kind of content follows: context, method, pitfalls.
+   It replaces decorative icons with something that actually classifies. */
+.kicker {
+  font-family: var(--data);
+  font-size: .68rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  display: block;
+  margin-bottom: .5rem;
+}
+.section-title {
+  font-family: var(--display);
+  font-size: 1.55rem;
+  font-weight: 600;
+  letter-spacing: -.01em;
+  line-height: 1.2;
+  margin-bottom: 1.2rem;
+  color: var(--quartz);
+}
+.is-warning .kicker { color: var(--hematite); }
+.is-warning .section-title { color: #e8c4b8; }
+.is-bridge .kicker, .is-decision .kicker { color: var(--malachite); }
+.is-toy .kicker, .is-result .kicker, .is-question .kicker { color: var(--brass); }
+
+/* ---------------------------------------------------------------------- prose */
+/* Justified with hyphenation. In Spanish, justifying without hyphens opens rivers of
+   white space and reads worse than ragged right; lang="es" is what feeds the
+   dictionary. Tables, code, captions and summaries stay ragged on purpose. */
+.section-block p,
+.section-block li,
+details > *:not(summary) {
+  text-align: justify;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+}
+.section-block p { margin-bottom: 1rem; }
+.section-block p:last-child { margin-bottom: 0; }
+/* Indent with padding, not margin, so the bullet sits inside the measure instead of
+   pushing the list 1.2rem past the right edge of the paragraphs. */
+.section-block ul, .section-block ol { margin: 0 0 1rem; padding-left: 1.2rem; }
+.section-block li { margin-bottom: .55rem; padding-left: .2rem; }
+.section-block li::marker { color: var(--brass); }
+td, th, figcaption, .res li, .assay { text-align: left; hyphens: manual; }
+a { color: var(--brass); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+a:hover { text-decoration-thickness: 2px; }
+strong { color: #fff; font-weight: 700; }
+em { color: var(--dust); font-style: italic; }
+
+h3.sub {
+  font-family: var(--display);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--brass);
+  margin: 2rem 0 .7rem;
+  letter-spacing: -.005em;
+}
+h3.sub:first-child { margin-top: 0; }
+h4.sub {
+  font-family: var(--display);
+  font-size: .98rem;
+  font-weight: 600;
+  color: var(--dust);
+  margin: 1.3rem 0 .5rem;
+}
+
+code {
+  font-family: var(--data);
+  font-size: .9em;
+  background: var(--core);
+  border-radius: 3px;
+  padding: .08rem .32rem;
+  color: var(--brass);
+}
+pre {
+  background: #14110e;
+  border: 1px solid var(--seam);
+  border-left: 2px solid var(--seam);
+  border-radius: 2px;
+  padding: 1.1rem 1.2rem;
+  overflow-x: auto;
+  margin-bottom: 1rem;
+}
+pre code {
+  background: none; padding: 0; color: var(--quartz);
+  font-size: .87rem; line-height: 1.6;
+}
+
+/* What the code prints. Malachite: the material that came out of the process. */
+.output {
+  position: relative;
+  border: 1px solid rgba(93, 155, 122, .32);
+  border-left: 2px solid var(--malachite);
+  border-radius: 2px;
+  background: rgba(93, 155, 122, .06);
+  padding: 1.7rem 1.2rem 1rem;
+  margin-bottom: 1rem;
+  overflow-x: auto;
+}
+.output-tag {
+  position: absolute; top: .5rem; left: 1.2rem;
+  font-family: var(--data); font-size: .64rem;
+  letter-spacing: .18em; text-transform: uppercase; color: var(--malachite);
+}
+.output pre {
+  background: none; border: 0; padding: 0; margin: 0;
+  font-family: var(--data); font-size: .85rem;
+  color: var(--quartz); white-space: pre-wrap;
+}
+
+/* Line by line explanation of a code block, for a reader new to programming.
+   Two columns: the fragment of code, and what it does. */
+.annot {
+  display: grid;
+  grid-template-columns: minmax(9rem, auto) 1fr;
+  gap: .1rem 1.2rem;
+  align-items: baseline;
+  max-width: var(--wide);
+  margin: -.4rem 0 1.4rem;
+  padding: .9rem 1.1rem 1rem;
+  border: 1px solid var(--seam);
+  border-top: 0;
+  border-radius: 0 0 2px 2px;
+  background: rgba(201, 162, 39, .04);
+}
+.annot-head {
+  grid-column: 1 / -1;
+  font-family: var(--data);
+  font-size: .64rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  margin-bottom: .5rem;
+}
+.annot dt { padding: .35rem 0; }
+.annot dt code {
+  background: var(--core);
+  color: var(--brass);
+  font-size: .82rem;
+  white-space: nowrap;
+}
+.annot dd {
+  padding: .35rem 0;
+  margin: 0;
+  color: var(--dust);
+  font-size: .93rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(61, 53, 44, .5);
+}
+.annot dt { border-bottom: 1px solid rgba(61, 53, 44, .5); }
+.annot dt:last-of-type, .annot dd:last-of-type { border-bottom: 0; }
+/* The code block sits directly on top of its annotation, as one unit. */
+pre:has(+ .annot) { margin-bottom: 0; border-radius: 2px 2px 0 0; }
+
+@media (max-width: 640px) {
+  .annot { grid-template-columns: 1fr; gap: 0; }
+  .annot dt { border-bottom: 0; padding-bottom: 0; }
+  .annot dd { padding-top: .15rem; }
+}
+
+blockquote {
+  border-left: 2px solid var(--brass);
+  padding: .3rem 0 .3rem 1.3rem;
+  margin: 0 0 1rem;
+  font-family: var(--display);
+  font-size: 1.2rem;
+  font-weight: 400;
+  line-height: 1.4;
+  color: var(--quartz);
+}
+
+/* Tables read as assay data: mono figures, hairline rules, no zebra fill.
+   They take the width they need instead of being stretched to the full column,
+   which is what left a two-column table floating in empty space. */
+.table-wrap { overflow-x: auto; margin-bottom: 1rem; }
+table { border-collapse: collapse; width: auto; max-width: 100%; font-size: .93rem; }
+th, td {
+  border-bottom: 1px solid var(--seam);
+  padding: .55rem .8rem .55rem 0;
+  text-align: left;
+  vertical-align: top;
+}
+th {
+  font-family: var(--data);
+  font-size: .7rem;
+  font-weight: 400;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  border-bottom-color: var(--brass);
+}
+td:first-child { color: var(--quartz); }
+
+/* Review questions: closed by default, so they work as recall practice. */
+details {
+  border-top: 1px solid var(--seam);
+  padding: .9rem 0;
+}
+details:last-child { border-bottom: 1px solid var(--seam); }
+summary {
+  cursor: pointer;
+  font-family: var(--display);
+  font-size: 1.02rem;
+  font-weight: 600;
+  color: var(--quartz);
+  list-style: none;
+  display: flex;
+  gap: .7rem;
+  align-items: baseline;
+}
+summary::-webkit-details-marker { display: none; }
+summary::before {
+  content: '+';
+  font-family: var(--data);
+  color: var(--brass);
+  font-size: .95rem;
+}
+details[open] summary::before { content: '−'; }
+details[open] summary { color: var(--brass); margin-bottom: .7rem; }
+details > *:not(summary) { color: var(--dust); }
+
+figure.fig {
+  margin: 1.6rem 0;
+  border: 1px solid var(--seam);
+  padding: .7rem;
+  background: var(--bench);
+}
+figure.fig img { width: 100%; height: auto; display: block; }
+/* The interactive twin of a figure. Its aspect matches the still one, 10 by 4.4, so a
+   case sheet keeps the same rhythm whichever kind of figure comes next. */
+figure.fig.is-live iframe {
+  width: 100%;
+  /* Matches INTERACTIVE_HEIGHT in src/make_figures.py. It used to be an aspect ratio, and
+     that made the figure's height depend on the window: the caption and the legend are
+     placed at fractions of the plot area, so on a wide screen they were pushed past the
+     bottom margin, clipping the caption and covering the x-axis title. */
+  height: 520px;
+  border: 0;
+  display: block;
+}
+figure.fig figcaption {
+  font-family: var(--data);
+  font-size: .72rem;
+  color: var(--shadowed);
+  margin-top: .6rem;
+  letter-spacing: .04em;
+}
+
+/* File listings on a case sheet */
+.res { list-style: none; margin-left: 0 !important; }
+.res li {
+  display: flex; align-items: baseline; gap: .8rem; flex-wrap: wrap;
+  padding: .5rem 0; border-bottom: 1px solid var(--seam); margin-bottom: 0;
+}
+.res .path { font-family: var(--data); font-size: .74rem; color: var(--shadowed); }
+.res .size { font-family: var(--data); font-size: .74rem; color: var(--shadowed); margin-left: auto; }
+.res .gone { font-family: var(--data); font-size: .74rem; color: var(--hematite); }
+
+.footer {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 2rem 4rem;
+  color: var(--shadowed);
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .03em;
+}
+
+@media (max-width: 640px) {
+  body { font-size: 15px; }
+  .header { padding: 2rem 1.2rem 0; }
+  .container { padding: 0 1.2rem; margin-top: 2rem; }
+  .footer { padding: 0 1.2rem 3rem; }
+}
+
+@media print {
+  body { background: #fff; color: #16130f; }
+  .header { background: none; border-bottom: 1px solid #bbb; padding-top: 0; }
+  .header h1, .section-title, summary { color: #16130f; }
+  .mesh { animation: none; }
+  .section-block { break-inside: avoid; max-width: none; }
+  pre, .output { background: #f6f4f0; border-color: #ccc; }
+  details:not([open]) > *:not(summary) { display: block; }
+  a { color: #16130f; }
+}
+
+
+/* The brain file, ready to be copied into an assistant's memory. */
+.brain { max-width: 880px; margin-top: 1.2rem; }
+.brain-bar {
+  display: flex; align-items: center; gap: .8rem; flex-wrap: wrap;
+  border: 1px solid var(--seam); border-bottom: 0;
+  padding: .6rem .9rem; background: var(--bench);
+}
+.brain-bar .name {
+  font-family: var(--data); font-size: .76rem; color: var(--brass); letter-spacing: .06em;
+}
+.brain-bar .size { font-family: var(--data); font-size: .72rem; color: var(--shadowed); }
+.brain-bar .spacer { flex: 1; }
+.brain-bar button, .brain-bar a.btn {
+  background: none; border: 1px solid var(--seam); border-radius: 2px;
+  color: var(--dust); font-family: var(--data); font-size: .72rem;
+  letter-spacing: .06em; padding: .3rem .7rem; cursor: pointer;
+  text-decoration: none; white-space: nowrap;
+}
+.brain-bar button:hover, .brain-bar a.btn:hover { color: var(--brass); border-color: var(--brass); }
+.brain-bar button.done { color: var(--malachite); border-color: var(--malachite); }
+.brain pre {
+  margin: 0; max-height: 26rem; overflow: auto;
+  border-radius: 0; border-color: var(--seam);
+}
+.brain pre code { font-size: .8rem; }
+</style>
+</head>
+<body>
+<header class="header">
+  <div class="header-content">
+    <div class="eyebrow">Curso 5 / <a href="https://www.coursera.org/learn/the-nuts-and-bolts-of-machine-learning">ver en Coursera</a></div>
+    <h1>The Nuts and Bolts of Machine Learning</h1>
+    <p class="subtitle"></p>
+    <div class="mesh" role="presentation"></div>
+    <div class="assay"><span>5 módulos</span><span>35 h de curso</span><span>149 tasks</span><span>3 casos de estudio</span></div>
+  </div>
+</header>
+<main class="container">
+<section class="section-block "><span class="kicker">Resumen</span><h2 class="section-title">De qué va este curso</h2><p>El curso anterior te dio modelos que <strong>explican</strong>: un coeficiente dice cuánto sube la recuperación por cada gramo de colector, con su intervalo y su valor p. Este curso cambia el objetivo. Aquí lo que importa es <strong>acertar sobre datos que el modelo no ha visto</strong>, y para eso se admiten modelos que no se pueden escribir en una fórmula.</p><p>Ese cambio trae una disciplina nueva y es la mitad del curso: si dejas de exigir que el modelo se explique, <strong>necesitas otra forma de saber que no te está engañando</strong>. Esa forma es apartar datos y no tocarlos, validar antes de decidir, y comparar siempre contra algo simple.</p><p>La otra mitad son las herramientas: agrupar sin etiquetas, árboles de decisión, y las dos maneras de juntar muchos árboles para que acierten más que uno.</p></section>
+<section class="section-block is-recipe"><span class="kicker">Recorrido</span><h2 class="section-title">El recorrido, módulo a módulo</h2><ol><li><strong>Los tipos de aprendizaje automático.</strong> Qué separa el aprendizaje supervisado del no supervisado, qué es un sistema de recomendación, y la parte que no es técnica: sesgo, equidad y qué obligaciones tienes al construir un modelo que decide sobre personas.</li><li><strong>El flujo de trabajo.</strong> Construir variables nuevas a partir de las que hay, qué hacer cuando una clase es el 5 % de los datos, el clasificador de Naive Bayes, y qué métrica mirar según lo que cueste equivocarse.</li><li><strong>Aprendizaje no supervisado.</strong> K-medias: agrupar cuando nadie te ha dicho cuáles son los grupos. Y las dos formas de decidir cuántos grupos hay, que es la pregunta difícil.</li><li><strong>Modelos de árbol.</strong> El árbol de decisión, cómo se ajustan sus perillas, y las dos familias que combinan muchos: bosques aleatorios y refuerzo por gradiente, hasta XGBoost.</li><li><strong>Proyecto final.</strong> Los tres escenarios de siempre, ahora con modelos de árbol.</li></ol></section>
+<section class="section-block is-decision"><span class="kicker">Resultado</span><h2 class="section-title">Qué sabes hacer al terminar</h2><ul><li>Partir los datos en tres y <strong>no tocar el tercero</strong> hasta el final, que es la única forma honesta de saber cuánto acierta un modelo.</li><li>Ajustar las perillas de un modelo con validación cruzada, y saber cuánto mejoró de verdad.</li><li>Agrupar datos sin etiquetas, y justificar cuántos grupos con un número y no con la vista.</li><li>Leer la importancia de las variables de un bosque, que es lo que lo hace explicable.</li><li><strong>Decidir si el modelo complicado merece la pena</strong>, que es la pregunta que este curso contesta con datos y no con entusiasmo.</li></ul></section>
+<section class="section-block "><span class="kicker">Nota</span><h2 class="section-title">Los tres proyectos, y la pregunta que los une</h2><p>Los tres responden a lo mismo: <strong>¿gana el modelo complicado al simple?</strong> Y como el Curso 4 dejó sus modelos escritos con sus números, en Waze la pregunta se puede contestar de verdad, sobre el mismo dato y el mismo reparto.</p><div class="table-wrap"><table><thead><tr><th>Caso</th><th>Qué predice</th><th>Qué enseñó</th></tr></thead><tbody><tr><td><strong>Waze</strong></td><td>Quién abandona la aplicación</td><td>Ajustar el bosque gana 0,0276 y se queda a <strong>0,0019</strong> de la regresión</td></tr><tr><td><strong>TikTok</strong></td><td>Si el vídeo es reclamación u opinión</td><td>Trescientos árboles empatan con <strong>una sola pregunta</strong>: +0,0000</td></tr><tr><td><strong>Automatidata</strong></td><td>Si el pasajero deja propina generosa</td><td>Dos de tres modelos deciden igual que contestar siempre «no»</td></tr></tbody></table></div><p>Los tres cayeron en cantidades de señal muy distintas, y <strong>en ninguna de las tres ganó el modelo complicado</strong>. Que los tres campeones fueran distintos (la logística, el bosque y el refuerzo) es lo que descarta que la conclusión venga del modelo y no del método.</p></section>
+<section class="section-block is-toy"><span class="kicker">Para qué sirve</span><h2 class="section-title">El cerebro de este curso</h2><p>Debajo está el archivo para copiar y pegar como memoria de un asistente. <strong>No es un resumen de las lecciones</strong>: es el manual de operación, con cuándo usar cada modelo, cómo se parte un conjunto de datos, qué perillas tiene cada familia y las trampas que ya me han mordido.</p></section>
+<section class="section-block">
+  <span class="kicker">Memoria</span>
+  <h2 class="section-title">El archivo, listo para copiar</h2>
+  <div class="brain">
+    <div class="brain-bar">
+      <span class="name">cerebro-curso-5.md</span>
+      <span class="size">7.7 KB</span>
+      <span class="spacer"></span>
+      <button id="copy" type="button">Copiar todo</button>
+      <a class="btn" href="cerebro-curso-5.md" download>Descargar</a>
+    </div>
+    <pre><code id="brain"># Cerebro: aprendizaje automático, árboles y agrupamiento
+
+Manual de operación, no material de estudio. Describe cómo trabajo la pregunta &quot;¿puedo
+predecir esto sobre datos que nunca he visto?&quot;: cómo parto los datos, qué modelo pruebo,
+qué perillas toco, qué reporto y qué trampas conozco. Pégalo como memoria y asume estas
+reglas sin preguntarlas.
+
+Complementa al cerebro del curso anterior, que cubre modelos que **explican**. Este cubre
+modelos que **aciertan**, y la disciplina que hace falta cuando dejas de exigir que el
+modelo se explique.
+
+## Qué resuelvo con esto
+
+Predecir una etiqueta o un número sobre casos nuevos, y saber con qué margen. La salida
+siempre es: el modelo elegido **entre varios candidatos**, su rendimiento medido sobre datos
+apartados desde el principio, y la comparación contra algo simple.
+
+**Si el modelo complicado no le gana al simple, gana el simple.** No es humildad: un modelo
+simple se explica, se defiende y se arregla; uno complicado hay que mantenerlo.
+
+## Cómo se parten los datos, y por qué en tres
+
+| Parte | Para qué | Cuándo se toca |
+|---|---|---|
+| Entrenamiento | Que el modelo aprenda | Todo el rato |
+| Validación | Elegir entre candidatos y afinar perillas | Muchas veces, y por eso se gasta |
+| **Prueba** | Decir cuánto acierta de verdad | **Una vez, al final** |
+
+La razón de que sean tres y no dos: cada vez que miras un resultado y cambias algo, le
+filtras información a ese conjunto. Después de veinte pruebas, tu conjunto de validación ya
+no es una medida independiente; es parte del ajuste. **La prueba es la única cifra que se
+publica**, y solo vale mientras no la hayas mirado antes.
+
+La validación cruzada de *k* pliegues hace lo mismo sin apartar un trozo fijo: parte el
+entrenamiento en *k* partes, entrena *k* veces dejando una fuera cada vez, y promedia. Se
+usa cuando hay pocos datos, y su desviación importa tanto como su media.
+
+## Qué modelo usar
+
+| La pregunta | El modelo |
+|---|---|
+| ¿Sí o no, y quiero entender por qué? | Regresión logística *(Curso 4)* |
+| ¿Sí o no, con muchas variables y sin exigir explicación? | Árbol, bosque aleatorio o refuerzo por gradiente |
+| ¿Sí o no, con variables casi independientes y pocos datos? | Naive Bayes |
+| ¿Cuánto vale este número? | Regresión lineal *(Curso 4)*, o un bosque de regresión |
+| ¿Qué grupos hay aquí, si nadie los ha marcado? | K-medias |
+
+**Empieza siempre por el simple.** Es la referencia contra la que se mide todo lo demás, y a
+veces gana.
+
+## Las perillas de cada familia
+
+| Modelo | Perillas que importan | Qué controlan |
+|---|---|---|
+| Árbol | `max_depth`, `min_samples_leaf`, `min_samples_split` | Cuánto puede complicarse antes de memorizar |
+| Bosque aleatorio | Las del árbol, más `n_estimators` y `max_features` | Cuántos árboles y cuánta variedad entre ellos |
+| Refuerzo por gradiente | `learning_rate`, `n_estimators`, `max_depth` | Cuánto corrige cada árbol y cuántas correcciones |
+
+**Un bosque aleatorio y un refuerzo por gradiente no son lo mismo aunque los dos sean muchos
+árboles.** El bosque entrena árboles independientes sobre muestras distintas y promedia: cada
+uno se equivoca por su lado y los errores se cancelan. El refuerzo entrena en cadena, y cada
+árbol se dedica a lo que el anterior falló. Por eso el refuerzo suele acertar más y se
+sobreajusta más fácil.
+
+## Ojo con los valores por defecto
+
+Dos casos comprobados en este proyecto, y los dos cambian el resultado entero:
+
+- El `HistGradientBoostingClassifier` de scikit-learn trae `min_samples_leaf=20`. Sobre pocas
+  filas **no parte nada** y contesta la clase mayoritaria. Sobre el ejemplo de diez lotes del
+  módulo 4, xgboost acierta 9 y él 6; bajando la hoja a 5, los dos aciertan 9.
+- `CategoricalNB` trae suavizado `alpha=1`. Sobre el ejemplo de ocho lotes del módulo 2, la
+  probabilidad a mano es 0,9 exacta y con el suavizado sale 0,8.
+
+Ninguno de los dos es un error de la librería: son decisiones razonables para miles de filas.
+**Un valor por defecto es una decisión que alguien tomó sin conocer tus datos.**
+
+## K-medias, y la pregunta difícil
+
+El algoritmo es simple: elige *k* centros, asigna cada punto al más cercano, mueve cada
+centro al promedio de los suyos, repite hasta que no se muevan. Lo difícil es *k*.
+
+| Medida | Qué mide | Cómo se lee |
+|---|---|---|
+| Inercia | Suma de distancias al cuadrado a su centro | Siempre baja al subir *k*: se busca **el codo**, donde deja de bajar rápido |
+| Coeficiente de silueta | Cuánto mejor encaja cada punto en su grupo que en el vecino | Va de −1 a 1; **se busca el máximo** |
+
+**La inercia sola no elige *k***, porque con *k* igual al número de puntos vale cero. Se
+miran las dos, y si discrepan se dice.
+
+Tres cosas que k-medias exige y que se olvidan: **escalar las variables** (si no, la que
+tenga números grandes manda), que los grupos son esféricos y de tamaño parecido, y que el
+resultado depende del arranque, así que se repite varias veces.
+
+## Qué reportar siempre
+
+1. El reparto de los datos, con los tamaños de las tres partes.
+2. **La tabla de todos los candidatos**, no solo del ganador.
+3. Las perillas probadas y la elegida, con cuánto mejoró respecto a no ajustar nada.
+4. Sobre la prueba: exactitud, precisión, sensibilidad, F1 y AUC. **Nunca la exactitud
+   sola** si las clases están desbalanceadas.
+5. La importancia de las variables.
+6. **La comparación contra el modelo simple.**
+
+## Las trampas
+
+- **Fuga de información.** Una variable que no existiría en el momento de predecir, o una
+  transformación calculada sobre el conjunto entero antes de partir. Infla el resultado y
+  solo se descubre en producción.
+- **Mirar la prueba antes de tiempo.** En cuanto la miras y cambias algo, deja de medir.
+- **Exactitud con clases desbalanceadas.** Con un 95 % de una clase, contestar siempre esa
+  acierta el 95 % y no detecta a nadie.
+- **Equilibrar antes de partir.** Si duplicas filas de la clase minoritaria y luego partes,
+  la misma fila acaba en entrenamiento y en prueba. Se parte primero.
+- **Casi perfecto.** Un AUC por encima de 0,99 es una fuga hasta que se demuestre lo
+  contrario, o una señal enorme que ya conocías.
+- **Confundir importancia con causa.** Que una variable pese mucho en el bosque no dice que
+  moverla cambie el resultado.
+- **Sobreajustar por ajustar.** Probar mil combinaciones y quedarte con la mejor sobre
+  validación es elegir el ruido. Por eso la prueba se aparta.
+
+## Sesgo y equidad, que no es un apéndice
+
+Un modelo aprende del pasado, así que **repite el pasado**. Si los datos históricos recogen
+una decisión sesgada, el modelo la aprende y la aplica más rápido y a más gente.
+
+Tres preguntas antes de desplegar cualquier modelo que decida sobre personas: **de quién son
+los datos y quién falta**; **qué cuesta cada tipo de error y a quién le cuesta**; y **si el
+afectado puede saber por qué se decidió eso**. Un modelo que no puede contestar la tercera
+no debería decidir solo.
+
+## Vocabulario español e inglés
+
+| Español | Inglés |
+|---|---|
+| Aprendizaje supervisado / no supervisado | Supervised / unsupervised learning |
+| Variable construida | Engineered feature |
+| Clases desbalanceadas | Imbalanced classes |
+| Validación cruzada de *k* pliegues | *k*-fold cross-validation |
+| Perilla, hiperparámetro | Hyperparameter |
+| Búsqueda en rejilla | Grid search |
+| Árbol de decisión | Decision tree |
+| Impureza de Gini | Gini impurity |
+| Bosque aleatorio | Random forest |
+| Agregación por remuestreo | Bootstrap aggregation, bagging |
+| Refuerzo por gradiente | Gradient boosting |
+| Importancia de variables | Feature importance |
+| Agrupamiento | Clustering |
+| Inercia | Inertia |
+| Coeficiente de silueta | Silhouette coefficient |
+| Sobreajuste | Overfitting |
+| Fuga de información | Data leakage |
+</code></pre>
+  </div>
+</section>
+</main>
+<footer class="footer">
+  Concentra / 2026-08-20
+</footer>
+<script>
+const button = document.getElementById('copy');
+const source = document.getElementById('brain');
+
+function selectSource() {
+  const range = document.createRange();
+  range.selectNodeContents(source);
+  const selection = window.getSelection();
+  selection.removeAllRanges();
+  selection.addRange(range);
+}
+
+button.addEventListener('click', async () => {
+  const text = source.textContent;
+  let copied = false;
+  // The clipboard API needs a secure context, which file:// is not, so fall back to
+  // selecting the text and letting the old command (or the reader's Ctrl+C) do it.
+  try {
+    await navigator.clipboard.writeText(text);
+    copied = true;
+  } catch {
+    selectSource();
+    try { copied = document.execCommand('copy'); } catch { copied = false; }
+  }
+  button.textContent = copied ? 'Copiado' : 'Seleccionado: pulsa Ctrl+C';
+  button.classList.toggle('done', copied);
+  if (!copied) selectSource();
+  setTimeout(() => {
+    button.textContent = 'Copiar todo';
+    button.classList.remove('done');
+  }, 2600);
+});
+</script>
+</body>
+</html>

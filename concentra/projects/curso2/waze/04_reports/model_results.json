@@ -1,0 +1,83 @@
+{
+  "project": "waze",
+  "course": "curso2",
+  "title": "Waze: qué hay en el archivo antes de modelar nada",
+  "generated": "2026-08-19",
+  "source_csv": "C:\\Users\\Bruce Wayne\\Documents\\03_Data Analysis Coursera\\Course 3 - Data Analytics\\Exc_3_Waze\\01_data\\waze_dataset.csv",
+  "quality": {
+    "rows": 14999,
+    "columns": 14,
+    "duplicate_rows": 0,
+    "incomplete_rows": 1683,
+    "incomplete_pct": 11.22,
+    "columns_with_missing": 2,
+    "text_columns": 2,
+    "numeric_stored_as_text": []
+  },
+  "missing": {
+    "km_per_driving_day": 1024,
+    "label": 700
+  },
+  "categories": {
+    "label": {
+      "distinct": 2
+    },
+    "device": {
+      "distinct": 2
+    }
+  },
+  "outliers": {
+    "sessions": {
+      "count": 729,
+      "pct": 4.86,
+      "upper_fence": 245.5
+    },
+    "drives": {
+      "count": 734,
+      "pct": 4.89,
+      "upper_fence": 202.5
+    },
+    "driven_km_drives": {
+      "count": 463,
+      "pct": 3.09,
+      "upper_fence": 9905.75
+    },
+    "duration_minutes_drives": {
+      "count": 644,
+      "pct": 4.29,
+      "upper_fence": 4906.91
+    },
+    "activity_days": {
+      "count": 0,
+      "pct": 0.0,
+      "upper_fence": 45.5
+    },
+    "driving_days": {
+      "count": 0,
+      "pct": 0.0,
+      "upper_fence": 40.0
+    }
+  },
+  "impossible": {
+    "dias de actividad fuera de 0 a 31": 0,
+    "dias conduciendo mayores que dias activo": 0,
+    "mas de 1000 km en un solo dia conducido": 1994,
+    "mas de 24 horas al volante en un dia conducido": 461
+  },
+  "extremes": {
+    "km_per_day_max": 15420.2,
+    "km_per_day_median": 297.1,
+    "hours_per_day_max": 172.0,
+    "zero_driving_days": 1024
+  },
+  "labels": {
+    "unlabelled": 700,
+    "median_gap": {
+      "sessions": 0.0,
+      "drives": -1.0,
+      "driven_km_drives": -2.2,
+      "activity_days": -6.2
+    },
+    "churn_rate": 17.74
+  }
+}

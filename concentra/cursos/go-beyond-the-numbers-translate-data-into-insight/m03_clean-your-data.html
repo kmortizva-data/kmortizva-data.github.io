@@ -1,0 +1,515 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Clean your data — Go Beyond the Numbers: Translate Data into Insights</title>
+<style>
+/* ============================================================================
+   Concentra — design tokens and shared components.
+   Inlined into every generated page by load_style(), so pages stay self-contained
+   and work offline from file:// with no external requests.
+
+   Direction: an assay lab, not a tech dashboard. The palette is taken from ore
+   and lab materials (chalcopyrite brass, malachite, hematite, quartz) on warm
+   graphite rather than the blue-black + neon of a generic dark UI. Type is
+   Bahnschrift, the DIN-descended grotesque that Windows ships and that lives on
+   machinery plates and technical drawings, over Corbel for reading.
+   ========================================================================== */
+
+:root {
+  /* Ground and surfaces: warm graphite, the colour of rock dust, not blue-black */
+  --rock: #1a1714;
+  --bench: #221e19;
+  --core: #2b251f;
+  --seam: #3d352c;
+
+  /* Ore palette. No blue and no purple anywhere: those are the tones that make a
+     page read as generated, and this palette comes from the ores instead. */
+  --brass: #c9a227;      /* chalcopyrite, the primary accent */
+  --malachite: #5d9b7a;  /* verified output, results that came out right */
+  --hematite: #b04a35;   /* iron oxide, pitfalls and warnings */
+
+  /* Text */
+  --quartz: #ece7de;
+  --dust: #9a9186;
+  --shadowed: #6f675c;
+
+  --display: Bahnschrift, 'DIN Alternate', 'Segoe UI Semibold', system-ui, sans-serif;
+  --body: Corbel, Candara, 'Segoe UI', system-ui, sans-serif;
+  --data: Consolas, 'Cascadia Mono', ui-monospace, monospace;
+
+  /* In px, not ch: ch scales with font-size, so a heading ended up wider than a
+     paragraph and the page had four different right edges instead of two. */
+  --measure: 640px;
+  --wide: 900px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--rock);
+  color: var(--quartz);
+  font-family: var(--body);
+  font-size: 16px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection { background: var(--brass); color: var(--rock); }
+
+:focus-visible {
+  outline: 2px solid var(--brass);
+  outline-offset: 3px;
+}
+
+/* --------------------------------------------------------------- the signature
+   A sieve series: ticks that get finer from left to right, coarse feed to fine
+   concentrate. It is the one ornament on the page and appears exactly twice —
+   under the wordmark and under a page title. */
+.mesh {
+  height: 10px;
+  background-image:
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 16px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 9px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 5px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 3px);
+  background-size: 25% 100%;
+  background-position: 0 0, 25% 0, 50% 0, 75% 0;
+  background-repeat: no-repeat;
+  opacity: .8;
+  transform-origin: left center;
+  animation: sieve .55s cubic-bezier(.2, .8, .3, 1) both;
+}
+@keyframes sieve { from { transform: scaleX(0); opacity: 0; } to { transform: scaleX(1); opacity: .8; } }
+@media (prefers-reduced-motion: reduce) {
+  .mesh { animation: none; }
+  * { transition: none !important; }
+}
+
+/* ------------------------------------------------------------------ page head */
+.header {
+  border-bottom: 1px solid var(--seam);
+  padding: 3.2rem 2rem 0;
+  background: linear-gradient(180deg, #221d16 0%, var(--rock) 100%);
+}
+.header-content { max-width: 1080px; margin: 0 auto; }
+
+.eyebrow {
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--brass);
+  margin-bottom: 1rem;
+}
+.eyebrow a { color: inherit; text-decoration: none; border-bottom: 1px solid transparent; }
+.eyebrow a:hover { border-bottom-color: var(--brass); }
+
+.header h1 {
+  font-family: var(--display);
+  font-size: clamp(2rem, 4.5vw, 3.1rem);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -.015em;
+  color: var(--quartz);
+  max-width: 20ch;
+}
+.header .subtitle {
+  color: var(--dust);
+  max-width: var(--measure);
+  margin-top: 1rem;
+  font-size: 1.02rem;
+}
+.header .mesh { margin: 1.8rem 0 0; }
+
+/* An assay line: the real composition of the module, in lab-report shorthand. */
+.assay {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.4rem;
+  font-family: var(--data);
+  font-size: .78rem;
+  color: var(--shadowed);
+  padding: .9rem 0 1.6rem;
+  letter-spacing: .04em;
+}
+.assay b { color: var(--dust); font-weight: 400; }
+
+/* --------------------------------------------------------------------- layout */
+/* The container hugs the widest block, so there is no orphan edge past the content. */
+.container { max-width: var(--wide); margin: 3rem auto 5rem; padding: 0 2rem; }
+
+/* Two deliberate right edges and no more: prose stops at the reading measure, and
+   only the things that genuinely need room (code, output, figures, big tables) run
+   out to the full column. */
+.section-block {
+  border-top: 1px solid var(--seam);
+  padding: 2rem 0 2.4rem;
+}
+.section-block > p,
+.section-block > ul,
+.section-block > ol,
+.section-block h3.sub,
+.section-block h4.sub,
+.section-block blockquote,
+details > *:not(summary) { max-width: var(--measure); }
+.section-block:first-child { border-top: 0; padding-top: .5rem; }
+
+/* The kicker names what kind of content follows: context, method, pitfalls.
+   It replaces decorative icons with something that actually classifies. */
+.kicker {
+  font-family: var(--data);
+  font-size: .68rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  display: block;
+  margin-bottom: .5rem;
+}
+.section-title {
+  font-family: var(--display);
+  font-size: 1.55rem;
+  font-weight: 600;
+  letter-spacing: -.01em;
+  line-height: 1.2;
+  margin-bottom: 1.2rem;
+  color: var(--quartz);
+}
+.is-warning .kicker { color: var(--hematite); }
+.is-warning .section-title { color: #e8c4b8; }
+.is-bridge .kicker, .is-decision .kicker { color: var(--malachite); }
+.is-toy .kicker, .is-result .kicker, .is-question .kicker { color: var(--brass); }
+
+/* ---------------------------------------------------------------------- prose */
+/* Justified with hyphenation. In Spanish, justifying without hyphens opens rivers of
+   white space and reads worse than ragged right; lang="es" is what feeds the
+   dictionary. Tables, code, captions and summaries stay ragged on purpose. */
+.section-block p,
+.section-block li,
+details > *:not(summary) {
+  text-align: justify;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+}
+.section-block p { margin-bottom: 1rem; }
+.section-block p:last-child { margin-bottom: 0; }
+/* Indent with padding, not margin, so the bullet sits inside the measure instead of
+   pushing the list 1.2rem past the right edge of the paragraphs. */
+.section-block ul, .section-block ol { margin: 0 0 1rem; padding-left: 1.2rem; }
+.section-block li { margin-bottom: .55rem; padding-left: .2rem; }
+.section-block li::marker { color: var(--brass); }
+td, th, figcaption, .res li, .assay { text-align: left; hyphens: manual; }
+a { color: var(--brass); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+a:hover { text-decoration-thickness: 2px; }
+strong { color: #fff; font-weight: 700; }
+em { color: var(--dust); font-style: italic; }
+
+h3.sub {
+  font-family: var(--display);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--brass);
+  margin: 2rem 0 .7rem;
+  letter-spacing: -.005em;
+}
+h3.sub:first-child { margin-top: 0; }
+h4.sub {
+  font-family: var(--display);
+  font-size: .98rem;
+  font-weight: 600;
+  color: var(--dust);
+  margin: 1.3rem 0 .5rem;
+}
+
+code {
+  font-family: var(--data);
+  font-size: .9em;
+  background: var(--core);
+  border-radius: 3px;
+  padding: .08rem .32rem;
+  color: var(--brass);
+}
+pre {
+  background: #14110e;
+  border: 1px solid var(--seam);
+  border-left: 2px solid var(--seam);
+  border-radius: 2px;
+  padding: 1.1rem 1.2rem;
+  overflow-x: auto;
+  margin-bottom: 1rem;
+}
+pre code {
+  background: none; padding: 0; color: var(--quartz);
+  font-size: .87rem; line-height: 1.6;
+}
+
+/* What the code prints. Malachite: the material that came out of the process. */
+.output {
+  position: relative;
+  border: 1px solid rgba(93, 155, 122, .32);
+  border-left: 2px solid var(--malachite);
+  border-radius: 2px;
+  background: rgba(93, 155, 122, .06);
+  padding: 1.7rem 1.2rem 1rem;
+  margin-bottom: 1rem;
+  overflow-x: auto;
+}
+.output-tag {
+  position: absolute; top: .5rem; left: 1.2rem;
+  font-family: var(--data); font-size: .64rem;
+  letter-spacing: .18em; text-transform: uppercase; color: var(--malachite);
+}
+.output pre {
+  background: none; border: 0; padding: 0; margin: 0;
+  font-family: var(--data); font-size: .85rem;
+  color: var(--quartz); white-space: pre-wrap;
+}
+
+/* Line by line explanation of a code block, for a reader new to programming.
+   Two columns: the fragment of code, and what it does. */
+.annot {
+  display: grid;
+  grid-template-columns: minmax(9rem, auto) 1fr;
+  gap: .1rem 1.2rem;
+  align-items: baseline;
+  max-width: var(--wide);
+  margin: -.4rem 0 1.4rem;
+  padding: .9rem 1.1rem 1rem;
+  border: 1px solid var(--seam);
+  border-top: 0;
+  border-radius: 0 0 2px 2px;
+  background: rgba(201, 162, 39, .04);
+}
+.annot-head {
+  grid-column: 1 / -1;
+  font-family: var(--data);
+  font-size: .64rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  margin-bottom: .5rem;
+}
+.annot dt { padding: .35rem 0; }
+.annot dt code {
+  background: var(--core);
+  color: var(--brass);
+  font-size: .82rem;
+  white-space: nowrap;
+}
+.annot dd {
+  padding: .35rem 0;
+  margin: 0;
+  color: var(--dust);
+  font-size: .93rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(61, 53, 44, .5);
+}
+.annot dt { border-bottom: 1px solid rgba(61, 53, 44, .5); }
+.annot dt:last-of-type, .annot dd:last-of-type { border-bottom: 0; }
+/* The code block sits directly on top of its annotation, as one unit. */
+pre:has(+ .annot) { margin-bottom: 0; border-radius: 2px 2px 0 0; }
+
+@media (max-width: 640px) {
+  .annot { grid-template-columns: 1fr; gap: 0; }
+  .annot dt { border-bottom: 0; padding-bottom: 0; }
+  .annot dd { padding-top: .15rem; }
+}
+
+blockquote {
+  border-left: 2px solid var(--brass);
+  padding: .3rem 0 .3rem 1.3rem;
+  margin: 0 0 1rem;
+  font-family: var(--display);
+  font-size: 1.2rem;
+  font-weight: 400;
+  line-height: 1.4;
+  color: var(--quartz);
+}
+
+/* Tables read as assay data: mono figures, hairline rules, no zebra fill.
+   They take the width they need instead of being stretched to the full column,
+   which is what left a two-column table floating in empty space. */
+.table-wrap { overflow-x: auto; margin-bottom: 1rem; }
+table { border-collapse: collapse; width: auto; max-width: 100%; font-size: .93rem; }
+th, td {
+  border-bottom: 1px solid var(--seam);
+  padding: .55rem .8rem .55rem 0;
+  text-align: left;
+  vertical-align: top;
+}
+th {
+  font-family: var(--data);
+  font-size: .7rem;
+  font-weight: 400;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  border-bottom-color: var(--brass);
+}
+td:first-child { color: var(--quartz); }
+
+/* Review questions: closed by default, so they work as recall practice. */
+details {
+  border-top: 1px solid var(--seam);
+  padding: .9rem 0;
+}
+details:last-child { border-bottom: 1px solid var(--seam); }
+summary {
+  cursor: pointer;
+  font-family: var(--display);
+  font-size: 1.02rem;
+  font-weight: 600;
+  color: var(--quartz);
+  list-style: none;
+  display: flex;
+  gap: .7rem;
+  align-items: baseline;
+}
+summary::-webkit-details-marker { display: none; }
+summary::before {
+  content: '+';
+  font-family: var(--data);
+  color: var(--brass);
+  font-size: .95rem;
+}
+details[open] summary::before { content: '−'; }
+details[open] summary { color: var(--brass); margin-bottom: .7rem; }
+details > *:not(summary) { color: var(--dust); }
+
+figure.fig {
+  margin: 1.6rem 0;
+  border: 1px solid var(--seam);
+  padding: .7rem;
+  background: var(--bench);
+}
+figure.fig img { width: 100%; height: auto; display: block; }
+/* The interactive twin of a figure. Its aspect matches the still one, 10 by 4.4, so a
+   case sheet keeps the same rhythm whichever kind of figure comes next. */
+figure.fig.is-live iframe {
+  width: 100%;
+  /* Matches INTERACTIVE_HEIGHT in src/make_figures.py. It used to be an aspect ratio, and
+     that made the figure's height depend on the window: the caption and the legend are
+     placed at fractions of the plot area, so on a wide screen they were pushed past the
+     bottom margin, clipping the caption and covering the x-axis title. */
+  height: 520px;
+  border: 0;
+  display: block;
+}
+figure.fig figcaption {
+  font-family: var(--data);
+  font-size: .72rem;
+  color: var(--shadowed);
+  margin-top: .6rem;
+  letter-spacing: .04em;
+}
+
+/* File listings on a case sheet */
+.res { list-style: none; margin-left: 0 !important; }
+.res li {
+  display: flex; align-items: baseline; gap: .8rem; flex-wrap: wrap;
+  padding: .5rem 0; border-bottom: 1px solid var(--seam); margin-bottom: 0;
+}
+.res .path { font-family: var(--data); font-size: .74rem; color: var(--shadowed); }
+.res .size { font-family: var(--data); font-size: .74rem; color: var(--shadowed); margin-left: auto; }
+.res .gone { font-family: var(--data); font-size: .74rem; color: var(--hematite); }
+
+.footer {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 2rem 4rem;
+  color: var(--shadowed);
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .03em;
+}
+
+@media (max-width: 640px) {
+  body { font-size: 15px; }
+  .header { padding: 2rem 1.2rem 0; }
+  .container { padding: 0 1.2rem; margin-top: 2rem; }
+  .footer { padding: 0 1.2rem 3rem; }
+}
+
+@media print {
+  body { background: #fff; color: #16130f; }
+  .header { background: none; border-bottom: 1px solid #bbb; padding-top: 0; }
+  .header h1, .section-title, summary { color: #16130f; }
+  .mesh { animation: none; }
+  .section-block { break-inside: avoid; max-width: none; }
+  pre, .output { background: #f6f4f0; border-color: #ccc; }
+  details:not([open]) > *:not(summary) { display: block; }
+  a { color: #16130f; }
+}
+
+</style>
+</head>
+<body>
+<header class="header">
+  <div class="header-content">
+    <div class="eyebrow"><a href="https://www.coursera.org/learn/go-beyond-the-numbers-translate-data-into-insight">Go Beyond the Numbers: Translate Data into Insights</a> / Módulo 3</div>
+    <h1>Clean your data</h1>
+    <p class="subtitle">Qué hacer con lo que falta, lo que está repetido y lo que se sale de rango. Nueve leyes hechas a mano enseñan que un solo valor extremo mueve la media 3,33 puntos y la mediana solo 1, y que hay dos convenciones de cuartiles que dan números distintos y el mismo veredicto.</p>
+    <div class="mesh" role="presentation"></div>
+    <div class="assay"><span><b>7 h</b> de curso</span><span><b>11</b> vídeos</span><span><b>6</b> lecturas</span><span><b>5</b> tareas</span><span><b>5</b> prácticas</span><span><b>2</b> interactivos</span></div>
+  </div>
+</header>
+<main class="container">
+<section class="section-block "><span class="kicker">Contexto</span><h2 class="section-title">Qué resuelve este módulo</h2><p>El módulo anterior terminó con un archivo que ya sabes leer: los tipos están bien, las fechas son fechas y sabes dónde están los huecos. Este responde a la pregunta siguiente, que es la incómoda: <strong>¿y ahora qué hago con ellos?</strong></p><p>Y es incómoda porque casi ninguna respuesta es automática. Borrar una fila cambia el denominador de todos los porcentajes que calcules después. Rellenar un hueco con la media inventa un dato que nadie midió. Quitar un valor extremo puede estar tirando justamente el hallazgo.</p><p>La regla que gobierna el módulo entero es esta: <strong>cada decisión de limpieza se toma con un criterio y se escribe con su conteo</strong>. No hay limpieza correcta, hay limpieza documentada.</p></section>
+<section class="section-block is-toy"><span class="kicker">Ejemplo</span><h2 class="section-title">Antes de la teoría: un ejemplo de juguete</h2><p>Nueve leyes de un lote, en porcentaje, ya ordenadas:</p><pre><code>3   5   7   9   11   13   15   17   40</code></pre><p>Ocho valores tirando a parecidos y un 40 que canta. La pregunta del módulo no es si el 40 molesta, es <strong>qué hacer con él</strong>, y para eso hay que ponerle número.</p><h3 class="sub h3">Paso 1. El criterio del rango intercuartílico</h3><p>Se parte el conjunto en cuatro. Con nueve valores, la mediana es el quinto, el <strong>11</strong>.</p><p><code>numpy</code> calcula los cuartiles interpolando, y con nueve valores caen justo encima de dos datos:</p><pre><code>Q1 = 7        Q3 = 15        IQR = 15 − 7 = 8</code></pre><p>Y las vallas se ponen a milla y media de IQR de cada cuartil:</p><pre><code>valla baja = 7 − 1,5 × 8 = 7 − 12 = −5
+valla alta = 15 + 1,5 × 8 = 15 + 12 = 27</code></pre><p><strong>Todo lo que salga de −5 a 27 es candidato.</strong> Solo el 40 lo hace.</p><h3 class="sub h3">Paso 2. La otra convención, que da otros números</h3><p>Si lo haces a mano como se enseña en muchos sitios, tomando la mediana de cada mitad y dejando fuera el valor central:</p><pre><code>mitad baja: 3, 5, 7, 9      →  Q1 = (5 + 7) / 2 = 6
+mitad alta: 13, 15, 17, 40  →  Q3 = (15 + 17) / 2 = 16
+IQR = 10                    →  valla alta = 16 + 15 = 31</code></pre><p><strong>Q1 vale 6 en vez de 7, Q3 vale 16 en vez de 15 y la valla se va de 27 a 31.</strong> Con los mismos nueve números.</p><p>No es que una esté mal: son dos convenciones distintas y hay más. Aquí las dos coinciden en el veredicto, que es lo habitual, pero <strong>si un valor cae entre 27 y 31, tu conclusión depende de qué fórmula usó tu librería</strong>. Por eso se dice cuál se usó.</p><h3 class="sub h3">Paso 3. Cuánto daño hace el 40, medido</h3><p>Antes de decidir, mira lo que ese valor le hace a cada resumen:</p><div class="table-wrap"><table><thead><tr><th></th><th>Con el 40</th><th>Sin el 40</th><th>Cuánto se mueve</th></tr></thead><tbody><tr><td><strong>Media</strong></td><td>13,33</td><td>10,00</td><td><strong>3,33</strong></td></tr><tr><td><strong>Mediana</strong></td><td>11</td><td>10</td><td><strong>1</strong></td></tr></tbody></table></div><p>Un solo dato de nueve mueve la media más de tres puntos y la mediana uno. Ahí está, con números, por qué la mediana se llama robusta y por qué en datos sucios se reporta antes que la media.</p><h3 class="sub h3">Paso 4. Y aun así, la decisión no la toma la fórmula</h3><p>El criterio dice que el 40 es candidato. Lo que hay que hacer con él depende de algo que no está en la tabla:</p><ul><li>Si el lote venía de una <strong>veta de alta ley</strong> conocida, ese 40 es el dato más valioso del conjunto y <strong>se queda</strong>.</li><li>Si el laboratorio confundió el porcentaje con partes por mil, es un error y **se corrige o se elimina**.</li><li>Si no hay forma de saberlo, <strong>se recorta</strong> al valor de la valla y se dice que se hizo.</li></ul><p><strong>La estadística marca candidatos. El que sabe de mineral decide.</strong></p></section>
+<section class="section-block "><span class="kicker">Términos</span><h2 class="section-title">Glosario</h2><ul><li><strong>Valor ausente.</strong> La casilla vacía, que pandas escribe como <code>NaN</code>. No es un cero.</li><li><strong>Imputar.</strong> Rellenar un ausente con una estimación: la media, la mediana, el valor anterior o el más frecuente. Inventa un dato, así que se declara siempre.</li><li><strong>Ausente al azar.</strong> Que la probabilidad de que falte no dependa de lo que valdría. Es la condición que permite eliminar esas filas sin sesgar.</li><li><strong>Duplicado.</strong> Fila repetida. Puede ser un error de carga o dos hechos idénticos legítimos, y hay que averiguar cuál antes de borrar.</li><li><strong>Valor atípico.</strong> Un dato muy alejado del resto. En inglés, <em>outlier</em>.</li><li><strong>Cuartil.</strong> Los tres valores que parten el conjunto ordenado en cuatro partes iguales. El segundo es la mediana.</li><li><strong>Rango intercuartílico.</strong> La distancia de Q1 a Q3, donde vive la mitad central de los datos. En inglés, <em>interquartile range</em>, IQR.</li><li><strong>Regla 1,5 × IQR.</strong> El criterio habitual para marcar candidatos a atípico: fuera de <code>Q1 − 1,5 × IQR</code> o <code>Q3 + 1,5 × IQR</code>.</li><li><strong>Recortar.</strong> Bajar los valores extremos hasta un tope en vez de eliminarlos, conservando la fila. En inglés, <em>winsorising</em>.</li><li><strong>Robusto.</strong> Un estadístico al que un valor extremo casi no mueve. La mediana lo es, la media no.</li><li><strong>Codificación de etiquetas.</strong> Convertir categorías en números enteros. Solo vale si las categorías tienen un orden real.</li><li><strong>Codificación one-hot.</strong> Convertir cada categoría en su propia columna de unos y ceros. Es lo correcto cuando no hay orden.</li><li><strong>Validación de entrada.</strong> Comprobar al leer que los datos cumplen las reglas que deben cumplir: rangos, tipos y valores permitidos.</li><li><strong>Información personal identificable.</strong> Datos que identifican a una persona: nombre, correo, teléfono, coordenadas exactas. En inglés, <em>PII</em>.</li></ul></section>
+<section class="section-block is-recipe"><span class="kicker">Método</span><h2 class="section-title">Paso a paso</h2><h3 class="sub h3">Paso 1. Con lo que falta, preguntar primero por qué falta</h3><p>Antes de elegir una técnica. <strong>Un sensor que se apagó y una respuesta que la gente evita contestar no se tratan igual</strong>, aunque los dos dejen la misma casilla vacía.</p><div class="table-wrap"><table><thead><tr><th>Situación</th><th>Qué hacer</th></tr></thead><tbody><tr><td>Faltan al azar y son pocos</td><td>Eliminar esas filas, <strong>diciendo cuántas</strong></td></tr><tr><td>Faltan al azar y son muchos</td><td>Imputar, diciendo con qué y por qué</td></tr><tr><td><strong>No faltan al azar</strong></td><td>Ni eliminar ni imputar en silencio: la ausencia <strong>es</strong> el dato</td></tr><tr><td>Falta una columna entera casi siempre</td><td>Quitar la columna, no las filas</td></tr></tbody></table></div><p>Y la comprobación que decide entre la primera y la tercera: <strong>compara el grupo al que le falta el dato con el resto</strong>. Si se parecen, se puede quitar. Si no, quitarlo cambia a quién describe el análisis.</p><p>Sobre imputar, tres opciones y cuándo:</p><ul><li><strong>La mediana</strong>, si la columna tiene extremos. Es la opción por defecto en datos sucios.</li><li><strong>La media</strong>, si la columna es simétrica y limpia.</li><li><strong>El valor anterior</strong>, si es una serie temporal y el fenómeno cambia despacio.</li></ul><p>Todas <strong>encogen la variabilidad</strong> del dato, porque meten valores centrales. Con muchos ausentes, eso deja de ser inocuo.</p><h3 class="sub h3">Paso 2. Con los duplicados, averiguar antes de borrar</h3><p>Una fila repetida no siempre es un error. Dos lecturas idénticas del mismo sensor en dos instantes distintos son dos hechos, no uno.</p><p>La pregunta útil es <strong>qué combinación de columnas debería ser única</strong>: el identificador del lote, o el par de identificador y fecha. Eso se llama la clave, y los duplicados se buscan sobre ella, no sobre la fila entera.</p><h3 class="sub h3">Paso 3. Con los atípicos, ordenar por valor y no por nombre</h3><p>El módulo anterior ya enseñó que un número guardado como texto se ordena mal. Aquí aparece la versión con categorías: <strong>ordenar por nombre y ordenar por valor son cosas distintas</strong>.</p><p>Si ordenas los turnos alfabéticamente sales con &quot;día, noche&quot;; si los ordenas por su recuperación media, quizá salgan al revés. <strong>El gráfico ordenado por magnitud casi siempre cuenta mejor la historia que el ordenado alfabéticamente</strong>, y es un cambio de una línea.</p><p>Y con los valores extremos, las tres respuestas legítimas del ejemplo de juguete: mantenerlo, recortarlo o eliminarlo. Ninguna es &quot;borrarlo porque afea el gráfico&quot;.</p><h3 class="sub h3">Paso 4. Convertir categorías en números, con la regla que ya conoces</h3><div class="table-wrap"><table><thead><tr><th>Cuándo</th><th>Qué se usa</th></tr></thead><tbody><tr><td>Las categorías <strong>tienen orden</strong> (bajo, medio, alto)</td><td>Codificación de etiquetas: 0, 1, 2</td></tr><tr><td><strong>No tienen orden</strong> (óxido, sulfuro, mixto)</td><td>One-hot: una columna de unos y ceros por nivel menos uno</td></tr></tbody></table></div><p>Poner 1, 2 y 3 a tres minerales sin orden le dice al modelo que el tercero es el triple que el primero y que las distancias entre ellos son iguales. Nadie ha afirmado eso.</p><p>Y antes de codificar, <strong>normalizar los textos</strong>: <code>oxido</code>, <code>Oxido</code> y <code>OXIDO</code> son tres categorías distintas para el ordenador y una sola para ti.</p><h3 class="sub h3">Paso 5. Validar la entrada, que es lo que evita repetir el trabajo</h3><p>Comprobar las reglas <strong>al leer el archivo</strong>, no cuando el resultado sale raro. Cuatro comprobaciones que cubren casi todo:</p><div class="table-wrap"><table><thead><tr><th>Comprobación</th><th>Ejemplo</th></tr></thead><tbody><tr><td><strong>Rango</strong></td><td>Una ley entre 0 y 100; una recuperación que no puede ser negativa</td></tr><tr><td><strong>Tipo</strong></td><td>La fecha es fecha, la ley es número</td></tr><tr><td><strong>Valores permitidos</strong></td><td>El turno solo puede ser día o noche</td></tr><tr><td><strong>Unicidad</strong></td><td>No hay dos filas con el mismo identificador de lote</td></tr></tbody></table></div><p>Escrito una vez, corre siempre. Es la diferencia entre descubrir un problema al abrir el archivo y descubrirlo en la reunión.</p><h3 class="sub h3">Paso 6. Y las personas que hay detrás</h3><p>Si los datos describen a personas, hay obligaciones que no dependen del análisis:</p><ul><li><strong>Anonimizar antes de trabajar</strong>, no antes de publicar.</li><li><strong>Recoger solo lo que hace falta.</strong> Un dato que no tienes no se puede filtrar.</li><li><strong>Cuidado con lo que identifica sin nombre</strong>: un código postal con una fecha de nacimiento y un sexo identifican a mucha gente sin necesidad de nombre.</li><li><strong>Las coordenadas exactas son identificables</strong>, y en un dataset de viajes son la casa de alguien.</li></ul><h3 class="sub h3">Paso 7. Otras transformaciones, cuando la escala molesta</h3><p>Tres que aparecen constantemente:</p><ul><li><strong>Logaritmo</strong>, cuando el dato abarca órdenes de magnitud. Convierte una nube apelotonada contra el eje en algo legible.</li><li><strong>Normalizar o tipificar</strong>, cuando vas a comparar variables en unidades distintas.</li><li><strong>Agrupar en tramos</strong>, cuando lo que importa es la categoría y no el valor exacto. Se pierde información a cambio de legibilidad, y hay que saber que se está pagando eso.</li></ul></section>
+<section class="section-block is-recipe"><span class="kicker">Código</span><h2 class="section-title">El código, por partes</h2><h3 class="sub h3">Paso 1. Los cuartiles y las dos convenciones</h3><pre><code class="language-python">import numpy as np
+import pandas as pd
+
+grades = np.array([3, 5, 7, 9, 11, 13, 15, 17, 40], float)
+
+q1, q3 = np.percentile(grades, [25, 75])
+iqr = q3 - q1
+print(f&quot;numpy   Q1 {q1:g}   Q3 {q3:g}   IQR {iqr:g}   valla alta {q3 + 1.5 * iqr:g}&quot;)
+
+low, high = grades[:4], grades[5:]
+q1b, q3b = np.median(low), np.median(high)
+print(f&quot;a mano  Q1 {q1b:g}   Q3 {q3b:g}   IQR {q3b - q1b:g}   &quot;
+      f&quot;valla alta {q3b + 1.5 * (q3b - q1b):g}&quot;)</code></pre><dl class="annot"><div class="annot-head">línea por línea</div><dt><code>np.percentile(x, [25, 75])</code></dt><dd>Pide dos percentiles de una vez y devuelve los dos. Los corchetes son una lista, y por eso se recogen en dos nombres.</dd><dt><code>:g</code></dt><dd>Un formato que quita los ceros y el punto decimal cuando no hacen falta: escribe 7 en vez de 7.0.</dd><dt><code>grades[:4]</code></dt><dd>Los cuatro primeros elementos. En Python el corte llega hasta el índice indicado <strong>sin incluirlo</strong>.</dd><dt><code>grades[5:]</code></dt><dd>Del sexto en adelante, saltándose el quinto, que es la mediana. Así se separan las dos mitades dejando fuera el valor central, que es la otra convención.</dd></dl><div class="output"><span class="output-tag">sale</span><pre>numpy   Q1 7   Q3 15   IQR 8   valla alta 27
+a mano  Q1 6   Q3 16   IQR 10   valla alta 31</pre></div><p>Los mismos nueve números y <strong>dos vallas distintas</strong>, 27 y 31. Aquí las dos marcan solo el 40, pero un valor de 29 sería atípico con una y normal con la otra.</p><h3 class="sub h3">Paso 2. Medir cuánto mueve el atípico a cada resumen</h3><pre><code class="language-python">without = grades[grades &lt; 40]
+
+print(f&quot;con el 40:  media {grades.mean():.2f}   mediana {np.median(grades):g}&quot;)
+print(f&quot;sin el 40:  media {without.mean():.2f}   mediana {np.median(without):g}&quot;)</code></pre><dl class="annot"><div class="annot-head">línea por línea</div><dt><code>grades &lt; 40</code></dt><dd>Devuelve una lista de verdaderos y falsos, uno por elemento. No filtra nada por sí sola.</dd><dt><code>grades[grades &lt; 40]</code></dt><dd>Usar esa lista de verdaderos y falsos <strong>dentro de los corchetes</strong> se queda con los elementos donde hay verdadero. Es el filtrado estándar de numpy y de pandas.</dd><dt><code>:.2f</code></dt><dd>Dos decimales fijos, para que las dos medias se puedan comparar columna con columna.</dd></dl><div class="output"><span class="output-tag">sale</span><pre>con el 40:  media 13.33   mediana 11
+sin el 40:  media 10.00   mediana 10</pre></div><p><strong>La media se mueve 3,33 puntos y la mediana 1.</strong> Un solo dato de nueve. Por eso en datos sin limpiar se mira la mediana primero.</p><h3 class="sub h3">Paso 3. Duplicados y categorías escritas de tres maneras</h3><pre><code class="language-python">lots = pd.DataFrame({
+    &quot;lot&quot;: [&quot;L-1&quot;, &quot;L-2&quot;, &quot;L-3&quot;, &quot;L-3&quot;, &quot;L-4&quot;, &quot;L-5&quot;],
+    &quot;grade&quot;: [3.1, 2.8, 3.4, 3.4, np.nan, 2.9],
+    &quot;mineral&quot;: [&quot;oxido&quot;, &quot;sulfuro&quot;, &quot;Oxido&quot;, &quot;Oxido&quot;, &quot;sulfuro&quot;, &quot;OXIDO&quot;],
+})
+
+print(&quot;duplicados exactos:&quot;, int(lots.duplicated().sum()))
+print(&quot;categorias tal cual:&quot;, sorted(lots.mineral.unique()))
+print(&quot;normalizadas:      &quot;, sorted(lots.mineral.str.lower().unique()))</code></pre><dl class="annot"><div class="annot-head">línea por línea</div><dt><code>np.nan</code></dt><dd>El valor ausente de numpy, que es como se escribe un hueco dentro de una columna numérica.</dd><dt><code>.duplicated()</code></dt><dd>Marca como verdadero cada fila que ya había aparecido antes, dejando la primera aparición como falsa. Por eso contar da 1 y no 2.</dd><dt><code>.unique()</code></dt><dd>Los valores distintos de una columna, sin repetir.</dd><dt><code>.str.lower()</code></dt><dd>El accesorio <code>.str</code> aplica una operación de texto a la columna entera. <code>lower</code> pasa todo a minúsculas.</dd></dl><div class="output"><span class="output-tag">sale</span><pre>duplicados exactos: 1
+categorias tal cual: [&#x27;OXIDO&#x27;, &#x27;Oxido&#x27;, &#x27;oxido&#x27;, &#x27;sulfuro&#x27;]
+normalizadas:       [&#x27;oxido&#x27;, &#x27;sulfuro&#x27;]</pre></div><p><strong>Cuatro categorías donde había dos.</strong> Cualquier conteo por mineral, cualquier gráfico de barras y cualquier codificación hechos antes de normalizar salen partidos en tres trozos.</p><h3 class="sub h3">Paso 4. Validar la entrada de una vez</h3><pre><code class="language-python">def check(frame: pd.DataFrame) -&gt; list[str]:
+    &quot;&quot;&quot;Return everything wrong with this batch, instead of stopping at the first.&quot;&quot;&quot;
+    problems = []
+    if not frame.grade.dropna().between(0, 100).all():
+        problems.append(&quot;hay leyes fuera del rango 0 a 100&quot;)
+    if frame.lot.duplicated().any():
+        problems.append(f&quot;identificadores repetidos: {frame.lot[frame.lot.duplicated()].tolist()}&quot;)
+    unknown = set(frame.mineral.str.lower()) - {&quot;oxido&quot;, &quot;sulfuro&quot;, &quot;mixto&quot;}
+    if unknown:
+        problems.append(f&quot;minerales no reconocidos: {sorted(unknown)}&quot;)
+    return problems
+
+
+for problem in check(lots):
+    print(&quot;AVISO:&quot;, problem)</code></pre><dl class="annot"><div class="annot-head">línea por línea</div><dt><code>def check(frame) -&gt; list[str]:</code></dt><dd>Una función que devuelve <strong>la lista de todos los problemas</strong>, no el primero. Parar en el primero obliga a corregir y volver a correr una y otra vez.</dd><dt><code>.between(0, 100)</code></dt><dd>Verdadero donde el valor está dentro del rango, extremos incluidos.</dd><dt><code>.all()</code></dt><dd>Verdadero solo si <strong>todos</strong> lo son. Su pareja <code>.any()</code> es verdadero si <strong>alguno</strong> lo es, y se usa en la línea siguiente.</dd><dt><code>set(...) - {...}</code></dt><dd>Resta de conjuntos: lo que hay en la columna y no está en la lista de valores permitidos. Es la forma más corta de detectar una categoría nueva.</dd><dt><code>frame.lot[frame.lot.duplicated()]</code></dt><dd>El filtrado del paso 2 aplicado aquí para <strong>decir cuáles</strong> se repiten, no solo cuántos. Un aviso que no dice qué revisar obliga a buscarlo a mano.</dd></dl><div class="output"><span class="output-tag">sale</span><pre>AVISO: identificadores repetidos: [&#x27;L-3&#x27;]</pre></div><p>Una sola llamada y el archivo queda comprobado contra las tres reglas. Y el aviso dice el identificador concreto, que es lo que permite ir a mirarlo.</p></section>
+<section class="section-block is-warning"><span class="kicker">Trampas</span><h2 class="section-title">Ojo</h2><ul><li><strong>La estadística marca candidatos, no culpables.</strong> El criterio del IQR dice qué mirar; qué hacer con ello lo decide quien conoce el proceso.</li><li><strong>Hay varias convenciones de cuartiles.</strong> Con los mismos nueve números, la valla alta sale 27 o 31. Di cuál usaste.</li><li><strong>Un valor extremo mueve la media mucho más que la mediana.</strong> 3,33 puntos contra 1, en el ejemplo. En datos sucios, la mediana primero.</li><li><strong>Un hueco no es un cero</strong>, y tratarlo como cero baja todas las medias sin avisar.</li><li><strong>Antes de eliminar filas con ausentes, compara ese grupo con el resto.</strong> Si no se parece, eliminarlo cambia a quién describe el análisis.</li><li><strong>Imputar encoge la variabilidad.</strong> Con muchos ausentes deja de ser inocuo, y siempre se declara.</li><li><strong>Eliminar filas cambia el denominador</strong> de todos los porcentajes que calcules después.</li><li><strong><code>duplicated()</code> no marca la primera aparición.</strong> Por eso el conteo es uno menos de lo que la gente espera.</li><li><strong>Normaliza el texto antes de contar categorías</strong>, o <code>oxido</code> y <code>OXIDO</code> serán dos cosas.</li><li><strong>Nunca sobrescribas el archivo original.</strong> La limpieza produce un archivo nuevo.</li><li><strong>Anonimiza antes de trabajar, no antes de publicar.</strong> Y recuerda que unas coordenadas exactas son la casa de alguien.</li></ul></section>
+<section class="section-block is-bridge"><span class="kicker">Analogía</span><h2 class="section-title">Puente metalúrgico</h2><p>Todo este módulo es <strong>el criterio de rechazo de un ensayo</strong>, que ya aplicas sin llamarlo así.</p><p>Cuando un análisis de laboratorio sale disparado, no lo borras ni lo aceptas: <strong>lo investigas</strong>. Miras si el patrón de control iba bien ese día, si la muestra estaba contaminada, si el técnico anotó porcentaje donde iba parte por mil. Y solo entonces decides. Eso es exactamente lo que dice el ejemplo del 40 %.</p><div class="table-wrap"><table><thead><tr><th>En el laboratorio</th><th>En el módulo</th></tr></thead><tbody><tr><td>Un resultado disparado en la serie</td><td>Un candidato a atípico</td></tr><tr><td>Revisar el patrón de control antes de rechazar</td><td>Investigar antes de borrar</td></tr><tr><td>Una veta de alta ley de verdad</td><td>El extremo que hay que conservar</td></tr><tr><td>Unidades confundidas en la hoja</td><td>El error que sí se elimina</td></tr><tr><td>Rehacer el ensayo</td><td>Recortar al valor de la valla</td></tr><tr><td>Muestra sin etiqueta que aparece dos veces</td><td>El duplicado que hay que investigar</td></tr><tr><td>Rango de validez del método</td><td>La validación de entrada</td></tr></tbody></table></div><p>Y hay una regla de laboratorio que es literalmente la del módulo: <strong>el cuaderno original no se borra ni se corrige encima</strong>. Se anota la corrección al lado, con la fecha y quién la hizo. Eso es &quot;nunca sobrescribas el archivo original y escribe cada decisión con su conteo&quot;, con otras palabras y cien años de antigüedad.</p></section>
+<section class="section-block is-review"><span class="kicker">Repaso</span><h2 class="section-title">Repaso</h2><details><summary>Con nueve leyes, numpy dice que la valla alta está en 27 y el cálculo a mano en 31. ¿Cuál es la correcta?</summary><p>Las dos, porque son convenciones distintas para calcular los cuartiles y hay más de dos. <code>numpy</code> interpola y sitúa Q1 en 7 y Q3 en 15; el método de tomar la mediana de cada mitad dejando fuera el valor central da 6 y 16, y como el IQR pasa de 8 a 10, la valla se mueve de 27 a 31. Con estos datos las dos marcan solo el 40, que es lo habitual, pero un valor de 29 sería atípico con una y normal con la otra. Lo que no se puede hacer es callarse cuál se usó, porque en los casos ajustados el veredicto depende de eso.</p></details><details><summary>¿Por qué se recomienda mirar la mediana antes que la media en datos sin limpiar?</summary><p>Porque un solo valor extremo la mueve muchísimo menos. En el ejemplo del módulo, quitar el 40 de nueve valores cambia la media de 13,33 a 10,00, o sea 3,33 puntos, mientras que la mediana pasa de 11 a 10, un solo punto. La media reparte el peso de cada dato por igual, así que un valor lejano arrastra el resultado; la mediana solo mira quién está en el centro. Esa propiedad es lo que se llama robustez, y por eso en la fase de limpieza la mediana describe mejor lo que hay.</p></details><details><summary>¿Cuándo se puede eliminar una fila con datos ausentes y cuándo no?</summary><p>Se puede cuando los datos faltan al azar, es decir, cuando la probabilidad de que falten no depende de lo que valdrían, y además son pocos. La comprobación práctica es comparar el grupo al que le falta el dato con el resto: si se parecen, eliminarlos no sesga nada; si no se parecen, la ausencia lleva información y eliminarlos cambia a quién describe el análisis. Cuando faltan muchos pero al azar se imputa, declarando con qué y por qué, y sabiendo que imputar encoge la variabilidad. Y si falta una columna casi entera, lo que se quita es la columna, no las filas.</p></details><details><summary>¿Por qué no se deben codificar como 1, 2 y 3 unas categorías sin orden?</summary><p>Porque esos números afirman dos cosas que nadie ha comprobado: que existe un orden entre las categorías y que las distancias entre ellas son iguales. Codificar óxido, sulfuro y mixto como 1, 2 y 3 le dice al modelo que mixto es el triple que óxido y que la diferencia entre óxido y sulfuro es la misma que entre sulfuro y mixto. Cuando no hay orden real se usa one-hot, una columna de unos y ceros por nivel menos uno. La codificación por etiquetas solo es correcta cuando el orden existe de verdad, como en bajo, medio y alto.</p></details><details><summary>¿Qué es la validación de entrada y por qué se hace al leer el archivo?</summary><p>Es comprobar que los datos cumplen las reglas que deben cumplir: rangos plausibles, tipos correctos, valores permitidos en las categorías y unicidad de los identificadores. Se hace al leer porque un problema detectado ahí cuesta un minuto, y el mismo problema detectado cuando el resultado sale raro obliga a rehacer todo el análisis para averiguar de dónde venía, si es que alguien lo nota. Escrita una vez como función, corre siempre, y conviene que devuelva todos los problemas de golpe en vez de parar en el primero, y que diga qué registro concreto está mal.</p></details></section>
+</main>
+<footer class="footer">
+  Concentra / destilado del temario público del curso / 2026-08-20
+</footer>
+</body>
+</html>

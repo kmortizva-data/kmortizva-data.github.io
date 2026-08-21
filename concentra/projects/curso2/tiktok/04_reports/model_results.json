@@ -1,0 +1,89 @@
+{
+  "project": "tiktok",
+  "course": "curso2",
+  "title": "TikTok: qué hay en el archivo antes de analizar nada",
+  "generated": "2026-08-19",
+  "source_csv": "C:\\Users\\Bruce Wayne\\Documents\\03_Data Analysis Coursera\\Course 3 - Data Analytics\\Exc_2_TikTok\\01_data\\tiktok_dataset_raw.csv",
+  "quality": {
+    "rows": 19382,
+    "columns": 12,
+    "duplicate_rows": 0,
+    "incomplete_rows": 298,
+    "incomplete_pct": 1.54,
+    "columns_with_missing": 7,
+    "text_columns": 4,
+    "numeric_stored_as_text": [],
+    "rows_complete": 19084
+  },
+  "missing": {
+    "claim_status": 298,
+    "video_transcription_text": 298,
+    "video_view_count": 298,
+    "video_like_count": 298,
+    "video_share_count": 298,
+    "video_download_count": 298,
+    "video_comment_count": 298
+  },
+  "categories": {
+    "claim_status": {
+      "distinct": 2
+    },
+    "verified_status": {
+      "distinct": 2
+    },
+    "author_ban_status": {
+      "distinct": 3
+    }
+  },
+  "outliers": {
+    "video_view_count": {
+      "count": 0,
+      "pct": 0.0,
+      "upper_fence": 1253403.75
+    },
+    "video_like_count": {
+      "count": 1726,
+      "pct": 9.04,
+      "upper_fence": 311333.88
+    },
+    "video_share_count": {
+      "count": 2508,
+      "pct": 13.14,
+      "upper_fence": 45382.5
+    },
+    "video_download_count": {
+      "count": 2450,
+      "pct": 12.84,
+      "upper_fence": 2880.12
+    },
+    "video_comment_count": {
+      "count": 2789,
+      "pct": 14.61,
+      "upper_fence": 728.5
+    },
+    "video_duration_sec": {
+      "count": 0,
+      "pct": 0.0,
+      "upper_fence": 90.5
+    }
+  },
+  "impossible": {
+    "vistas negativas": 0,
+    "me gusta por encima de las vistas": 0,
+    "duracion fuera de 1 a 60 segundos": 0
+  },
+  "missing_shape": {
+    "rows": 298,
+    "columns_affected": 7,
+    "rows_missing_all_seven": 298
+  },
+  "finding": {
+    "claim_videos": 9608,
+    "claim_mean_views": 501029.5,
+    "claim_median_views": 501555.0,
+    "opinion_videos": 9476,
+    "opinion_mean_views": 4956.4,
+    "opinion_median_views": 4953.0,
+    "view_ratio": 101.1
+  }
+}

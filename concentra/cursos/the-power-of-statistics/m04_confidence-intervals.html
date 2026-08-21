@@ -1,0 +1,490 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Confidence intervals — The Power of Statistics</title>
+<style>
+/* ============================================================================
+   Concentra — design tokens and shared components.
+   Inlined into every generated page by load_style(), so pages stay self-contained
+   and work offline from file:// with no external requests.
+
+   Direction: an assay lab, not a tech dashboard. The palette is taken from ore
+   and lab materials (chalcopyrite brass, malachite, hematite, quartz) on warm
+   graphite rather than the blue-black + neon of a generic dark UI. Type is
+   Bahnschrift, the DIN-descended grotesque that Windows ships and that lives on
+   machinery plates and technical drawings, over Corbel for reading.
+   ========================================================================== */
+
+:root {
+  /* Ground and surfaces: warm graphite, the colour of rock dust, not blue-black */
+  --rock: #1a1714;
+  --bench: #221e19;
+  --core: #2b251f;
+  --seam: #3d352c;
+
+  /* Ore palette. No blue and no purple anywhere: those are the tones that make a
+     page read as generated, and this palette comes from the ores instead. */
+  --brass: #c9a227;      /* chalcopyrite, the primary accent */
+  --malachite: #5d9b7a;  /* verified output, results that came out right */
+  --hematite: #b04a35;   /* iron oxide, pitfalls and warnings */
+
+  /* Text */
+  --quartz: #ece7de;
+  --dust: #9a9186;
+  --shadowed: #6f675c;
+
+  --display: Bahnschrift, 'DIN Alternate', 'Segoe UI Semibold', system-ui, sans-serif;
+  --body: Corbel, Candara, 'Segoe UI', system-ui, sans-serif;
+  --data: Consolas, 'Cascadia Mono', ui-monospace, monospace;
+
+  /* In px, not ch: ch scales with font-size, so a heading ended up wider than a
+     paragraph and the page had four different right edges instead of two. */
+  --measure: 640px;
+  --wide: 900px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--rock);
+  color: var(--quartz);
+  font-family: var(--body);
+  font-size: 16px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection { background: var(--brass); color: var(--rock); }
+
+:focus-visible {
+  outline: 2px solid var(--brass);
+  outline-offset: 3px;
+}
+
+/* --------------------------------------------------------------- the signature
+   A sieve series: ticks that get finer from left to right, coarse feed to fine
+   concentrate. It is the one ornament on the page and appears exactly twice —
+   under the wordmark and under a page title. */
+.mesh {
+  height: 10px;
+  background-image:
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 16px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 9px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 5px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 3px);
+  background-size: 25% 100%;
+  background-position: 0 0, 25% 0, 50% 0, 75% 0;
+  background-repeat: no-repeat;
+  opacity: .8;
+  transform-origin: left center;
+  animation: sieve .55s cubic-bezier(.2, .8, .3, 1) both;
+}
+@keyframes sieve { from { transform: scaleX(0); opacity: 0; } to { transform: scaleX(1); opacity: .8; } }
+@media (prefers-reduced-motion: reduce) {
+  .mesh { animation: none; }
+  * { transition: none !important; }
+}
+
+/* ------------------------------------------------------------------ page head */
+.header {
+  border-bottom: 1px solid var(--seam);
+  padding: 3.2rem 2rem 0;
+  background: linear-gradient(180deg, #221d16 0%, var(--rock) 100%);
+}
+.header-content { max-width: 1080px; margin: 0 auto; }
+
+.eyebrow {
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--brass);
+  margin-bottom: 1rem;
+}
+.eyebrow a { color: inherit; text-decoration: none; border-bottom: 1px solid transparent; }
+.eyebrow a:hover { border-bottom-color: var(--brass); }
+
+.header h1 {
+  font-family: var(--display);
+  font-size: clamp(2rem, 4.5vw, 3.1rem);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -.015em;
+  color: var(--quartz);
+  max-width: 20ch;
+}
+.header .subtitle {
+  color: var(--dust);
+  max-width: var(--measure);
+  margin-top: 1rem;
+  font-size: 1.02rem;
+}
+.header .mesh { margin: 1.8rem 0 0; }
+
+/* An assay line: the real composition of the module, in lab-report shorthand. */
+.assay {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.4rem;
+  font-family: var(--data);
+  font-size: .78rem;
+  color: var(--shadowed);
+  padding: .9rem 0 1.6rem;
+  letter-spacing: .04em;
+}
+.assay b { color: var(--dust); font-weight: 400; }
+
+/* --------------------------------------------------------------------- layout */
+/* The container hugs the widest block, so there is no orphan edge past the content. */
+.container { max-width: var(--wide); margin: 3rem auto 5rem; padding: 0 2rem; }
+
+/* Two deliberate right edges and no more: prose stops at the reading measure, and
+   only the things that genuinely need room (code, output, figures, big tables) run
+   out to the full column. */
+.section-block {
+  border-top: 1px solid var(--seam);
+  padding: 2rem 0 2.4rem;
+}
+.section-block > p,
+.section-block > ul,
+.section-block > ol,
+.section-block h3.sub,
+.section-block h4.sub,
+.section-block blockquote,
+details > *:not(summary) { max-width: var(--measure); }
+.section-block:first-child { border-top: 0; padding-top: .5rem; }
+
+/* The kicker names what kind of content follows: context, method, pitfalls.
+   It replaces decorative icons with something that actually classifies. */
+.kicker {
+  font-family: var(--data);
+  font-size: .68rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  display: block;
+  margin-bottom: .5rem;
+}
+.section-title {
+  font-family: var(--display);
+  font-size: 1.55rem;
+  font-weight: 600;
+  letter-spacing: -.01em;
+  line-height: 1.2;
+  margin-bottom: 1.2rem;
+  color: var(--quartz);
+}
+.is-warning .kicker { color: var(--hematite); }
+.is-warning .section-title { color: #e8c4b8; }
+.is-bridge .kicker, .is-decision .kicker { color: var(--malachite); }
+.is-toy .kicker, .is-result .kicker, .is-question .kicker { color: var(--brass); }
+
+/* ---------------------------------------------------------------------- prose */
+/* Justified with hyphenation. In Spanish, justifying without hyphens opens rivers of
+   white space and reads worse than ragged right; lang="es" is what feeds the
+   dictionary. Tables, code, captions and summaries stay ragged on purpose. */
+.section-block p,
+.section-block li,
+details > *:not(summary) {
+  text-align: justify;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+}
+.section-block p { margin-bottom: 1rem; }
+.section-block p:last-child { margin-bottom: 0; }
+/* Indent with padding, not margin, so the bullet sits inside the measure instead of
+   pushing the list 1.2rem past the right edge of the paragraphs. */
+.section-block ul, .section-block ol { margin: 0 0 1rem; padding-left: 1.2rem; }
+.section-block li { margin-bottom: .55rem; padding-left: .2rem; }
+.section-block li::marker { color: var(--brass); }
+td, th, figcaption, .res li, .assay { text-align: left; hyphens: manual; }
+a { color: var(--brass); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+a:hover { text-decoration-thickness: 2px; }
+strong { color: #fff; font-weight: 700; }
+em { color: var(--dust); font-style: italic; }
+
+h3.sub {
+  font-family: var(--display);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--brass);
+  margin: 2rem 0 .7rem;
+  letter-spacing: -.005em;
+}
+h3.sub:first-child { margin-top: 0; }
+h4.sub {
+  font-family: var(--display);
+  font-size: .98rem;
+  font-weight: 600;
+  color: var(--dust);
+  margin: 1.3rem 0 .5rem;
+}
+
+code {
+  font-family: var(--data);
+  font-size: .9em;
+  background: var(--core);
+  border-radius: 3px;
+  padding: .08rem .32rem;
+  color: var(--brass);
+}
+pre {
+  background: #14110e;
+  border: 1px solid var(--seam);
+  border-left: 2px solid var(--seam);
+  border-radius: 2px;
+  padding: 1.1rem 1.2rem;
+  overflow-x: auto;
+  margin-bottom: 1rem;
+}
+pre code {
+  background: none; padding: 0; color: var(--quartz);
+  font-size: .87rem; line-height: 1.6;
+}
+
+/* What the code prints. Malachite: the material that came out of the process. */
+.output {
+  position: relative;
+  border: 1px solid rgba(93, 155, 122, .32);
+  border-left: 2px solid var(--malachite);
+  border-radius: 2px;
+  background: rgba(93, 155, 122, .06);
+  padding: 1.7rem 1.2rem 1rem;
+  margin-bottom: 1rem;
+  overflow-x: auto;
+}
+.output-tag {
+  position: absolute; top: .5rem; left: 1.2rem;
+  font-family: var(--data); font-size: .64rem;
+  letter-spacing: .18em; text-transform: uppercase; color: var(--malachite);
+}
+.output pre {
+  background: none; border: 0; padding: 0; margin: 0;
+  font-family: var(--data); font-size: .85rem;
+  color: var(--quartz); white-space: pre-wrap;
+}
+
+/* Line by line explanation of a code block, for a reader new to programming.
+   Two columns: the fragment of code, and what it does. */
+.annot {
+  display: grid;
+  grid-template-columns: minmax(9rem, auto) 1fr;
+  gap: .1rem 1.2rem;
+  align-items: baseline;
+  max-width: var(--wide);
+  margin: -.4rem 0 1.4rem;
+  padding: .9rem 1.1rem 1rem;
+  border: 1px solid var(--seam);
+  border-top: 0;
+  border-radius: 0 0 2px 2px;
+  background: rgba(201, 162, 39, .04);
+}
+.annot-head {
+  grid-column: 1 / -1;
+  font-family: var(--data);
+  font-size: .64rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  margin-bottom: .5rem;
+}
+.annot dt { padding: .35rem 0; }
+.annot dt code {
+  background: var(--core);
+  color: var(--brass);
+  font-size: .82rem;
+  white-space: nowrap;
+}
+.annot dd {
+  padding: .35rem 0;
+  margin: 0;
+  color: var(--dust);
+  font-size: .93rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(61, 53, 44, .5);
+}
+.annot dt { border-bottom: 1px solid rgba(61, 53, 44, .5); }
+.annot dt:last-of-type, .annot dd:last-of-type { border-bottom: 0; }
+/* The code block sits directly on top of its annotation, as one unit. */
+pre:has(+ .annot) { margin-bottom: 0; border-radius: 2px 2px 0 0; }
+
+@media (max-width: 640px) {
+  .annot { grid-template-columns: 1fr; gap: 0; }
+  .annot dt { border-bottom: 0; padding-bottom: 0; }
+  .annot dd { padding-top: .15rem; }
+}
+
+blockquote {
+  border-left: 2px solid var(--brass);
+  padding: .3rem 0 .3rem 1.3rem;
+  margin: 0 0 1rem;
+  font-family: var(--display);
+  font-size: 1.2rem;
+  font-weight: 400;
+  line-height: 1.4;
+  color: var(--quartz);
+}
+
+/* Tables read as assay data: mono figures, hairline rules, no zebra fill.
+   They take the width they need instead of being stretched to the full column,
+   which is what left a two-column table floating in empty space. */
+.table-wrap { overflow-x: auto; margin-bottom: 1rem; }
+table { border-collapse: collapse; width: auto; max-width: 100%; font-size: .93rem; }
+th, td {
+  border-bottom: 1px solid var(--seam);
+  padding: .55rem .8rem .55rem 0;
+  text-align: left;
+  vertical-align: top;
+}
+th {
+  font-family: var(--data);
+  font-size: .7rem;
+  font-weight: 400;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  border-bottom-color: var(--brass);
+}
+td:first-child { color: var(--quartz); }
+
+/* Review questions: closed by default, so they work as recall practice. */
+details {
+  border-top: 1px solid var(--seam);
+  padding: .9rem 0;
+}
+details:last-child { border-bottom: 1px solid var(--seam); }
+summary {
+  cursor: pointer;
+  font-family: var(--display);
+  font-size: 1.02rem;
+  font-weight: 600;
+  color: var(--quartz);
+  list-style: none;
+  display: flex;
+  gap: .7rem;
+  align-items: baseline;
+}
+summary::-webkit-details-marker { display: none; }
+summary::before {
+  content: '+';
+  font-family: var(--data);
+  color: var(--brass);
+  font-size: .95rem;
+}
+details[open] summary::before { content: '−'; }
+details[open] summary { color: var(--brass); margin-bottom: .7rem; }
+details > *:not(summary) { color: var(--dust); }
+
+figure.fig {
+  margin: 1.6rem 0;
+  border: 1px solid var(--seam);
+  padding: .7rem;
+  background: var(--bench);
+}
+figure.fig img { width: 100%; height: auto; display: block; }
+/* The interactive twin of a figure. Its aspect matches the still one, 10 by 4.4, so a
+   case sheet keeps the same rhythm whichever kind of figure comes next. */
+figure.fig.is-live iframe {
+  width: 100%;
+  /* Matches INTERACTIVE_HEIGHT in src/make_figures.py. It used to be an aspect ratio, and
+     that made the figure's height depend on the window: the caption and the legend are
+     placed at fractions of the plot area, so on a wide screen they were pushed past the
+     bottom margin, clipping the caption and covering the x-axis title. */
+  height: 520px;
+  border: 0;
+  display: block;
+}
+figure.fig figcaption {
+  font-family: var(--data);
+  font-size: .72rem;
+  color: var(--shadowed);
+  margin-top: .6rem;
+  letter-spacing: .04em;
+}
+
+/* File listings on a case sheet */
+.res { list-style: none; margin-left: 0 !important; }
+.res li {
+  display: flex; align-items: baseline; gap: .8rem; flex-wrap: wrap;
+  padding: .5rem 0; border-bottom: 1px solid var(--seam); margin-bottom: 0;
+}
+.res .path { font-family: var(--data); font-size: .74rem; color: var(--shadowed); }
+.res .size { font-family: var(--data); font-size: .74rem; color: var(--shadowed); margin-left: auto; }
+.res .gone { font-family: var(--data); font-size: .74rem; color: var(--hematite); }
+
+.footer {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 2rem 4rem;
+  color: var(--shadowed);
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .03em;
+}
+
+@media (max-width: 640px) {
+  body { font-size: 15px; }
+  .header { padding: 2rem 1.2rem 0; }
+  .container { padding: 0 1.2rem; margin-top: 2rem; }
+  .footer { padding: 0 1.2rem 3rem; }
+}
+
+@media print {
+  body { background: #fff; color: #16130f; }
+  .header { background: none; border-bottom: 1px solid #bbb; padding-top: 0; }
+  .header h1, .section-title, summary { color: #16130f; }
+  .mesh { animation: none; }
+  .section-block { break-inside: avoid; max-width: none; }
+  pre, .output { background: #f6f4f0; border-color: #ccc; }
+  details:not([open]) > *:not(summary) { display: block; }
+  a { color: #16130f; }
+}
+
+</style>
+</head>
+<body>
+<header class="header">
+  <div class="header-content">
+    <div class="eyebrow"><a href="https://www.coursera.org/learn/the-power-of-statistics">The Power of Statistics</a> / Módulo 4</div>
+    <h1>Confidence intervals</h1>
+    <p class="subtitle">Cómo convertir un número suelto en un rango honesto sobre lo que no sabes. Construimos un intervalo a mano con seis números antes de tocar una sola fórmula, y desmontamos la frase que casi todo el mundo dice mal sobre el 95%.</p>
+    <div class="mesh" role="presentation"></div>
+    <div class="assay"><span><b>4 h</b> de curso</span><span><b>7</b> vídeos</span><span><b>3</b> lecturas</span><span><b>4</b> tareas</span><span><b>3</b> prácticas</span></div>
+  </div>
+</header>
+<main class="container">
+<section class="section-block "><span class="kicker">Contexto</span><h2 class="section-title">Qué resuelve este módulo</h2><p>Cuando dices &quot;la tarifa media es 12,30 dólares&quot; estás escondiendo algo importante: ese 12,30 salió de una <strong>muestra</strong>, no de todos los viajes que existen. Si hubieras tomado otra muestra distinta te habría salido 12,10 o 12,55.</p><p>Un intervalo de confianza es la forma honesta de decirlo. En vez de un número solo, das un rango: <strong>&quot;la media está entre 11,80 y 12,80&quot;</strong>. Este módulo es cómo se calcula ese rango y, sobre todo, qué significa de verdad, porque la interpretación intuitiva está mal y es el error que más se repite en todo el curso.</p></section>
+<section class="section-block is-toy"><span class="kicker">Ejemplo</span><h2 class="section-title">Antes de la teoría: un ejemplo de juguete</h2><p>Olvídate de fórmulas por un momento. Tenemos <strong>seis</strong> mediciones de la ley de cobre de un lote, en porcentaje:</p><pre><code>2.1   2.5   2.3   2.8   2.2   2.5</code></pre><p>Queremos saber la ley media del lote <strong>completo</strong>, pero solo medimos estas seis muestras.</p><h3 class="sub h3">Paso 1. El mejor número que tenemos</h3><p>Sumamos y dividimos entre seis:</p><pre><code>(2.1 + 2.5 + 2.3 + 2.8 + 2.2 + 2.5) / 6  =  14.4 / 6  =  2.40</code></pre><p>Nuestra mejor estimación es <strong>2,40 %</strong>. Pero es solo eso, una estimación de seis muestras.</p><h3 class="sub h3">Paso 2. ¿Cuánto se mueven los datos entre sí?</h3><p>Miramos cuánto se aleja cada medición de 2,40:</p><div class="table-wrap"><table><thead><tr><th>Medición</th><th>Distancia a 2.40</th><th>Distancia al cuadrado</th></tr></thead><tbody><tr><td>2.1</td><td>−0.30</td><td>0.09</td></tr><tr><td>2.5</td><td>+0.10</td><td>0.01</td></tr><tr><td>2.3</td><td>−0.10</td><td>0.01</td></tr><tr><td>2.8</td><td>+0.40</td><td>0.16</td></tr><tr><td>2.2</td><td>−0.20</td><td>0.04</td></tr><tr><td>2.5</td><td>+0.10</td><td>0.01</td></tr></tbody></table></div><p>Sumamos la última columna: <code>0.09+0.01+0.01+0.16+0.04+0.01 = 0.32</code>. Dividimos entre 5, no entre 6 (sobre eso volvemos en las trampas), y sacamos la raíz:</p><pre><code>0.32 / 5 = 0.064        →        √0.064 = 0.253</code></pre><p>Esa es la <strong>desviación estándar</strong>: 0,253. Nos dice que las mediciones individuales bailan unas 0,25 unidades alrededor del promedio.</p><h3 class="sub h3">Paso 3. ¿Cuánto se movería el promedio si repitiéramos el muestreo?</h3><p>Aquí está la idea clave del módulo. No nos interesa cuánto bailan las mediciones sueltas, sino cuánto bailaría <strong>el promedio</strong> si tomáramos otras seis muestras, y otras seis, y otras seis. Ese número se llama <strong>error estándar</strong> y es más pequeño, porque promediar suaviza:</p><pre><code>error estándar = desviación estándar / √n = 0.253 / √6 = 0.253 / 2.449 = 0.103</code></pre><p>El promedio es mucho más estable (0,103) que las mediciones individuales (0,253). Promediar seis cosas cancela parte del azar.</p><h3 class="sub h3">Paso 4. Estirar a izquierda y derecha</h3><p>Ahora construimos el rango. Cogemos nuestro 2,40 y nos estiramos hacia ambos lados una cierta cantidad de errores estándar. Con seis muestras ese multiplicador es <strong>2,571</strong>; de dónde sale ese número exacto lo vemos en el método, por ahora acéptalo como &quot;un poco más de dos y medio&quot;:</p><pre><code>margen de error = 2.571 × 0.103 = 0.265
+
+límite inferior = 2.40 − 0.265 = 2.135
+límite superior = 2.40 + 0.265 = 2.665</code></pre><p><strong>Resultado: la ley media del lote está entre 2,14 % y 2,67 %, con 95 % de confianza.</strong></p><p>Fíjate en lo que acaba de pasar. Cambiamos un número falsamente preciso (2,40) por un rango que admite lo que no sabemos. Eso es todo el módulo. Lo demás son detalles de qué multiplicador usar y cómo decirlo sin equivocarse.</p></section>
+<section class="section-block "><span class="kicker">Términos</span><h2 class="section-title">Glosario</h2><ul><li><strong>Estimación puntual.</strong> Un solo número como respuesta, nuestro 2,40 %. Cómodo, pero finge una precisión que no tiene.</li><li><strong>Intervalo de confianza.</strong> El rango que construimos arriba, de 2,14 % a 2,67 %. Reconoce la incertidumbre en vez de esconderla.</li><li><strong>Error estándar.</strong> Cuánto variaría tu promedio si repitieras el muestreo. Es la desviación estándar dividida entre la raíz de n. No confundir con la desviación estándar, que habla de los datos individuales.</li><li><strong>Margen de error.</strong> La mitad del ancho del intervalo, es decir, lo que te estiras a cada lado. En el ejemplo, 0,265.</li><li><strong>Nivel de confianza.</strong> El porcentaje que da nombre al intervalo: 95 %, 90 %, 99 %. Es una propiedad del método, no de un intervalo concreto.</li><li><strong>Valor crítico.</strong> El multiplicador del paso 4, nuestro 2,571. Cuanta más confianza quieras, más grande es y más ancho sale el intervalo.</li><li><strong>Distribución t de Student.</strong> De donde sale el valor crítico cuando no conoces la variabilidad real de la población, que es prácticamente siempre. Con muestras pequeñas es más ancha que la campana normal, y por eso te obliga a estirarte más.</li><li><strong>Grados de libertad.</strong> El <code>n − 1</code> que usamos al dividir entre 5 en vez de entre 6. Es el número que le dices a la t para que sepa qué tan pequeña es tu muestra.</li></ul></section>
+<section class="section-block is-recipe"><span class="kicker">Método</span><h2 class="section-title">Paso a paso</h2><h3 class="sub h3">Paso 1. Calcula la media y el error estándar</h3><p>Es lo que hicimos a mano arriba. La media es tu estimación; el error estándar dice cuán firme es esa estimación. Cuantos más datos, más pequeño el error estándar, porque divides entre la raíz de un número mayor.</p><h3 class="sub h3">Paso 2. Elige el multiplicador, o valor crítico</h3><p>Aquí está la pregunta que a todo el mundo le cuesta: <strong>¿por qué 2,571 y no 1,96?</strong></p><p>El famoso 1,96 es el valor para la campana normal, y solo vale cuando conoces la variabilidad real de toda la población, algo que casi nunca ocurre. Cuando la estimas a partir de tu propia muestra, como hicimos, hay incertidumbre extra, y esa incertidumbre se paga con un multiplicador más grande. Sale de la <strong>t de Student</strong> y depende de cuántos datos tengas:</p><div class="table-wrap"><table><thead><tr><th>Tamaño de muestra</th><th>Grados de libertad (n−1)</th><th>Multiplicador para 95 %</th></tr></thead><tbody><tr><td>6</td><td>5</td><td>2.571</td></tr><tr><td>10</td><td>9</td><td>2.262</td></tr><tr><td>30</td><td>29</td><td>2.045</td></tr><tr><td>100</td><td>99</td><td>1.984</td></tr><tr><td>∞ (población conocida)</td><td></td><td>1.960</td></tr></tbody></table></div><p>Lee la tabla de arriba abajo: con pocos datos te obliga a ser más prudente, o sea, a estirarte más, y a medida que la muestra crece se va acercando al 1,96 de la normal. Con 100 datos la diferencia ya es de un 1 %.</p><h3 class="sub h3">Paso 3. Elige el nivel de confianza según lo que cuesta equivocarse</h3><p>95 % es el estándar de la industria, pero no es sagrado. Con 90 % el intervalo sale más estrecho, y fallas una de cada diez veces. Con 99 % sale más ancho y por tanto menos útil, pero fallas una de cada cien.</p><p>No hay forma de tener un intervalo estrecho <strong>y</strong> muy seguro con los mismos datos. Lo único que mejora ambas cosas a la vez es más muestra.</p><h3 class="sub h3">Paso 4. Di el resultado sin equivocarte</h3><p>Y esta es la parte que casi todo el mundo dice mal:</p><ul><li><strong>Incorrecto.</strong> &quot;Hay un 95 % de probabilidad de que la ley media esté entre 2,14 y 2,67.&quot;</li><li><strong>Correcto.</strong> &quot;Si repitiéramos este muestreo muchas veces y construyéramos un intervalo cada vez, el 95 % de esos intervalos contendría la ley media real.&quot;</li></ul><p>¿Por qué importa tanto? Porque la ley media real del lote <strong>ya es un número fijo</strong>. No está saltando de un lado a otro. Tu intervalo o lo contiene o no lo contiene, ya está decidido, solo que tú no sabes cuál de los dos casos te tocó. El 95 % describe qué tan fiable es <strong>tu procedimiento</strong> a la larga, no este intervalo concreto que tienes delante.</p><p>Una analogía: si un arquero acierta el 95 % de sus tiros, esa es una propiedad del arquero. Una vez lanzada la flecha y tapado el blanco, ya no tiene sentido decir &quot;hay un 95 % de probabilidad de que esta flecha concreta haya dado en el centro&quot;. O dio, o no dio.</p></section>
+<section class="section-block is-recipe"><span class="kicker">Código</span><h2 class="section-title">El código, por partes</h2><h3 class="sub h3">Paso 1. Reproducir a mano lo que hicimos con lápiz</h3><p>Los mismos seis números del ejemplo de juguete, para comprobar que el ordenador dice lo mismo que nosotros.</p><pre><code class="language-python">import numpy as np
+from scipy import stats
+
+grades = np.array([2.1, 2.5, 2.3, 2.8, 2.2, 2.5])
+
+mean = grades.mean()
+sem = stats.sem(grades)          # standard error of the mean
+print(f&quot;media = {mean:.2f}&quot;)
+print(f&quot;error estandar = {sem:.3f}&quot;)</code></pre><dl class="annot"><div class="annot-head">línea por línea</div><dt><code>mean = grades.mean()</code></dt><dd>Guardar el resultado en un nombre en vez de calcularlo cada vez. Se va a usar tres veces más abajo, y calcularlo una sola vez evita que se te escape una variante.</dd><dt><code>stats.sem(grades)</code></dt><dd>Siglas de <em>standard error of the mean</em>. Hace en una línea lo que a nosotros nos costó una tabla entera: dividir la desviación entre la raíz de n.</dd><dt><code># standard error...</code></dt><dd>Un comentario en inglés porque el código va en inglés, aunque la explicación vaya en español. Es la convención del proyecto para que cualquiera que clone el repositorio lo entienda.</dd><dt><code>:.3f</code></dt><dd>Tres decimales aquí, porque el error estándar es pequeño y con dos se perdería información.</dd></dl><div class="output"><span class="output-tag">sale</span><pre>media = 2.40
+error estandar = 0.103</pre></div><p>Los mismos 2,40 y 0,103 que sacamos con lápiz.</p><h3 class="sub h3">Paso 2. Pedir el multiplicador, que es el número que más confunde</h3><pre><code class="language-python">t_star = stats.t.ppf(0.975, df=len(grades) - 1)
+print(f&quot;multiplicador = {t_star:.3f}&quot;)</code></pre><dl class="annot"><div class="annot-head">línea por línea</div><dt><code>stats.t</code></dt><dd>El subcajón de la distribución t, igual que en el módulo 2 usábamos <code>stats.norm</code> o <code>stats.binom</code>. Mismo patrón siempre.</dd><dt><code>.ppf(...)</code></dt><dd>Siglas de <em>percent point function</em>, y es la operación inversa de <code>cdf</code>. Mientras <code>cdf</code> responde &quot;¿qué proporción queda por debajo de este valor?&quot;, <code>ppf</code> responde <strong>&quot;¿qué valor deja por debajo esta proporción?&quot;</strong>.</dd><dt><code>0.975</code></dt><dd><strong>El detalle que más se falla.</strong> El 5 % que queda fuera se reparte en dos colas, 2,5 % abajo y 2,5 % arriba. Pedimos el punto que deja el 97,5 % por debajo, así lo que queda arriba es justo el 2,5 %. Pedir <code>0.95</code> construiría un intervalo de una sola cola, que es otra cosa.</dd><dt><code>len(grades)</code></dt><dd>Cuántos elementos tiene. El nombre viene de <em>length</em>.</dd><dt><code>df=len(grades) - 1</code></dt><dd>Los grados de libertad: 6 menos 1, o sea 5. El mismo 5 entre el que dividimos a mano.</dd><dt><code>t_star</code></dt><dd>El nombre con asterisco es la convención en estadística para un valor crítico. En Python no se puede escribir un asterisco en un nombre, así que se escribe la palabra.</dd></dl><div class="output"><span class="output-tag">sale</span><pre>multiplicador = 2.571</pre></div><h3 class="sub h3">Paso 3. Juntarlo todo en una línea</h3><p>Con la media, el error estándar y el multiplicador, <code>scipy</code> construye el intervalo entero.</p><pre><code class="language-python">low, high = stats.t.interval(0.95, df=len(grades) - 1, loc=mean, scale=sem)
+print(f&quot;IC 95% = [{low:.3f}, {high:.3f}]&quot;)</code></pre><dl class="annot"><div class="annot-head">línea por línea</div><dt><code>.interval(0.95, ...)</code></dt><dd>Devuelve los dos extremos de golpe. Aquí sí se le pasa 0,95 y no 0,975, porque esta función ya sabe repartir el 5 % entre las dos colas por su cuenta. Es fácil confundirse con el paso anterior.</dd><dt><code>low, high =</code></dt><dd>Dos valores devueltos y dos nombres para recogerlos, como en el módulo 1.</dd><dt><code>loc=mean</code></dt><dd>En scipy, <code>loc</code> es siempre &quot;dónde está el centro&quot;. Aquí, la media de la muestra.</dd><dt><code>scale=sem</code></dt><dd>Y <code>scale</code> es siempre &quot;cuánto se dispersa&quot;. <strong>Aquí va el error estándar, no la desviación estándar.</strong> Es el error más común al escribir esta línea y produce un intervalo absurdamente ancho sin dar ningún aviso.</dd></dl><div class="output"><span class="output-tag">sale</span><pre>IC 95% = [2.135, 2.665]</pre></div><p>Idéntico al que construimos a mano en el paso 4 del ejemplo de juguete.</p><h3 class="sub h3">Paso 4. El mismo esquema, pero con una proporción</h3><p>Cuando lo que mides es un porcentaje, por ejemplo qué fracción de viajes se pagó con tarjeta, el error estándar se calcula distinto. La lógica es idéntica: estimación más o menos multiplicador por error.</p><pre><code class="language-python">successes, n = 620, 1000            # 620 de 1000 viajes pagados con tarjeta
+p = successes / n
+se = np.sqrt(p * (1 - p) / n)
+z_star = stats.norm.ppf(0.975)      # 1.96: con n grande se usa la normal
+
+print(f&quot;proporcion = {p:.1%}  ±  {z_star * se:.1%}&quot;)</code></pre><dl class="annot"><div class="annot-head">línea por línea</div><dt><code>successes, n = 620, 1000</code></dt><dd>Dos variables en una sola línea. Python reparte los valores por posición: el primero va al primer nombre y el segundo al segundo.</dd><dt><code>p = successes / n</code></dt><dd>La proporción observada: 620 entre 1000, o sea 0,62.</dd><dt><code>np.sqrt(p * (1 - p) / n)</code></dt><dd>La fórmula del error estándar de una proporción. Es distinta de la de una media, pero cumple la misma función: decir cuánto bailaría el resultado si repitieras el muestreo.</dd><dt><code>p * (1 - p)</code></dt><dd>Este producto es máximo cuando p vale 0,5 y se encoge hacia los extremos. Traducido: <strong>un porcentaje cercano al 50 % es el más difícil de estimar con precisión</strong>, y uno cercano al 0 % o al 100 % el más fácil.</dd><dt><code>stats.norm.ppf(0.975)</code></dt><dd>El multiplicador, pero pedido a la normal en vez de a la t, porque con mil datos las dos son prácticamente la misma. Devuelve el famoso 1,96.</dd><dt><code>z_star * se</code></dt><dd>El margen de error: multiplicador por error estándar, exactamente igual que en el paso 4 del ejemplo de juguete.</dd><dt><code>±</code></dt><dd>Se escribe tal cual dentro del texto. Python no lo calcula, solo lo imprime.</dd></dl><div class="output"><span class="output-tag">sale</span><pre>proporcion = 62.0%  ±  3.0%</pre></div><p>Es decir, entre 59 % y 65 %. Aquí usamos 1,96 porque con mil datos la t y la normal son prácticamente la misma cosa, como muestra la última fila de la tabla del paso 2.</p></section>
+<section class="section-block is-warning"><span class="kicker">Trampas</span><h2 class="section-title">Ojo</h2><ul><li><strong>La interpretación intuitiva está mal, y es el error del módulo.</strong> &quot;95 % de probabilidad de que el valor esté en este intervalo&quot; suena natural y es incorrecto. El valor real es fijo; lo que varía de muestra a muestra es tu intervalo.</li><li><strong>Dividimos entre <code>n − 1</code>, no entre <code>n</code>.</strong> En el ejemplo de juguete dividimos 0,32 entre 5 y no entre 6. La razón intuitiva es que ya &quot;gastaste&quot; un dato al calcular la media, así que te queda un grado de libertad menos de información genuina. Dividir entre n subestima la variabilidad real.</li><li><strong>Un intervalo más estrecho no es mejor por serlo.</strong> Se puede estrechar bajando la confianza, pero eso solo significa que te equivocarás más a menudo. Precisión y confianza se compran una con la otra.</li><li><strong><code>scale=sem</code>, nunca <code>scale=std</code>.</strong> Es el error de código clásico. El intervalo se construye sobre cuánto varía la media, no sobre cuánto varían los datos sueltos.</li><li><strong>Un intervalo de confianza no dice dónde caen los datos individuales.</strong> Que la media esté entre 2,14 y 2,67 es perfectamente compatible con muestras sueltas de 1,8 o 3,1. Para eso existe otra cosa, el intervalo de predicción, que este curso no cubre.</li><li><strong>Con muestras pequeñas, usar 1,96 en vez de la t da intervalos demasiado optimistas.</strong> Con 6 datos, 1,96 en lugar de 2,571 te estrecha el intervalo un 24 % sin ninguna justificación: estarías fingiendo que sabes más de lo que sabes.</li></ul></section>
+<section class="section-block is-bridge"><span class="kicker">Analogía</span><h2 class="section-title">Puente metalúrgico</h2><p>Un intervalo de confianza es exactamente <strong>el certificado de laboratorio</strong> que ya sabes leer.</p><p>Cuando el laboratorio te entrega &quot;2,40 % ± 0,27 % Cu (95 % de confianza)&quot;, acaba de hacer lo mismo que hicimos en el ejemplo de juguete, de hecho con los mismos números. Y esa distinción que tanto cuesta en clase es una que tú ya vives en planta: el certificado no promete que <strong>ese lote concreto</strong> tenga la ley dentro del rango, promete que <strong>el protocolo</strong> de muestreo y análisis, aplicado una y otra vez, acierta 95 de cada 100 veces. Si un lote se sale, el laboratorio no ha mentido: te tocó el 5 %.</p><p>Y el compromiso entre precisión y confianza es la clasificación de reservas de toda la vida:</p><div class="table-wrap"><table><thead><tr><th>En estadística</th><th>En el yacimiento</th></tr></thead><tbody><tr><td>Muchos datos, intervalo estrecho</td><td>Reserva <strong>medida</strong>: sondajes densos, poca incertidumbre</td></tr><tr><td>Datos moderados, intervalo medio</td><td>Reserva <strong>indicada</strong></td></tr><tr><td>Pocos datos, intervalo ancho</td><td>Reserva <strong>inferida</strong>: mucha extrapolación</td></tr></tbody></table></div><p>Nadie declara una reserva medida con tres sondajes, y por la misma razón nadie puede dar un intervalo estrecho con alta confianza usando seis muestras. La única salida, en los dos mundos, es la misma: <strong>perforar más</strong>.</p></section>
+<section class="section-block is-review"><span class="kicker">Repaso</span><h2 class="section-title">Repaso</h2><details><summary>¿Qué significa realmente un intervalo de confianza del 95 %?</summary><p>Que si se repitiera el proceso de muestreo muchas veces y se construyera un intervalo cada vez con el mismo método, aproximadamente el 95 % de esos intervalos contendría el valor real de la población. No significa que este intervalo concreto tenga un 95 % de probabilidad de contenerlo: el valor real es fijo y el intervalo ya calculado o lo contiene o no. El 95 % describe la fiabilidad del procedimiento a largo plazo, igual que la puntería de un arquero describe al arquero y no a una flecha ya lanzada.</p></details><details><summary>¿Por qué en el código se pide <code>ppf(0.975)</code> si el intervalo es del 95 %?</summary><p>Porque el 5 % que queda fuera del intervalo se reparte entre las dos colas de la distribución: 2,5 % por debajo y 2,5 % por encima. La función <code>ppf</code> devuelve el punto que deja acumulado por debajo el porcentaje que le pides, así que para dejar solo un 2,5 % por encima hay que pedirle 0,975. Pedir 0,95 daría el valor crítico de una prueba de una sola cola, que corresponde a otro tipo de intervalo.</p></details><details><summary>¿Cuál es la diferencia entre desviación estándar y error estándar?</summary><p>La desviación estándar mide cuánto varían los datos individuales alrededor de su media; el error estándar mide cuánto variaría la media misma si repitieras el muestreo. El error estándar es siempre más pequeño, porque se obtiene dividiendo la desviación estándar entre la raíz del tamaño de muestra: promediar varios datos cancela parte del azar. En el ejemplo de las seis leyes, los datos bailaban 0,253 pero el promedio solo 0,103. El intervalo de confianza se construye siempre sobre el error estándar, nunca sobre la desviación estándar.</p></details><details><summary>¿Cuándo se usa la distribución t en vez de la normal, y qué pasa si te equivocas?</summary><p>Se usa la t cuando no se conoce la variabilidad real de la población y hay que estimarla desde la propia muestra, que es la situación normal en la práctica. La t produce multiplicadores más grandes para compensar esa incertidumbre extra, y la diferencia es mayor cuanto más pequeña sea la muestra. Si se usa la normal con muestras pequeñas, el intervalo sale artificialmente estrecho: con seis datos, usar 1,96 en lugar de 2,571 encoge el intervalo casi una cuarta parte y transmite una precisión que los datos no respaldan.</p></details><details><summary>Un colega dice que su intervalo del 99 % es &quot;mejor&quot; que el del 95 %. ¿Tiene razón?</summary><p>No necesariamente. Un intervalo del 99 % da más garantía de contener el valor real, pero a cambio es más ancho y por tanto menos informativo: decir &quot;la ley está entre 1,9 % y 2,9 %&quot; es más seguro y menos útil que &quot;está entre 2,14 % y 2,67 %&quot;. La elección depende del costo de equivocarse en ese contexto concreto, no de que un número sea mayor. Y con los mismos datos no se puede ganar en las dos cosas a la vez: lo único que estrecha el intervalo sin sacrificar confianza es aumentar el tamaño de la muestra.</p></details></section>
+</main>
+<footer class="footer">
+  Concentra / destilado del temario público del curso / 2026-08-20
+</footer>
+</body>
+</html>

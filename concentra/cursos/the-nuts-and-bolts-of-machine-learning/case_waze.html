@@ -1,0 +1,484 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Waze — The Nuts and Bolts of Machine Learning</title>
+<style>
+/* ============================================================================
+   Concentra — design tokens and shared components.
+   Inlined into every generated page by load_style(), so pages stay self-contained
+   and work offline from file:// with no external requests.
+
+   Direction: an assay lab, not a tech dashboard. The palette is taken from ore
+   and lab materials (chalcopyrite brass, malachite, hematite, quartz) on warm
+   graphite rather than the blue-black + neon of a generic dark UI. Type is
+   Bahnschrift, the DIN-descended grotesque that Windows ships and that lives on
+   machinery plates and technical drawings, over Corbel for reading.
+   ========================================================================== */
+
+:root {
+  /* Ground and surfaces: warm graphite, the colour of rock dust, not blue-black */
+  --rock: #1a1714;
+  --bench: #221e19;
+  --core: #2b251f;
+  --seam: #3d352c;
+
+  /* Ore palette. No blue and no purple anywhere: those are the tones that make a
+     page read as generated, and this palette comes from the ores instead. */
+  --brass: #c9a227;      /* chalcopyrite, the primary accent */
+  --malachite: #5d9b7a;  /* verified output, results that came out right */
+  --hematite: #b04a35;   /* iron oxide, pitfalls and warnings */
+
+  /* Text */
+  --quartz: #ece7de;
+  --dust: #9a9186;
+  --shadowed: #6f675c;
+
+  --display: Bahnschrift, 'DIN Alternate', 'Segoe UI Semibold', system-ui, sans-serif;
+  --body: Corbel, Candara, 'Segoe UI', system-ui, sans-serif;
+  --data: Consolas, 'Cascadia Mono', ui-monospace, monospace;
+
+  /* In px, not ch: ch scales with font-size, so a heading ended up wider than a
+     paragraph and the page had four different right edges instead of two. */
+  --measure: 640px;
+  --wide: 900px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--rock);
+  color: var(--quartz);
+  font-family: var(--body);
+  font-size: 16px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection { background: var(--brass); color: var(--rock); }
+
+:focus-visible {
+  outline: 2px solid var(--brass);
+  outline-offset: 3px;
+}
+
+/* --------------------------------------------------------------- the signature
+   A sieve series: ticks that get finer from left to right, coarse feed to fine
+   concentrate. It is the one ornament on the page and appears exactly twice —
+   under the wordmark and under a page title. */
+.mesh {
+  height: 10px;
+  background-image:
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 16px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 9px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 5px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 3px);
+  background-size: 25% 100%;
+  background-position: 0 0, 25% 0, 50% 0, 75% 0;
+  background-repeat: no-repeat;
+  opacity: .8;
+  transform-origin: left center;
+  animation: sieve .55s cubic-bezier(.2, .8, .3, 1) both;
+}
+@keyframes sieve { from { transform: scaleX(0); opacity: 0; } to { transform: scaleX(1); opacity: .8; } }
+@media (prefers-reduced-motion: reduce) {
+  .mesh { animation: none; }
+  * { transition: none !important; }
+}
+
+/* ------------------------------------------------------------------ page head */
+.header {
+  border-bottom: 1px solid var(--seam);
+  padding: 3.2rem 2rem 0;
+  background: linear-gradient(180deg, #221d16 0%, var(--rock) 100%);
+}
+.header-content { max-width: 1080px; margin: 0 auto; }
+
+.eyebrow {
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--brass);
+  margin-bottom: 1rem;
+}
+.eyebrow a { color: inherit; text-decoration: none; border-bottom: 1px solid transparent; }
+.eyebrow a:hover { border-bottom-color: var(--brass); }
+
+.header h1 {
+  font-family: var(--display);
+  font-size: clamp(2rem, 4.5vw, 3.1rem);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -.015em;
+  color: var(--quartz);
+  max-width: 20ch;
+}
+.header .subtitle {
+  color: var(--dust);
+  max-width: var(--measure);
+  margin-top: 1rem;
+  font-size: 1.02rem;
+}
+.header .mesh { margin: 1.8rem 0 0; }
+
+/* An assay line: the real composition of the module, in lab-report shorthand. */
+.assay {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.4rem;
+  font-family: var(--data);
+  font-size: .78rem;
+  color: var(--shadowed);
+  padding: .9rem 0 1.6rem;
+  letter-spacing: .04em;
+}
+.assay b { color: var(--dust); font-weight: 400; }
+
+/* --------------------------------------------------------------------- layout */
+/* The container hugs the widest block, so there is no orphan edge past the content. */
+.container { max-width: var(--wide); margin: 3rem auto 5rem; padding: 0 2rem; }
+
+/* Two deliberate right edges and no more: prose stops at the reading measure, and
+   only the things that genuinely need room (code, output, figures, big tables) run
+   out to the full column. */
+.section-block {
+  border-top: 1px solid var(--seam);
+  padding: 2rem 0 2.4rem;
+}
+.section-block > p,
+.section-block > ul,
+.section-block > ol,
+.section-block h3.sub,
+.section-block h4.sub,
+.section-block blockquote,
+details > *:not(summary) { max-width: var(--measure); }
+.section-block:first-child { border-top: 0; padding-top: .5rem; }
+
+/* The kicker names what kind of content follows: context, method, pitfalls.
+   It replaces decorative icons with something that actually classifies. */
+.kicker {
+  font-family: var(--data);
+  font-size: .68rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  display: block;
+  margin-bottom: .5rem;
+}
+.section-title {
+  font-family: var(--display);
+  font-size: 1.55rem;
+  font-weight: 600;
+  letter-spacing: -.01em;
+  line-height: 1.2;
+  margin-bottom: 1.2rem;
+  color: var(--quartz);
+}
+.is-warning .kicker { color: var(--hematite); }
+.is-warning .section-title { color: #e8c4b8; }
+.is-bridge .kicker, .is-decision .kicker { color: var(--malachite); }
+.is-toy .kicker, .is-result .kicker, .is-question .kicker { color: var(--brass); }
+
+/* ---------------------------------------------------------------------- prose */
+/* Justified with hyphenation. In Spanish, justifying without hyphens opens rivers of
+   white space and reads worse than ragged right; lang="es" is what feeds the
+   dictionary. Tables, code, captions and summaries stay ragged on purpose. */
+.section-block p,
+.section-block li,
+details > *:not(summary) {
+  text-align: justify;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+}
+.section-block p { margin-bottom: 1rem; }
+.section-block p:last-child { margin-bottom: 0; }
+/* Indent with padding, not margin, so the bullet sits inside the measure instead of
+   pushing the list 1.2rem past the right edge of the paragraphs. */
+.section-block ul, .section-block ol { margin: 0 0 1rem; padding-left: 1.2rem; }
+.section-block li { margin-bottom: .55rem; padding-left: .2rem; }
+.section-block li::marker { color: var(--brass); }
+td, th, figcaption, .res li, .assay { text-align: left; hyphens: manual; }
+a { color: var(--brass); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+a:hover { text-decoration-thickness: 2px; }
+strong { color: #fff; font-weight: 700; }
+em { color: var(--dust); font-style: italic; }
+
+h3.sub {
+  font-family: var(--display);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--brass);
+  margin: 2rem 0 .7rem;
+  letter-spacing: -.005em;
+}
+h3.sub:first-child { margin-top: 0; }
+h4.sub {
+  font-family: var(--display);
+  font-size: .98rem;
+  font-weight: 600;
+  color: var(--dust);
+  margin: 1.3rem 0 .5rem;
+}
+
+code {
+  font-family: var(--data);
+  font-size: .9em;
+  background: var(--core);
+  border-radius: 3px;
+  padding: .08rem .32rem;
+  color: var(--brass);
+}
+pre {
+  background: #14110e;
+  border: 1px solid var(--seam);
+  border-left: 2px solid var(--seam);
+  border-radius: 2px;
+  padding: 1.1rem 1.2rem;
+  overflow-x: auto;
+  margin-bottom: 1rem;
+}
+pre code {
+  background: none; padding: 0; color: var(--quartz);
+  font-size: .87rem; line-height: 1.6;
+}
+
+/* What the code prints. Malachite: the material that came out of the process. */
+.output {
+  position: relative;
+  border: 1px solid rgba(93, 155, 122, .32);
+  border-left: 2px solid var(--malachite);
+  border-radius: 2px;
+  background: rgba(93, 155, 122, .06);
+  padding: 1.7rem 1.2rem 1rem;
+  margin-bottom: 1rem;
+  overflow-x: auto;
+}
+.output-tag {
+  position: absolute; top: .5rem; left: 1.2rem;
+  font-family: var(--data); font-size: .64rem;
+  letter-spacing: .18em; text-transform: uppercase; color: var(--malachite);
+}
+.output pre {
+  background: none; border: 0; padding: 0; margin: 0;
+  font-family: var(--data); font-size: .85rem;
+  color: var(--quartz); white-space: pre-wrap;
+}
+
+/* Line by line explanation of a code block, for a reader new to programming.
+   Two columns: the fragment of code, and what it does. */
+.annot {
+  display: grid;
+  grid-template-columns: minmax(9rem, auto) 1fr;
+  gap: .1rem 1.2rem;
+  align-items: baseline;
+  max-width: var(--wide);
+  margin: -.4rem 0 1.4rem;
+  padding: .9rem 1.1rem 1rem;
+  border: 1px solid var(--seam);
+  border-top: 0;
+  border-radius: 0 0 2px 2px;
+  background: rgba(201, 162, 39, .04);
+}
+.annot-head {
+  grid-column: 1 / -1;
+  font-family: var(--data);
+  font-size: .64rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  margin-bottom: .5rem;
+}
+.annot dt { padding: .35rem 0; }
+.annot dt code {
+  background: var(--core);
+  color: var(--brass);
+  font-size: .82rem;
+  white-space: nowrap;
+}
+.annot dd {
+  padding: .35rem 0;
+  margin: 0;
+  color: var(--dust);
+  font-size: .93rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(61, 53, 44, .5);
+}
+.annot dt { border-bottom: 1px solid rgba(61, 53, 44, .5); }
+.annot dt:last-of-type, .annot dd:last-of-type { border-bottom: 0; }
+/* The code block sits directly on top of its annotation, as one unit. */
+pre:has(+ .annot) { margin-bottom: 0; border-radius: 2px 2px 0 0; }
+
+@media (max-width: 640px) {
+  .annot { grid-template-columns: 1fr; gap: 0; }
+  .annot dt { border-bottom: 0; padding-bottom: 0; }
+  .annot dd { padding-top: .15rem; }
+}
+
+blockquote {
+  border-left: 2px solid var(--brass);
+  padding: .3rem 0 .3rem 1.3rem;
+  margin: 0 0 1rem;
+  font-family: var(--display);
+  font-size: 1.2rem;
+  font-weight: 400;
+  line-height: 1.4;
+  color: var(--quartz);
+}
+
+/* Tables read as assay data: mono figures, hairline rules, no zebra fill.
+   They take the width they need instead of being stretched to the full column,
+   which is what left a two-column table floating in empty space. */
+.table-wrap { overflow-x: auto; margin-bottom: 1rem; }
+table { border-collapse: collapse; width: auto; max-width: 100%; font-size: .93rem; }
+th, td {
+  border-bottom: 1px solid var(--seam);
+  padding: .55rem .8rem .55rem 0;
+  text-align: left;
+  vertical-align: top;
+}
+th {
+  font-family: var(--data);
+  font-size: .7rem;
+  font-weight: 400;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  border-bottom-color: var(--brass);
+}
+td:first-child { color: var(--quartz); }
+
+/* Review questions: closed by default, so they work as recall practice. */
+details {
+  border-top: 1px solid var(--seam);
+  padding: .9rem 0;
+}
+details:last-child { border-bottom: 1px solid var(--seam); }
+summary {
+  cursor: pointer;
+  font-family: var(--display);
+  font-size: 1.02rem;
+  font-weight: 600;
+  color: var(--quartz);
+  list-style: none;
+  display: flex;
+  gap: .7rem;
+  align-items: baseline;
+}
+summary::-webkit-details-marker { display: none; }
+summary::before {
+  content: '+';
+  font-family: var(--data);
+  color: var(--brass);
+  font-size: .95rem;
+}
+details[open] summary::before { content: '−'; }
+details[open] summary { color: var(--brass); margin-bottom: .7rem; }
+details > *:not(summary) { color: var(--dust); }
+
+figure.fig {
+  margin: 1.6rem 0;
+  border: 1px solid var(--seam);
+  padding: .7rem;
+  background: var(--bench);
+}
+figure.fig img { width: 100%; height: auto; display: block; }
+/* The interactive twin of a figure. Its aspect matches the still one, 10 by 4.4, so a
+   case sheet keeps the same rhythm whichever kind of figure comes next. */
+figure.fig.is-live iframe {
+  width: 100%;
+  /* Matches INTERACTIVE_HEIGHT in src/make_figures.py. It used to be an aspect ratio, and
+     that made the figure's height depend on the window: the caption and the legend are
+     placed at fractions of the plot area, so on a wide screen they were pushed past the
+     bottom margin, clipping the caption and covering the x-axis title. */
+  height: 520px;
+  border: 0;
+  display: block;
+}
+figure.fig figcaption {
+  font-family: var(--data);
+  font-size: .72rem;
+  color: var(--shadowed);
+  margin-top: .6rem;
+  letter-spacing: .04em;
+}
+
+/* File listings on a case sheet */
+.res { list-style: none; margin-left: 0 !important; }
+.res li {
+  display: flex; align-items: baseline; gap: .8rem; flex-wrap: wrap;
+  padding: .5rem 0; border-bottom: 1px solid var(--seam); margin-bottom: 0;
+}
+.res .path { font-family: var(--data); font-size: .74rem; color: var(--shadowed); }
+.res .size { font-family: var(--data); font-size: .74rem; color: var(--shadowed); margin-left: auto; }
+.res .gone { font-family: var(--data); font-size: .74rem; color: var(--hematite); }
+
+.footer {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 2rem 4rem;
+  color: var(--shadowed);
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .03em;
+}
+
+@media (max-width: 640px) {
+  body { font-size: 15px; }
+  .header { padding: 2rem 1.2rem 0; }
+  .container { padding: 0 1.2rem; margin-top: 2rem; }
+  .footer { padding: 0 1.2rem 3rem; }
+}
+
+@media print {
+  body { background: #fff; color: #16130f; }
+  .header { background: none; border-bottom: 1px solid #bbb; padding-top: 0; }
+  .header h1, .section-title, summary { color: #16130f; }
+  .mesh { animation: none; }
+  .section-block { break-inside: avoid; max-width: none; }
+  pre, .output { background: #f6f4f0; border-color: #ccc; }
+  details:not([open]) > *:not(summary) { display: block; }
+  a { color: #16130f; }
+}
+
+</style>
+</head>
+<body>
+<header class="header">
+  <div class="header-content">
+    <div class="eyebrow">Curso 5 · The Nuts and Bolts of Machine Learning / Caso de estudio</div>
+    <h1>Waze</h1>
+    <p class="subtitle">Ajustar el bosque en serio recupera casi toda la distancia y se queda a 0,0019 de una regresión que no tiene ni una perilla que tocar.</p>
+    <div class="mesh" role="presentation"></div>
+    <div class="assay"><span>14.299 usuarios</span><span>3 familias de modelo</span><span>88 combinaciones probadas</span><span>AUC 0,7379</span></div>
+  </div>
+</header>
+<main class="container">
+<section class="section-block "><span class="kicker">Encargo</span><h2 class="section-title">El encargo</h2><p><strong>Waze</strong> quiere saber quién está a punto de abandonar la aplicación para poder actuar antes. Es exactamente el mismo encargo del Curso 4, y esa repetición es lo que hace valioso este proyecto.</p><p>Porque el Curso 4 ya construyó un modelo para esto y <strong>dejó sus números escritos</strong>. Así que aquí se puede hacer algo que ningún proyecto suelto puede hacer: comparar de verdad.</p></section>
+<section class="section-block is-question"><span class="kicker">Pregunta</span><h2 class="section-title">La pregunta</h2><blockquote>¿Le gana un modelo de árbol a la regresión logística sobre este mismo problema?</blockquote></section>
+<section class="section-block is-data"><span class="kicker">Datos</span><h2 class="section-title">Los datos</h2><p><code>waze_dataset.csv</code>, <strong>14.999 usuarios</strong>. Los 700 sin etiqueta se excluyen igual que en el Curso 4 y por la misma comprobación, así que quedan <strong>14.299</strong>, de los que abandona el 17,74 %.</p><p><strong>Y la partición está montada para que la comparación sea exacta</strong>, no aproximada. El primer corte es el mismo 25 % con la misma semilla y la misma estratificación que el Curso 4:</p><div class="table-wrap"><table><thead><tr><th>Parte</th><th>Usuarios</th><th>Abandono</th></tr></thead><tbody><tr><td>Entrenamiento</td><td>8.579</td><td>17,74 %</td></tr><tr><td>Validación</td><td>2.145</td><td>17,72 %</td></tr><tr><td><strong>Prueba</strong></td><td><strong>3.575</strong></td><td>17,73 %</td></tr></tbody></table></div><p>Esos <strong>3.575 son literalmente los mismos usuarios</strong> que el Curso 4 apartó, y los 10.724 que aquel proyecto usó enteros para entrenar son los que aquí se reparten entre entrenamiento y validación. Cambiar una sola variable construida invalidaría todo esto, así que se construyen exactamente las mismas.</p></section>
+<section class="section-block is-toy"><span class="kicker">Control</span><h2 class="section-title">El control, fijado antes de mirar nada</h2><p>El modelo del Curso 4, con sus cifras publicadas: <strong>AUC 0,7368</strong> y sensibilidad 0,0820 sobre esos mismos 3.575 usuarios.</p><p>Y una expectativa escrita antes de ajustar nada, para que no se pueda ajustar después: <strong>los árboles probablemente no ganen</strong>. Una comparación sin ajustar ya lo sugería. Este proyecto los ajusta en serio para que la respuesta valga en las dos direcciones.</p></section>
+<section class="section-block is-data"><span class="kicker">Limpieza</span><h2 class="section-title">Lo que hubo que arreglar</h2><p>Nada nuevo respecto al Curso 4, y eso es deliberado. Las 700 etiquetas ausentes, la división por cero de los kilómetros por día conducido y las variables construidas son idénticas.</p><p><strong>Lo que sí es nuevo es la disciplina.</strong> El Curso 4 partía en dos; aquí se parte en tres y <strong>el conjunto de prueba no participa en ninguna decisión</strong> hasta el último paso. Entre medias se comparan cuatro familias y se prueban 88 combinaciones de perillas, todo contra validación.</p></section>
+<section class="section-block is-figures"><span class="kicker">Exploración</span><h2 class="section-title">Lo que mostró la exploración</h2><p>El módulo 3 pedía agrupar a los usuarios sin etiquetas, y el resultado no es el halagador.</p><figure class="fig"><img src="../../projects/curso5/waze/03_figures/01_segmentos.6c4dfa81.png" alt="01_segmentos" loading="lazy"><figcaption>01_segmentos.png</figcaption></figure><p><strong>La mejor silueta es 0,2588</strong>, con dos grupos, y ningún otro número mejora. Por debajo de 0,35 los grupos se tocan entre sí: estos usuarios <strong>no forman familias separadas, son un continuo</strong>.</p><p>Los dos grupos que salen abandonan al <strong>17,29 %</strong> y al <strong>19,05 %</strong>, o sea <strong>1,75 puntos</strong> de diferencia. Eso no es una segmentación accionable.</p><p>Se reporta así, y la variable entra igual en el modelo, para que sea el modelo quien diga si valía algo. Adelanto: queda la última de nueve.</p></section>
+<section class="section-block is-recipe"><span class="kicker">Modelo</span><h2 class="section-title">El modelo, y por qué este modelo</h2><p>Cuatro familias medidas en validación, y un árbol suelto incluido a propósito para verlo perder:</p><div class="table-wrap"><table><thead><tr><th>Modelo</th><th>AUC en validación</th></tr></thead><tbody><tr><td>Regresión logística</td><td><strong>0,7424</strong></td></tr><tr><td>Refuerzo (xgboost)</td><td>0,7273</td></tr><tr><td>Bosque aleatorio</td><td>0,7129</td></tr><tr><td>Árbol suelto</td><td>0,5717</td></tr></tbody></table></div><p>Ese 0,5717 del árbol suelto está a un paso de tirar una moneda, y por eso <strong>no se puede juzgar a un bosque por lo que hace un árbol</strong>. Las dos familias de árboles se ajustan con búsqueda en rejilla y validación cruzada de cuatro pliegues:</p><figure class="fig"><img src="../../projects/curso5/waze/03_figures/02_ajuste.5028850b.png" alt="02_ajuste" loading="lazy"><figcaption>02_ajuste.png</figcaption></figure><div class="table-wrap"><table><thead><tr><th>Modelo</th><th>Sin ajustar</th><th>Ajustado</th><th>Lo que ganó</th><th>Tiempo</th></tr></thead><tbody><tr><td>Bosque aleatorio</td><td>0,7129</td><td><strong>0,7405</strong></td><td><strong>+0,0276</strong></td><td>40 combinaciones, 61 s</td></tr><tr><td>Refuerzo (xgboost)</td><td>0,7273</td><td><strong>0,7401</strong></td><td>+0,0128</td><td>48 combinaciones, 13 s</td></tr></tbody></table></div><p><strong>Ajustar el bosque le dio 0,0276 de AUC</strong>, que es una mejora grande para lo que se juega aquí. Y se quedó a <strong>0,0019</strong> de la logística, que no lleva ninguna perilla que ajustar.</p><p>El campeón se eligió en validación, antes de tocar la prueba, y fue <strong>la logística</strong>.</p></section>
+<section class="section-block is-result"><span class="kicker">Comparación</span><h2 class="section-title">La comparación</h2><p>Sobre los mismos 3.575 usuarios, mirando la prueba una sola vez:</p><figure class="fig"><img src="../../projects/curso5/waze/03_figures/04_comparacion.66a53637.png" alt="04_comparacion" loading="lazy"><figcaption>04_comparacion.png</figcaption></figure><div class="table-wrap"><table><thead><tr><th>Modelo</th><th>AUC</th><th>Exactitud</th><th>Sensibilidad</th><th>Precisión</th></tr></thead><tbody><tr><td>Logística del Curso 4</td><td>0,7368</td><td>0,8229</td><td>0,0820</td><td>0,5049</td></tr><tr><td><strong>Logística de este curso</strong></td><td><strong>0,7379</strong></td><td>0,8249</td><td><strong>0,0962</strong></td><td>0,5351</td></tr><tr><td>Refuerzo ajustado</td><td>0,7348</td><td>0,8246</td><td>0,0489</td><td>0,5636</td></tr><tr><td>Bosque ajustado</td><td>0,7318</td><td>0,8243</td><td>0,0710</td><td>0,5357</td></tr></tbody></table></div><p><strong>No. El modelo complicado no gana</strong>, ni en validación ni en prueba.</p><p>Y conviene decir lo que la comparación no demuestra: 0,7379 contra 0,7348 son tres milésimas sobre 3.575 usuarios, y eso no aguanta un cambio de semilla. Lo que sí aguanta es la conclusión cualitativa, que es que <strong>los árboles no despegan</strong>.</p></section>
+<section class="section-block is-result"><span class="kicker">Resultado</span><h2 class="section-title">El resultado, traducido</h2><p>Aparte del veredicto, dos cosas que el modelo dijo por su cuenta.</p><figure class="fig"><img src="../../projects/curso5/waze/03_figures/03_importancia.59f1cd2f.png" alt="03_importancia" loading="lazy"><figcaption>03_importancia.png</figcaption></figure><p><strong>Los días de actividad son más de la mitad del modelo</strong>, con 0,5163, más que las otras ocho variables juntas. Y <strong>el segmento del módulo 3 queda el último de nueve, con 0,0026</strong>: la silueta ya avisaba de que no había grupos y el modelo lo confirma desde otro sitio.</p><figure class="fig"><img src="../../projects/curso5/waze/03_figures/05_sensibilidad.0c24affa.png" alt="05_sensibilidad" loading="lazy"><figcaption>05_sensibilidad.png</figcaption></figure><p>Y el fallo que ningún modelo arregló: <strong>los cuatro detectan a menos de uno de cada diez</strong> de los que se van. El mejor es la logística de este curso con 0,0962 y el peor el refuerzo ajustado con 0,0489.</p><p>El Curso 4 ya había diagnosticado que eso era <strong>el umbral y no el modelo</strong>. Tener tres modelos más con la sensibilidad clavada lo confirma: no es una limitación del algoritmo, es dónde está puesto el corte.</p></section>
+<section class="section-block is-decision"><span class="kicker">Decisión</span><h2 class="section-title">Qué se decide con esto</h2><ol><li><strong>Desplegar la regresión logística</strong>, que gana y además se explica, se defiende ante quien la sufra y se arregla sin reentrenar trescientos árboles.</li><li><strong>Bajar el umbral</strong>, que es lo único que mueve la sensibilidad, aceptando más falsas alarmas. Cuánto se baja depende de lo que cueste contactar a un usuario que no se iba.</li><li><strong>No usar la segmentación</strong> para dirigir campañas. Los grupos no están separados y apenas difieren en abandono.</li><li><strong>Conservar el bosque como diagnóstico</strong>, no como modelo de producción: su tabla de importancia es la que dice dónde mirar.</li></ol></section>
+<section class="section-block is-warning"><span class="kicker">Límites</span><h2 class="section-title">Limitaciones</h2><ul><li><strong>Las diferencias son de milésimas.</strong> Con 3.575 usuarios de prueba, 0,7379 contra 0,7348 no es una diferencia que aguante un cambio de semilla.</li><li><strong>El archivo no dice por qué se fue nadie.</strong> Ningún modelo puede predecir bien una causa que no está en los datos, y ahí está el techo de este 0,74.</li><li>La logística del Curso 4 se entrenó con 10.724 usuarios y esta con 8.579, porque aquí hay validación. Aun con menos datos salió ligeramente mejor, lo que confirma que la diferencia está dentro del ruido.</li><li><strong>La prueba se miró una sola vez</strong>, después de elegir campeón. Todo lo demás se decidió contra validación.</li></ul></section><section class="section-block is-material"><span class="kicker">Archivos</span><h2 class="section-title">Material completo</h2><p>Los tres se construyeron aquí. Los CSV se leen de tu carpeta del Curso 3 sin tocarlos, y el proyecto de Waze reparte los datos exactamente igual que el del Curso 4 para que la comparación entre los dos valga.</p><h3 class="sub">Informes y notas</h3><ul class="res"><li><a href="../../projects/curso5/waze/04_reports/pace_plan.md" target="_blank" rel="noopener">pace_plan.md</a> <span class="path">04_reports/pace_plan.md</span> <span class="size">4.0 KB</span></li><li><a href="../../projects/curso5/waze/04_reports/executive_summary.md" target="_blank" rel="noopener">executive_summary.md</a> <span class="path">04_reports/executive_summary.md</span> <span class="size">4.5 KB</span></li><li><a href="../../projects/curso5/waze/04_reports/model_results.json" target="_blank" rel="noopener">model_results.json</a> <span class="path">04_reports/model_results.json</span> <span class="size">3.1 KB</span></li></ul><h3 class="sub">Código</h3><ul class="res"><li><a href="../../projects/curso5/waze/02_scripts/waze_trees.py" target="_blank" rel="noopener">waze_trees.py</a> <span class="path">02_scripts/waze_trees.py</span> <span class="size">28.2 KB</span></li><li><a href="../../projects/curso5/waze/waze_curso5.ipynb" target="_blank" rel="noopener">waze_curso5.ipynb</a> <span class="path">waze_curso5.ipynb</span> <span class="size">16.2 KB</span></li></ul></section>
+</main>
+<footer class="footer">
+  Concentra / esta ficha enlaza tus archivos donde ya estaban / 2026-08-20
+</footer>
+<script>
+// Same-frame links replace the current entry instead of pushing a new one, so the
+// browser's back button keeps following the sidebar routes of the shell.
+document.querySelectorAll('a.lead-link').forEach(link => {
+  link.addEventListener('click', event => {
+    event.preventDefault();
+    location.replace(link.getAttribute('href'));
+  });
+});
+</script>
+</body>
+</html>

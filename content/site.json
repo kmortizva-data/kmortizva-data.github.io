@@ -122,7 +122,8 @@
           "The result I did not expect: fine tuning the embedding model on a small curated set of 1,290 pairs matched or beat training on 4,045. I tested it twice, once by a clustering metric and once double blind on my own judgement, and the small model won both times. The question of whether training on more topics helps is settled, and the answer is no."
         ],
         "mark": "1,290 pairs beat 4,045",
-        "area": "NLP · Clustering · Data visualisation"
+        "area": "NLP · Clustering · Data visualisation",
+        "open_label": "View on GitHub"
       },
       "es": {
         "name": "Froth",
@@ -139,10 +140,12 @@
           "El resultado que no esperaba: afinar el modelo de vectores con un conjunto pequeño y curado de 1.290 pares igualó o superó al entrenamiento con 4.045. Lo probé dos veces, una con una métrica de agrupamiento y otra a doble ciego con mi propio criterio, y el modelo pequeño ganó las dos. La pregunta de si entrenar sobre más temas ayuda está cerrada, y la respuesta es no."
         ],
         "mark": "1.290 pares le ganaron a 4.045",
-        "area": "PLN · Clustering · Visualización de datos"
+        "area": "PLN · Clustering · Visualización de datos",
+        "open_label": "Ver en GitHub"
       },
       "year": "2026",
-      "archive": false
+      "archive": false,
+      "open_href": "https://github.com/kmortizva-data/froth-public"
     },
     {
       "slug": "silica",
@@ -176,7 +179,8 @@
           "The part I would actually take to an operations meeting came from clustering, not prediction. K means found three operating states, and one of them dominates March and April and then vanishes. The plant changed how it was run, which explains a drift that had been quietly degrading every model since module two. Monthly error climbs 0.44 in June, 0.65 in August, 0.76 in September. The data cannot tell you tomorrow's grade, but it can tell you the plant is not the plant it was."
         ],
         "mark": "+0.009 R² over nothing",
-        "area": "Exploratory analysis · Machine learning · Time series"
+        "area": "Exploratory analysis · Machine learning · Time series",
+        "open_label": "Open the course"
       },
       "es": {
         "name": "Sílice en una planta de flotación de hierro",
@@ -193,10 +197,12 @@
           "Lo que sí me llevaría a una reunión de operaciones no salió de predecir, salió de agrupar. K-medias encontró tres estados de operación, y uno de ellos manda en marzo y abril y luego desaparece. La planta cambió su forma de operar, y eso explica una deriva que llevaba degradando todos los modelos desde el módulo dos. El error mensual sube: 0,44 en junio, 0,65 en agosto, 0,76 en septiembre. Los datos no te dicen la ley de mañana, pero sí te dicen que la planta ya no es la que era."
         ],
         "mark": "+0,009 de R² sobre nada",
-        "area": "Análisis exploratorio · Machine learning · Series de tiempo"
+        "area": "Análisis exploratorio · Machine learning · Series de tiempo",
+        "open_label": "Abrir el curso"
       },
       "year": "2026",
-      "archive": false
+      "archive": false,
+      "open_href": "silice/curso/index.html"
     },
     {
       "slug": "concentra",
@@ -229,7 +235,8 @@
           "The site itself has no dependencies at all, just the Python standard library, which means it still builds on a machine where installing anything is slow."
         ],
         "mark": "12 case studies on real data",
-        "area": "Statistics · Regression · Model evaluation"
+        "area": "Statistics · Regression · Model evaluation",
+        "open_label": "Open Concentra"
       },
       "es": {
         "name": "Concentra",
@@ -247,10 +254,12 @@
           "El sitio no tiene ni una dependencia, solo la librería estándar de Python, y eso significa que sigue compilando en una máquina donde instalar cualquier cosa es lento."
         ],
         "mark": "12 casos sobre datos reales",
-        "area": "Estadística · Regresión · Evaluación de modelos"
+        "area": "Estadística · Regresión · Evaluación de modelos",
+        "open_label": "Abrir Concentra"
       },
       "year": "2026",
-      "archive": false
+      "archive": false,
+      "open_href": "concentra/cursos/index.html"
     },
     {
       "slug": "bg-remover",

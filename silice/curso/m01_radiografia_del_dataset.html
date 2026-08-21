@@ -1,0 +1,682 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Radiografía del dataset · Sílice, módulo 1</title>
+<style>
+/* Sílice: la hoja de estilos del curso.
+ *
+ * Identidad de papel de informe de planta, no de pantalla. El proyecto termina
+ * recomendando no desplegar, y eso es un informe técnico: papel hueso, tinta grafito,
+ * y una retícula de milimetrado muy tenue en la cabecera.
+ *
+ * Dos familias tipográficas y ni una más, las dos del sistema porque el sitio se abre
+ * desde file:// y tiene que funcionar sin internet: serif para la prosa (se lee como
+ * informe) y monoespaciada para todo lo que es dato, código, cifra o etiqueta.
+ *
+ * El acento lo inyecta cada página con --accent: es el del módulo, y marca su posición
+ * en el arco del proyecto. Los diez pasan check_palette.py antes de entrar aquí.
+ */
+
+:root {
+  --paper: #f6f3ec;
+  --bench: #eeeade;
+  --ink: #2a2622;
+  --ink-soft: #57504a;
+  --ink-faint: #8a8177;
+  --rule: #ddd6c6;
+  --rule-soft: #e8e2d4;
+  --grid: rgba(84, 69, 73, .07);
+  --accent: #632727;
+
+  --prose: Georgia, "Iowan Old Style", "Palatino Linotype", Palatino, "Times New Roman", serif;
+  --data: "Cascadia Mono", Consolas, "DejaVu Sans Mono", "Liberation Mono", monospace;
+
+  --measure: 680px;   /* la medida de la prosa, en píxeles y nunca en ch */
+  --wide: 1180px;     /* el borde derecho de los bloques anchos */
+  --margin: 132px;    /* la columna del margen, donde cuelgan los kickers */
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--prose);
+  font-size: 17px;
+  line-height: 1.62;
+  -webkit-text-size-adjust: 100%;
+}
+
+::selection { background: var(--accent); color: var(--paper); }
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+/* --------------------------------------------------------------- cabecera */
+
+.masthead {
+  border-bottom: 1px solid var(--rule);
+  background-color: var(--bench);
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 26px 26px;
+  background-position: -1px -1px;
+}
+
+.masthead-inner {
+  max-width: var(--wide);
+  margin: 0 auto;
+  padding: 2.4rem 2rem 1.6rem;
+}
+
+.eyebrow {
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-bottom: 1rem;
+}
+
+.eyebrow a { color: inherit; text-decoration: none; border-bottom: 1px solid transparent; }
+.eyebrow a:hover { border-bottom-color: var(--accent); color: var(--accent); }
+.eyebrow b { color: var(--accent); font-weight: 400; }
+
+.masthead h1 {
+  margin: 0;
+  font-size: clamp(1.9rem, 4.4vw, 2.9rem);
+  line-height: 1.14;
+  font-weight: 400;
+  letter-spacing: -.012em;
+  max-width: 900px;
+}
+
+.standfirst {
+  margin: .9rem 0 0;
+  max-width: var(--measure);
+  color: var(--ink-soft);
+  font-size: 1.02rem;
+  line-height: 1.55;
+}
+
+/* La cifra del módulo: el número que dejó, en grande, junto al título. Es lo que
+   convierte la cabecera en parte del argumento y no en decoración. */
+.figure-mark {
+  margin-top: 1.6rem;
+  display: flex;
+  align-items: baseline;
+  gap: .8rem;
+  flex-wrap: wrap;
+  border-left: 3px solid var(--accent);
+  padding-left: .9rem;
+}
+
+.figure-value {
+  font-family: var(--data);
+  font-size: clamp(1.5rem, 3.4vw, 2.1rem);
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: -.02em;
+}
+
+.figure-label {
+  font-family: var(--data);
+  font-size: .78rem;
+  letter-spacing: .04em;
+  color: var(--ink-soft);
+}
+
+/* El hilo del proyecto: diez segmentos, uno por módulo, con su cifra debajo. Desde
+   cualquier página se ve el recorrido entero, que es justo lo que a los apuntes
+   sueltos les faltaba. */
+.thread {
+  margin-top: 1.8rem;
+  display: grid;
+  /* One equal column per segment, whatever the temario says. It was pinned to ten and
+     the course grew to fourteen. */
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: 4px;
+}
+
+/* Where part 2 starts: the four modules that were never in the original project. */
+.thread .starts-part { margin-left: 10px; position: relative; }
+.thread .starts-part::after {
+  content: '';
+  position: absolute;
+  left: -7px; top: -3px; bottom: 0;
+  border-left: 1px solid var(--rule);
+}
+
+.thread a, .thread span {
+  display: block;
+  text-decoration: none;
+  color: var(--ink-faint);
+  font-family: var(--data);
+  font-size: .62rem;
+  letter-spacing: .04em;
+  padding-top: .4rem;
+  border-top: 3px solid var(--rule);
+  transition: color .12s, border-color .12s;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.thread a:hover { color: var(--ink); border-top-color: var(--ink-soft); }
+.thread [aria-current="page"] { color: var(--accent); border-top-color: var(--accent); }
+.thread .n { font-weight: 700; }
+.thread .v { color: inherit; opacity: .75; }
+
+/* Las pastillas de composición: de qué está hecho el módulo. */
+.assay {
+  margin-top: 1.6rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.4rem;
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .05em;
+  color: var(--ink-faint);
+}
+
+.assay b { color: var(--ink); font-weight: 700; }
+
+/* ----------------------------------------------------------------- cuerpo */
+
+.container {
+  max-width: var(--wide);
+  margin: 0 auto;
+  padding: 2.6rem 2rem 4rem;
+}
+
+/* Cada sección es una anotación de cuaderno: el kicker cuelga en el margen
+   izquierdo y el contenido corre en la columna principal. En pantalla estrecha el
+   kicker se pone encima. */
+.block {
+  display: grid;
+  grid-template-columns: var(--margin) minmax(0, 1fr);
+  column-gap: 2rem;
+  padding: 2.2rem 0;
+  border-top: 1px solid var(--rule);
+}
+
+.block:first-child { border-top: 0; padding-top: .6rem; }
+
+.kicker {
+  grid-column: 1;
+  font-family: var(--data);
+  font-size: .68rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding-top: .45rem;
+}
+
+.block > :not(.kicker) { grid-column: 2; }
+
+.block-title {
+  margin: 0 0 1.1rem;
+  font-size: 1.42rem;
+  font-weight: 400;
+  line-height: 1.25;
+  letter-spacing: -.008em;
+}
+
+.is-warning .kicker, .is-result .kicker { color: var(--accent); }
+.is-warning .block-title { border-bottom: 2px solid var(--accent); padding-bottom: .4rem; display: inline-block; }
+.is-result { background: var(--bench); margin: 0 -1.2rem; padding: 2.2rem 1.2rem; }
+.is-result .block-title { color: var(--accent); }
+
+/* Prosa: justificada con partición, que sin partición el español justificado abre
+   ríos. Tablas, código y pies de figura se quedan sin justificar. */
+.block p, .block li, .block dd, details > *:not(summary) {
+  max-width: var(--measure);
+  text-align: justify;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+}
+
+.block p { margin: 0 0 1rem; }
+.block p:last-child { margin-bottom: 0; }
+.block ul, .block ol { margin: 0 0 1rem; padding-left: 1.3rem; max-width: var(--measure); }
+.block li { margin-bottom: .5rem; }
+.block li::marker { color: var(--accent); font-family: var(--data); font-size: .85em; }
+
+td, th, figcaption, .assay, .thread a, .res li { text-align: left; hyphens: manual; }
+
+a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+a:hover { text-decoration-thickness: 2px; }
+strong { font-weight: 700; }
+em { font-style: italic; color: var(--ink-soft); }
+
+h3.sub {
+  margin: 1.9rem 0 .7rem;
+  font-size: 1.07rem;
+  font-weight: 700;
+  letter-spacing: -.004em;
+}
+
+h3.sub:first-child { margin-top: 0; }
+
+h4.sub {
+  margin: 1.4rem 0 .5rem;
+  font-family: var(--data);
+  font-size: .82rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  color: var(--ink-soft);
+}
+
+/* ------------------------------------------------------------ código y datos */
+
+code {
+  font-family: var(--data);
+  font-size: .87em;
+  background: var(--bench);
+  padding: .1em .32em;
+  border-radius: 2px;
+}
+
+pre {
+  margin: 0 0 1rem;
+  padding: 1rem 1.1rem;
+  background: var(--bench);
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--accent);
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+pre code { background: none; padding: 0; font-size: .82rem; line-height: 1.62; }
+
+/* La salida es lo que imprime el código, no código para correr: se marca aparte
+   para que nadie confunda entrada con salida. */
+.output {
+  margin: 0 0 1rem;
+  border: 1px dashed var(--rule);
+  background: transparent;
+}
+
+.output-tag {
+  display: block;
+  font-family: var(--data);
+  font-size: .64rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding: .45rem 1.1rem 0;
+}
+
+.output pre {
+  margin: 0;
+  border: 0;
+  background: none;
+  padding: .3rem 1.1rem 1rem;
+}
+
+.output pre code { color: var(--ink-soft); }
+
+/* La anotación línea por línea, para quien no ha programado antes. */
+.annot {
+  margin: 0 0 1.2rem;
+  border: 1px solid var(--rule);
+  border-top: 0;
+  padding: 0 1.1rem .6rem;
+  background: transparent;
+}
+
+.annot-head {
+  font-family: var(--data);
+  font-size: .64rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding: .55rem 0 .5rem;
+  border-bottom: 1px solid var(--rule-soft);
+  margin-bottom: .4rem;
+}
+
+.annot dt { padding: .4rem 0 .1rem; }
+.annot dt code { background: none; padding: 0; color: var(--accent); font-weight: 700; }
+.annot dd {
+  margin: 0 0 .4rem;
+  color: var(--ink-soft);
+  font-size: .94rem;
+  border-bottom: 1px solid var(--rule-soft);
+  padding-bottom: .5rem;
+}
+.annot dd:last-of-type { border-bottom: 0; }
+
+pre:has(+ .annot) { margin-bottom: 0; }
+
+blockquote {
+  margin: 0 0 1rem;
+  padding: .2rem 0 .2rem 1.1rem;
+  border-left: 3px solid var(--rule);
+  color: var(--ink-soft);
+  font-style: italic;
+  max-width: var(--measure);
+}
+
+/* --------------------------------------------------------------- tablas */
+
+.table-wrap { overflow-x: auto; margin: 0 0 1.2rem; }
+
+table {
+  border-collapse: collapse;
+  width: auto;
+  max-width: 100%;
+  font-size: .92rem;
+}
+
+th, td {
+  padding: .5rem .9rem .5rem 0;
+  border-bottom: 1px solid var(--rule-soft);
+  vertical-align: top;
+}
+
+th {
+  font-family: var(--data);
+  font-size: .7rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--ink-faint);
+  border-bottom: 1px solid var(--rule);
+  white-space: nowrap;
+}
+
+/* -------------------------------------------------------------- repaso */
+
+details {
+  border-bottom: 1px solid var(--rule-soft);
+  padding: .2rem 0;
+  max-width: var(--measure);
+}
+
+summary {
+  cursor: pointer;
+  list-style: none;
+  padding: .7rem 0 .7rem 1.5rem;
+  position: relative;
+  font-weight: 700;
+}
+
+summary::-webkit-details-marker { display: none; }
+
+summary::before {
+  content: '+';
+  position: absolute;
+  left: 0;
+  font-family: var(--data);
+  color: var(--accent);
+  font-weight: 700;
+}
+
+details[open] summary::before { content: '\2212'; }
+details[open] summary { color: var(--accent); }
+details > *:not(summary) { color: var(--ink-soft); }
+details > *:last-child { padding-bottom: .8rem; }
+
+/* -------------------------------------------------------------- figuras */
+
+figure.fig {
+  margin: 0 0 1.4rem;
+  max-width: 100%;
+  border: 1px solid var(--rule);
+  background: #fff;
+  padding: .6rem;
+}
+
+figure.fig img { width: 100%; height: auto; display: block; }
+
+figure.fig figcaption {
+  margin-top: .6rem;
+  padding-top: .5rem;
+  border-top: 1px solid var(--rule-soft);
+  font-family: var(--data);
+  font-size: .7rem;
+  letter-spacing: .04em;
+  color: var(--ink-faint);
+}
+
+.gone {
+  font-family: var(--data);
+  font-size: .76rem;
+  color: var(--accent);
+  border: 1px dashed var(--accent);
+  padding: .5rem .8rem;
+}
+
+/* ------------------------------------------------------- pie y navegación */
+
+.pager {
+  max-width: var(--wide);
+  margin: 0 auto;
+  padding: 0 2rem 3rem;
+  display: flex;
+  gap: 1.4rem;
+  justify-content: space-between;
+  font-family: var(--data);
+  font-size: .78rem;
+}
+
+.pager a { max-width: 46%; text-decoration: none; border-bottom: 1px solid var(--rule); padding-bottom: .3rem; }
+.pager a:hover { border-bottom-color: var(--accent); }
+.pager .dir { display: block; font-size: .64rem; letter-spacing: .13em; text-transform: uppercase; color: var(--ink-faint); }
+.pager .next { text-align: right; margin-left: auto; }
+
+.footer {
+  border-top: 1px solid var(--rule);
+  padding: 1.4rem 2rem 2.4rem;
+  font-family: var(--data);
+  font-size: .72rem;
+  letter-spacing: .06em;
+  color: var(--ink-faint);
+}
+
+.footer-inner { max-width: var(--wide); margin: 0 auto; display: flex; gap: 1.4rem; flex-wrap: wrap; }
+
+/* ------------------------------------------------------------- índice */
+
+.toc { list-style: none; margin: 0; padding: 0; max-width: 100%; }
+
+.toc li {
+  border-top: 1px solid var(--rule-soft);
+  max-width: 100%;
+}
+
+.toc li:last-child { border-bottom: 1px solid var(--rule-soft); }
+
+.toc a, .toc .pending {
+  display: grid;
+  grid-template-columns: 3rem minmax(0, 1fr) auto;
+  gap: 1.2rem;
+  align-items: baseline;
+  padding: 1rem .4rem;
+  text-decoration: none;
+  color: inherit;
+}
+
+.toc a:hover { background: var(--bench); }
+.toc .pending { color: var(--ink-faint); }
+.toc .num { font-family: var(--data); font-size: .82rem; font-weight: 700; }
+.toc .name { font-size: 1.05rem; }
+.toc .name small { display: block; font-family: var(--prose); font-size: .86rem; color: var(--ink-soft); margin-top: .2rem; }
+.toc .mark { font-family: var(--data); font-size: .82rem; font-weight: 700; white-space: nowrap; }
+.toc .tag { font-family: var(--data); font-size: .66rem; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-faint); }
+
+/* ---------------------------------------------------------- responsive */
+
+@media (max-width: 900px) {
+  .block { grid-template-columns: minmax(0, 1fr); }
+  .block > :not(.kicker) { grid-column: 1; }
+  .kicker { grid-column: 1; padding-top: 0; margin-bottom: .7rem; }
+  .thread { grid-auto-flow: row; grid-template-columns: repeat(5, 1fr); gap: 6px 4px; }
+  .thread .starts-part { margin-left: 0; }
+  .thread .starts-part::after { display: none; }
+  .toc a, .toc .pending { grid-template-columns: 2.2rem minmax(0, 1fr); }
+  .toc .mark { grid-column: 2; }
+}
+
+@media (max-width: 620px) {
+  body { font-size: 16px; }
+  .masthead-inner, .container, .pager, .footer { padding-left: 1.2rem; padding-right: 1.2rem; }
+  .is-result { margin: 0; padding: 2rem 1rem; }
+  .block p, .block li { text-align: left; }
+}
+
+@media print {
+  .thread, .pager { display: none; }
+  body { font-size: 11pt; }
+  .masthead { background: none; }
+  .block { break-inside: avoid; }
+}
+
+/* -------------------------------------------------- resumen y plegables */
+
+/* El resumen de entrada: la cifra, la trampa y la decision, en cinco vinetas.
+   Se lee en 30 segundos o se sigue leyendo. */
+.is-brief {
+  border-top: 0;
+  padding-top: .4rem;
+}
+
+.is-brief .kicker { color: var(--accent); }
+
+.is-brief ul {
+  list-style: none;
+  padding-left: 0;
+  max-width: var(--measure);
+  border-left: 3px solid var(--accent);
+  padding: .2rem 0 .2rem 1.1rem;
+}
+
+.is-brief li { margin-bottom: .7rem; text-align: left; }
+.is-brief li:last-child { margin-bottom: 0; }
+
+/* Los plegables de contenido denso: el glosario y la anotacion del codigo.
+   Cerrados por defecto, para que la pagina no sea un muro. */
+details.fold {
+  border: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+  background: transparent;
+  margin: 0 0 1.2rem;
+  padding: 0;
+  max-width: 100%;
+}
+
+details.fold > summary {
+  font-family: var(--data);
+  font-size: .68rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  font-weight: 400;
+  color: var(--ink-faint);
+  padding: .55rem .9rem .55rem 2rem;
+}
+
+details.fold > summary::before { left: .9rem; }
+details.fold[open] > summary {
+  color: var(--accent);
+  border-bottom: 1px solid var(--rule-soft);
+  margin-bottom: 0;
+}
+
+details.fold > *:not(summary) { padding: .8rem .9rem; color: inherit; }
+details.fold ul { margin-bottom: 0; }
+details.fold .annot { border: 0; padding: 0; margin: 0; }
+details.fold .annot dd { max-width: var(--measure); }
+
+/* Un bloque de codigo seguido de su plegable van pegados. */
+pre:has(+ details.fold) { margin-bottom: 0; border-bottom: 0; }
+
+:root { --accent: #6f550e; }
+</style>
+</head>
+<body>
+<header class="masthead">
+  <div class="masthead-inner">
+    <div class="eyebrow"><a href="index.html">Sílice</a> / M&oacute;dulo <b>1</b> de 14</div>
+    <h1>Radiografía del dataset</h1>
+    <p class="standfirst">Qué hay dentro de 737.453 filas de planta real, y las tres cicatrices que nadie declara en el archivo</p>
+    <div class="figure-mark">
+      <span class="figure-value">737.453</span>
+      <span class="figure-label">filas de planta real</span>
+    </div>
+    <nav class="thread" aria-label="El arco del proyecto"><span aria-current="page" title="1. Radiografía del dataset"><span class="n">1</span> <span class="v">737.453</span></span><a href="m02_el_primer_modelo_y_el_techo.html" title="2. El primer modelo, y el techo que apareció enseguida"><span class="n">2</span> <span class="v">R² 0,04</span></a><a href="m03_como_aprende_un_modelo.html" title="3. Cómo aprende un modelo por dentro"><span class="n">3</span> <span class="v">R² 0,06</span></a><a href="m04_preprocesar_y_validar.html" title="4. Preprocesar y validar sin hacer trampa"><span class="n">4</span> <span class="v">R² −0,13</span></a><a href="m05_darle_memoria_al_modelo.html" title="5. Darle memoria al modelo"><span class="n">5</span> <span class="v">R² 0,64</span></a><a href="m06_clasificar_fuera_de_spec.html" title="6. Clasificar: dentro o fuera de especificación"><span class="n">6</span> <span class="v">0,62 vs 0,77</span></a><a href="m07_contra_que_se_compara.html" title="7. Contra qué se compara un modelo"><span class="n">7</span> <span class="v">+0,009</span></a><a href="m08_donde_aporta_el_ml.html" title="8. ¿Dónde aporta el ML de verdad?"><span class="n">8</span> <span class="v">0 de 4</span></a><a href="m09_los_tres_estados_de_la_planta.html" title="9. Los tres estados de la planta"><span class="n">9</span> <span class="v">k = 3</span></a><a href="m10_redes_producto_y_cierre.html" title="10. Redes, producto y cierre"><span class="n">10</span> <span class="v">0,76</span></a><a class="starts-part" href="m11_modelos_de_secuencia.html" title="11. Modelos de secuencia: LSTM, GRU y convolución causal"><span class="n">11</span> <span class="v">+0,215</span></a><a href="m12_practica_de_pronostico.html" title="12. La práctica de pronóstico que faltó"><span class="n">12</span> <span class="v">0,52 vs 0,63</span></a><a href="m13_incertidumbre.html" title="13. Incertidumbre: del punto al intervalo"><span class="n">13</span> <span class="v">92,0 %</span></a><a href="m14_lectura_causal.html" title="14. Lectura causal del lazo de control"><span class="n">14</span> <span class="v">+0,16</span></a></nav>
+    <div class="assay"><span><b>6</b> apuntes de origen</span><span><b>7</b> figuras</span><span><b>5</b> scripts</span></div>
+  </div>
+</header>
+<main class="container">
+<section class="block is-brief"><span class="kicker">Resumen</span><h2 class="block-title">En 30 segundos</h2><ul><li><strong>737.453 filas</strong> de una planta real, seis meses, 24 columnas. Cero valores faltantes, y eso es señal de alarma, no de calidad.</li><li><strong>Tres cicatrices que nadie declara</strong>: un hueco de 13 días, un ensayo de laboratorio congelado 792 horas, y dos columnas de aire clavadas en su consigna.</li><li><strong>La correlación más fuerte del archivo es trampa.</strong> <code>% Iron Concentrate</code> marca −0,80 y hay que descartarla. Sale del mismo análisis que el objetivo, una hora después.</li><li><strong>La señal utilizable más fuerte es −0,22.</strong> Con eso hay que trabajar el resto del proyecto.</li><li><strong>La regla que decide todo:</strong> una variable solo sirve si ya existe en el instante de predecir.</li></ul></section>
+<section class="block "><span class="kicker">Contexto</span><h2 class="block-title">Qué resuelve este módulo</h2><p>Antes de entrenar nada hay que saber qué hay dentro del archivo. Y este archivo engaña: parece limpio y no lo está.</p><p>El módulo hace la radiografía en seis pasadas:</p><ol><li>Qué tipo tiene cada columna.</li><li>Cuánto varía cada una.</li><li>Qué le pasó al proceso en seis meses.</li><li>A qué ritmo se mide cada cosa.</li><li>Qué se mueve junto con la sílice.</li><li>Qué variables sería trampa usar.</li></ol><p>Esa última pasada decide el proyecto entero. Si se responde mal, todo lo que venga después dará números excelentes y falsos.</p></section>
+<section class="block is-toy"><span class="kicker">A mano</span><h2 class="block-title">Antes de la teoría: un ejemplo de juguete</h2><p>Dos columnas de flotación. Cinco lecturas de caudal de aire cada una, en Nm³/h, de un turno.</p><div class="table-wrap"><table><thead><tr><th>Lectura</th><th>Columna A</th><th>Columna B</th></tr></thead><tbody><tr><td>1</td><td>280</td><td>299</td></tr><tr><td>2</td><td>280</td><td>299</td></tr><tr><td>3</td><td>300</td><td>300</td></tr><tr><td>4</td><td>320</td><td>301</td></tr><tr><td>5</td><td>320</td><td>301</td></tr></tbody></table></div><h3 class="sub">Paso 1. La media de las dos</h3><p>Sumar y dividir entre cinco.</p><pre><code>Columna A: (280 + 280 + 300 + 320 + 320) / 5 = 1500 / 5 = 300
+Columna B: (299 + 299 + 300 + 301 + 301) / 5 = 1500 / 5 = 300</code></pre><p><strong>Las dos dan 300 exacto.</strong> Si el informe solo trajera la media, serían la misma columna.</p><h3 class="sub">Paso 2. Cuánto se aparta cada lectura de su media</h3><p>Se le resta la media a cada valor.</p><pre><code>Columna A:  -20   -20    0   +20   +20
+Columna B:   -1    -1    0    +1    +1</code></pre><p>La diferencia ya se ve. Falta resumirla en un número.</p><h3 class="sub">Paso 3. Elevar al cuadrado y promediar</h3><p>Cada apartamiento se eleva al cuadrado. Así los negativos no cancelan a los positivos. Luego se divide entre cuatro, que son las cinco lecturas menos una.</p><pre><code>Columna A: (400 + 400 + 0 + 400 + 400) / 4 = 1600 / 4 = 400
+Columna B: (  1 +   1 + 0 +   1 +   1) / 4 =    4 / 4 =   1</code></pre><h3 class="sub">Paso 4. La raíz cuadrada, para volver a las unidades originales</h3><pre><code>Columna A: raíz de 400 = 20 Nm³/h
+Columna B: raíz de   1 =  1 Nm³/h</code></pre><p>Eso es la <strong>desviación estándar</strong>. Sale redonda a propósito, para que se pueda comprobar con lápiz.</p><h3 class="sub">Paso 5. Qué acaba de pasar</h3><p>Misma media, veinte veces más dispersión en una que en la otra. Eso cambia lo que cada columna puede enseñar.</p><p>La <strong>columna A</strong> se mueve. Se le puede preguntar qué pasa con la sílice cuando sube, y qué pasa cuando baja. La <strong>columna B</strong> está clavada en un valor de consigna. No varía, así que no hay nada que comparar.</p><p><strong>Una columna que no varía no puede explicar nada que sí varíe.</strong> Esa frase es toda la estadística descriptiva que hace falta para empezar. En el archivo real se cumple al pie de la letra en dos columnas concretas.</p></section>
+<section class="block is-terms"><span class="kicker">Términos</span><h2 class="block-title">Glosario</h2><details class="fold"><summary>11 términos, en palabras simples</summary><ul><li><strong>Fila.</strong> Una lectura del sistema en un instante. Aquí hay 737.453.</li><li><strong>Columna.</strong> Una variable medida. Aquí hay 24, entre ensayos de laboratorio, variables de proceso y la fecha.</li><li><strong>Tipo de dato.</strong> Qué cree el programa que es cada columna: número, texto o fecha. Si cree que un número es texto, todo cálculo posterior falla o miente.</li><li><strong>DataFrame.</strong> La tabla ya cargada en memoria. Es el objeto con el que trabaja pandas.</li><li><strong>Media.</strong> La suma dividida entre el número de datos.</li><li><strong>Mediana.</strong> El valor que deja la mitad de los datos por debajo. Aguanta los extremos mucho mejor que la media.</li><li><strong>Desviación estándar.</strong> Cuánto se aparta un dato típico de la media, en las mismas unidades que el dato.</li><li><strong>Consigna.</strong> El valor al que un lazo de control mantiene una variable. En inglés, <em>setpoint</em>.</li><li><strong>Correlación de Pearson.</strong> Un número entre menos uno y uno. Mide si dos variables suben y bajan juntas en línea recta. Un cero descarta la línea recta, no la relación.</li><li><strong>Fuga de datos.</strong> Usar como entrada algo que en el momento real de predecir todavía no existe. En inglés, <em>data leakage</em>.</li><li><strong>Instante de predicción.</strong> El momento exacto en el que el modelo tiene que contestar. Lo que llegue después está prohibido como entrada.</li></ul></details></section>
+<section class="block is-method"><span class="kicker">Método</span><h2 class="block-title">Paso a paso</h2><h3 class="sub">Paso 1. Cargar sin creerse el resultado</h3><p>El primer gesto no es mirar los datos. Es mirar los <strong>tipos</strong>.</p><p>El archivo viene de una planta brasileña y usa coma decimal. Una carga ingenua deja las 24 columnas como texto y no avisa. No hay error ni advertencia. A partir de ahí, todo cálculo está roto.</p><h3 class="sub">Paso 2. Medir cuánto varía cada columna</h3><p>Con los tipos correctos ya se puede pedir la desviación estándar de cada variable. Aquí el ejemplo de juguete se vuelve real. Dos de las siete columnas de aire tienen diez veces menos dispersión que sus hermanas.</p><h3 class="sub">Paso 3. Mirar el tiempo, no solo la distribución</h3><p>Un histograma resume seis meses en una forma y esconde cuándo pasó cada cosa. La serie de tiempo enseña las cicatrices: los huecos, los tramos planos y los saltos.</p><h3 class="sub">Paso 4. Contar cuántos valores distintos hay por hora</h3><p>Esta pasada no suele hacerse, y aquí decide mucho. Las columnas no se miden al mismo ritmo. Unas vienen de un sensor cada veinte segundos. Otras vienen de un análisis de laboratorio. Contar valores únicos por marca de tiempo lo revela sin leer documentación.</p><h3 class="sub">Paso 5. Correlacionar, y desconfiar del resultado</h3><p>La correlación con el objetivo ordena las variables por sospecha, no por causa. Salen dos avisos enseguida. Una correlación muy alta suele ser fuga. Y un lazo de control puede invertir el signo que la química haría esperar.</p><h3 class="sub">Paso 6. Dibujar la línea del instante de predicción</h3><p>La última pasada es de ingeniería. Se coloca en una línea de tiempo qué información existe ya cuando hay que predecir, y qué información llega después. Lo que quede a la derecha queda prohibido.</p></section>
+<section class="block is-code"><span class="kicker">Código</span><h2 class="block-title">El código, por partes</h2><h3 class="sub">Paso 1. Cargar mal, a propósito</h3><p>Conviene ver el fallo antes de arreglarlo. Es silencioso, y hay que saber reconocerlo.</p><pre><code class="language-python">import pandas as pd
+
+path = &quot;data/MiningProcess_Flotation_Plant_Database.csv&quot;
+naive = pd.read_csv(path, nrows=50_000)
+print(naive.dtypes.value_counts())
+print(naive[&quot;% Iron Feed&quot;].iloc[0] + naive[&quot;% Iron Feed&quot;].iloc[1])</code></pre><details class="fold"><summary>línea por línea, 6 entradas</summary><dl class="annot"><dt><code>import pandas as pd</code></dt><dd>Trae la librería de tablas y le pone el apodo <code>pd</code>, que es como la llama todo el mundo.</dd><dt><code>pd.read_csv(path)</code></dt><dd>Lee el archivo de texto separado por comas y devuelve una tabla.</dd><dt><code>nrows=50_000</code></dt><dd>Lee solo las primeras 50.000 filas. El guion bajo dentro del número es un separador visual: Python lo ignora.</dd><dt><code>naive.dtypes</code></dt><dd>El tipo que pandas le ha asignado a cada columna.</dd><dt><code>.value_counts()</code></dt><dd>Cuenta cuántas veces aparece cada valor. Sobre los tipos, dice cuántas columnas hay de cada tipo.</dd><dt><code>.iloc[0]</code></dt><dd>El primer elemento de la columna. Python cuenta desde cero, así que <code>iloc[0]</code> es el primero y no el segundo.</dd></dl></details><div class="output"><span class="output-tag">sale</span><pre><code>str    24
+Name: count, dtype: int64
+55,255,2</code></pre></div><p>Las 24 columnas quedaron como texto. La prueba está en la segunda línea. Sumar los dos primeros valores de <code>% Iron Feed</code> debería dar 110,4, y dio <code>55,255,2</code>. Eso es un valor pegado detrás del otro, que es lo que hace el signo más entre dos textos.</p><h3 class="sub">Paso 2. Cargar bien, y comprobar la forma</h3><pre><code class="language-python">df = pd.read_csv(path, decimal=&quot;,&quot;, parse_dates=[&quot;date&quot;])
+print(df.dtypes.value_counts())
+print(f&quot;{df.shape[0]:,} filas x {df.shape[1]} columnas&quot;)
+print(df[&quot;date&quot;].min(), &quot;-&gt;&quot;, df[&quot;date&quot;].max())
+print(&quot;faltantes:&quot;, df.isna().sum().sum())</code></pre><details class="fold"><summary>línea por línea, 6 entradas</summary><dl class="annot"><dt><code>decimal=&quot;,&quot;</code></dt><dd>Le dice a pandas que la coma es el separador decimal de este archivo. Sin esto no reconoce los números.</dd><dt><code>parse_dates=[&quot;date&quot;]</code></dt><dd>Convierte esa columna en fechas de verdad, que se pueden ordenar y restar.</dd><dt><code>df.shape</code></dt><dd>Una pareja con el número de filas y el de columnas. <code>shape[0]</code> son filas y <code>shape[1]</code> columnas.</dd><dt><code>f&quot;...{...:,}&quot;</code></dt><dd>La <code>f</code> delante de las comillas activa las llaves. Los dos puntos y la coma piden separador de miles.</dd><dt><code>df.isna()</code></dt><dd>Una tabla del mismo tamaño, con verdadero donde falta el dato.</dd><dt><code>.sum().sum()</code></dt><dd>La primera suma cuenta por columna. La segunda suma esas cuentas y da el total del archivo.</dd></dl></details><div class="output"><span class="output-tag">sale</span><pre><code>float64           23
+datetime64[us]     1
+Name: count, dtype: int64
+737,453 filas x 24 columnas
+2017-03-10 01:00:00 -&gt; 2017-09-09 23:00:00
+faltantes: 0</code></pre></div><p>Ahora sí: 23 columnas numéricas, una de fecha, seis meses de planta y cero faltantes. Ese cero no es una buena noticia. Es una pista de que alguien procesó el archivo antes de entregarlo.</p><figure class="fig"><img src="../figuras/fig_m1_trampa_coma.fd233d34.png" alt="Las mismas 737.453 filas cargadas de las dos maneras. La diferencia no se ve en la tabla, solo en los tipos." loading="lazy"><figcaption>Las mismas 737.453 filas cargadas de las dos maneras. La diferencia no se ve en la tabla, solo en los tipos.</figcaption></figure><h3 class="sub">Paso 3. Cuánto varía cada columna de aire</h3><p>Aquí se comprueba el ejemplo de juguete contra el archivo real.</p><pre><code class="language-python">aire = [f&quot;Flotation Column 0{i} Air Flow&quot; for i in range(1, 8)]
+print(df[aire].std().round(2).to_string())</code></pre><details class="fold"><summary>línea por línea, 4 entradas</summary><dl class="annot"><dt><code>[f&quot;...&quot; for i in range(1, 8)]</code></dt><dd>Construye una lista repitiendo el texto con <code>i</code> valiendo 1, 2, 3 hasta 7. <code>range(1, 8)</code> llega al 7 y no al 8.</dd><dt><code>df[aire]</code></dt><dd>Selecciona solo esas siete columnas de la tabla.</dd><dt><code>.std()</code></dt><dd>La desviación estándar de cada columna, calculada igual que en el ejemplo a mano.</dd><dt><code>.round(2)</code></dt><dd>Redondea a dos decimales para que se lea.</dd></dl></details><div class="output"><span class="output-tag">sale</span><pre><code>Flotation Column 01 Air Flow    29.62
+Flotation Column 02 Air Flow    30.15
+Flotation Column 03 Air Flow    28.56
+Flotation Column 04 Air Flow     2.57
+Flotation Column 05 Air Flow     3.64
+Flotation Column 06 Air Flow    30.22
+Flotation Column 07 Air Flow    28.67</code></pre></div><p>Cinco columnas alrededor de 29, y <strong>dos alrededor de 3</strong>. Esas dos son la columna B del ejemplo: están clavadas en su consigna.</p><h3 class="sub">Paso 4. Duplicados y huecos</h3><pre><code class="language-python">print(&quot;filas duplicadas:&quot;, df.duplicated().sum())
+print(&quot;marcas de tiempo unicas:&quot;, f&quot;{df[&#x27;date&#x27;].nunique():,}&quot;)
+horas = df[&quot;date&quot;].drop_duplicates().sort_values()
+huecos = horas.diff()
+print(huecos[huecos &gt; pd.Timedelta(hours=2)].to_string())</code></pre><details class="fold"><summary>línea por línea, 6 entradas</summary><dl class="annot"><dt><code>df.duplicated()</code></dt><dd>Marca verdadero en cada fila que ya había aparecido idéntica antes.</dd><dt><code>.nunique()</code></dt><dd>Cuenta cuántos valores distintos hay.</dd><dt><code>.drop_duplicates()</code></dt><dd>Se queda con una sola copia de cada marca de tiempo.</dd><dt><code>.diff()</code></dt><dd>Resta a cada valor el anterior. Sobre fechas, da el tiempo entre una hora y la siguiente.</dd><dt><code>huecos[huecos &gt; ...]</code></dt><dd>Se lee de dentro hacia fuera. Primero la condición, que da verdadero o falso por fila. Después el filtro, que se queda con las verdaderas.</dd><dt><code>pd.Timedelta(hours=2)</code></dt><dd>Una duración de dos horas, para poder comparar contra ella.</dd></dl></details><div class="output"><span class="output-tag">sale</span><pre><code>filas duplicadas: 1171
+marcas de tiempo unicas: 4,097
+26814   13 days 07:00:00</code></pre></div><p>1.171 filas repetidas y 4.097 horas distintas. Y <strong>un solo hueco grande, de trece días y siete horas</strong>. En el archivo no se declara por ningún lado.</p><h3 class="sub">Paso 5. A qué ritmo se mide cada columna</h3><pre><code class="language-python">por_hora = df.groupby(&quot;date&quot;).nunique()
+for col in [&quot;% Iron Feed&quot;, &quot;Ore Pulp pH&quot;, &quot;% Silica Concentrate&quot;]:
+    print(f&quot;{col:&lt;22} {por_hora[col].mean():6.2f} valores por hora&quot;)</code></pre><details class="fold"><summary>línea por línea, 4 entradas</summary><dl class="annot"><dt><code>df.groupby(&quot;date&quot;)</code></dt><dd>Agrupa las filas que comparten la misma marca de tiempo.</dd><dt><code>.nunique()</code></dt><dd>Sobre el grupo, cuenta cuántos valores distintos tiene cada columna dentro de cada hora.</dd><dt><code>for col in [...]:</code></dt><dd>Repite el bloque de abajo una vez por cada nombre de la lista. La sangría marca qué instrucciones están dentro del bucle.</dd><dt><code>{col:&lt;22}</code></dt><dd>Rellena con espacios hasta 22 caracteres, para que las columnas queden alineadas.</dd></dl></details><div class="output"><span class="output-tag">sale</span><pre><code>% Iron Feed              1.00 valores por hora
+Ore Pulp pH            171.31 valores por hora
+% Silica Concentrate    14.54 valores por hora</code></pre></div><p>Tres ritmos distintos en el mismo archivo. La alimentación trae <strong>un</strong> valor por hora, repetido en las 180 filas. El proceso trae unos 171, porque el sensor mide cada veinte segundos. Y el objetivo trae unos 14: el laboratorio analiza varias veces por hora, pero no 180.</p><h3 class="sub">Paso 6. Qué se mueve junto con la sílice</h3><pre><code class="language-python">corr = df.drop(columns=[&quot;date&quot;]).corr()[&quot;% Silica Concentrate&quot;]
+print(corr.drop(&quot;% Silica Concentrate&quot;).sort_values().head(3).round(2).to_string())
+print(corr[[&quot;Amina Flow&quot;, &quot;% Silica Feed&quot;]].round(2).to_string())</code></pre><details class="fold"><summary>línea por línea, 6 entradas</summary><dl class="annot"><dt><code>.drop(columns=[&quot;date&quot;])</code></dt><dd>Quita la fecha, porque no tiene sentido correlacionar una fecha.</dd><dt><code>.corr()</code></dt><dd>La matriz con la correlación de todas las columnas contra todas.</dd><dt><code>[&quot;% Silica Concentrate&quot;]</code></dt><dd>De esa matriz, solo la fila del objetivo.</dd><dt><code>.sort_values()</code></dt><dd>Ordena de menor a mayor, así que las negativas fuertes quedan las primeras.</dd><dt><code>.head(3)</code></dt><dd>Las tres primeras.</dd><dt><code>corr[[&quot;Amina Flow&quot;, &quot;% Silica Feed&quot;]]</code></dt><dd>Selecciona dos filas por su nombre. Los dobles corchetes son porque se pasa una lista.</dd></dl></details><div class="output"><span class="output-tag">sale</span><pre><code>% Iron Concentrate             -0.80
+Flotation Column 01 Air Flow   -0.22
+Flotation Column 03 Air Flow   -0.22
+Amina Flow       0.16
+% Silica Feed    0.07</code></pre></div></section>
+<section class="block is-result"><span class="kicker">Resultado</span><h2 class="block-title">El resultado, medido</h2><p><strong>Qué esperábamos.</strong> Un archivo de planta con muchos huecos y muchos valores faltantes. Y una o dos variables de proceso claramente ligadas a la sílice, sobre las que construir el modelo.</p><p><strong>Qué salió.</strong> Ni una cosa ni la otra. Cero faltantes y un único hueco. Y ninguna variable utilizable por encima de 0,22 en valor absoluto. La correlación más fuerte del archivo resultó inservible.</p><h3 class="sub">Las dos columnas que no informan</h3><figure class="fig"><img src="../figuras/fig_m1_aire_std.bd1dd066.png" alt="Desviación estándar de las siete columnas de aire. Las columnas 4 y 5 están clavadas en su consigna, igual que la columna B del ejemplo." loading="lazy"><figcaption>Desviación estándar de las siete columnas de aire. Las columnas 4 y 5 están clavadas en su consigna, igual que la columna B del ejemplo.</figcaption></figure><p>Las columnas 4 y 5 marcan 2,57 y 3,64, frente a los cerca de 30 de sus hermanas. Son la columna B del ejemplo de juguete. No se descartan, porque conocer una consigna tiene valor de contexto. Pero queda anotado que no pueden explicar nada.</p><h3 class="sub">Las tres cicatrices del histórico</h3><figure class="fig"><img src="../figuras/fig_m1_serie_tiempo.ad18e10b.png" alt="Seis meses hora a hora. El hueco de trece días, el tramo plano del ensayo de hierro y el salto del almidón." loading="lazy"><figcaption>Seis meses hora a hora. El hueco de trece días, el tramo plano del ensayo de hierro y el salto del almidón.</figcaption></figure><div class="table-wrap"><table><thead><tr><th>Cicatriz</th><th>Medida</th><th>Qué es</th></tr></thead><tbody><tr><td>Hueco</td><td>13 días y 7 horas, antes del 29 de marzo</td><td>No hay datos. No se inventan</td></tr><tr><td>Ensayo congelado</td><td>792 horas clavadas en 64,03, del 13 de mayo al 15 de junio</td><td>El laboratorio dejó de actualizar. No es física</td></tr><tr><td>Almidón bajo</td><td>3.976 filas por debajo de 100</td><td>Otro régimen de dosificación, no un error</td></tr></tbody></table></div><p>El tramo congelado toca <strong>142.560 filas, el 19,3 % del archivo</strong>. La tentación es tirarlas, y sería un error caro. Solo hay dos columnas congeladas, las de alimentación. El proceso y el objetivo siguen vivos en esas mismas filas.</p><p>La decisión: se conservan. Y queda anotado que durante ese mes esas dos columnas son ruido constante.</p><h3 class="sub">Lo que se mueve junto con la sílice</h3><figure class="fig"><img src="../figuras/fig_m1_corr_bars.7441c3a0.png" alt="Correlación de Pearson de cada variable con el objetivo. En rojo la que es fuga. En naranja las dos que el lazo de control distorsiona." loading="lazy"><figcaption>Correlación de Pearson de cada variable con el objetivo. En rojo la que es fuga. En naranja las dos que el lazo de control distorsiona.</figcaption></figure><figure class="fig"><img src="../figuras/fig_m1_corr_scatters.0b068c1a.png" alt="Las tres correlaciones que enseñan los tres modos de engañarse: la fuga, el signo invertido por el control y la relación borrada." loading="lazy"><figcaption>Las tres correlaciones que enseñan los tres modos de engañarse: la fuga, el signo invertido por el control y la relación borrada.</figcaption></figure><div class="table-wrap"><table><thead><tr><th>Variable</th><th>Correlación</th><th>Lectura</th></tr></thead><tbody><tr><td><code>% Iron Concentrate</code></td><td>−0,80</td><td>La más fuerte del archivo, y <strong>fuga</strong>. Es complementaria de la sílice y sale del mismo análisis, una hora después</td></tr><tr><td><code>Flotation Column 01 Air Flow</code></td><td>−0,22</td><td>La señal utilizable más fuerte. Y es débil</td></tr><tr><td><code>Amina Flow</code></td><td>+0,16</td><td>Signo invertido respecto a la química. Cuando la sílice sube, el operador dosifica más colector</td></tr><tr><td><code>% Silica Feed</code></td><td>+0,07</td><td>La alimentación casi no explica el concentrado. El control de la planta borra la relación</td></tr></tbody></table></div><h3 class="sub">La regla que decide el proyecto</h3><figure class="fig"><img src="../figuras/fig_m1_leakage_timeline.52d3b360.png" alt="La línea del instante de predicción. A la izquierda lo que ya existe, a la derecha lo que llega después. Solo lo de la izquierda entra al modelo." loading="lazy"><figcaption>La línea del instante de predicción. A la izquierda lo que ya existe, a la derecha lo que llega después. Solo lo de la izquierda entra al modelo.</figcaption></figure><p>De todo el módulo, esto es lo que hay que llevarse:</p><blockquote>Una variable de entrada solo es lícita si <strong>ya existe</strong> en el instante en el que hay que predecir.</blockquote><p><code>% Iron Concentrate</code> la incumple, así que se excluye. Da igual que sea la correlación más apetecible del archivo. Un modelo que la use dará un R² espléndido y no servirá en planta, porque allí ese número todavía no ha llegado.</p><h3 class="sub">La distribución del objetivo</h3><figure class="fig"><img src="../figuras/fig_m1_histogramas.a5605088.png" alt="Reparto del objetivo y de tres variables clave sobre las 737.453 filas." loading="lazy"><figcaption>Reparto del objetivo y de tres variables clave sobre las 737.453 filas.</figcaption></figure><p>El objetivo va de 0,60 a 5,53 % de SiO₂. Media 2,33, mediana 2,00, desviación estándar 1,13.</p><p>La media supera a la mediana en 0,33. Eso indica cola por la derecha: la planta funciona bien la mayor parte del tiempo, y de vez en cuando se le va.</p><p>Esa desviación estándar de 1,13 es la vara de medir del proyecto. Predecir siempre la media ya da ese error. Cualquier modelo que no baje de ahí no está aportando nada.</p></section>
+<section class="block is-warning"><span class="kicker">Trampas</span><h2 class="block-title">Ojo</h2><ul><li><strong>El fallo de la coma no avisa.</strong> No hay error ni advertencia. El programa sigue, las gráficas salen y los resultados están mal. La defensa es mirar los tipos antes de calcular.</li><li><strong>Cero faltantes no es buena señal.</strong> En datos de planta siempre falta algo. Un cero limpio significa que alguien ya limpió, y no se sabe con qué criterio.</li><li><strong>La correlación más alta suele ser la trampa.</strong> Si una variable explica el objetivo sospechosamente bien, la primera pregunta es de dónde sale y cuándo llega.</li><li><strong>Un lazo de control invierte los signos.</strong> La amina sube cuando la sílice sube, no al revés. Leer ese +0,16 como química es leerlo del revés.</li><li><strong>Una columna sin variación no es mala, es muda.</strong> No se tira por norma, pero no se le puede pedir que explique nada.</li><li><strong>No todas las filas de una hora dicen lo mismo.</strong> El objetivo no se repite 180 veces por hora: son unos 14 valores distintos. Comprobarlo cuesta una línea.</li></ul></section>
+<section class="block is-bridge"><span class="kicker">Analogía</span><h2 class="block-title">Puente metalúrgico</h2><p>Esto es un muestreo, y las reglas del muestreo ya se conocen.</p><p>Una <strong>alícuota de pulpa</strong> sacada de un cajón sin homogeneizar da una ley que no representa al flujo. El laboratorio la reporta con la misma seguridad que si fuera buena. La carga con coma decimal es lo mismo: el instrumento contesta, pero contesta sobre otra cosa.</p><p>Las <strong>columnas 4 y 5</strong> son un lazo de control cerrado y bien sintonizado. Preguntarle a esa columna qué le hace a la sílice es como preguntárselo a un controlador de nivel. La respuesta es que no hace nada, porque no se mueve. Quien mueve el proceso es la consigna, y la consigna no está registrada.</p><p>Y <code>% Iron Concentrate</code> es el <strong>analizador en línea contra el ensayo de laboratorio</strong>. Un analizador de rayos X da la ley al instante y sirve para controlar. El ensayo de laboratorio llega una hora después y sirve para conciliar. Usarlo como entrada de una predicción en tiempo real es pedirle al turno de la mañana que decida con el informe de la tarde.</p></section>
+<section class="block is-review"><span class="kicker">Repaso</span><h2 class="block-title">Repaso</h2><details><summary>El archivo tiene cero valores faltantes. ¿Es una buena noticia?</summary><p>No, es una señal de alarma. En datos de planta reales siempre hay huecos de sensor, paradas y ensayos que no se hicieron.</p><p>Un archivo con cero faltantes significa que alguien lo procesó antes de entregarlo, y no viene documentado con qué criterio. Este archivo lo confirma por otro lado: tiene 1.171 filas duplicadas exactas y un hueco de trece días. Ese hueco no aparece como faltante, porque las filas sencillamente no existen. El faltante se convirtió en ausencia, y la ausencia es más difícil de ver.</p></details><details><summary>La correlación más fuerte con la sílice es −0,80. ¿Por qué no se usa?</summary><p>Porque es <code>% Iron Concentrate</code>. En flotación inversa de hierro el concentrado es prácticamente hierro y sílice, así que si uno sube el otro baja. Esa correlación no es una relación de proceso aprovechable, es casi una identidad aritmética.</p><p>Y hay una razón más fuerte. Sale del mismo análisis de laboratorio que el objetivo y llega con una hora de retraso. En el instante de predecir no existe. Usarla es fuga de datos: el modelo saldría espléndido en el ordenador e inservible en la planta.</p></details><details><summary>¿Cómo se sabe que dos columnas de aire están clavadas en su consigna, sin documentación?</summary><p>Por la desviación estándar. Las columnas 1, 2, 3, 6 y 7 tienen alrededor de 29 Nm³/h de dispersión. Las columnas 4 y 5 tienen 2,57 y 3,64.</p><p>Diez veces menos dispersión con la misma media dice que un lazo de control las está sujetando. La consecuencia práctica es la del ejemplo de juguete. Una variable que no varía no puede explicar una que sí. Esas dos columnas van a tener importancia cercana a cero en cualquier modelo, y conviene saberlo antes de entrenarlo.</p></details><details><summary>El ensayo de hierro está congelado 792 horas y eso toca el 19 % del archivo. ¿Se tiran esas filas?</summary><p>No. Se conservan y se anota la limitación.</p><p>Lo congelado son dos columnas de alimentación, <code>% Iron Feed</code> y <code>% Silica Feed</code>, porque el laboratorio dejó de actualizar el valor. Las variables de proceso y el objetivo se siguen midiendo con normalidad en esas mismas 142.560 filas.</p><p>Tirarlas sería perder una quinta parte de los datos buenos para arreglar dos columnas que aportan menos de 0,08 en valor absoluto. Durante ese mes, esas dos columnas son ruido constante.</p></details><details><summary>Explica la regla anti-fuga como se la contarías a un jefe de planta.</summary><p>Un dato solo se puede usar para predecir si ya está sobre la mesa en el momento de decidir.</p><p>Se dibuja una línea vertical en el instante de la predicción. A la izquierda queda lo que el sistema ya tiene: pH, caudales, niveles y aire, medidos cada veinte segundos. A la derecha queda lo que llegará después, que es el análisis de laboratorio, incluido el hierro del concentrado.</p><p>Todo lo de la derecha está prohibido como entrada, por muy bien que correlacione. Si se cuela, el modelo aprueba el examen copiando la respuesta. En planta nadie le pasa la respuesta, y falla.</p></details></section>
+</main>
+<nav class="pager"><a class="next" href="m02_el_primer_modelo_y_el_techo.html"><span class="dir">Siguiente</span>2. El primer modelo, y el techo que apareció enseguida</a></nav>
+<footer class="footer">
+  <div class="footer-inner">
+    <span>S&iacute;lice / M&oacute;dulo 1</span>
+    <span>generado el 2026-08-20</span>
+    <span>fuente: los 31 apuntes originales, sus scripts y el CSV de la planta</span>
+  </div>
+</footer>
+</body>
+</html>

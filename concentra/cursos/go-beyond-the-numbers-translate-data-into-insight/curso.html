@@ -1,0 +1,683 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Go Beyond the Numbers: Translate Data into Insights — el curso</title>
+<style>
+/* ============================================================================
+   Concentra — design tokens and shared components.
+   Inlined into every generated page by load_style(), so pages stay self-contained
+   and work offline from file:// with no external requests.
+
+   Direction: an assay lab, not a tech dashboard. The palette is taken from ore
+   and lab materials (chalcopyrite brass, malachite, hematite, quartz) on warm
+   graphite rather than the blue-black + neon of a generic dark UI. Type is
+   Bahnschrift, the DIN-descended grotesque that Windows ships and that lives on
+   machinery plates and technical drawings, over Corbel for reading.
+   ========================================================================== */
+
+:root {
+  /* Ground and surfaces: warm graphite, the colour of rock dust, not blue-black */
+  --rock: #1a1714;
+  --bench: #221e19;
+  --core: #2b251f;
+  --seam: #3d352c;
+
+  /* Ore palette. No blue and no purple anywhere: those are the tones that make a
+     page read as generated, and this palette comes from the ores instead. */
+  --brass: #c9a227;      /* chalcopyrite, the primary accent */
+  --malachite: #5d9b7a;  /* verified output, results that came out right */
+  --hematite: #b04a35;   /* iron oxide, pitfalls and warnings */
+
+  /* Text */
+  --quartz: #ece7de;
+  --dust: #9a9186;
+  --shadowed: #6f675c;
+
+  --display: Bahnschrift, 'DIN Alternate', 'Segoe UI Semibold', system-ui, sans-serif;
+  --body: Corbel, Candara, 'Segoe UI', system-ui, sans-serif;
+  --data: Consolas, 'Cascadia Mono', ui-monospace, monospace;
+
+  /* In px, not ch: ch scales with font-size, so a heading ended up wider than a
+     paragraph and the page had four different right edges instead of two. */
+  --measure: 640px;
+  --wide: 900px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--rock);
+  color: var(--quartz);
+  font-family: var(--body);
+  font-size: 16px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection { background: var(--brass); color: var(--rock); }
+
+:focus-visible {
+  outline: 2px solid var(--brass);
+  outline-offset: 3px;
+}
+
+/* --------------------------------------------------------------- the signature
+   A sieve series: ticks that get finer from left to right, coarse feed to fine
+   concentrate. It is the one ornament on the page and appears exactly twice —
+   under the wordmark and under a page title. */
+.mesh {
+  height: 10px;
+  background-image:
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 16px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 9px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 5px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 3px);
+  background-size: 25% 100%;
+  background-position: 0 0, 25% 0, 50% 0, 75% 0;
+  background-repeat: no-repeat;
+  opacity: .8;
+  transform-origin: left center;
+  animation: sieve .55s cubic-bezier(.2, .8, .3, 1) both;
+}
+@keyframes sieve { from { transform: scaleX(0); opacity: 0; } to { transform: scaleX(1); opacity: .8; } }
+@media (prefers-reduced-motion: reduce) {
+  .mesh { animation: none; }
+  * { transition: none !important; }
+}
+
+/* ------------------------------------------------------------------ page head */
+.header {
+  border-bottom: 1px solid var(--seam);
+  padding: 3.2rem 2rem 0;
+  background: linear-gradient(180deg, #221d16 0%, var(--rock) 100%);
+}
+.header-content { max-width: 1080px; margin: 0 auto; }
+
+.eyebrow {
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--brass);
+  margin-bottom: 1rem;
+}
+.eyebrow a { color: inherit; text-decoration: none; border-bottom: 1px solid transparent; }
+.eyebrow a:hover { border-bottom-color: var(--brass); }
+
+.header h1 {
+  font-family: var(--display);
+  font-size: clamp(2rem, 4.5vw, 3.1rem);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -.015em;
+  color: var(--quartz);
+  max-width: 20ch;
+}
+.header .subtitle {
+  color: var(--dust);
+  max-width: var(--measure);
+  margin-top: 1rem;
+  font-size: 1.02rem;
+}
+.header .mesh { margin: 1.8rem 0 0; }
+
+/* An assay line: the real composition of the module, in lab-report shorthand. */
+.assay {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.4rem;
+  font-family: var(--data);
+  font-size: .78rem;
+  color: var(--shadowed);
+  padding: .9rem 0 1.6rem;
+  letter-spacing: .04em;
+}
+.assay b { color: var(--dust); font-weight: 400; }
+
+/* --------------------------------------------------------------------- layout */
+/* The container hugs the widest block, so there is no orphan edge past the content. */
+.container { max-width: var(--wide); margin: 3rem auto 5rem; padding: 0 2rem; }
+
+/* Two deliberate right edges and no more: prose stops at the reading measure, and
+   only the things that genuinely need room (code, output, figures, big tables) run
+   out to the full column. */
+.section-block {
+  border-top: 1px solid var(--seam);
+  padding: 2rem 0 2.4rem;
+}
+.section-block > p,
+.section-block > ul,
+.section-block > ol,
+.section-block h3.sub,
+.section-block h4.sub,
+.section-block blockquote,
+details > *:not(summary) { max-width: var(--measure); }
+.section-block:first-child { border-top: 0; padding-top: .5rem; }
+
+/* The kicker names what kind of content follows: context, method, pitfalls.
+   It replaces decorative icons with something that actually classifies. */
+.kicker {
+  font-family: var(--data);
+  font-size: .68rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  display: block;
+  margin-bottom: .5rem;
+}
+.section-title {
+  font-family: var(--display);
+  font-size: 1.55rem;
+  font-weight: 600;
+  letter-spacing: -.01em;
+  line-height: 1.2;
+  margin-bottom: 1.2rem;
+  color: var(--quartz);
+}
+.is-warning .kicker { color: var(--hematite); }
+.is-warning .section-title { color: #e8c4b8; }
+.is-bridge .kicker, .is-decision .kicker { color: var(--malachite); }
+.is-toy .kicker, .is-result .kicker, .is-question .kicker { color: var(--brass); }
+
+/* ---------------------------------------------------------------------- prose */
+/* Justified with hyphenation. In Spanish, justifying without hyphens opens rivers of
+   white space and reads worse than ragged right; lang="es" is what feeds the
+   dictionary. Tables, code, captions and summaries stay ragged on purpose. */
+.section-block p,
+.section-block li,
+details > *:not(summary) {
+  text-align: justify;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+}
+.section-block p { margin-bottom: 1rem; }
+.section-block p:last-child { margin-bottom: 0; }
+/* Indent with padding, not margin, so the bullet sits inside the measure instead of
+   pushing the list 1.2rem past the right edge of the paragraphs. */
+.section-block ul, .section-block ol { margin: 0 0 1rem; padding-left: 1.2rem; }
+.section-block li { margin-bottom: .55rem; padding-left: .2rem; }
+.section-block li::marker { color: var(--brass); }
+td, th, figcaption, .res li, .assay { text-align: left; hyphens: manual; }
+a { color: var(--brass); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+a:hover { text-decoration-thickness: 2px; }
+strong { color: #fff; font-weight: 700; }
+em { color: var(--dust); font-style: italic; }
+
+h3.sub {
+  font-family: var(--display);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--brass);
+  margin: 2rem 0 .7rem;
+  letter-spacing: -.005em;
+}
+h3.sub:first-child { margin-top: 0; }
+h4.sub {
+  font-family: var(--display);
+  font-size: .98rem;
+  font-weight: 600;
+  color: var(--dust);
+  margin: 1.3rem 0 .5rem;
+}
+
+code {
+  font-family: var(--data);
+  font-size: .9em;
+  background: var(--core);
+  border-radius: 3px;
+  padding: .08rem .32rem;
+  color: var(--brass);
+}
+pre {
+  background: #14110e;
+  border: 1px solid var(--seam);
+  border-left: 2px solid var(--seam);
+  border-radius: 2px;
+  padding: 1.1rem 1.2rem;
+  overflow-x: auto;
+  margin-bottom: 1rem;
+}
+pre code {
+  background: none; padding: 0; color: var(--quartz);
+  font-size: .87rem; line-height: 1.6;
+}
+
+/* What the code prints. Malachite: the material that came out of the process. */
+.output {
+  position: relative;
+  border: 1px solid rgba(93, 155, 122, .32);
+  border-left: 2px solid var(--malachite);
+  border-radius: 2px;
+  background: rgba(93, 155, 122, .06);
+  padding: 1.7rem 1.2rem 1rem;
+  margin-bottom: 1rem;
+  overflow-x: auto;
+}
+.output-tag {
+  position: absolute; top: .5rem; left: 1.2rem;
+  font-family: var(--data); font-size: .64rem;
+  letter-spacing: .18em; text-transform: uppercase; color: var(--malachite);
+}
+.output pre {
+  background: none; border: 0; padding: 0; margin: 0;
+  font-family: var(--data); font-size: .85rem;
+  color: var(--quartz); white-space: pre-wrap;
+}
+
+/* Line by line explanation of a code block, for a reader new to programming.
+   Two columns: the fragment of code, and what it does. */
+.annot {
+  display: grid;
+  grid-template-columns: minmax(9rem, auto) 1fr;
+  gap: .1rem 1.2rem;
+  align-items: baseline;
+  max-width: var(--wide);
+  margin: -.4rem 0 1.4rem;
+  padding: .9rem 1.1rem 1rem;
+  border: 1px solid var(--seam);
+  border-top: 0;
+  border-radius: 0 0 2px 2px;
+  background: rgba(201, 162, 39, .04);
+}
+.annot-head {
+  grid-column: 1 / -1;
+  font-family: var(--data);
+  font-size: .64rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  margin-bottom: .5rem;
+}
+.annot dt { padding: .35rem 0; }
+.annot dt code {
+  background: var(--core);
+  color: var(--brass);
+  font-size: .82rem;
+  white-space: nowrap;
+}
+.annot dd {
+  padding: .35rem 0;
+  margin: 0;
+  color: var(--dust);
+  font-size: .93rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(61, 53, 44, .5);
+}
+.annot dt { border-bottom: 1px solid rgba(61, 53, 44, .5); }
+.annot dt:last-of-type, .annot dd:last-of-type { border-bottom: 0; }
+/* The code block sits directly on top of its annotation, as one unit. */
+pre:has(+ .annot) { margin-bottom: 0; border-radius: 2px 2px 0 0; }
+
+@media (max-width: 640px) {
+  .annot { grid-template-columns: 1fr; gap: 0; }
+  .annot dt { border-bottom: 0; padding-bottom: 0; }
+  .annot dd { padding-top: .15rem; }
+}
+
+blockquote {
+  border-left: 2px solid var(--brass);
+  padding: .3rem 0 .3rem 1.3rem;
+  margin: 0 0 1rem;
+  font-family: var(--display);
+  font-size: 1.2rem;
+  font-weight: 400;
+  line-height: 1.4;
+  color: var(--quartz);
+}
+
+/* Tables read as assay data: mono figures, hairline rules, no zebra fill.
+   They take the width they need instead of being stretched to the full column,
+   which is what left a two-column table floating in empty space. */
+.table-wrap { overflow-x: auto; margin-bottom: 1rem; }
+table { border-collapse: collapse; width: auto; max-width: 100%; font-size: .93rem; }
+th, td {
+  border-bottom: 1px solid var(--seam);
+  padding: .55rem .8rem .55rem 0;
+  text-align: left;
+  vertical-align: top;
+}
+th {
+  font-family: var(--data);
+  font-size: .7rem;
+  font-weight: 400;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  border-bottom-color: var(--brass);
+}
+td:first-child { color: var(--quartz); }
+
+/* Review questions: closed by default, so they work as recall practice. */
+details {
+  border-top: 1px solid var(--seam);
+  padding: .9rem 0;
+}
+details:last-child { border-bottom: 1px solid var(--seam); }
+summary {
+  cursor: pointer;
+  font-family: var(--display);
+  font-size: 1.02rem;
+  font-weight: 600;
+  color: var(--quartz);
+  list-style: none;
+  display: flex;
+  gap: .7rem;
+  align-items: baseline;
+}
+summary::-webkit-details-marker { display: none; }
+summary::before {
+  content: '+';
+  font-family: var(--data);
+  color: var(--brass);
+  font-size: .95rem;
+}
+details[open] summary::before { content: '−'; }
+details[open] summary { color: var(--brass); margin-bottom: .7rem; }
+details > *:not(summary) { color: var(--dust); }
+
+figure.fig {
+  margin: 1.6rem 0;
+  border: 1px solid var(--seam);
+  padding: .7rem;
+  background: var(--bench);
+}
+figure.fig img { width: 100%; height: auto; display: block; }
+/* The interactive twin of a figure. Its aspect matches the still one, 10 by 4.4, so a
+   case sheet keeps the same rhythm whichever kind of figure comes next. */
+figure.fig.is-live iframe {
+  width: 100%;
+  /* Matches INTERACTIVE_HEIGHT in src/make_figures.py. It used to be an aspect ratio, and
+     that made the figure's height depend on the window: the caption and the legend are
+     placed at fractions of the plot area, so on a wide screen they were pushed past the
+     bottom margin, clipping the caption and covering the x-axis title. */
+  height: 520px;
+  border: 0;
+  display: block;
+}
+figure.fig figcaption {
+  font-family: var(--data);
+  font-size: .72rem;
+  color: var(--shadowed);
+  margin-top: .6rem;
+  letter-spacing: .04em;
+}
+
+/* File listings on a case sheet */
+.res { list-style: none; margin-left: 0 !important; }
+.res li {
+  display: flex; align-items: baseline; gap: .8rem; flex-wrap: wrap;
+  padding: .5rem 0; border-bottom: 1px solid var(--seam); margin-bottom: 0;
+}
+.res .path { font-family: var(--data); font-size: .74rem; color: var(--shadowed); }
+.res .size { font-family: var(--data); font-size: .74rem; color: var(--shadowed); margin-left: auto; }
+.res .gone { font-family: var(--data); font-size: .74rem; color: var(--hematite); }
+
+.footer {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 2rem 4rem;
+  color: var(--shadowed);
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .03em;
+}
+
+@media (max-width: 640px) {
+  body { font-size: 15px; }
+  .header { padding: 2rem 1.2rem 0; }
+  .container { padding: 0 1.2rem; margin-top: 2rem; }
+  .footer { padding: 0 1.2rem 3rem; }
+}
+
+@media print {
+  body { background: #fff; color: #16130f; }
+  .header { background: none; border-bottom: 1px solid #bbb; padding-top: 0; }
+  .header h1, .section-title, summary { color: #16130f; }
+  .mesh { animation: none; }
+  .section-block { break-inside: avoid; max-width: none; }
+  pre, .output { background: #f6f4f0; border-color: #ccc; }
+  details:not([open]) > *:not(summary) { display: block; }
+  a { color: #16130f; }
+}
+
+
+/* The brain file, ready to be copied into an assistant's memory. */
+.brain { max-width: 880px; margin-top: 1.2rem; }
+.brain-bar {
+  display: flex; align-items: center; gap: .8rem; flex-wrap: wrap;
+  border: 1px solid var(--seam); border-bottom: 0;
+  padding: .6rem .9rem; background: var(--bench);
+}
+.brain-bar .name {
+  font-family: var(--data); font-size: .76rem; color: var(--brass); letter-spacing: .06em;
+}
+.brain-bar .size { font-family: var(--data); font-size: .72rem; color: var(--shadowed); }
+.brain-bar .spacer { flex: 1; }
+.brain-bar button, .brain-bar a.btn {
+  background: none; border: 1px solid var(--seam); border-radius: 2px;
+  color: var(--dust); font-family: var(--data); font-size: .72rem;
+  letter-spacing: .06em; padding: .3rem .7rem; cursor: pointer;
+  text-decoration: none; white-space: nowrap;
+}
+.brain-bar button:hover, .brain-bar a.btn:hover { color: var(--brass); border-color: var(--brass); }
+.brain-bar button.done { color: var(--malachite); border-color: var(--malachite); }
+.brain pre {
+  margin: 0; max-height: 26rem; overflow: auto;
+  border-radius: 0; border-color: var(--seam);
+}
+.brain pre code { font-size: .8rem; }
+</style>
+</head>
+<body>
+<header class="header">
+  <div class="header-content">
+    <div class="eyebrow">Curso 2 / <a href="https://www.coursera.org/learn/go-beyond-the-numbers-translate-data-into-insight">ver en Coursera</a></div>
+    <h1>Go Beyond the Numbers: Translate Data into Insights</h1>
+    <p class="subtitle"></p>
+    <div class="mesh" role="presentation"></div>
+    <div class="assay"><span>5 módulos</span><span>28 h de curso</span><span>125 tasks</span><span>3 casos de estudio</span></div>
+  </div>
+</header>
+<main class="container">
+<section class="section-block "><span class="kicker">Resumen</span><h2 class="section-title">De qué va este curso</h2><p>Los cursos siguientes enseñan a <strong>decidir</strong> con los datos: contrastar una hipótesis, ajustar un modelo. Este enseña lo que hay que hacer antes, y que casi nadie cuenta: <strong>abrir un archivo por primera vez y averiguar qué tienes delante</strong>.</p><p>Suena a trámite y es donde se pierde o se gana el análisis. Una columna de fechas leída como texto, un valor extremo que nadie mira, 700 filas sin etiqueta, un histograma con el número de barras equivocado: cualquiera de esas cosas convierte un análisis impecable en una conclusión falsa, y ninguna produce un mensaje de error.</p><p>El curso lo organiza en dos mitades. La primera es <strong>encontrar</strong> lo que hay: explorar, estructurar y limpiar. La segunda es <strong>contarlo</strong>, que es la parte que decide si alguien hace algo con tu trabajo.</p></section>
+<section class="section-block is-recipe"><span class="kicker">Recorrido</span><h2 class="section-title">El recorrido, módulo a módulo</h2><ol><li><strong>Encontrar y compartir historias con datos.</strong> Las seis prácticas del análisis exploratorio y cómo encajan con el marco PACE. Por qué un número no es una historia.</li><li><strong>Explorar el dato crudo.</strong> El ritual de las primeras cinco líneas, de dónde viene el dato, qué hacer con las fechas escritas como texto, y cómo un histograma cambia lo que parece decir según cómo se corte.</li><li><strong>Limpiar.</strong> Lo que falta, lo que está repetido, lo que se sale de rango, cómo se convierte una categoría en número y por qué hay que validar la entrada. Y las personas que hay detrás de los datos.</li><li><strong>Visualización y presentación.</strong> El ciclo de vida de un gráfico, cómo se construye uno que cuenta algo, y Tableau. Aquí está el cuarteto de Anscombe, que es la mejor razón que existe para dibujar antes de resumir.</li><li><strong>Proyecto de fin de curso.</strong> Los tres escenarios de empresa, en su versión de exploración: qué tiene este dato, qué le falta y qué historia cuenta.</li></ol></section>
+<section class="section-block is-decision"><span class="kicker">Resultado</span><h2 class="section-title">Qué sabes hacer al terminar</h2><ul><li>Abrir un archivo que no has visto nunca y saber en cinco líneas qué tiene y qué le falta.</li><li>Decidir con criterio qué hacer con un dato ausente, un duplicado o un valor extremo, y <strong>dejar escrito por qué</strong>.</li><li>Elegir el gráfico que corresponde a la pregunta, y no el que queda bonito.</li><li>Contar el hallazgo a alguien que va a decidir algo con él.</li></ul></section>
+<section class="section-block "><span class="kicker">Nota</span><h2 class="section-title">Los tres proyectos, y lo que enseñaron</h2><p>Los proyectos de este curso se construyeron dentro de Concentra, leyendo tus CSV sin tocarlos. Son los mismos tres escenarios de los cursos siguientes, pero aquí no se contrasta ni se modela nada: <strong>lo que se entrega es la calidad del dato y la historia que cuenta</strong>.</p></section>
+<section class="section-block is-toy"><span class="kicker">Para qué sirve</span><h2 class="section-title">El cerebro de este curso</h2><p>Debajo está el archivo para copiar y pegar como memoria de un asistente. <strong>No es un resumen de las lecciones</strong>: es el manual de operación de la exploración y la limpieza, con lo que hay que mirar al abrir un archivo, qué decidir sobre lo que falta y lo que sobra, y las reglas de un gráfico que se sostiene.</p></section>
+<section class="section-block">
+  <span class="kicker">Memoria</span>
+  <h2 class="section-title">El archivo, listo para copiar</h2>
+  <div class="brain">
+    <div class="brain-bar">
+      <span class="name">cerebro-curso-2.md</span>
+      <span class="size">6.9 KB</span>
+      <span class="spacer"></span>
+      <button id="copy" type="button">Copiar todo</button>
+      <a class="btn" href="cerebro-curso-2.md" download>Descargar</a>
+    </div>
+    <pre><code id="brain"># Cerebro: explorar, limpiar y contar
+
+Manual de operación, no material de estudio. Describe cómo abro un archivo que no he visto
+nunca, qué decido sobre lo que falta y lo que sobra, y cómo presento el resultado. Pégalo
+como memoria y asume estas reglas sin preguntarlas.
+
+Va antes que los otros dos cerebros: comparar grupos o ajustar un modelo sobre un dato que
+no se ha mirado es construir sobre arena.
+
+## Lo primero, siempre: las cinco líneas
+
+Antes de opinar nada sobre un archivo:
+
+| Línea | Qué contesta |
+|---|---|
+| `df.shape` | El tamaño del problema. ¿500 filas o 700.000? |
+| `df.info()` | Los tipos y los no nulos de golpe. Aquí salen las fechas leídas como texto |
+| `df.describe()` | Mínimos y máximos. La pregunta no es qué números salen, sino **cuáles son imposibles** |
+| `df.head(10)` | Cómo es una fila de verdad. Esto no lo sustituye ningún resumen |
+| `df.isna().sum()` | Dónde están los huecos y cuántos son |
+
+Un mínimo negativo en una tarifa, un máximo de 999,99 en una columna acotada o una fecha de
+1970 son hallazgos, no ruido.
+
+## Las seis prácticas del análisis exploratorio
+
+Son iterativas y no lineales: se vuelve a la anterior todas las veces que haga falta.
+
+| Práctica | Qué es |
+|---|---|
+| **Descubrir** | Conocer forma, tamaño y contenido |
+| **Estructurar** | Ordenar, agrupar, pivotar, separar columnas |
+| **Limpiar** | Ausentes, duplicados, atípicos, tipos mal leídos |
+| **Unir** | Traer datos de otra fuente para completar el cuadro |
+| **Validar** | Comprobar que lo que acabas de hacer no rompió nada |
+| **Presentar** | Entregarlo a alguien que va a decidir |
+
+**Validar no es opcional y es la que más se salta.** Después de cada transformación:
+¿siguen siendo las mismas filas? ¿los totales cuadran? ¿algún valor se volvió nulo?
+
+## Qué hacer con lo que falta
+
+Primero la pregunta que casi nadie hace: **¿por qué falta?** No es lo mismo un sensor que se
+apagó que una respuesta que la gente evita contestar.
+
+| Situación | Qué hago |
+|---|---|
+| Faltan al azar y son pocos | Eliminar esas filas, diciendo cuántas |
+| Faltan al azar y son muchos | Imputar, y decir con qué y por qué |
+| **No faltan al azar** | Ni eliminar ni imputar sin avisar: la ausencia **es** información |
+| Falta una columna entera casi siempre | Quitar la columna, no las filas |
+
+**Antes de eliminar un grupo con datos ausentes, compáralo con el resto.** Si se parece, se
+puede quitar. Si no, quitarlo cambia a quién describe el análisis, y hay que decirlo.
+
+## Qué hacer con un atípico
+
+Un valor extremo no es un error hasta que se demuestra. Tres respuestas legítimas, y
+ninguna es &quot;borrarlo porque afea el gráfico&quot;:
+
+1. **Mantenerlo.** Si es real, es el dato más informativo que tienes.
+2. **Recortarlo** al percentil alto. Conserva la fila y le quita el dominio.
+3. **Eliminarlo**, solo si es imposible: una tarifa negativa, un viaje que acaba antes de
+   empezar, una edad de 200 años.
+
+La regla del rango intercuartílico marca candidatos: fuera de `Q1 − 1,5 × IQR` o
+`Q3 + 1,5 × IQR`. **Marca candidatos, no culpables.**
+
+Y un detalle que confunde: hay varias convenciones para calcular los cuartiles. `numpy`
+interpola y otra escuela usa la mediana de cada mitad, así que Q1 y Q3 pueden salir
+distintos con los mismos datos. Rara vez cambia el veredicto, pero conviene decir cuál se
+usó.
+
+## Reglas de limpieza que no se negocian
+
+- **Nunca se sobrescribe el archivo original.** La limpieza produce un archivo nuevo.
+- **Cada decisión se escribe**, con su conteo: cuántas filas, por qué motivo.
+- **Los duplicados se investigan antes de borrarse.** Una fila repetida puede ser un error
+  de carga o dos hechos idénticos legítimos.
+- **Codificación de categorías:** una columna de unos y ceros por nivel menos uno. Nunca
+  1, 2, 3, que le impone al modelo un orden que no existe.
+- **Validación de entrada:** rangos, tipos y valores permitidos, comprobados al leer, no
+  cuando el resultado sale raro.
+- **Datos personales:** si el archivo identifica a personas, se anonimiza antes de nada.
+  Nombre, correo, teléfono y coordenadas exactas son identificables.
+
+## Reglas de un gráfico que se sostiene
+
+- **Dibuja antes de resumir.** El cuarteto de Anscombe son cuatro conjuntos con la misma
+  media, la misma desviación, la misma correlación y la misma recta, y cuatro formas
+  completamente distintas. El resumen no vio ninguna.
+- **El número de barras de un histograma cambia la historia.** Pocas barras aplanan dos
+  grupos en uno. Prueba varios cortes antes de concluir.
+- **Un panel por grupo**, y si se comparan, con los mismos ejes. Escalas distintas hacen que
+  cosas distintas parezcan iguales.
+- **El eje vertical empieza en cero** en un gráfico de barras. Recortarlo exagera
+  diferencias.
+- **Escala logarítmica** cuando el dato abarca órdenes de magnitud, con marcas legibles.
+- **Escribe en el gráfico qué hay que mirar.** Si hace falta un párrafo aparte para
+  entenderlo, el gráfico no está terminado.
+- **Accesibilidad:** que se entienda en blanco y negro y con daltonismo. El color no puede
+  ser el único portador del significado.
+
+## Cómo se presenta un hallazgo
+
+1. **El hallazgo primero**, en una frase con su número y sus unidades.
+2. **Qué decisión cambia.** Si no cambia ninguna, no es un hallazgo, es un dato.
+3. **Qué no permite afirmar todavía.** Las limitaciones que declaras tú son parte del
+   resultado; las que descubre otro después son un problema de credibilidad.
+4. **Y solo entonces**, cómo se hizo.
+
+## Trampas que ya conozco
+
+- **Un promedio puede esconder una tendencia.** Seis meses que promedian 85,5 pueden ser
+  una caída constante de un punto al mes.
+- **Media y mediana pueden coincidir y no describir a nadie**, si los datos están en dos o
+  tres grupos separados.
+- **Una fecha leída como texto se ordena alfabéticamente**, así que noviembre va antes que
+  septiembre y nadie avisa.
+- **`df.describe()` solo mira las columnas numéricas** por defecto. Las de texto, con sus
+  categorías inesperadas, hay que pedirlas aparte.
+- **Eliminar filas cambia el denominador de todos los porcentajes** que calcules después.
+- **El dato agregado ya perdió información.** Si te dan medias por grupo, no puedes
+  recuperar la dispersión que había dentro.
+
+## Vocabulario, español e inglés
+
+| Español | Inglés |
+|---|---|
+| Análisis exploratorio | exploratory data analysis (EDA) |
+| Descubrir, estructurar, limpiar, unir, validar, presentar | discovering, structuring, cleaning, joining, validating, presenting |
+| Valor ausente | missing value |
+| Imputar | to impute |
+| Valor atípico | outlier |
+| Rango intercuartílico | interquartile range (IQR) |
+| Duplicado | duplicate |
+| Codificación one-hot | one-hot encoding |
+| Validación de entrada | input validation |
+| Datos personales identificables | personally identifiable information (PII) |
+| Ciclo de vida de la visualización | visualization life cycle |
+| Panel de control | dashboard |
+| Relato con datos | data storytelling |
+</code></pre>
+  </div>
+</section>
+</main>
+<footer class="footer">
+  Concentra / 2026-08-20
+</footer>
+<script>
+const button = document.getElementById('copy');
+const source = document.getElementById('brain');
+
+function selectSource() {
+  const range = document.createRange();
+  range.selectNodeContents(source);
+  const selection = window.getSelection();
+  selection.removeAllRanges();
+  selection.addRange(range);
+}
+
+button.addEventListener('click', async () => {
+  const text = source.textContent;
+  let copied = false;
+  // The clipboard API needs a secure context, which file:// is not, so fall back to
+  // selecting the text and letting the old command (or the reader's Ctrl+C) do it.
+  try {
+    await navigator.clipboard.writeText(text);
+    copied = true;
+  } catch {
+    selectSource();
+    try { copied = document.execCommand('copy'); } catch { copied = false; }
+  }
+  button.textContent = copied ? 'Copiado' : 'Seleccionado: pulsa Ctrl+C';
+  button.classList.toggle('done', copied);
+  if (!copied) selectSource();
+  setTimeout(() => {
+    button.textContent = 'Copiar todo';
+    button.classList.remove('done');
+  }, 2600);
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,143 @@
+{
+  "project": "waze",
+  "course": "curso5",
+  "title": "Waze: ¿le gana un modelo de árbol a la regresión?",
+  "generated": "2026-08-19",
+  "source_csv": "C:\\Users\\Bruce Wayne\\Documents\\03_Data Analysis Coursera\\Course 3 - Data Analytics\\Exc_3_Waze\\01_data\\waze_dataset.csv",
+  "data": {
+    "rows_raw": 14999,
+    "rows_unlabelled": 700,
+    "rows_labelled": 14299,
+    "churn_rate": 17.74
+  },
+  "split": {
+    "train_rows": 8579,
+    "train_churn": 17.74,
+    "validation_rows": 2145,
+    "validation_churn": 17.72,
+    "test_rows": 3575,
+    "test_churn": 17.73,
+    "course4_train_rows": 10724
+  },
+  "segments": {
+    "k2": {
+      "inertia": 33633.6,
+      "silhouette": 0.2588
+    },
+    "k3": {
+      "inertia": 28491.9,
+      "silhouette": 0.1937
+    },
+    "k4": {
+      "inertia": 24447.6,
+      "silhouette": 0.2061
+    },
+    "k5": {
+      "inertia": 21502.0,
+      "silhouette": 0.2021
+    },
+    "k6": {
+      "inertia": 19572.9,
+      "silhouette": 0.1957
+    },
+    "k7": {
+      "inertia": 18217.2,
+      "silhouette": 0.1919
+    },
+    "k_chosen": 2,
+    "best_silhouette": 0.2588,
+    "churn": {
+      "group_0": {
+        "users": 6395,
+        "rate": 17.29
+      },
+      "group_1": {
+        "users": 2184,
+        "rate": 19.05
+      }
+    },
+    "churn_spread": 1.75
+  },
+  "candidates": {
+    "logistica_auc": 0.7424,
+    "arbol_auc": 0.5717,
+    "bosque_auc": 0.7129,
+    "xgboost_auc": 0.7273
+  },
+  "tuning": {
+    "bosque": {
+      "combinations": 40,
+      "seconds": 73.4,
+      "best_params": {
+        "max_depth": "6",
+        "max_features": "0.5",
+        "min_samples_leaf": "50"
+      },
+      "cv_auc": 0.7529,
+      "validation_auc": 0.7405
+    },
+    "xgboost": {
+      "combinations": 48,
+      "seconds": 13.8,
+      "best_params": {
+        "learning_rate": "0.02",
+        "max_depth": "2",
+        "n_estimators": "200",
+        "subsample": "0.8"
+      },
+      "cv_auc": 0.7554,
+      "validation_auc": 0.7401
+    }
+  },
+  "finalists": {
+    "logistica_validation_auc": 0.7424,
+    "bosque_validation_auc": 0.7405,
+    "xgboost_validation_auc": 0.7401
+  },
+  "champion": "logistica",
+  "test": {
+    "logistica": {
+      "accuracy": 0.8249,
+      "precision": 0.5351,
+      "recall": 0.0962,
+      "f1": 0.1631,
+      "auc": 0.7379
+    },
+    "bosque": {
+      "accuracy": 0.8243,
+      "precision": 0.5357,
+      "recall": 0.071,
+      "f1": 0.1253,
+      "auc": 0.7318
+    },
+    "xgboost": {
+      "accuracy": 0.8246,
+      "precision": 0.5636,
+      "recall": 0.0489,
+      "f1": 0.09,
+      "auc": 0.7348
+    }
+  },
+  "course4": {
+    "accuracy": 0.8229,
+    "precision": 0.5049,
+    "recall": 0.082,
+    "f1": 0.1411,
+    "auc": 0.7368,
+    "test_rows": 3575
+  },
+  "verdict": {
+    "trees_win": false
+  },
+  "importance": {
+    "segment": 0.0026,
+    "iphone": 0.003,
+    "professional_driver": 0.0216,
+    "total_sessions": 0.0343,
+    "duration_minutes_drives": 0.0445,
+    "drives": 0.0497,
+    "km_per_driving_day": 0.1594,
+    "n_days_after_onboarding": 0.1687,
+    "activity_days": 0.5163
+  }
+}

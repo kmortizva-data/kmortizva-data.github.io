@@ -1,0 +1,654 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Incertidumbre: del punto al intervalo · Sílice, módulo 13</title>
+<style>
+/* Sílice: la hoja de estilos del curso.
+ *
+ * Identidad de papel de informe de planta, no de pantalla. El proyecto termina
+ * recomendando no desplegar, y eso es un informe técnico: papel hueso, tinta grafito,
+ * y una retícula de milimetrado muy tenue en la cabecera.
+ *
+ * Dos familias tipográficas y ni una más, las dos del sistema porque el sitio se abre
+ * desde file:// y tiene que funcionar sin internet: serif para la prosa (se lee como
+ * informe) y monoespaciada para todo lo que es dato, código, cifra o etiqueta.
+ *
+ * El acento lo inyecta cada página con --accent: es el del módulo, y marca su posición
+ * en el arco del proyecto. Los diez pasan check_palette.py antes de entrar aquí.
+ */
+
+:root {
+  --paper: #f6f3ec;
+  --bench: #eeeade;
+  --ink: #2a2622;
+  --ink-soft: #57504a;
+  --ink-faint: #8a8177;
+  --rule: #ddd6c6;
+  --rule-soft: #e8e2d4;
+  --grid: rgba(84, 69, 73, .07);
+  --accent: #632727;
+
+  --prose: Georgia, "Iowan Old Style", "Palatino Linotype", Palatino, "Times New Roman", serif;
+  --data: "Cascadia Mono", Consolas, "DejaVu Sans Mono", "Liberation Mono", monospace;
+
+  --measure: 680px;   /* la medida de la prosa, en píxeles y nunca en ch */
+  --wide: 1180px;     /* el borde derecho de los bloques anchos */
+  --margin: 132px;    /* la columna del margen, donde cuelgan los kickers */
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--prose);
+  font-size: 17px;
+  line-height: 1.62;
+  -webkit-text-size-adjust: 100%;
+}
+
+::selection { background: var(--accent); color: var(--paper); }
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+/* --------------------------------------------------------------- cabecera */
+
+.masthead {
+  border-bottom: 1px solid var(--rule);
+  background-color: var(--bench);
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 26px 26px;
+  background-position: -1px -1px;
+}
+
+.masthead-inner {
+  max-width: var(--wide);
+  margin: 0 auto;
+  padding: 2.4rem 2rem 1.6rem;
+}
+
+.eyebrow {
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-bottom: 1rem;
+}
+
+.eyebrow a { color: inherit; text-decoration: none; border-bottom: 1px solid transparent; }
+.eyebrow a:hover { border-bottom-color: var(--accent); color: var(--accent); }
+.eyebrow b { color: var(--accent); font-weight: 400; }
+
+.masthead h1 {
+  margin: 0;
+  font-size: clamp(1.9rem, 4.4vw, 2.9rem);
+  line-height: 1.14;
+  font-weight: 400;
+  letter-spacing: -.012em;
+  max-width: 900px;
+}
+
+.standfirst {
+  margin: .9rem 0 0;
+  max-width: var(--measure);
+  color: var(--ink-soft);
+  font-size: 1.02rem;
+  line-height: 1.55;
+}
+
+/* La cifra del módulo: el número que dejó, en grande, junto al título. Es lo que
+   convierte la cabecera en parte del argumento y no en decoración. */
+.figure-mark {
+  margin-top: 1.6rem;
+  display: flex;
+  align-items: baseline;
+  gap: .8rem;
+  flex-wrap: wrap;
+  border-left: 3px solid var(--accent);
+  padding-left: .9rem;
+}
+
+.figure-value {
+  font-family: var(--data);
+  font-size: clamp(1.5rem, 3.4vw, 2.1rem);
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: -.02em;
+}
+
+.figure-label {
+  font-family: var(--data);
+  font-size: .78rem;
+  letter-spacing: .04em;
+  color: var(--ink-soft);
+}
+
+/* El hilo del proyecto: diez segmentos, uno por módulo, con su cifra debajo. Desde
+   cualquier página se ve el recorrido entero, que es justo lo que a los apuntes
+   sueltos les faltaba. */
+.thread {
+  margin-top: 1.8rem;
+  display: grid;
+  /* One equal column per segment, whatever the temario says. It was pinned to ten and
+     the course grew to fourteen. */
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: 4px;
+}
+
+/* Where part 2 starts: the four modules that were never in the original project. */
+.thread .starts-part { margin-left: 10px; position: relative; }
+.thread .starts-part::after {
+  content: '';
+  position: absolute;
+  left: -7px; top: -3px; bottom: 0;
+  border-left: 1px solid var(--rule);
+}
+
+.thread a, .thread span {
+  display: block;
+  text-decoration: none;
+  color: var(--ink-faint);
+  font-family: var(--data);
+  font-size: .62rem;
+  letter-spacing: .04em;
+  padding-top: .4rem;
+  border-top: 3px solid var(--rule);
+  transition: color .12s, border-color .12s;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.thread a:hover { color: var(--ink); border-top-color: var(--ink-soft); }
+.thread [aria-current="page"] { color: var(--accent); border-top-color: var(--accent); }
+.thread .n { font-weight: 700; }
+.thread .v { color: inherit; opacity: .75; }
+
+/* Las pastillas de composición: de qué está hecho el módulo. */
+.assay {
+  margin-top: 1.6rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.4rem;
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .05em;
+  color: var(--ink-faint);
+}
+
+.assay b { color: var(--ink); font-weight: 700; }
+
+/* ----------------------------------------------------------------- cuerpo */
+
+.container {
+  max-width: var(--wide);
+  margin: 0 auto;
+  padding: 2.6rem 2rem 4rem;
+}
+
+/* Cada sección es una anotación de cuaderno: el kicker cuelga en el margen
+   izquierdo y el contenido corre en la columna principal. En pantalla estrecha el
+   kicker se pone encima. */
+.block {
+  display: grid;
+  grid-template-columns: var(--margin) minmax(0, 1fr);
+  column-gap: 2rem;
+  padding: 2.2rem 0;
+  border-top: 1px solid var(--rule);
+}
+
+.block:first-child { border-top: 0; padding-top: .6rem; }
+
+.kicker {
+  grid-column: 1;
+  font-family: var(--data);
+  font-size: .68rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding-top: .45rem;
+}
+
+.block > :not(.kicker) { grid-column: 2; }
+
+.block-title {
+  margin: 0 0 1.1rem;
+  font-size: 1.42rem;
+  font-weight: 400;
+  line-height: 1.25;
+  letter-spacing: -.008em;
+}
+
+.is-warning .kicker, .is-result .kicker { color: var(--accent); }
+.is-warning .block-title { border-bottom: 2px solid var(--accent); padding-bottom: .4rem; display: inline-block; }
+.is-result { background: var(--bench); margin: 0 -1.2rem; padding: 2.2rem 1.2rem; }
+.is-result .block-title { color: var(--accent); }
+
+/* Prosa: justificada con partición, que sin partición el español justificado abre
+   ríos. Tablas, código y pies de figura se quedan sin justificar. */
+.block p, .block li, .block dd, details > *:not(summary) {
+  max-width: var(--measure);
+  text-align: justify;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+}
+
+.block p { margin: 0 0 1rem; }
+.block p:last-child { margin-bottom: 0; }
+.block ul, .block ol { margin: 0 0 1rem; padding-left: 1.3rem; max-width: var(--measure); }
+.block li { margin-bottom: .5rem; }
+.block li::marker { color: var(--accent); font-family: var(--data); font-size: .85em; }
+
+td, th, figcaption, .assay, .thread a, .res li { text-align: left; hyphens: manual; }
+
+a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+a:hover { text-decoration-thickness: 2px; }
+strong { font-weight: 700; }
+em { font-style: italic; color: var(--ink-soft); }
+
+h3.sub {
+  margin: 1.9rem 0 .7rem;
+  font-size: 1.07rem;
+  font-weight: 700;
+  letter-spacing: -.004em;
+}
+
+h3.sub:first-child { margin-top: 0; }
+
+h4.sub {
+  margin: 1.4rem 0 .5rem;
+  font-family: var(--data);
+  font-size: .82rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  color: var(--ink-soft);
+}
+
+/* ------------------------------------------------------------ código y datos */
+
+code {
+  font-family: var(--data);
+  font-size: .87em;
+  background: var(--bench);
+  padding: .1em .32em;
+  border-radius: 2px;
+}
+
+pre {
+  margin: 0 0 1rem;
+  padding: 1rem 1.1rem;
+  background: var(--bench);
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--accent);
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+pre code { background: none; padding: 0; font-size: .82rem; line-height: 1.62; }
+
+/* La salida es lo que imprime el código, no código para correr: se marca aparte
+   para que nadie confunda entrada con salida. */
+.output {
+  margin: 0 0 1rem;
+  border: 1px dashed var(--rule);
+  background: transparent;
+}
+
+.output-tag {
+  display: block;
+  font-family: var(--data);
+  font-size: .64rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding: .45rem 1.1rem 0;
+}
+
+.output pre {
+  margin: 0;
+  border: 0;
+  background: none;
+  padding: .3rem 1.1rem 1rem;
+}
+
+.output pre code { color: var(--ink-soft); }
+
+/* La anotación línea por línea, para quien no ha programado antes. */
+.annot {
+  margin: 0 0 1.2rem;
+  border: 1px solid var(--rule);
+  border-top: 0;
+  padding: 0 1.1rem .6rem;
+  background: transparent;
+}
+
+.annot-head {
+  font-family: var(--data);
+  font-size: .64rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding: .55rem 0 .5rem;
+  border-bottom: 1px solid var(--rule-soft);
+  margin-bottom: .4rem;
+}
+
+.annot dt { padding: .4rem 0 .1rem; }
+.annot dt code { background: none; padding: 0; color: var(--accent); font-weight: 700; }
+.annot dd {
+  margin: 0 0 .4rem;
+  color: var(--ink-soft);
+  font-size: .94rem;
+  border-bottom: 1px solid var(--rule-soft);
+  padding-bottom: .5rem;
+}
+.annot dd:last-of-type { border-bottom: 0; }
+
+pre:has(+ .annot) { margin-bottom: 0; }
+
+blockquote {
+  margin: 0 0 1rem;
+  padding: .2rem 0 .2rem 1.1rem;
+  border-left: 3px solid var(--rule);
+  color: var(--ink-soft);
+  font-style: italic;
+  max-width: var(--measure);
+}
+
+/* --------------------------------------------------------------- tablas */
+
+.table-wrap { overflow-x: auto; margin: 0 0 1.2rem; }
+
+table {
+  border-collapse: collapse;
+  width: auto;
+  max-width: 100%;
+  font-size: .92rem;
+}
+
+th, td {
+  padding: .5rem .9rem .5rem 0;
+  border-bottom: 1px solid var(--rule-soft);
+  vertical-align: top;
+}
+
+th {
+  font-family: var(--data);
+  font-size: .7rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--ink-faint);
+  border-bottom: 1px solid var(--rule);
+  white-space: nowrap;
+}
+
+/* -------------------------------------------------------------- repaso */
+
+details {
+  border-bottom: 1px solid var(--rule-soft);
+  padding: .2rem 0;
+  max-width: var(--measure);
+}
+
+summary {
+  cursor: pointer;
+  list-style: none;
+  padding: .7rem 0 .7rem 1.5rem;
+  position: relative;
+  font-weight: 700;
+}
+
+summary::-webkit-details-marker { display: none; }
+
+summary::before {
+  content: '+';
+  position: absolute;
+  left: 0;
+  font-family: var(--data);
+  color: var(--accent);
+  font-weight: 700;
+}
+
+details[open] summary::before { content: '\2212'; }
+details[open] summary { color: var(--accent); }
+details > *:not(summary) { color: var(--ink-soft); }
+details > *:last-child { padding-bottom: .8rem; }
+
+/* -------------------------------------------------------------- figuras */
+
+figure.fig {
+  margin: 0 0 1.4rem;
+  max-width: 100%;
+  border: 1px solid var(--rule);
+  background: #fff;
+  padding: .6rem;
+}
+
+figure.fig img { width: 100%; height: auto; display: block; }
+
+figure.fig figcaption {
+  margin-top: .6rem;
+  padding-top: .5rem;
+  border-top: 1px solid var(--rule-soft);
+  font-family: var(--data);
+  font-size: .7rem;
+  letter-spacing: .04em;
+  color: var(--ink-faint);
+}
+
+.gone {
+  font-family: var(--data);
+  font-size: .76rem;
+  color: var(--accent);
+  border: 1px dashed var(--accent);
+  padding: .5rem .8rem;
+}
+
+/* ------------------------------------------------------- pie y navegación */
+
+.pager {
+  max-width: var(--wide);
+  margin: 0 auto;
+  padding: 0 2rem 3rem;
+  display: flex;
+  gap: 1.4rem;
+  justify-content: space-between;
+  font-family: var(--data);
+  font-size: .78rem;
+}
+
+.pager a { max-width: 46%; text-decoration: none; border-bottom: 1px solid var(--rule); padding-bottom: .3rem; }
+.pager a:hover { border-bottom-color: var(--accent); }
+.pager .dir { display: block; font-size: .64rem; letter-spacing: .13em; text-transform: uppercase; color: var(--ink-faint); }
+.pager .next { text-align: right; margin-left: auto; }
+
+.footer {
+  border-top: 1px solid var(--rule);
+  padding: 1.4rem 2rem 2.4rem;
+  font-family: var(--data);
+  font-size: .72rem;
+  letter-spacing: .06em;
+  color: var(--ink-faint);
+}
+
+.footer-inner { max-width: var(--wide); margin: 0 auto; display: flex; gap: 1.4rem; flex-wrap: wrap; }
+
+/* ------------------------------------------------------------- índice */
+
+.toc { list-style: none; margin: 0; padding: 0; max-width: 100%; }
+
+.toc li {
+  border-top: 1px solid var(--rule-soft);
+  max-width: 100%;
+}
+
+.toc li:last-child { border-bottom: 1px solid var(--rule-soft); }
+
+.toc a, .toc .pending {
+  display: grid;
+  grid-template-columns: 3rem minmax(0, 1fr) auto;
+  gap: 1.2rem;
+  align-items: baseline;
+  padding: 1rem .4rem;
+  text-decoration: none;
+  color: inherit;
+}
+
+.toc a:hover { background: var(--bench); }
+.toc .pending { color: var(--ink-faint); }
+.toc .num { font-family: var(--data); font-size: .82rem; font-weight: 700; }
+.toc .name { font-size: 1.05rem; }
+.toc .name small { display: block; font-family: var(--prose); font-size: .86rem; color: var(--ink-soft); margin-top: .2rem; }
+.toc .mark { font-family: var(--data); font-size: .82rem; font-weight: 700; white-space: nowrap; }
+.toc .tag { font-family: var(--data); font-size: .66rem; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-faint); }
+
+/* ---------------------------------------------------------- responsive */
+
+@media (max-width: 900px) {
+  .block { grid-template-columns: minmax(0, 1fr); }
+  .block > :not(.kicker) { grid-column: 1; }
+  .kicker { grid-column: 1; padding-top: 0; margin-bottom: .7rem; }
+  .thread { grid-auto-flow: row; grid-template-columns: repeat(5, 1fr); gap: 6px 4px; }
+  .thread .starts-part { margin-left: 0; }
+  .thread .starts-part::after { display: none; }
+  .toc a, .toc .pending { grid-template-columns: 2.2rem minmax(0, 1fr); }
+  .toc .mark { grid-column: 2; }
+}
+
+@media (max-width: 620px) {
+  body { font-size: 16px; }
+  .masthead-inner, .container, .pager, .footer { padding-left: 1.2rem; padding-right: 1.2rem; }
+  .is-result { margin: 0; padding: 2rem 1rem; }
+  .block p, .block li { text-align: left; }
+}
+
+@media print {
+  .thread, .pager { display: none; }
+  body { font-size: 11pt; }
+  .masthead { background: none; }
+  .block { break-inside: avoid; }
+}
+
+/* -------------------------------------------------- resumen y plegables */
+
+/* El resumen de entrada: la cifra, la trampa y la decision, en cinco vinetas.
+   Se lee en 30 segundos o se sigue leyendo. */
+.is-brief {
+  border-top: 0;
+  padding-top: .4rem;
+}
+
+.is-brief .kicker { color: var(--accent); }
+
+.is-brief ul {
+  list-style: none;
+  padding-left: 0;
+  max-width: var(--measure);
+  border-left: 3px solid var(--accent);
+  padding: .2rem 0 .2rem 1.1rem;
+}
+
+.is-brief li { margin-bottom: .7rem; text-align: left; }
+.is-brief li:last-child { margin-bottom: 0; }
+
+/* Los plegables de contenido denso: el glosario y la anotacion del codigo.
+   Cerrados por defecto, para que la pagina no sea un muro. */
+details.fold {
+  border: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+  background: transparent;
+  margin: 0 0 1.2rem;
+  padding: 0;
+  max-width: 100%;
+}
+
+details.fold > summary {
+  font-family: var(--data);
+  font-size: .68rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  font-weight: 400;
+  color: var(--ink-faint);
+  padding: .55rem .9rem .55rem 2rem;
+}
+
+details.fold > summary::before { left: .9rem; }
+details.fold[open] > summary {
+  color: var(--accent);
+  border-bottom: 1px solid var(--rule-soft);
+  margin-bottom: 0;
+}
+
+details.fold > *:not(summary) { padding: .8rem .9rem; color: inherit; }
+details.fold ul { margin-bottom: 0; }
+details.fold .annot { border: 0; padding: 0; margin: 0; }
+details.fold .annot dd { max-width: var(--measure); }
+
+/* Un bloque de codigo seguido de su plegable van pegados. */
+pre:has(+ details.fold) { margin-bottom: 0; border-bottom: 0; }
+
+:root { --accent: #245d6d; }
+</style>
+</head>
+<body>
+<header class="masthead">
+  <div class="masthead-inner">
+    <div class="eyebrow"><a href="index.html">Sílice</a> / M&oacute;dulo <b>13</b> de 14</div>
+    <h1>Incertidumbre: del punto al intervalo</h1>
+    <p class="standfirst">Regresión cuantílica y predicción conforme. Si el valor puntual no sirve, queda por saber si un intervalo con cobertura garantizada sí</p>
+    <div class="figure-mark">
+      <span class="figure-value">92,0 %</span>
+      <span class="figure-label">la cobertura real de un intervalo pedido al 90 %, y lo único del proyecto que cumple</span>
+    </div>
+    <nav class="thread" aria-label="El arco del proyecto"><a href="m01_radiografia_del_dataset.html" title="1. Radiografía del dataset"><span class="n">1</span> <span class="v">737.453</span></a><a href="m02_el_primer_modelo_y_el_techo.html" title="2. El primer modelo, y el techo que apareció enseguida"><span class="n">2</span> <span class="v">R² 0,04</span></a><a href="m03_como_aprende_un_modelo.html" title="3. Cómo aprende un modelo por dentro"><span class="n">3</span> <span class="v">R² 0,06</span></a><a href="m04_preprocesar_y_validar.html" title="4. Preprocesar y validar sin hacer trampa"><span class="n">4</span> <span class="v">R² −0,13</span></a><a href="m05_darle_memoria_al_modelo.html" title="5. Darle memoria al modelo"><span class="n">5</span> <span class="v">R² 0,64</span></a><a href="m06_clasificar_fuera_de_spec.html" title="6. Clasificar: dentro o fuera de especificación"><span class="n">6</span> <span class="v">0,62 vs 0,77</span></a><a href="m07_contra_que_se_compara.html" title="7. Contra qué se compara un modelo"><span class="n">7</span> <span class="v">+0,009</span></a><a href="m08_donde_aporta_el_ml.html" title="8. ¿Dónde aporta el ML de verdad?"><span class="n">8</span> <span class="v">0 de 4</span></a><a href="m09_los_tres_estados_de_la_planta.html" title="9. Los tres estados de la planta"><span class="n">9</span> <span class="v">k = 3</span></a><a href="m10_redes_producto_y_cierre.html" title="10. Redes, producto y cierre"><span class="n">10</span> <span class="v">0,76</span></a><a class="starts-part" href="m11_modelos_de_secuencia.html" title="11. Modelos de secuencia: LSTM, GRU y convolución causal"><span class="n">11</span> <span class="v">+0,215</span></a><a href="m12_practica_de_pronostico.html" title="12. La práctica de pronóstico que faltó"><span class="n">12</span> <span class="v">0,52 vs 0,63</span></a><span aria-current="page" title="13. Incertidumbre: del punto al intervalo"><span class="n">13</span> <span class="v">92,0 %</span></span><a href="m14_lectura_causal.html" title="14. Lectura causal del lazo de control"><span class="n">14</span> <span class="v">+0,16</span></a></nav>
+    <div class="assay"><span><b>0</b> apuntes de origen</span><span><b>4</b> figuras</span><span><b>2</b> scripts</span></div>
+  </div>
+</header>
+<main class="container">
+<section class="block is-brief"><span class="kicker">Resumen</span><h2 class="block-title">En 30 segundos</h2><ul><li><strong>92,0 %.</strong> La cobertura real de un intervalo pedido al 90 %. Es lo primero del proyecto que cumple lo que promete.</li><li><strong>El intervalo normal se queda corto</strong>, con 84,8 % cuando pedía 90 %. Es el error más común al dar incertidumbre.</li><li><strong>La regresión cuantílica también falla</strong>, con 83,1 %. Aprender el cuantil no garantiza cubrirlo.</li><li><strong>La predicción conforme sí garantiza</strong>, y no supone nada sobre la distribución del error.</li><li><strong>Aquí el modelo por fin aporta algo</strong>: su intervalo válido es un 9 % más estrecho que el de la persistencia.</li></ul></section>
+<section class="block "><span class="kicker">Contexto</span><h2 class="block-title">Qué resuelve este módulo</h2><p>Doce módulos dando un número, y todos pierden contra repetir el último análisis. Eso cierra una pregunta y abre otra.</p><p>Una planta no solo quiere un valor. Quiere saber cuánto fiarse de él. &quot;La sílice será 2,4&quot; no sirve de nada si el modelo se equivoca la mitad de las veces. <strong>&quot;La sílice estará entre 1,6 y 3,4, y este intervalo acierta 90 veces de cada 100&quot;</strong> sí es accionable.</p><p>La pregunta honesta del módulo: ¿es desplegable un intervalo calibrado, aunque la predicción puntual no lo sea?</p></section>
+<section class="block is-toy"><span class="kicker">A mano</span><h2 class="block-title">Antes de la teoría: un ejemplo de juguete</h2><h3 class="sub">Paso 1. El problema con un número solo</h3><p>Un modelo dice 2,4. El operador pregunta cuánto puede fallar y no hay respuesta.</p><p>Se puede calcular la desviación de los errores en entrenamiento y multiplicarla por 1,645, que es lo que corresponde al 90 % en una campana. <strong>Eso supone que los errores siguen una campana.</strong> Casi nunca es cierto.</p><h3 class="sub">Paso 2. Aprender el cuantil, con la pérdida pinball</h3><p>Hay una forma de que el modelo aprenda el percentil 90 directamente: castigar los errores de forma asimétrica.</p><p>Cinco lotes que salieron a 1, 2, 3, 4 y 5. Buscamos un número que deje el 90 % por debajo.</p><pre><code>perdida = peso · (real − predicho)     cuando el real queda POR ENCIMA
+        = (1 − peso) · (predicho − real) cuando queda POR DEBAJO</code></pre><p>Con peso 0,9, quedarse corto cuesta nueve veces más que pasarse. Probamos tres valores:</p><div class="table-wrap"><table><thead><tr><th>Predicción</th><th>Se quedan por encima</th><th>Se quedan por debajo</th><th>Pérdida total</th><th>Media</th></tr></thead><tbody><tr><td>3</td><td>1 + 2 = 3, por 0,9</td><td>2 + 1 = 3, por 0,1</td><td>2,7 + 0,3 = 3,0</td><td><strong>0,60</strong></td></tr><tr><td>4</td><td>1, por 0,9</td><td>3 + 2 + 1 = 6, por 0,1</td><td>0,9 + 0,6 = 1,5</td><td><strong>0,30</strong></td></tr><tr><td>5</td><td>nada</td><td>4 + 3 + 2 + 1 = 10, por 0,1</td><td>0 + 1,0 = 1,0</td><td><strong>0,20</strong></td></tr></tbody></table></div><p>El mínimo está en 5, que es el percentil alto de estos cinco números. <strong>Con peso 0,5 el mínimo caería en 3, la mediana.</strong> El peso asimétrico es lo que convierte una pérdida en un buscador de percentiles.</p><h3 class="sub">Paso 3. Conformar, que es otra cosa</h3><p>La regresión cuantílica aprende un percentil, pero <strong>nadie garantiza que acierte el 90 %</strong>. La predicción conforme ataca el problema por el otro lado.</p><p>Se aparta un bloque de datos que el modelo nunca vio, se miden sus errores ahí, y se ordenan. Veinte errores de calibración, ya ordenados:</p><pre><code>0,1  0,1  0,2  0,2  0,3  0,3  0,4  0,4  0,5  0,5
+0,6  0,6  0,7  0,7  0,8  0,8  0,9  0,9  1,5  2,0</code></pre><p>Para cubrir el 90 % hace falta el error que deja al 90 % por debajo. De 20 valores, ese es el 18º.</p><pre><code>el 18º error ordenado = 0,9
+intervalo = prediccion ± 0,9</code></pre><h3 class="sub">Paso 4. Comprobar que cubre</h3><p>De los 20 errores de calibración, <strong>18 son menores o iguales a 0,9</strong>. Eso es exactamente el 90 %.</p><pre><code>cobertura = 18 / 20 = 0,90</code></pre><p>Y aquí está lo importante: <strong>no se ha supuesto nada</strong> sobre la forma de los errores. Ni campana, ni simetría. Solo se han ordenado y contado.</p><h3 class="sub">Paso 5. Qué acaba de pasar</h3><p>Los dos últimos errores valían 1,5 y 2,0, muy por encima del resto. Una campana ajustada a esos 20 números daría una desviación inflada por esos dos, y un intervalo con la anchura equivocada.</p><p>El método conforme no se inmuta: cuenta posiciones. Por eso su garantía se sostiene <strong>con cualquier modelo y con cualquier distribución de error</strong>, que es lo que lo hace útil de verdad.</p></section>
+<section class="block is-terms"><span class="kicker">Términos</span><h2 class="block-title">Glosario</h2><details class="fold"><summary>11 términos, en palabras simples</summary><ul><li><strong>Predicción puntual.</strong> Un solo número como respuesta.</li><li><strong>Intervalo de predicción.</strong> Un rango que debería contener el valor real con una probabilidad declarada.</li><li><strong>Cobertura.</strong> La fracción de veces que el intervalo contiene de verdad el valor real.</li><li><strong>Nivel nominal.</strong> La cobertura que se pidió. Aquí, 90 %.</li><li><strong>Quedarse corto.</strong> Cubrir menos de lo prometido. En inglés, <em>undercoverage</em>. Es el fallo grave.</li><li><strong>Pérdida pinball.</strong> La pérdida asimétrica que hace que un modelo aprenda un percentil.</li><li><strong>Regresión cuantílica.</strong> Entrenar con esa pérdida para predecir un percentil en vez de la media.</li><li><strong>Predicción conforme.</strong> Construir el intervalo a partir de los errores medidos sobre un bloque de calibración.</li><li><strong>Conjunto de calibración.</strong> Datos que el modelo no vio al entrenar y que tampoco son los de prueba.</li><li><strong>Residuo.</strong> El error del modelo en un caso concreto.</li><li><strong>Libre de distribución.</strong> Que la garantía no supone ninguna forma concreta de los errores.</li></ul></details></section>
+<section class="block is-method"><span class="kicker">Método</span><h2 class="block-title">Paso a paso</h2><h3 class="sub">Paso 1. Partir en tres, no en dos</h3><p>Entrenamiento, calibración y prueba. La calibración sale del <strong>último cuarto</strong> de los meses de entrenamiento, no de un trozo al azar, para que sus horas sean posteriores a las de entrenamiento.</p><h3 class="sub">Paso 2. Construir el intervalo ingenuo, para tener con qué comparar</h3><p>La desviación de los residuos de entrenamiento por 1,645. Es lo que se hace por costumbre y hay que medir cuánto falla.</p><h3 class="sub">Paso 3. Entrenar dos modelos cuantílicos</h3><p>Uno para el percentil 5 y otro para el 95. Entre los dos queda el 90 % central.</p><h3 class="sub">Paso 4. Conformar</h3><p>Medir los errores absolutos del modelo sobre la calibración, ordenarlos, y coger el que deja el 90 % por debajo. Ese es el radio del intervalo.</p><h3 class="sub">Paso 5. Medir la cobertura de verdad</h3><p>Contar cuántas horas de prueba caen dentro. Es la única comprobación que vale.</p><h3 class="sub">Paso 6. Mirar también la anchura</h3><p>Un intervalo que cubre el 100 % siendo del tamaño del rango entero no sirve. Cobertura y anchura se reportan juntas.</p></section>
+<section class="block is-code"><span class="kicker">Código</span><h2 class="block-title">El código, por partes</h2><h3 class="sub">Paso 1. La pérdida pinball, para entender qué optimiza</h3><pre><code class="language-python">def pinball(prediccion, valores, cuantil):
+    diferencia = valores - prediccion
+    return np.mean(np.maximum(cuantil * diferencia, (cuantil - 1) * diferencia))</code></pre><details class="fold"><summary>línea por línea, 3 entradas</summary><dl class="annot"><dt><code>np.maximum(a, b)</code></dt><dd>El mayor de los dos, elemento a elemento. Es lo que elige la rama según el signo de la diferencia.</dd><dt><code>cuantil * diferencia</code></dt><dd>La rama de arriba: cuando el real supera a la predicción, la diferencia es positiva.</dd><dt><code>(cuantil - 1) * diferencia</code></dt><dd>La rama de abajo. Con cuantil 0,9 esto vale −0,1 por la diferencia, que es negativa, así que sale positivo.</dd></dl></details><div class="output"><span class="output-tag">sale</span><pre><code>entrenamiento 2348 h · calibracion 783 h · prueba 960 h
+Intervalo pedido: 90 %</code></pre></div><figure class="fig"><img src="../figuras/fig_m13_pinball.4f57a865.png" alt="La pérdida pinball sobre 1, 2, 3, 4, 5. Con peso 0,5 el mínimo cae en la mediana. Con 0,9 se desplaza al extremo alto." loading="lazy"><figcaption>La pérdida pinball sobre 1, 2, 3, 4, 5. Con peso 0,5 el mínimo cae en la mediana. Con 0,9 se desplaza al extremo alto.</figcaption></figure><h3 class="sub">Paso 2. Regresión cuantílica, con el boosting de siempre</h3><pre><code class="language-python">modelo = HistGradientBoostingRegressor(loss=&quot;quantile&quot;, quantile=0.95,
+                                       early_stopping=True, random_state=0)
+modelo.fit(train[feats], train[TARGET])</code></pre><details class="fold"><summary>línea por línea, 2 entradas</summary><dl class="annot"><dt><code>loss=&quot;quantile&quot;</code></dt><dd>Cambia el error cuadrático por la pérdida pinball. Es el mismo modelo con otro objetivo.</dd><dt><code>quantile=0.95</code></dt><dd>Qué percentil aprender. Hacen falta dos modelos, uno para cada extremo del intervalo.</dd></dl></details><h3 class="sub">Paso 3. Conformar, en cuatro líneas</h3><pre><code class="language-python">residuos = np.abs(calibrate[TARGET] - modelo.predict(calibrate[feats]))
+nivel = np.ceil((len(residuos) + 1) * (1 - ALPHA)) / len(residuos)
+ancho = np.quantile(residuos, nivel)
+bajo, alto = centro - ancho, centro + ancho</code></pre><details class="fold"><summary>línea por línea, 3 entradas</summary><dl class="annot"><dt><code>np.abs(real - predicho)</code></dt><dd>Los errores absolutos sobre datos que el modelo nunca vio. Ahí está toda la información que hace falta.</dd><dt><code>np.ceil((n + 1) * (1 - alpha)) / n</code></dt><dd>La corrección de muestra finita. Sin ella la garantía es aproximada; con ella es exacta.</dd><dt><code>np.quantile(residuos, nivel)</code></dt><dd>El error que deja ese porcentaje por debajo. Ese es el radio del intervalo.</dd></dl></details><div class="output"><span class="output-tag">sale</span><pre><code>                        metodo cobertura ancho_medio
+normal (1,645 sigma del train)     84.8%       1.739
+          regresion cuantilica     83.1%       2.142
+    conforme (split conformal)     92.0%       2.434
+conforme sobre la persistencia     93.9%       2.664</code></pre></div><figure class="fig"><img src="../figuras/fig_m13_intervalos.da2de16c.png" alt="Diez días de agosto con el intervalo conforme dibujado. En gris las horas que caen dentro y en rojo las que se salen." loading="lazy"><figcaption>Diez días de agosto con el intervalo conforme dibujado. En gris las horas que caen dentro y en rojo las que se salen.</figcaption></figure></section>
+<section class="block is-result"><span class="kicker">Resultado</span><h2 class="block-title">El resultado, medido</h2><p><strong>Qué esperábamos.</strong> Que los tres métodos rondaran el 90 % pedido, con diferencias pequeñas de anchura.</p><p><strong>Qué salió.</strong> Dos de los tres se quedan cortos, y bastante.</p><div class="table-wrap"><table><thead><tr><th>Método</th><th>Cobertura real</th><th>Anchura media</th></tr></thead><tbody><tr><td>Normal, 1,645 sigma</td><td>84,8 %</td><td>1,739</td></tr><tr><td>Regresión cuantílica</td><td>83,1 %</td><td>2,142</td></tr><tr><td><strong>Conforme, sobre el modelo</strong></td><td><strong>92,0 %</strong></td><td>2,434</td></tr><tr><td>Conforme, sobre la persistencia</td><td>93,9 %</td><td>2,664</td></tr></tbody></table></div><figure class="fig"><img src="../figuras/fig_m13_cobertura.e4d2e6db.png" alt="La cobertura real de los cuatro métodos contra el 90 % pedido. Solo los conformes lo alcanzan." loading="lazy"><figcaption>La cobertura real de los cuatro métodos contra el 90 % pedido. Solo los conformes lo alcanzan.</figcaption></figure><p><strong>Qué significa.</strong> Quedarse corto es el fallo grave de un intervalo, y es el que cometen los dos métodos más habituales.</p><p>Un intervalo que promete 90 % y cubre 84,8 % <strong>miente a quien lo usa</strong>. Si un operador ajusta su margen de seguridad creyendo que se equivoca una vez de cada diez, y en realidad se equivoca una de cada siete, la decisión está mal calibrada.</p><p>La regresión cuantílica queda todavía peor, con 83,1 %, y eso sorprende porque su objetivo era justo aprender los percentiles. Aprenderlos sobre el entrenamiento no garantiza acertarlos sobre datos futuros, sobre todo cuando la planta cambió de régimen.</p><h3 class="sub">Lo primero del proyecto que cumple lo que promete</h3><p><strong>La predicción conforme entrega el 92,0 % que prometía cubrir al 90 %.</strong></p><p>Es un resultado importante después de doce módulos de resultados negativos. Y no es casualidad ni suerte: la garantía es matemática y no supone nada sobre la forma de los errores. Solo pide que la calibración se parezca a la prueba.</p><h3 class="sub">Y aquí el modelo por fin aporta algo</h3><div class="table-wrap"><table><thead><tr><th></th><th>Cobertura</th><th>Anchura</th></tr></thead><tbody><tr><td>Conforme sobre el modelo</td><td>92,0 %</td><td><strong>2,434</strong></td></tr><tr><td>Conforme sobre la persistencia</td><td>93,9 %</td><td>2,664</td></tr></tbody></table></div><p>Las dos cumplen. <strong>La del modelo es un 9 % más estrecha</strong>, 2,434 contra 2,664.</p><p>Es la primera vez en todo el proyecto que el machine learning gana una comparación limpia contra la persistencia. No en la predicción puntual, sino en la anchura del intervalo a cobertura válida.</p><h3 class="sub">La honestidad sobre la anchura</h3><figure class="fig"><img src="../figuras/fig_m13_ancho_vs_cobertura.613d6411.png" alt="Cobertura contra anchura. La línea vertical marca el rango completo del objetivo, y los cuatro métodos están muy por debajo de él." loading="lazy"><figcaption>Cobertura contra anchura. La línea vertical marca el rango completo del objetivo, y los cuatro métodos están muy por debajo de él.</figcaption></figure><p>El objetivo va de 0,60 a 5,53 en el periodo de prueba, un rango de 4,93. El intervalo conforme mide 2,434, que es <strong>la mitad de ese rango</strong>.</p><p>Un intervalo así dice poco. &quot;Entre 1,2 y 3,6&quot; cubre desde concentrado excelente hasta fuera de especificación. Cumple lo que promete y su valor operativo es limitado.</p><p><strong>Las dos cosas son verdad a la vez</strong>, y las dos hay que decirlas.</p><h3 class="sub">Lo que este módulo deja abierto</h3><p>Trece módulos midiendo qué se puede predecir, y el resultado es siempre el mismo: muy poco. Falta explicar <strong>por qué</strong> los datos de proceso no informan, más allá de constatar que no lo hacen.</p><p>La respuesta tiene nombre y no es de machine learning. La planta opera en lazo cerrado, y un lazo de control borra justo la variación de la que un modelo aprendería. El módulo 14 lo trata.</p></section>
+<section class="block is-warning"><span class="kicker">Trampas</span><h2 class="block-title">Ojo</h2><ul><li><strong>Quedarse corto es el fallo grave.</strong> Un intervalo que cubre menos de lo que promete es peor que no dar intervalo.</li><li><strong>1,645 sigma supone una campana.</strong> Los errores de un modelo sobre datos de planta casi nunca la siguen.</li><li><strong>Aprender un cuantil no garantiza cubrirlo.</strong> Aquí la regresión cuantílica queda en 83,1 %.</li><li><strong>La calibración no puede ser el conjunto de prueba.</strong> Si lo fuera, la garantía se evaporaría.</li><li><strong>La calibración se toma del final del entrenamiento</strong>, no al azar. En series de tiempo, un trozo al azar es fuga.</li><li><strong>Cobertura y anchura se reportan juntas.</strong> Cubrir el 100 % con el rango entero no es un logro.</li><li><strong>La garantía conforme supone intercambiabilidad.</strong> Si la planta cambia de régimen entre calibración y uso, se degrada.</li></ul></section>
+<section class="block is-bridge"><span class="kicker">Analogía</span><h2 class="block-title">Puente metalúrgico</h2><p>Un intervalo de predicción es el <strong>error declarado de un ensayo de laboratorio</strong>. Un informe que dice &quot;62,4 % de Fe&quot; sin más es un informe incompleto. Uno que dice &quot;62,4 ± 0,3&quot; permite decidir si la diferencia con el lote anterior es real o es ruido de medición.</p><p>La predicción conforme es el <strong>material de referencia certificado</strong>. En vez de suponer que el analizador se comporta como una campana, se le pasan patrones conocidos, se anotan sus errores reales y de ahí sale la incertidumbre declarada. No se supone: se mide sobre casos que el instrumento no usó para calibrarse.</p><p>Y la conclusión sobre la anchura tiene su equivalente exacto. Un ensayo con una incertidumbre de la mitad del rango de la variable <strong>es honesto y no sirve para controlar el proceso</strong>. Saber que tu método tiene esa precisión es valioso, porque evita tomar decisiones que no aguanta.</p></section>
+<section class="block is-review"><span class="kicker">Repaso</span><h2 class="block-title">Repaso</h2><details><summary>¿Por qué un intervalo puede ser útil aunque la predicción puntual sea mala?</summary><p>Porque responde a una pregunta distinta y accionable: cuánto fiarse.</p><p>Una predicción puntual mala obliga a ignorar el modelo. Un intervalo con cobertura garantizada permite decidir con el margen correcto, aunque sea ancho. Si el sistema dice que la sílice estará entre 1,2 y 3,6 con un 90 % de confianza, el operador sabe que no puede descartar salirse de especificación y actúa en consecuencia. El valor está en la garantía, no en la precisión.</p></details><details><summary>El intervalo normal cubre 84,8 % cuando pedía 90 %. ¿Qué salió mal?</summary><p>La suposición de que los errores siguen una campana.</p><p>El método multiplica la desviación de los residuos por 1,645 porque ese es el factor del 90 % en una distribución normal. Los errores de este modelo no son normales: tienen cola, porque en los meses de otro régimen operativo el modelo falla mucho más. Una desviación calculada sobre una mezcla de errores pequeños y errores grandes no describe bien ninguno de los dos, y el intervalo sale demasiado estrecho.</p></details><details><summary>¿Qué garantiza exactamente la predicción conforme, y qué pide a cambio?</summary><p>Garantiza que la cobertura será al menos la pedida, sin suponer nada sobre la forma de los errores.</p><p>Lo consigue midiendo los errores del modelo sobre un bloque de calibración que nunca vio, y usando el percentil empírico de esos errores como radio del intervalo. Lo que pide a cambio es intercambiabilidad: que los datos de calibración y los de uso vengan de la misma población. Es una condición real y aquí se cumple solo a medias, porque la planta cambió de régimen. Aun así entrega 92,0 %.</p></details><details><summary>La regresión cuantílica aprende los percentiles y cubre menos que el método ingenuo. ¿Cómo?</summary><p>Porque aprende los percentiles del entrenamiento, no los del futuro.</p><p>El modelo minimiza la pérdida pinball sobre los meses de marzo a julio, así que sus percentiles describen bien esos meses. En agosto y septiembre la planta opera en otro régimen, con errores distintos, y esos percentiles se quedan cortos. El método conforme sortea el problema porque no aprende el percentil dentro del modelo, sino que lo mide después, sobre datos apartados a propósito.</p></details><details><summary>El intervalo conforme mide 2,434 sobre un rango de 4,93. ¿Es un buen resultado o no?</summary><p>Las dos cosas, y hay que decirlas juntas.</p><p>Es bueno como método. Entrega la cobertura prometida, cosa que ninguno de los otros hace, y su intervalo es un 9 % más estrecho que el de la persistencia. Esa es la primera comparación limpia que el machine learning gana en todo el proyecto. Es malo como producto: un intervalo de la mitad del rango de la variable va desde concentrado excelente hasta fuera de especificación, así que no guía una decisión de operación. Un método correcto sobre datos poco informativos da un resultado correcto y poco informativo.</p></details></section>
+</main>
+<nav class="pager"><a class="prev" href="m12_practica_de_pronostico.html"><span class="dir">Anterior</span>12. La práctica de pronóstico que faltó</a><a class="next" href="m14_lectura_causal.html"><span class="dir">Siguiente</span>14. Lectura causal del lazo de control</a></nav>
+<footer class="footer">
+  <div class="footer-inner">
+    <span>S&iacute;lice / M&oacute;dulo 13</span>
+    <span>generado el 2026-08-20</span>
+    <span>fuente: los 31 apuntes originales, sus scripts y el CSV de la planta</span>
+  </div>
+</footer>
+</body>
+</html>

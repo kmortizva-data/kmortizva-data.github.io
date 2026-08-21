@@ -1,0 +1,500 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Introduction to statistics with Python — The Power of Statistics</title>
+<style>
+/* ============================================================================
+   Concentra — design tokens and shared components.
+   Inlined into every generated page by load_style(), so pages stay self-contained
+   and work offline from file:// with no external requests.
+
+   Direction: an assay lab, not a tech dashboard. The palette is taken from ore
+   and lab materials (chalcopyrite brass, malachite, hematite, quartz) on warm
+   graphite rather than the blue-black + neon of a generic dark UI. Type is
+   Bahnschrift, the DIN-descended grotesque that Windows ships and that lives on
+   machinery plates and technical drawings, over Corbel for reading.
+   ========================================================================== */
+
+:root {
+  /* Ground and surfaces: warm graphite, the colour of rock dust, not blue-black */
+  --rock: #1a1714;
+  --bench: #221e19;
+  --core: #2b251f;
+  --seam: #3d352c;
+
+  /* Ore palette. No blue and no purple anywhere: those are the tones that make a
+     page read as generated, and this palette comes from the ores instead. */
+  --brass: #c9a227;      /* chalcopyrite, the primary accent */
+  --malachite: #5d9b7a;  /* verified output, results that came out right */
+  --hematite: #b04a35;   /* iron oxide, pitfalls and warnings */
+
+  /* Text */
+  --quartz: #ece7de;
+  --dust: #9a9186;
+  --shadowed: #6f675c;
+
+  --display: Bahnschrift, 'DIN Alternate', 'Segoe UI Semibold', system-ui, sans-serif;
+  --body: Corbel, Candara, 'Segoe UI', system-ui, sans-serif;
+  --data: Consolas, 'Cascadia Mono', ui-monospace, monospace;
+
+  /* In px, not ch: ch scales with font-size, so a heading ended up wider than a
+     paragraph and the page had four different right edges instead of two. */
+  --measure: 640px;
+  --wide: 900px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--rock);
+  color: var(--quartz);
+  font-family: var(--body);
+  font-size: 16px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection { background: var(--brass); color: var(--rock); }
+
+:focus-visible {
+  outline: 2px solid var(--brass);
+  outline-offset: 3px;
+}
+
+/* --------------------------------------------------------------- the signature
+   A sieve series: ticks that get finer from left to right, coarse feed to fine
+   concentrate. It is the one ornament on the page and appears exactly twice —
+   under the wordmark and under a page title. */
+.mesh {
+  height: 10px;
+  background-image:
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 16px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 9px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 5px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 3px);
+  background-size: 25% 100%;
+  background-position: 0 0, 25% 0, 50% 0, 75% 0;
+  background-repeat: no-repeat;
+  opacity: .8;
+  transform-origin: left center;
+  animation: sieve .55s cubic-bezier(.2, .8, .3, 1) both;
+}
+@keyframes sieve { from { transform: scaleX(0); opacity: 0; } to { transform: scaleX(1); opacity: .8; } }
+@media (prefers-reduced-motion: reduce) {
+  .mesh { animation: none; }
+  * { transition: none !important; }
+}
+
+/* ------------------------------------------------------------------ page head */
+.header {
+  border-bottom: 1px solid var(--seam);
+  padding: 3.2rem 2rem 0;
+  background: linear-gradient(180deg, #221d16 0%, var(--rock) 100%);
+}
+.header-content { max-width: 1080px; margin: 0 auto; }
+
+.eyebrow {
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--brass);
+  margin-bottom: 1rem;
+}
+.eyebrow a { color: inherit; text-decoration: none; border-bottom: 1px solid transparent; }
+.eyebrow a:hover { border-bottom-color: var(--brass); }
+
+.header h1 {
+  font-family: var(--display);
+  font-size: clamp(2rem, 4.5vw, 3.1rem);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -.015em;
+  color: var(--quartz);
+  max-width: 20ch;
+}
+.header .subtitle {
+  color: var(--dust);
+  max-width: var(--measure);
+  margin-top: 1rem;
+  font-size: 1.02rem;
+}
+.header .mesh { margin: 1.8rem 0 0; }
+
+/* An assay line: the real composition of the module, in lab-report shorthand. */
+.assay {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.4rem;
+  font-family: var(--data);
+  font-size: .78rem;
+  color: var(--shadowed);
+  padding: .9rem 0 1.6rem;
+  letter-spacing: .04em;
+}
+.assay b { color: var(--dust); font-weight: 400; }
+
+/* --------------------------------------------------------------------- layout */
+/* The container hugs the widest block, so there is no orphan edge past the content. */
+.container { max-width: var(--wide); margin: 3rem auto 5rem; padding: 0 2rem; }
+
+/* Two deliberate right edges and no more: prose stops at the reading measure, and
+   only the things that genuinely need room (code, output, figures, big tables) run
+   out to the full column. */
+.section-block {
+  border-top: 1px solid var(--seam);
+  padding: 2rem 0 2.4rem;
+}
+.section-block > p,
+.section-block > ul,
+.section-block > ol,
+.section-block h3.sub,
+.section-block h4.sub,
+.section-block blockquote,
+details > *:not(summary) { max-width: var(--measure); }
+.section-block:first-child { border-top: 0; padding-top: .5rem; }
+
+/* The kicker names what kind of content follows: context, method, pitfalls.
+   It replaces decorative icons with something that actually classifies. */
+.kicker {
+  font-family: var(--data);
+  font-size: .68rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  display: block;
+  margin-bottom: .5rem;
+}
+.section-title {
+  font-family: var(--display);
+  font-size: 1.55rem;
+  font-weight: 600;
+  letter-spacing: -.01em;
+  line-height: 1.2;
+  margin-bottom: 1.2rem;
+  color: var(--quartz);
+}
+.is-warning .kicker { color: var(--hematite); }
+.is-warning .section-title { color: #e8c4b8; }
+.is-bridge .kicker, .is-decision .kicker { color: var(--malachite); }
+.is-toy .kicker, .is-result .kicker, .is-question .kicker { color: var(--brass); }
+
+/* ---------------------------------------------------------------------- prose */
+/* Justified with hyphenation. In Spanish, justifying without hyphens opens rivers of
+   white space and reads worse than ragged right; lang="es" is what feeds the
+   dictionary. Tables, code, captions and summaries stay ragged on purpose. */
+.section-block p,
+.section-block li,
+details > *:not(summary) {
+  text-align: justify;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+}
+.section-block p { margin-bottom: 1rem; }
+.section-block p:last-child { margin-bottom: 0; }
+/* Indent with padding, not margin, so the bullet sits inside the measure instead of
+   pushing the list 1.2rem past the right edge of the paragraphs. */
+.section-block ul, .section-block ol { margin: 0 0 1rem; padding-left: 1.2rem; }
+.section-block li { margin-bottom: .55rem; padding-left: .2rem; }
+.section-block li::marker { color: var(--brass); }
+td, th, figcaption, .res li, .assay { text-align: left; hyphens: manual; }
+a { color: var(--brass); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+a:hover { text-decoration-thickness: 2px; }
+strong { color: #fff; font-weight: 700; }
+em { color: var(--dust); font-style: italic; }
+
+h3.sub {
+  font-family: var(--display);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--brass);
+  margin: 2rem 0 .7rem;
+  letter-spacing: -.005em;
+}
+h3.sub:first-child { margin-top: 0; }
+h4.sub {
+  font-family: var(--display);
+  font-size: .98rem;
+  font-weight: 600;
+  color: var(--dust);
+  margin: 1.3rem 0 .5rem;
+}
+
+code {
+  font-family: var(--data);
+  font-size: .9em;
+  background: var(--core);
+  border-radius: 3px;
+  padding: .08rem .32rem;
+  color: var(--brass);
+}
+pre {
+  background: #14110e;
+  border: 1px solid var(--seam);
+  border-left: 2px solid var(--seam);
+  border-radius: 2px;
+  padding: 1.1rem 1.2rem;
+  overflow-x: auto;
+  margin-bottom: 1rem;
+}
+pre code {
+  background: none; padding: 0; color: var(--quartz);
+  font-size: .87rem; line-height: 1.6;
+}
+
+/* What the code prints. Malachite: the material that came out of the process. */
+.output {
+  position: relative;
+  border: 1px solid rgba(93, 155, 122, .32);
+  border-left: 2px solid var(--malachite);
+  border-radius: 2px;
+  background: rgba(93, 155, 122, .06);
+  padding: 1.7rem 1.2rem 1rem;
+  margin-bottom: 1rem;
+  overflow-x: auto;
+}
+.output-tag {
+  position: absolute; top: .5rem; left: 1.2rem;
+  font-family: var(--data); font-size: .64rem;
+  letter-spacing: .18em; text-transform: uppercase; color: var(--malachite);
+}
+.output pre {
+  background: none; border: 0; padding: 0; margin: 0;
+  font-family: var(--data); font-size: .85rem;
+  color: var(--quartz); white-space: pre-wrap;
+}
+
+/* Line by line explanation of a code block, for a reader new to programming.
+   Two columns: the fragment of code, and what it does. */
+.annot {
+  display: grid;
+  grid-template-columns: minmax(9rem, auto) 1fr;
+  gap: .1rem 1.2rem;
+  align-items: baseline;
+  max-width: var(--wide);
+  margin: -.4rem 0 1.4rem;
+  padding: .9rem 1.1rem 1rem;
+  border: 1px solid var(--seam);
+  border-top: 0;
+  border-radius: 0 0 2px 2px;
+  background: rgba(201, 162, 39, .04);
+}
+.annot-head {
+  grid-column: 1 / -1;
+  font-family: var(--data);
+  font-size: .64rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  margin-bottom: .5rem;
+}
+.annot dt { padding: .35rem 0; }
+.annot dt code {
+  background: var(--core);
+  color: var(--brass);
+  font-size: .82rem;
+  white-space: nowrap;
+}
+.annot dd {
+  padding: .35rem 0;
+  margin: 0;
+  color: var(--dust);
+  font-size: .93rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(61, 53, 44, .5);
+}
+.annot dt { border-bottom: 1px solid rgba(61, 53, 44, .5); }
+.annot dt:last-of-type, .annot dd:last-of-type { border-bottom: 0; }
+/* The code block sits directly on top of its annotation, as one unit. */
+pre:has(+ .annot) { margin-bottom: 0; border-radius: 2px 2px 0 0; }
+
+@media (max-width: 640px) {
+  .annot { grid-template-columns: 1fr; gap: 0; }
+  .annot dt { border-bottom: 0; padding-bottom: 0; }
+  .annot dd { padding-top: .15rem; }
+}
+
+blockquote {
+  border-left: 2px solid var(--brass);
+  padding: .3rem 0 .3rem 1.3rem;
+  margin: 0 0 1rem;
+  font-family: var(--display);
+  font-size: 1.2rem;
+  font-weight: 400;
+  line-height: 1.4;
+  color: var(--quartz);
+}
+
+/* Tables read as assay data: mono figures, hairline rules, no zebra fill.
+   They take the width they need instead of being stretched to the full column,
+   which is what left a two-column table floating in empty space. */
+.table-wrap { overflow-x: auto; margin-bottom: 1rem; }
+table { border-collapse: collapse; width: auto; max-width: 100%; font-size: .93rem; }
+th, td {
+  border-bottom: 1px solid var(--seam);
+  padding: .55rem .8rem .55rem 0;
+  text-align: left;
+  vertical-align: top;
+}
+th {
+  font-family: var(--data);
+  font-size: .7rem;
+  font-weight: 400;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  border-bottom-color: var(--brass);
+}
+td:first-child { color: var(--quartz); }
+
+/* Review questions: closed by default, so they work as recall practice. */
+details {
+  border-top: 1px solid var(--seam);
+  padding: .9rem 0;
+}
+details:last-child { border-bottom: 1px solid var(--seam); }
+summary {
+  cursor: pointer;
+  font-family: var(--display);
+  font-size: 1.02rem;
+  font-weight: 600;
+  color: var(--quartz);
+  list-style: none;
+  display: flex;
+  gap: .7rem;
+  align-items: baseline;
+}
+summary::-webkit-details-marker { display: none; }
+summary::before {
+  content: '+';
+  font-family: var(--data);
+  color: var(--brass);
+  font-size: .95rem;
+}
+details[open] summary::before { content: '−'; }
+details[open] summary { color: var(--brass); margin-bottom: .7rem; }
+details > *:not(summary) { color: var(--dust); }
+
+figure.fig {
+  margin: 1.6rem 0;
+  border: 1px solid var(--seam);
+  padding: .7rem;
+  background: var(--bench);
+}
+figure.fig img { width: 100%; height: auto; display: block; }
+/* The interactive twin of a figure. Its aspect matches the still one, 10 by 4.4, so a
+   case sheet keeps the same rhythm whichever kind of figure comes next. */
+figure.fig.is-live iframe {
+  width: 100%;
+  /* Matches INTERACTIVE_HEIGHT in src/make_figures.py. It used to be an aspect ratio, and
+     that made the figure's height depend on the window: the caption and the legend are
+     placed at fractions of the plot area, so on a wide screen they were pushed past the
+     bottom margin, clipping the caption and covering the x-axis title. */
+  height: 520px;
+  border: 0;
+  display: block;
+}
+figure.fig figcaption {
+  font-family: var(--data);
+  font-size: .72rem;
+  color: var(--shadowed);
+  margin-top: .6rem;
+  letter-spacing: .04em;
+}
+
+/* File listings on a case sheet */
+.res { list-style: none; margin-left: 0 !important; }
+.res li {
+  display: flex; align-items: baseline; gap: .8rem; flex-wrap: wrap;
+  padding: .5rem 0; border-bottom: 1px solid var(--seam); margin-bottom: 0;
+}
+.res .path { font-family: var(--data); font-size: .74rem; color: var(--shadowed); }
+.res .size { font-family: var(--data); font-size: .74rem; color: var(--shadowed); margin-left: auto; }
+.res .gone { font-family: var(--data); font-size: .74rem; color: var(--hematite); }
+
+.footer {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 2rem 4rem;
+  color: var(--shadowed);
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .03em;
+}
+
+@media (max-width: 640px) {
+  body { font-size: 15px; }
+  .header { padding: 2rem 1.2rem 0; }
+  .container { padding: 0 1.2rem; margin-top: 2rem; }
+  .footer { padding: 0 1.2rem 3rem; }
+}
+
+@media print {
+  body { background: #fff; color: #16130f; }
+  .header { background: none; border-bottom: 1px solid #bbb; padding-top: 0; }
+  .header h1, .section-title, summary { color: #16130f; }
+  .mesh { animation: none; }
+  .section-block { break-inside: avoid; max-width: none; }
+  pre, .output { background: #f6f4f0; border-color: #ccc; }
+  details:not([open]) > *:not(summary) { display: block; }
+  a { color: #16130f; }
+}
+
+</style>
+</head>
+<body>
+<header class="header">
+  <div class="header-content">
+    <div class="eyebrow"><a href="https://www.coursera.org/learn/the-power-of-statistics">The Power of Statistics</a> / Módulo 1</div>
+    <h1>Introduction to statistics with Python</h1>
+    <p class="subtitle">El vocabulario que sostiene todo el curso. Con seis leyes de cobre calculadas a mano se ve por qué la media, la mediana y la moda no dicen lo mismo, y por qué elegir mal entre ellas puede costarte una decisión.</p>
+    <div class="mesh" role="presentation"></div>
+    <div class="assay"><span><b>5 h</b> de curso</span><span><b>12</b> vídeos</span><span><b>6</b> lecturas</span><span><b>4</b> tareas</span><span><b>3</b> prácticas</span><span><b>2</b> interactivos</span></div>
+  </div>
+</header>
+<main class="container">
+<section class="section-block "><span class="kicker">Contexto</span><h2 class="section-title">Qué resuelve este módulo</h2><p>Antes de probar hipótesis hay que saber describir. Este módulo separa dos preguntas que se confunden todo el tiempo: <strong>¿qué dicen estos datos?</strong> y <strong>¿qué puedo decir de todo lo que no medí, a partir de esta muestra?</strong></p><p>La primera es estadística descriptiva y se resuelve con aritmética. La segunda es estadística inferencial, viene con incertidumbre, y es donde vive el resto del curso.</p><p>Aquí aprendes las tres familias de números con las que se describe cualquier variable: dónde está el centro, cuánto se dispersa, y dónde cae cada dato respecto al resto.</p></section>
+<section class="section-block is-toy"><span class="kicker">Ejemplo</span><h2 class="section-title">Antes de la teoría: un ejemplo de juguete</h2><p>Seis muestras de un lote de mineral, con su ley de cobre en porcentaje. Ordenadas ya de menor a mayor para no marearnos:</p><pre><code>1.8   2.0   2.0   2.2   2.4   7.6</code></pre><p>Cinco muestras rondan el 2 %, y hay una de 7,6 % que se sale de todo. Vamos a describir este lote de tres maneras y verás que dan respuestas distintas.</p><h3 class="sub h3">Paso 1. ¿Dónde está el centro? Tres respuestas</h3><p><strong>La media</strong> es sumar y dividir:</p><pre><code>(1.8 + 2.0 + 2.0 + 2.2 + 2.4 + 7.6) / 6  =  18.0 / 6  =  3.00</code></pre><p><strong>La mediana</strong> es el valor del medio. Con seis datos no hay uno solo en el centro, así que se promedian los dos centrales, el tercero y el cuarto:</p><pre><code>(2.0 + 2.2) / 2  =  2.10</code></pre><p><strong>La moda</strong> es el valor que más se repite. Aquí el 2,0 aparece dos veces y los demás una:</p><pre><code>moda = 2.00</code></pre><p>Tres números para &quot;el centro&quot; del mismo lote: <strong>3,00 · 2,10 · 2,00</strong>.</p><h3 class="sub h3">Paso 2. ¿Por qué la media dice 3,00 si casi todas las muestras están cerca de 2?</h3><p>Porque esa muestra de 7,6 tira de ella. La media reparte el total entre todos, así que un valor extremo la arrastra hacia arriba aunque sea uno solo entre seis.</p><p>Compruébalo quitando esa muestra: la media de las otras cinco es <strong>2,08</strong>, y la mediana apenas se mueve a <strong>2,00</strong>. La mediana casi no se entera de que había un 7,6, porque solo le importa el orden, no la magnitud.</p><p><strong>Esta es la lección más rentable del módulo.</strong> Si te dan la media de un lote y no te dan la mediana, no sabes si te están describiendo el lote o un puñado de valores raros.</p><h3 class="sub h3">Paso 3. ¿Cuánto se dispersan?</h3><p>Lo más simple es el <strong>rango</strong>, máximo menos mínimo:</p><pre><code>7.6 − 1.8 = 5.8</code></pre><p>Pero el rango usa solo dos datos de los seis, así que un valor raro lo destroza. La medida que usa todos es la <strong>varianza</strong>. Se calcula mirando cuánto se aleja cada dato de la media (3,00), elevando al cuadrado para que las distancias no se cancelen entre sí, y promediando:</p><div class="table-wrap"><table><thead><tr><th>Ley</th><th>Distancia a 3,00</th><th>Al cuadrado</th></tr></thead><tbody><tr><td>1.8</td><td>−1,2</td><td>1,44</td></tr><tr><td>2.0</td><td>−1,0</td><td>1,00</td></tr><tr><td>2.0</td><td>−1,0</td><td>1,00</td></tr><tr><td>2.2</td><td>−0,8</td><td>0,64</td></tr><tr><td>2.4</td><td>−0,6</td><td>0,36</td></tr><tr><td>7.6</td><td>+4,6</td><td><strong>21,16</strong></td></tr></tbody></table></div><p>La suma de la última columna es <strong>25,60</strong>. Fíjate en que una sola muestra aporta 21,16 de esos 25,60: el 83 % de toda la dispersión viene del dato raro.</p><p>Dividimos entre 5, que es el número de datos menos uno (el porqué está en las trampas):</p><pre><code>varianza = 25.60 / 5 = 5.12</code></pre><p>Y como la varianza está en &quot;porcentaje al cuadrado&quot;, que no significa nada, se saca la raíz para volver a las unidades originales. Eso es la <strong>desviación estándar</strong>:</p><pre><code>√5.12 = 2.263</code></pre><h3 class="sub h3">Paso 4. ¿Dónde cae cada dato respecto a los demás?</h3><p>Los <strong>cuartiles</strong> parten los datos ordenados en cuatro partes iguales:</p><pre><code>Q1 = 2.00      Q2 = 2.10 (la mediana)      Q3 = 2.35</code></pre><p>La distancia entre el primero y el tercero se llama <strong>rango intercuartílico</strong>, y encierra a la mitad central de los datos:</p><pre><code>IQR = 2.35 − 2.00 = 0.35</code></pre><p>Con eso se detectan valores raros de forma automática. La regla habitual marca como sospechoso todo lo que esté a más de 1,5 IQR por fuera de la caja:</p><pre><code>límite superior = 2.35 + 1.5 × 0.35 = 2.875</code></pre><p>Nuestro 7,6 está muy por encima de 2,875, así que la regla lo señala sin que nadie tenga que mirarlo. Ese es el mecanismo que hay detrás del diagrama de caja.</p></section>
+<section class="section-block "><span class="kicker">Términos</span><h2 class="section-title">Glosario</h2><ul><li><strong>Estadística descriptiva.</strong> Resumir los datos que sí tienes. No dice nada de lo que no mediste.</li><li><strong>Estadística inferencial.</strong> Usar una muestra para sacar conclusiones sobre una población que no mediste entera. Siempre viene con incertidumbre.</li><li><strong>Población.</strong> El conjunto completo que te interesa, como todo el mineral del yacimiento. Casi nunca se mide entero.</li><li><strong>Muestra.</strong> El subconjunto que sí mides, nuestras seis leyes.</li><li><strong>Medidas de tendencia central.</strong> El nombre formal de las tres que vienen ahora: media, mediana y moda. Las tres contestan a &quot;¿cuál es el valor típico?&quot; y **contestan cosas distintas cuando los datos no son simétricos**, que es justo lo que enseña el ejemplo de juguete. En inglés, <em>measures of central tendency</em>, y así aparecen en los cuestionarios.</li><li><strong>Media.</strong> La suma dividida entre el conteo. Sensible a valores extremos.</li><li><strong>Mediana.</strong> El valor del medio al ordenar. Resiste a los extremos.</li><li><strong>Moda.</strong> El valor más frecuente. Es la única medida de centro que sirve con categorías.</li><li><strong>Cuál de las tres usar.</strong> La mediana con datos sesgados o sucios, que es el caso por defecto en planta. La media cuando el reparto es simétrico y hace falta operar con ella después. La moda cuando el dato es categórico y las otras dos ni siquiera se pueden calcular.</li><li><strong>Medidas de dispersión.</strong> El otro grupo, el que dice cuánto se separan los datos de ese centro: rango, varianza, desviación estándar y rango intercuartílico. Un centro sin una dispersión al lado no describe nada.</li><li><strong>Rango.</strong> Máximo menos mínimo. Usa solo dos datos, así que se rompe con facilidad.</li><li><strong>Varianza.</strong> El promedio de las distancias al cuadrado respecto a la media. Está en unidades al cuadrado, por eso casi nunca se reporta directamente.</li><li><strong>Desviación estándar.</strong> La raíz de la varianza. Dice cuánto varía un dato típico alrededor de la media, en las unidades originales.</li><li><strong>Percentil.</strong> El valor por debajo del cual cae un porcentaje de los datos. El percentil 90 deja al 90 % por debajo.</li><li><strong>Cuartil.</strong> Los tres percentiles que parten los datos en cuatro: Q1 (25 %), Q2 (50 %, que es la mediana) y Q3 (75 %).</li><li><strong>Rango intercuartílico (IQR).</strong> Q3 menos Q1. Encierra a la mitad central de los datos.</li></ul></section>
+<section class="section-block is-recipe"><span class="kicker">Método</span><h2 class="section-title">Paso a paso</h2><h3 class="sub h3">Paso 1. Decide si tu pregunta es descriptiva o inferencial</h3><p>Si preguntas &quot;¿cómo son mis datos?&quot;, es descriptiva y se responde con aritmética. Si preguntas &quot;¿qué puedo afirmar sobre algo que no medí?&quot;, es inferencial y necesitas todo lo que viene en los módulos 2 al 5. Confundirlas lleva a afirmar de una población cosas que solo valen para tu muestra.</p><h3 class="sub h3">Paso 2. Para el centro, calcula las tres y compáralas</h3><p>No elijas una de entrada. Calcula media, mediana y moda, y <strong>mira la distancia entre la media y la mediana</strong>, que es un detector de problemas gratis:</p><div class="table-wrap"><table><thead><tr><th>Situación</th><th>Qué reportar</th></tr></thead><tbody><tr><td>Media y mediana parecidas</td><td>La media sirve, la distribución es razonablemente simétrica</td></tr><tr><td>Media bastante mayor que la mediana</td><td>Hay valores altos tirando de ella; reporta la mediana</td></tr><tr><td>Media bastante menor que la mediana</td><td>Lo mismo, pero con valores bajos</td></tr><tr><td>Datos categóricos</td><td>Solo la moda, las otras dos no existen</td></tr></tbody></table></div><h3 class="sub h3">Paso 3. Para la dispersión, la desviación estándar, con el rango de aviso</h3><p>Reporta la desviación estándar, porque está en las unidades del dato y se interpreta. Mira el rango solo como señal de alarma: si es enorme comparado con la desviación estándar, hay algún valor extremo por ahí.</p><h3 class="sub h3">Paso 4. Para la posición, cuartiles y la regla del IQR</h3><p>Los cuartiles te dan la forma sin necesidad de dibujar, y la regla de 1,5 IQR te marca los candidatos a valor atípico. Ojo con la palabra candidato: la regla los señala, <strong>no decide si hay que quitarlos</strong>. Eso se decide con criterio de dominio.</p></section>
+<section class="section-block is-recipe"><span class="kicker">Código</span><h2 class="section-title">El código, por partes</h2><h3 class="sub h3">Paso 1. Cargar las herramientas y meter los datos</h3><p>Python por sí solo no sabe de estadística. Hay que pedirle prestadas dos cajas de herramientas y guardar nuestras seis leyes en algo con lo que se pueda calcular.</p><pre><code class="language-python">import numpy as np
+from scipy import stats
+
+grades = np.array([1.8, 2.0, 2.0, 2.2, 2.4, 7.6])</code></pre><dl class="annot"><div class="annot-head">línea por línea</div><dt><code>import numpy as np</code></dt><dd>Trae la caja de herramientas de cálculo numérico. El <code>as np</code> es un apodo: a partir de aquí se escribe <code>np</code> en vez de <code>numpy</code>, que es más corto.</dd><dt><code>from scipy import stats</code></dt><dd>De otra caja más grande (<code>scipy</code>) traemos solo la parte de estadística. Es como sacar un cajón concreto en vez de toda la caja.</dd><dt><code>grades = ...</code></dt><dd>El signo igual guarda algo en un nombre. A partir de ahora, escribir <code>grades</code> es escribir esos seis números.</dd><dt><code>np.array([...])</code></dt><dd>Convierte una lista normal de Python en un array de numpy, que es lo que permite hacer cuentas sobre todos los números a la vez.</dd><dt><code>[1.8, 2.0, ...]</code></dt><dd>Los corchetes son una lista. El punto es el separador decimal: en Python siempre se escribe <code>1.8</code>, nunca <code>1,8</code>.</dd></dl><h3 class="sub h3">Paso 2. Las tres medidas del centro</h3><p>Ahora las tres respuestas del ejemplo de juguete, calculadas por el ordenador.</p><pre><code class="language-python">print(f&quot;media   = {grades.mean():.2f}&quot;)
+print(f&quot;mediana = {np.median(grades):.2f}&quot;)
+print(f&quot;moda    = {stats.mode(grades, keepdims=False).mode:.2f}&quot;)</code></pre><dl class="annot"><div class="annot-head">línea por línea</div><dt><code>print(...)</code></dt><dd>Muestra algo en pantalla. Sin esto el ordenador calcula pero no te enseña nada.</dd><dt><code>f&quot;...&quot;</code></dt><dd>Una cadena de texto &quot;con huecos&quot;. La <code>f</code> de delante avisa de que lo que vaya entre llaves hay que calcularlo y meterlo ahí dentro.</dd><dt><code>{grades.mean()}</code></dt><dd>Dentro de las llaves va lo que se calcula. <code>grades.mean()</code> es &quot;a los datos guardados en grades, aplícales la media&quot;.</dd><dt><code>.mean()</code></dt><dd>El punto significa &quot;pídele esto a&quot;. Los paréntesis vacíos significan &quot;hazlo ya, sin más datos&quot;.</dd><dt><code>:.2f</code></dt><dd>Formato: enseña el número con <strong>2 decimales</strong>. Sin esto saldría <code>3.0</code> en vez de <code>3.00</code>.</dd><dt><code>np.median(grades)</code></dt><dd>Aquí la forma cambia: la mediana se pide a numpy pasándole los datos entre paréntesis, en vez de pedírsela a los datos. Las dos formas conviven en Python y no hay regla, se aprende cuál usa cada función.</dd><dt><code>stats.mode(...)</code></dt><dd>La moda vive en el cajón de estadística de scipy, por eso lleva <code>stats.</code> delante.</dd><dt><code>keepdims=False</code></dt><dd>Un ajuste de la función para que devuelva un número suelto y no una lista de un elemento. Los argumentos con nombre y signo igual se llaman &quot;opciones&quot;.</dd><dt><code>.mode</code></dt><dd>La función devuelve dos cosas (el valor y cuántas veces aparece). Con <code>.mode</code> pedimos solo la primera.</dd></dl><div class="output"><span class="output-tag">sale</span><pre>media   = 3.00
+mediana = 2.10
+moda    = 2.00</pre></div><p>Los mismos tres números que sacamos a mano. Y ya en la salida se ve el problema: si solo hubieras impreso la media, te llevarías 3,00 como &quot;la ley del lote&quot;.</p><h3 class="sub h3">Paso 3. La dispersión, y el argumento que casi nadie explica</h3><pre><code class="language-python">print(f&quot;rango       = {grades.max() - grades.min():.2f}&quot;)
+print(f&quot;varianza    = {grades.var(ddof=1):.3f}&quot;)
+print(f&quot;desv. est.  = {grades.std(ddof=1):.3f}&quot;)</code></pre><dl class="annot"><div class="annot-head">línea por línea</div><dt><code>grades.max() - grades.min()</code></dt><dd>El mayor menos el menor. Se pueden encadenar operaciones dentro de las llaves como en una calculadora.</dd><dt><code>.var(ddof=1)</code></dt><dd>La varianza. <strong>Este argumento importa de verdad.</strong></dd><dt><code>ddof=1</code></dt><dd>Le dice a numpy que divida entre <code>n − 1</code> (entre 5) y no entre <code>n</code> (entre 6), que es exactamente lo que hicimos a mano. <strong>Sin escribirlo, numpy divide entre 6</strong> y devuelve un número más pequeño del correcto, sin avisar de nada.</dd><dt><code>.std(ddof=1)</code></dt><dd>La desviación estándar, con el mismo cuidado. Es la raíz de la varianza.</dd><dt><code>:.3f</code></dt><dd>Aquí pedimos 3 decimales en vez de 2, porque la varianza necesita más precisión para verse bien.</dd></dl><div class="output"><span class="output-tag">sale</span><pre>rango       = 5.80
+varianza    = 5.120
+desv. est.  = 2.263</pre></div><p>Ese <code>ddof=1</code> es el ejemplo perfecto de por qué conviene leer el código. Es un detalle mínimo que cambia el resultado y no da ningún error si lo olvidas.</p><h3 class="sub h3">Paso 4. La posición y la caza automática de atípicos</h3><pre><code class="language-python">q1, q3 = np.percentile(grades, [25, 75])
+iqr = q3 - q1
+limite = q3 + 1.5 * iqr
+
+print(f&quot;Q1 = {q1:.2f}   Q3 = {q3:.2f}   IQR = {iqr:.2f}&quot;)
+print(f&quot;límite superior = {limite:.3f}&quot;)
+print(f&quot;atípicos: {grades[grades &gt; limite]}&quot;)</code></pre><dl class="annot"><div class="annot-head">línea por línea</div><dt><code>np.percentile(grades, [25, 75])</code></dt><dd>Pide dos percentiles de una vez: el que deja por debajo el 25 % de los datos y el que deja el 75 %.</dd><dt><code>q1, q3 =</code></dt><dd>Como la función devuelve dos valores, Python los reparte en dos nombres a la vez. Es lo mismo que escribir dos líneas, una para cada uno.</dd><dt><code>iqr = q3 - q1</code></dt><dd>Aquí se ve para qué sirven las variables: <code>q3</code> y <code>q1</code> ya guardan sus números, así que se opera con los nombres y no con las cifras.</dd><dt><code>1.5 * iqr</code></dt><dd>El asterisco es multiplicar. El 1,5 es la constante de la regla, no sale de ningún cálculo: es una convención.</dd><dt><code>grades &gt; limite</code></dt><dd>Compara <strong>cada uno</strong> de los seis números con el límite y devuelve una lista de verdadero o falso, uno por dato.</dd><dt><code>grades[...]</code></dt><dd>Los corchetes detrás de un array significan &quot;dame solo estos&quot;. Al meterle dentro la comparación, se queda con los que dieron verdadero.</dd></dl><div class="output"><span class="output-tag">sale</span><pre>Q1 = 2.00   Q3 = 2.35   IQR = 0.35
+límite superior = 2.875
+atípicos: [7.6]</pre></div><p>La última línea es la más interesante como código: <code>grades[grades &gt; limite]</code> se lee de dentro hacia fuera, y <strong>la regla encuentra sola la muestra de 7,6</strong> sin que nadie le diga dónde mirar.</p><h3 class="sub h3">Paso 5. Todo de una vez, ahora que ya sabes leerlo</h3><pre><code class="language-python">import pandas as pd
+
+print(pd.Series(grades).describe())</code></pre><dl class="annot"><div class="annot-head">línea por línea</div><dt><code>import pandas as pd</code></dt><dd>La tercera caja de herramientas, la de tablas de datos. Su apodo habitual es <code>pd</code>.</dd><dt><code>pd.Series(grades)</code></dt><dd>Convierte los seis números en una &quot;serie&quot; de pandas, que es una columna de datos con superpoderes.</dd><dt><code>.describe()</code></dt><dd>Calcula de golpe conteo, media, desviación, mínimo, los tres cuartiles y máximo. Todo lo de los pasos anteriores en una sola llamada.</dd></dl><div class="output"><span class="output-tag">sale</span><pre>count    6.000000
+mean     3.000000
+std      2.262742
+min      1.800000
+25%      2.000000
+50%      2.100000
+75%      2.350000
+max      7.600000
+dtype: float64</pre></div><p><code>describe()</code> es cómodo, pero solo es útil si sabes leer cada línea, y por eso va al final y no al principio. Fíjate en que <code>50%</code> es la mediana, con otro nombre.</p></section>
+<section class="section-block is-warning"><span class="kicker">Trampas</span><h2 class="section-title">Ojo</h2><ul><li><strong>La media sola es un resumen incompleto y a veces engañoso.</strong> Dos conjuntos de datos con la misma media pueden tener formas completamente distintas. Reporta siempre al menos media, mediana y desviación estándar.</li><li><strong>Dividimos entre <code>n − 1</code>, no entre <code>n</code>.</strong> La razón intuitiva es que ya gastaste un dato al calcular la media, así que te queda un grado de libertad menos de información independiente. Dividir entre <code>n</code> subestima la dispersión real de la población.</li><li><strong>La varianza no se reporta, se reporta la desviación estándar.</strong> Una varianza de &quot;5,12 porcentaje al cuadrado&quot; no significa nada intuitivo; una desviación de 2,26 puntos de ley sí se entiende.</li><li><strong>El rango se rompe con un solo dato malo.</strong> Nunca lo uses solo.</li><li><strong>Percentil no es porcentaje.</strong> Estar en el percentil 90 significa que superas al 90 % de la muestra, no que sacaste 90 sobre 100.</li><li><strong>La moda casi no existe con datos continuos.</strong> Si mides con suficientes decimales, no hay dos valores iguales y la moda pierde sentido. Sirve para categorías o para datos redondeados.</li><li><strong>La regla del IQR señala candidatos, no culpables.</strong> En nuestro ejemplo el 7,6 podría ser un error de laboratorio o una veta rica de verdad, y la estadística no puede distinguirlos: eso lo decide quien conoce el yacimiento.</li></ul></section>
+<section class="section-block is-bridge"><span class="kicker">Analogía</span><h2 class="section-title">Puente metalúrgico</h2><p>La diferencia entre descriptiva e inferencial es la que hay entre <strong>el reporte del turno</strong> y <strong>la reserva declarada del yacimiento</strong>.</p><p>El reporte del turno es descriptivo puro: la ley media procesada, la desviación del tonelaje, el percentil 90 del consumo de reactivo. Describe lo que pasó y no generaliza nada.</p><p>La reserva declarada es inferencia: perforaste unos sondajes y de ahí infieres la ley de todo un yacimiento que jamás vas a medir entero. Por eso las reservas se clasifican en medidas, indicadas e inferidas, según cuánta confianza hay en esa extrapolación. Los módulos 3 y 4 de este curso son la formalización estadística de ese mismo problema.</p><p>Y el ejemplo de juguete es literalmente una campaña de muestreo. Si reportas al cliente que el lote tiene <strong>3,00 % de cobre</strong> porque una muestra dio 7,6, estás vendiendo un yacimiento que no existe. La mediana de 2,10 describe lo que de verdad hay ahí. La diferencia entre las dos cifras es la diferencia entre un informe honesto y una demanda.</p></section>
+<section class="section-block is-review"><span class="kicker">Repaso</span><h2 class="section-title">Repaso</h2><details><summary>¿Cuál es la diferencia entre estadística descriptiva e inferencial?</summary><p>La descriptiva resume los datos que efectivamente se midieron, con media, dispersión y gráficos, sin generalizar más allá de ellos. La inferencial usa una muestra para sacar conclusiones sobre una población que no se midió entera, y por eso siempre viene acompañada de una cuantificación de la incertidumbre. Todo el curso a partir del módulo 2 construye las herramientas para hacer esa inferencia con rigor, y este primer módulo es la descriptiva sobre la que se apoya.</p></details><details><summary>Tienes un lote con media 3,00 y mediana 2,10. ¿Qué está pasando y qué reportas?</summary><p>Hay valores altos tirando de la media hacia arriba, porque la media es sensible a los extremos y la mediana no. Reportaría la mediana como medida principal, porque describe mejor a la muestra típica, y mencionaría la media junto con la existencia de esos valores extremos, que muchas veces son el hallazgo interesante. Reportar solo la media daría una idea del lote entre un 40 % y un 50 % más rica de lo que realmente es.</p></details><details><summary>¿Por qué la varianza se divide entre <code>n − 1</code> y no entre <code>n</code>?</summary><p>Porque la media que se usa para calcular las distancias se estimó a partir de los mismos datos, así que uno de ellos deja de aportar información independiente: quedan <code>n − 1</code> grados de libertad. Dividir entre <code>n</code> produce una estimación sistemáticamente menor que la dispersión real de la población. En numpy y pandas esto se controla con <code>ddof=1</code>, y olvidarlo es un error silencioso que no da ningún aviso.</p></details><details><summary>¿Por qué se reporta la desviación estándar y no la varianza?</summary><p>Porque la varianza está en unidades al cuadrado de la variable original y no se puede interpretar de forma intuitiva: nadie sabe qué significa &quot;5,12 porcentaje de cobre al cuadrado&quot;. La desviación estándar es su raíz cuadrada, vuelve a las unidades originales, y permite decir algo comprensible como &quot;las leyes varían unos 2,3 puntos alrededor de la media&quot;. Es el mismo número, expresado en una escala que se puede comunicar.</p></details><details><summary>La regla del IQR marca un valor como atípico. ¿Lo eliminas?</summary><p>No de forma automática. La regla es un detector, no un juez: señala que ese valor está lejos del grueso de los datos, pero no puede saber por qué. Antes de decidir hay que investigar si es un error de medición demostrable, en cuyo caso se documenta y se trata, o un valor real y extremo, en cuyo caso muchas veces es el dato más valioso del conjunto. En un yacimiento, una ley disparada puede ser contaminación de la muestra o una zona rica de verdad, y esa diferencia se resuelve con conocimiento del terreno, no con una fórmula.</p></details></section>
+</main>
+<footer class="footer">
+  Concentra / destilado del temario público del curso / 2026-08-20
+</footer>
+</body>
+</html>

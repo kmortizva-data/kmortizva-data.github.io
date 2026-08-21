@@ -1,0 +1,149 @@
+{
+  "project": "automatidata",
+  "course": "curso5",
+  "title": "Automatidata: quién deja propina generosa, y si se puede saber",
+  "generated": "2026-08-19",
+  "source_csv": "C:\\Users\\Bruce Wayne\\Documents\\03_Data Analysis Coursera\\Course 3 - Data Analytics\\Exc_1_Automatidata\\01_data\\C2_2017_Yellow_Taxi_Trip_Data.csv",
+  "leak": {
+    "rows_where_total_equals_parts": 22656,
+    "rows": 22699
+  },
+  "data": {
+    "rows_raw": 22699,
+    "card_trips": 15203
+  },
+  "payment": {
+    "type_1": {
+      "trips": 15265,
+      "zero_tip_pct": 4.1
+    },
+    "type_2": {
+      "trips": 7267,
+      "zero_tip_pct": 100.0
+    },
+    "type_3": {
+      "trips": 121,
+      "zero_tip_pct": 100.0
+    },
+    "type_4": {
+      "trips": 46,
+      "zero_tip_pct": 100.0
+    },
+    "non_card_trips": 7434,
+    "non_card_zero_tip_pct": 100.0
+  },
+  "target": {
+    "median_rate": 19.97,
+    "exactly_20pct": 4363,
+    "exactly_20pct_share": 28.7,
+    "on_a_button": 5604,
+    "on_a_button_share": 36.9,
+    "threshold": 0.2,
+    "generous_pct": 23.11
+  },
+  "split": {
+    "train_rows": 9121,
+    "validation_rows": 3041,
+    "test_rows": 3041
+  },
+  "lazy": {
+    "validation_accuracy": 0.7688,
+    "recall": 0.0,
+    "auc": 0.5
+  },
+  "candidates": {
+    "logistica_auc": 0.5622,
+    "logistica_accuracy": 0.7688,
+    "logistica_recall": 0.0,
+    "arbol_auc": 0.5199,
+    "arbol_accuracy": 0.6564,
+    "arbol_recall": 0.266,
+    "bosque_auc": 0.5795,
+    "bosque_accuracy": 0.754,
+    "bosque_recall": 0.1394,
+    "xgboost_auc": 0.5871,
+    "xgboost_accuracy": 0.7665,
+    "xgboost_recall": 0.0967
+  },
+  "tuning": {
+    "bosque": {
+      "combinations": 24,
+      "seconds": 41.0,
+      "best_params": {
+        "max_depth": "5",
+        "max_features": "0.5",
+        "min_samples_leaf": "50"
+      },
+      "cv_auc": 0.6086,
+      "validation_auc": 0.6079
+    },
+    "xgboost": {
+      "combinations": 36,
+      "seconds": 9.5,
+      "best_params": {
+        "learning_rate": "0.02",
+        "max_depth": "3",
+        "n_estimators": "200",
+        "subsample": "1.0"
+      },
+      "cv_auc": 0.6067,
+      "validation_auc": 0.6134
+    }
+  },
+  "finalists": {
+    "logistica_validation_auc": 0.5622,
+    "bosque_validation_auc": 0.6079,
+    "xgboost_validation_auc": 0.6134
+  },
+  "champion": "xgboost",
+  "test": {
+    "lazy": {
+      "accuracy": 0.7688,
+      "recall": 0.0,
+      "auc": 0.5
+    },
+    "logistica": {
+      "accuracy": 0.7688,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "auc": 0.5395
+    },
+    "bosque": {
+      "accuracy": 0.7688,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "auc": 0.6073
+    },
+    "xgboost": {
+      "accuracy": 0.7708,
+      "precision": 0.75,
+      "recall": 0.0128,
+      "f1": 0.0252,
+      "auc": 0.6104
+    }
+  },
+  "verdict": {
+    "models_deciding_like_the_lazy_one": [
+      "logistica",
+      "bosque"
+    ],
+    "best_auc": 0.6104,
+    "signal_found": false
+  },
+  "importance": {
+    "airport_flat": 0.0009,
+    "weekend": 0.0051,
+    "extra": 0.0099,
+    "rush_hour": 0.01,
+    "passenger_count": 0.018,
+    "hour": 0.0375,
+    "tolls_amount": 0.0797,
+    "speed": 0.0876,
+    "trip_distance": 0.0887,
+    "duration": 0.1412,
+    "fare_amount": 0.1455,
+    "base": 0.3757
+  }
+}

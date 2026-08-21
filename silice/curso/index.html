@@ -1,0 +1,830 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sílice · Predecir el % de SiO₂ del concentrado en una planta de flotación de hierro, y medir con honestidad por qué no se puede</title>
+<style>
+/* Sílice: la hoja de estilos del curso.
+ *
+ * Identidad de papel de informe de planta, no de pantalla. El proyecto termina
+ * recomendando no desplegar, y eso es un informe técnico: papel hueso, tinta grafito,
+ * y una retícula de milimetrado muy tenue en la cabecera.
+ *
+ * Dos familias tipográficas y ni una más, las dos del sistema porque el sitio se abre
+ * desde file:// y tiene que funcionar sin internet: serif para la prosa (se lee como
+ * informe) y monoespaciada para todo lo que es dato, código, cifra o etiqueta.
+ *
+ * El acento lo inyecta cada página con --accent: es el del módulo, y marca su posición
+ * en el arco del proyecto. Los diez pasan check_palette.py antes de entrar aquí.
+ */
+
+:root {
+  --paper: #f6f3ec;
+  --bench: #eeeade;
+  --ink: #2a2622;
+  --ink-soft: #57504a;
+  --ink-faint: #8a8177;
+  --rule: #ddd6c6;
+  --rule-soft: #e8e2d4;
+  --grid: rgba(84, 69, 73, .07);
+  --accent: #632727;
+
+  --prose: Georgia, "Iowan Old Style", "Palatino Linotype", Palatino, "Times New Roman", serif;
+  --data: "Cascadia Mono", Consolas, "DejaVu Sans Mono", "Liberation Mono", monospace;
+
+  --measure: 680px;   /* la medida de la prosa, en píxeles y nunca en ch */
+  --wide: 1180px;     /* el borde derecho de los bloques anchos */
+  --margin: 132px;    /* la columna del margen, donde cuelgan los kickers */
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--prose);
+  font-size: 17px;
+  line-height: 1.62;
+  -webkit-text-size-adjust: 100%;
+}
+
+::selection { background: var(--accent); color: var(--paper); }
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+/* --------------------------------------------------------------- cabecera */
+
+.masthead {
+  border-bottom: 1px solid var(--rule);
+  background-color: var(--bench);
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 26px 26px;
+  background-position: -1px -1px;
+}
+
+.masthead-inner {
+  max-width: var(--wide);
+  margin: 0 auto;
+  padding: 2.4rem 2rem 1.6rem;
+}
+
+.eyebrow {
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-bottom: 1rem;
+}
+
+.eyebrow a { color: inherit; text-decoration: none; border-bottom: 1px solid transparent; }
+.eyebrow a:hover { border-bottom-color: var(--accent); color: var(--accent); }
+.eyebrow b { color: var(--accent); font-weight: 400; }
+
+.masthead h1 {
+  margin: 0;
+  font-size: clamp(1.9rem, 4.4vw, 2.9rem);
+  line-height: 1.14;
+  font-weight: 400;
+  letter-spacing: -.012em;
+  max-width: 900px;
+}
+
+.standfirst {
+  margin: .9rem 0 0;
+  max-width: var(--measure);
+  color: var(--ink-soft);
+  font-size: 1.02rem;
+  line-height: 1.55;
+}
+
+/* La cifra del módulo: el número que dejó, en grande, junto al título. Es lo que
+   convierte la cabecera en parte del argumento y no en decoración. */
+.figure-mark {
+  margin-top: 1.6rem;
+  display: flex;
+  align-items: baseline;
+  gap: .8rem;
+  flex-wrap: wrap;
+  border-left: 3px solid var(--accent);
+  padding-left: .9rem;
+}
+
+.figure-value {
+  font-family: var(--data);
+  font-size: clamp(1.5rem, 3.4vw, 2.1rem);
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: -.02em;
+}
+
+.figure-label {
+  font-family: var(--data);
+  font-size: .78rem;
+  letter-spacing: .04em;
+  color: var(--ink-soft);
+}
+
+/* El hilo del proyecto: diez segmentos, uno por módulo, con su cifra debajo. Desde
+   cualquier página se ve el recorrido entero, que es justo lo que a los apuntes
+   sueltos les faltaba. */
+.thread {
+  margin-top: 1.8rem;
+  display: grid;
+  /* One equal column per segment, whatever the temario says. It was pinned to ten and
+     the course grew to fourteen. */
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: 4px;
+}
+
+/* Where part 2 starts: the four modules that were never in the original project. */
+.thread .starts-part { margin-left: 10px; position: relative; }
+.thread .starts-part::after {
+  content: '';
+  position: absolute;
+  left: -7px; top: -3px; bottom: 0;
+  border-left: 1px solid var(--rule);
+}
+
+.thread a, .thread span {
+  display: block;
+  text-decoration: none;
+  color: var(--ink-faint);
+  font-family: var(--data);
+  font-size: .62rem;
+  letter-spacing: .04em;
+  padding-top: .4rem;
+  border-top: 3px solid var(--rule);
+  transition: color .12s, border-color .12s;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.thread a:hover { color: var(--ink); border-top-color: var(--ink-soft); }
+.thread [aria-current="page"] { color: var(--accent); border-top-color: var(--accent); }
+.thread .n { font-weight: 700; }
+.thread .v { color: inherit; opacity: .75; }
+
+/* Las pastillas de composición: de qué está hecho el módulo. */
+.assay {
+  margin-top: 1.6rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.4rem;
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .05em;
+  color: var(--ink-faint);
+}
+
+.assay b { color: var(--ink); font-weight: 700; }
+
+/* ----------------------------------------------------------------- cuerpo */
+
+.container {
+  max-width: var(--wide);
+  margin: 0 auto;
+  padding: 2.6rem 2rem 4rem;
+}
+
+/* Cada sección es una anotación de cuaderno: el kicker cuelga en el margen
+   izquierdo y el contenido corre en la columna principal. En pantalla estrecha el
+   kicker se pone encima. */
+.block {
+  display: grid;
+  grid-template-columns: var(--margin) minmax(0, 1fr);
+  column-gap: 2rem;
+  padding: 2.2rem 0;
+  border-top: 1px solid var(--rule);
+}
+
+.block:first-child { border-top: 0; padding-top: .6rem; }
+
+.kicker {
+  grid-column: 1;
+  font-family: var(--data);
+  font-size: .68rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding-top: .45rem;
+}
+
+.block > :not(.kicker) { grid-column: 2; }
+
+.block-title {
+  margin: 0 0 1.1rem;
+  font-size: 1.42rem;
+  font-weight: 400;
+  line-height: 1.25;
+  letter-spacing: -.008em;
+}
+
+.is-warning .kicker, .is-result .kicker { color: var(--accent); }
+.is-warning .block-title { border-bottom: 2px solid var(--accent); padding-bottom: .4rem; display: inline-block; }
+.is-result { background: var(--bench); margin: 0 -1.2rem; padding: 2.2rem 1.2rem; }
+.is-result .block-title { color: var(--accent); }
+
+/* Prosa: justificada con partición, que sin partición el español justificado abre
+   ríos. Tablas, código y pies de figura se quedan sin justificar. */
+.block p, .block li, .block dd, details > *:not(summary) {
+  max-width: var(--measure);
+  text-align: justify;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+}
+
+.block p { margin: 0 0 1rem; }
+.block p:last-child { margin-bottom: 0; }
+.block ul, .block ol { margin: 0 0 1rem; padding-left: 1.3rem; max-width: var(--measure); }
+.block li { margin-bottom: .5rem; }
+.block li::marker { color: var(--accent); font-family: var(--data); font-size: .85em; }
+
+td, th, figcaption, .assay, .thread a, .res li { text-align: left; hyphens: manual; }
+
+a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+a:hover { text-decoration-thickness: 2px; }
+strong { font-weight: 700; }
+em { font-style: italic; color: var(--ink-soft); }
+
+h3.sub {
+  margin: 1.9rem 0 .7rem;
+  font-size: 1.07rem;
+  font-weight: 700;
+  letter-spacing: -.004em;
+}
+
+h3.sub:first-child { margin-top: 0; }
+
+h4.sub {
+  margin: 1.4rem 0 .5rem;
+  font-family: var(--data);
+  font-size: .82rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  color: var(--ink-soft);
+}
+
+/* ------------------------------------------------------------ código y datos */
+
+code {
+  font-family: var(--data);
+  font-size: .87em;
+  background: var(--bench);
+  padding: .1em .32em;
+  border-radius: 2px;
+}
+
+pre {
+  margin: 0 0 1rem;
+  padding: 1rem 1.1rem;
+  background: var(--bench);
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--accent);
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+pre code { background: none; padding: 0; font-size: .82rem; line-height: 1.62; }
+
+/* La salida es lo que imprime el código, no código para correr: se marca aparte
+   para que nadie confunda entrada con salida. */
+.output {
+  margin: 0 0 1rem;
+  border: 1px dashed var(--rule);
+  background: transparent;
+}
+
+.output-tag {
+  display: block;
+  font-family: var(--data);
+  font-size: .64rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding: .45rem 1.1rem 0;
+}
+
+.output pre {
+  margin: 0;
+  border: 0;
+  background: none;
+  padding: .3rem 1.1rem 1rem;
+}
+
+.output pre code { color: var(--ink-soft); }
+
+/* La anotación línea por línea, para quien no ha programado antes. */
+.annot {
+  margin: 0 0 1.2rem;
+  border: 1px solid var(--rule);
+  border-top: 0;
+  padding: 0 1.1rem .6rem;
+  background: transparent;
+}
+
+.annot-head {
+  font-family: var(--data);
+  font-size: .64rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding: .55rem 0 .5rem;
+  border-bottom: 1px solid var(--rule-soft);
+  margin-bottom: .4rem;
+}
+
+.annot dt { padding: .4rem 0 .1rem; }
+.annot dt code { background: none; padding: 0; color: var(--accent); font-weight: 700; }
+.annot dd {
+  margin: 0 0 .4rem;
+  color: var(--ink-soft);
+  font-size: .94rem;
+  border-bottom: 1px solid var(--rule-soft);
+  padding-bottom: .5rem;
+}
+.annot dd:last-of-type { border-bottom: 0; }
+
+pre:has(+ .annot) { margin-bottom: 0; }
+
+blockquote {
+  margin: 0 0 1rem;
+  padding: .2rem 0 .2rem 1.1rem;
+  border-left: 3px solid var(--rule);
+  color: var(--ink-soft);
+  font-style: italic;
+  max-width: var(--measure);
+}
+
+/* --------------------------------------------------------------- tablas */
+
+.table-wrap { overflow-x: auto; margin: 0 0 1.2rem; }
+
+table {
+  border-collapse: collapse;
+  width: auto;
+  max-width: 100%;
+  font-size: .92rem;
+}
+
+th, td {
+  padding: .5rem .9rem .5rem 0;
+  border-bottom: 1px solid var(--rule-soft);
+  vertical-align: top;
+}
+
+th {
+  font-family: var(--data);
+  font-size: .7rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--ink-faint);
+  border-bottom: 1px solid var(--rule);
+  white-space: nowrap;
+}
+
+/* -------------------------------------------------------------- repaso */
+
+details {
+  border-bottom: 1px solid var(--rule-soft);
+  padding: .2rem 0;
+  max-width: var(--measure);
+}
+
+summary {
+  cursor: pointer;
+  list-style: none;
+  padding: .7rem 0 .7rem 1.5rem;
+  position: relative;
+  font-weight: 700;
+}
+
+summary::-webkit-details-marker { display: none; }
+
+summary::before {
+  content: '+';
+  position: absolute;
+  left: 0;
+  font-family: var(--data);
+  color: var(--accent);
+  font-weight: 700;
+}
+
+details[open] summary::before { content: '\2212'; }
+details[open] summary { color: var(--accent); }
+details > *:not(summary) { color: var(--ink-soft); }
+details > *:last-child { padding-bottom: .8rem; }
+
+/* -------------------------------------------------------------- figuras */
+
+figure.fig {
+  margin: 0 0 1.4rem;
+  max-width: 100%;
+  border: 1px solid var(--rule);
+  background: #fff;
+  padding: .6rem;
+}
+
+figure.fig img { width: 100%; height: auto; display: block; }
+
+figure.fig figcaption {
+  margin-top: .6rem;
+  padding-top: .5rem;
+  border-top: 1px solid var(--rule-soft);
+  font-family: var(--data);
+  font-size: .7rem;
+  letter-spacing: .04em;
+  color: var(--ink-faint);
+}
+
+.gone {
+  font-family: var(--data);
+  font-size: .76rem;
+  color: var(--accent);
+  border: 1px dashed var(--accent);
+  padding: .5rem .8rem;
+}
+
+/* ------------------------------------------------------- pie y navegación */
+
+.pager {
+  max-width: var(--wide);
+  margin: 0 auto;
+  padding: 0 2rem 3rem;
+  display: flex;
+  gap: 1.4rem;
+  justify-content: space-between;
+  font-family: var(--data);
+  font-size: .78rem;
+}
+
+.pager a { max-width: 46%; text-decoration: none; border-bottom: 1px solid var(--rule); padding-bottom: .3rem; }
+.pager a:hover { border-bottom-color: var(--accent); }
+.pager .dir { display: block; font-size: .64rem; letter-spacing: .13em; text-transform: uppercase; color: var(--ink-faint); }
+.pager .next { text-align: right; margin-left: auto; }
+
+.footer {
+  border-top: 1px solid var(--rule);
+  padding: 1.4rem 2rem 2.4rem;
+  font-family: var(--data);
+  font-size: .72rem;
+  letter-spacing: .06em;
+  color: var(--ink-faint);
+}
+
+.footer-inner { max-width: var(--wide); margin: 0 auto; display: flex; gap: 1.4rem; flex-wrap: wrap; }
+
+/* ------------------------------------------------------------- índice */
+
+.toc { list-style: none; margin: 0; padding: 0; max-width: 100%; }
+
+.toc li {
+  border-top: 1px solid var(--rule-soft);
+  max-width: 100%;
+}
+
+.toc li:last-child { border-bottom: 1px solid var(--rule-soft); }
+
+.toc a, .toc .pending {
+  display: grid;
+  grid-template-columns: 3rem minmax(0, 1fr) auto;
+  gap: 1.2rem;
+  align-items: baseline;
+  padding: 1rem .4rem;
+  text-decoration: none;
+  color: inherit;
+}
+
+.toc a:hover { background: var(--bench); }
+.toc .pending { color: var(--ink-faint); }
+.toc .num { font-family: var(--data); font-size: .82rem; font-weight: 700; }
+.toc .name { font-size: 1.05rem; }
+.toc .name small { display: block; font-family: var(--prose); font-size: .86rem; color: var(--ink-soft); margin-top: .2rem; }
+.toc .mark { font-family: var(--data); font-size: .82rem; font-weight: 700; white-space: nowrap; }
+.toc .tag { font-family: var(--data); font-size: .66rem; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-faint); }
+
+/* ---------------------------------------------------------- responsive */
+
+@media (max-width: 900px) {
+  .block { grid-template-columns: minmax(0, 1fr); }
+  .block > :not(.kicker) { grid-column: 1; }
+  .kicker { grid-column: 1; padding-top: 0; margin-bottom: .7rem; }
+  .thread { grid-auto-flow: row; grid-template-columns: repeat(5, 1fr); gap: 6px 4px; }
+  .thread .starts-part { margin-left: 0; }
+  .thread .starts-part::after { display: none; }
+  .toc a, .toc .pending { grid-template-columns: 2.2rem minmax(0, 1fr); }
+  .toc .mark { grid-column: 2; }
+}
+
+@media (max-width: 620px) {
+  body { font-size: 16px; }
+  .masthead-inner, .container, .pager, .footer { padding-left: 1.2rem; padding-right: 1.2rem; }
+  .is-result { margin: 0; padding: 2rem 1rem; }
+  .block p, .block li { text-align: left; }
+}
+
+@media print {
+  .thread, .pager { display: none; }
+  body { font-size: 11pt; }
+  .masthead { background: none; }
+  .block { break-inside: avoid; }
+}
+
+/* -------------------------------------------------- resumen y plegables */
+
+/* El resumen de entrada: la cifra, la trampa y la decision, en cinco vinetas.
+   Se lee en 30 segundos o se sigue leyendo. */
+.is-brief {
+  border-top: 0;
+  padding-top: .4rem;
+}
+
+.is-brief .kicker { color: var(--accent); }
+
+.is-brief ul {
+  list-style: none;
+  padding-left: 0;
+  max-width: var(--measure);
+  border-left: 3px solid var(--accent);
+  padding: .2rem 0 .2rem 1.1rem;
+}
+
+.is-brief li { margin-bottom: .7rem; text-align: left; }
+.is-brief li:last-child { margin-bottom: 0; }
+
+/* Los plegables de contenido denso: el glosario y la anotacion del codigo.
+   Cerrados por defecto, para que la pagina no sea un muro. */
+details.fold {
+  border: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+  background: transparent;
+  margin: 0 0 1.2rem;
+  padding: 0;
+  max-width: 100%;
+}
+
+details.fold > summary {
+  font-family: var(--data);
+  font-size: .68rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  font-weight: 400;
+  color: var(--ink-faint);
+  padding: .55rem .9rem .55rem 2rem;
+}
+
+details.fold > summary::before { left: .9rem; }
+details.fold[open] > summary {
+  color: var(--accent);
+  border-bottom: 1px solid var(--rule-soft);
+  margin-bottom: 0;
+}
+
+details.fold > *:not(summary) { padding: .8rem .9rem; color: inherit; }
+details.fold ul { margin-bottom: 0; }
+details.fold .annot { border: 0; padding: 0; margin: 0; }
+details.fold .annot dd { max-width: var(--measure); }
+
+/* Un bloque de codigo seguido de su plegable van pegados. */
+pre:has(+ details.fold) { margin-bottom: 0; border-bottom: 0; }
+
+:root { --accent: #632727; }
+
+/* El cerebro: el archivo listo para pegar en la memoria de un asistente. */
+.brain { max-width: 100%; margin-top: .4rem; }
+.brain-bar {
+  display: flex; align-items: center; gap: .8rem; flex-wrap: wrap;
+  border: 1px solid var(--rule); border-bottom: 0;
+  padding: .55rem .9rem; background: var(--bench);
+}
+.brain-bar .name { font-family: var(--data); font-size: .74rem; color: var(--accent); letter-spacing: .06em; }
+.brain-bar .size { font-family: var(--data); font-size: .7rem; color: var(--ink-faint); }
+.brain-bar .spacer { flex: 1; }
+.brain-bar button, .brain-bar a.btn {
+  background: none; border: 1px solid var(--rule); border-radius: 2px;
+  color: var(--ink-soft); font-family: var(--data); font-size: .7rem;
+  letter-spacing: .06em; padding: .3rem .7rem; cursor: pointer;
+  text-decoration: none; white-space: nowrap;
+}
+.brain-bar button:hover, .brain-bar a.btn:hover { color: var(--accent); border-color: var(--accent); }
+.brain-bar button.done { color: var(--accent); border-color: var(--accent); }
+.brain pre { margin: 0; max-height: 24rem; overflow: auto; border-left-width: 1px; }
+</style>
+</head>
+<body>
+<header class="masthead">
+  <div class="masthead-inner">
+    <div class="eyebrow">Machine learning desde cero sobre una planta de flotación real</div>
+    <h1>Sílice</h1>
+    <p class="standfirst">Predecir el % de SiO₂ del concentrado en una planta de flotación de hierro, y medir con honestidad por qué no se puede</p>
+    <div class="figure-mark">
+      <span class="figure-value">+0,009</span>
+      <span class="figure-label">lo que el ML aportó sobre repetir el último análisis</span>
+    </div>
+    <nav class="thread" aria-label="El arco del proyecto"><a href="m01_radiografia_del_dataset.html" title="1. Radiografía del dataset"><span class="n">1</span> <span class="v">737.453</span></a><a href="m02_el_primer_modelo_y_el_techo.html" title="2. El primer modelo, y el techo que apareció enseguida"><span class="n">2</span> <span class="v">R² 0,04</span></a><a href="m03_como_aprende_un_modelo.html" title="3. Cómo aprende un modelo por dentro"><span class="n">3</span> <span class="v">R² 0,06</span></a><a href="m04_preprocesar_y_validar.html" title="4. Preprocesar y validar sin hacer trampa"><span class="n">4</span> <span class="v">R² −0,13</span></a><a href="m05_darle_memoria_al_modelo.html" title="5. Darle memoria al modelo"><span class="n">5</span> <span class="v">R² 0,64</span></a><a href="m06_clasificar_fuera_de_spec.html" title="6. Clasificar: dentro o fuera de especificación"><span class="n">6</span> <span class="v">0,62 vs 0,77</span></a><a href="m07_contra_que_se_compara.html" title="7. Contra qué se compara un modelo"><span class="n">7</span> <span class="v">+0,009</span></a><a href="m08_donde_aporta_el_ml.html" title="8. ¿Dónde aporta el ML de verdad?"><span class="n">8</span> <span class="v">0 de 4</span></a><a href="m09_los_tres_estados_de_la_planta.html" title="9. Los tres estados de la planta"><span class="n">9</span> <span class="v">k = 3</span></a><a href="m10_redes_producto_y_cierre.html" title="10. Redes, producto y cierre"><span class="n">10</span> <span class="v">0,76</span></a><a class="starts-part" href="m11_modelos_de_secuencia.html" title="11. Modelos de secuencia: LSTM, GRU y convolución causal"><span class="n">11</span> <span class="v">+0,215</span></a><a href="m12_practica_de_pronostico.html" title="12. La práctica de pronóstico que faltó"><span class="n">12</span> <span class="v">0,52 vs 0,63</span></a><a href="m13_incertidumbre.html" title="13. Incertidumbre: del punto al intervalo"><span class="n">13</span> <span class="v">92,0 %</span></a><a href="m14_lectura_causal.html" title="14. Lectura causal del lazo de control"><span class="n">14</span> <span class="v">+0,16</span></a></nav>
+    <div class="assay"><span><b>14</b> de 14 lecciones</span><span><b>31</b> apuntes de origen</span><span><b>40</b> figuras</span><span><b>39</b> scripts</span></div>
+  </div>
+</header>
+<main class="container">
+<section class="block "><span class="kicker">Resumen</span><h2 class="block-title">De qué va este proyecto</h2><p>Una planta de flotación de hierro produce un concentrado, y de ese concentrado interesa una cifra: cuánta sílice lleva. Esa cifra la da el laboratorio, y llega tarde. La pregunta del proyecto es si un modelo puede adelantarla, en tiempo real, a partir de los sensores que sí están disponibles al instante.</p><p>Los datos son de una planta real: 737.453 filas de marzo a septiembre de 2017, 24 columnas entre ensayos de alimentación, variables de proceso y el resultado de laboratorio. No es un conjunto de juguete y no está limpio, aunque lo parezca.</p><p>El proyecto se hizo aprendiendo machine learning desde cero. Por eso recorre el temario entero, de la exploración a los modelos de secuencia. Por el camino:</p><ul><li>árboles y bosques</li><li>cómo aprende un modelo por dentro</li><li>validación honesta e ingeniería de variables</li><li>clasificación e interpretabilidad</li><li>aprendizaje no supervisado</li><li>incertidumbre y lectura causal</li></ul><p>Cada técnica se aplica al mismo problema. Y cada una deja una cifra.</p></section>
+<section class="block is-result"><span class="kicker">Resultado</span><h2 class="block-title">El veredicto, por delante</h2><p><strong>Con estos datos, el machine learning no aporta valor operativo en ningún horizonte, y la recomendación fundamentada es no desplegarlo.</strong></p><p>Va aquí arriba a propósito. Un curso que esconde su conclusión para dar suspense obliga a leerlo en orden y no sirve para consultar. Y además el resultado es lo interesante:</p><div class="table-wrap"><table><thead><tr><th>Horizonte</th><th>Repetir el último análisis</th><th>Lo que añade el modelo</th></tr></thead><tbody><tr><td>1 hora</td><td>R² 0,632</td><td>+0,009</td></tr><tr><td>3 horas</td><td>R² 0,271</td><td>por debajo de +0,02</td></tr><tr><td>5 horas o más</td><td>negativo</td><td>nada</td></tr><tr><td>12 horas</td><td>negativo</td><td>el modelo del nivel empeora, hasta −0,85</td></tr></tbody></table></div><p>&quot;Repetir el último análisis&quot; es el baseline de persistencia: predecir que el próximo valor será igual al último que midió el laboratorio. Es gratis, no necesita modelo, y es lo que había que superar. El mejor modelo del proyecto lo supera por nueve milésimas.</p><p>La única señal genuinamente propia del modelo aparece cuando se le pide predecir el <strong>cambio</strong> en vez del nivel: R² 0,175 a 12 horas. Real, medible, y todavía insuficiente para gobernar una planta.</p><p>El aprendizaje no supervisado explicó por qué el modelo se degrada. La planta cambió de régimen operativo en abril, a mitad del histórico. Ningún modelo entrenado antes de ese cambio sabe nada de lo que vino después.</p></section>
+<section class="block is-toy"><span class="kicker">Instrucciones</span><h2 class="block-title">Cómo leer este curso</h2><p>Catorce módulos, uno por lección. Los diez primeros reescriben el proyecto tal y como se hizo. Los cuatro últimos cierran los huecos que dejó, con experimentos nuevos.</p><p>Cada lección abre con un resumen de cinco viñetas. Se lee en 30 segundos, o se sigue leyendo. Lo más denso, el glosario y la anotación del código, viene plegado.</p><p>Después el orden es siempre el mismo. Primero un ejemplo de cinco o seis números resueltos a mano. Después el método. Después el código anotado línea por línea, con su salida real. Y <strong>cierra con la cifra que dejó</strong>. Esa última parte es la que hace auditable al curso.</p><p>La cifra de cada módulo aparece en su cabecera y en la tira que hay debajo del título. Desde cualquier página se ve el recorrido entero: dónde subió el número, dónde se cayó y dónde se descubrió que estaba mal medido.</p><p>Se puede leer en orden o entrar por el módulo que interese. Los términos se definen en el glosario de cada lección, no en un apéndice, así que ninguna página depende de haber leído la anterior.</p></section>
+<section class="block is-method"><span class="kicker">Recorrido</span><h2 class="block-title">El recorrido, módulo a módulo</h2><p><strong>Parte 1, los módulos 1 a 10: el proyecto tal y como se hizo.</strong> Del 1 al 5 se construye un modelo cada vez mejor. El 5 llega a R² 0,64 y parece un triunfo. El 7 mide el baseline correcto y descubre que casi todo ese 0,64 era inercia del proceso. El 8 lo lleva a sus últimas consecuencias y el 9 explica la causa.</p><p>Ese giro es el corazón del proyecto, y está anunciado desde aquí a propósito. El módulo 5 cierra con una pregunta abierta: contra qué se está comparando ese número. El 7 la contesta con datos. Las lecciones se escribieron después de conocer el final, así que la sorpresa está preparada en vez de improvisada.</p><p><strong>Parte 2, los módulos 11 a 14: lo que faltaba.</strong> El proyecto original llegó hasta una red neuronal sencilla y ahí se detuvo. Estos cuatro módulos cierran los huecos, y cada uno trae un experimento nuevo sobre los mismos datos.</p><div class="table-wrap"><table><thead><tr><th>Módulo</th><th>Qué añade</th><th>Qué pone a prueba</th></tr></thead><tbody><tr><td>11</td><td>Modelos de secuencia: LSTM, GRU y convolución causal, en la GPU</td><td>Si una red que mira la historia entera le gana a repetir el último análisis</td></tr><tr><td>12</td><td>La práctica de pronóstico: estacionariedad, diferenciación, multi-paso</td><td>Dónde queda una línea base clásica tipo SARIMAX, que nunca se corrió</td></tr><tr><td>13</td><td>Incertidumbre: regresión cuantílica y predicción conforme</td><td>Si un intervalo con cobertura garantizada sí sería desplegable</td></tr><tr><td>14</td><td>Lectura causal del lazo de control</td><td>Por qué la amina sale con el signo al revés, y qué haría falta para medir causa</td></tr></tbody></table></div><p>Puede que ninguno gane a la persistencia. Eso seguiría siendo un resultado medido, que es justo lo que hace bueno a este proyecto.</p></section>
+<section class="block is-bridge"><span class="kicker">Resultado</span><h2 class="block-title">Qué sabes hacer al terminar</h2><ul><li>Montar una evaluación temporal honesta y reconocer cuándo una nota buena viene de una fuga.</li><li>Elegir el baseline correcto antes de celebrar cualquier métrica, que es la lección más cara de todo el proyecto.</li><li>Leer un árbol, un bosque y un modelo de refuerzo, y saber qué pregunta contesta cada uno.</li><li>Distinguir precisión de exhaustividad, y decidir un umbral como decisión de ingeniería y no como valor por defecto.</li><li>Explicar una predicción concreta con SHAP, y saber qué es lo que SHAP explica y qué no.</li><li>Detectar deriva en producción y ponerle un umbral de reentrenamiento con datos medidos.</li><li>Entrenar y leer un modelo de secuencia, y saber cuándo la recurrencia aporta y cuándo no.</li><li>Dar un intervalo de predicción con cobertura comprobada, en vez de un número suelto.</li><li>Distinguir correlación de causa en un proceso con control cerrado, que es donde casi todo el mundo se equivoca.</li><li>Defender un resultado negativo delante de un comité. Es una habilidad distinta de obtenerlo.</li></ul></section>
+<section class="block is-terms"><span class="kicker">Origen</span><h2 class="block-title">De dónde sale todo esto</h2><p>El curso es la reescritura ordenada de 31 apuntes en PDF que se fueron escribiendo mientras el proyecto avanzaba. Aquellos apuntes son ahora archivo histórico: siguen en <code>1_Apuntes/</code> y no se tocan, pero la versión viva del material es esta.</p><p>Todo el código sigue en <code>src/</code>, el CSV de la planta en <code>data/</code>, y las 40 figuras salen de los mismos scripts que las dibujaron para los apuntes. Ninguna cifra publicada aquí se copió de un PDF: se volvió a calcular.</p></section>
+<section class="block">
+  <span class="kicker">M&oacute;dulos</span>
+  <h2 class="block-title">Las diez lecciones</h2>
+  <ul class="toc"><li><a href="m01_radiografia_del_dataset.html" style="--accent: #6f550e"><span class="num">01</span><span class="name">Radiografía del dataset<small>Qué hay dentro de 737.453 filas de planta real, y las tres cicatrices que nadie declara en el archivo</small></span><span class="mark">737.453</span></a></li><li><a href="m02_el_primer_modelo_y_el_techo.html" style="--accent: #6e4410"><span class="num">02</span><span class="name">El primer modelo, y el techo que apareció enseguida<small>Un árbol, un bosque y una línea base tonta. Los tres se quedan en el mismo sitio, y ese sitio es la respuesta</small></span><span class="mark">R² 0,04</span></a></li><li><a href="m03_como_aprende_un_modelo.html" style="--accent: #6d3713"><span class="num">03</span><span class="name">Cómo aprende un modelo por dentro<small>La recta, la función de pérdida y el descenso de gradiente: el motor que mueve a todos los demás</small></span><span class="mark">R² 0,06</span></a></li><li><a href="m04_preprocesar_y_validar.html" style="--accent: #6c2d16"><span class="num">04</span><span class="name">Preprocesar y validar sin hacer trampa<small>Pipelines, validación cruzada y ajuste de perillas. Aquí la nota buena del módulo 2 se cae</small></span><span class="mark">R² −0,13</span></a></li><li><a href="m05_darle_memoria_al_modelo.html" style="--accent: #6a281b"><span class="num">05</span><span class="name">Darle memoria al modelo<small>Retardos, promedios móviles y gradient boosting. El salto más grande del proyecto, y la pregunta que deja abierta</small></span><span class="mark">R² 0,64</span></a></li><li><a href="m06_clasificar_fuera_de_spec.html" style="--accent: #672620"><span class="num">06</span><span class="name">Clasificar: dentro o fuera de especificación<small>La otra mitad del aprendizaje supervisado. El clasificador parecía ganar, hasta que se le puso enfrente el baseline correcto</small></span><span class="mark">0,62 vs 0,77</span></a></li><li><a href="m07_contra_que_se_compara.html" style="--accent: #632727"><span class="num">07</span><span class="name">Contra qué se compara un modelo<small>Importancia por permutación, SHAP, y la medición que le quita al módulo 5 casi todo el mérito</small></span><span class="mark">+0,009</span></a></li><li><a href="m08_donde_aporta_el_ml.html" style="--accent: #5f2f33"><span class="num">08</span><span class="name">¿Dónde aporta el ML de verdad?<small>El experimento que faltaba: modelo contra persistencia a 1, 3, 6 y 12 horas, y el veredicto del proyecto</small></span><span class="mark">0 de 4</span></a></li><li><a href="m09_los_tres_estados_de_la_planta.html" style="--accent: #5a393f"><span class="num">09</span><span class="name">Los tres estados de la planta<small>Sin etiquetas, k-medias y PCA encuentran tres regímenes operativos, y uno de ellos desaparece en abril</small></span><span class="mark">k = 3</span></a></li><li><a href="m10_redes_producto_y_cierre.html" style="--accent: #544549"><span class="num">10</span><span class="name">Redes, producto y cierre<small>La red neuronal queda última, el drift se mide mes a mes, y el proyecto se cierra con una recomendación defendible</small></span><span class="mark">0,76</span></a></li><li><a href="m11_modelos_de_secuencia.html" style="--accent: #2c4a6d"><span class="num">11</span><span class="name">Modelos de secuencia: LSTM, GRU y convolución causal<small>El hueco que dejó el proyecto. Una red que mira la historia entera en vez de una fila suelta, entrenada en la GPU</small></span><span class="mark">+0,215</span></a></li><li><a href="m12_practica_de_pronostico.html" style="--accent: #28546d"><span class="num">12</span><span class="name">La práctica de pronóstico que faltó<small>Estacionariedad, diferenciación y una línea base clásica que el proyecto nunca llegó a correr</small></span><span class="mark">0,52 vs 0,63</span></a></li><li><a href="m13_incertidumbre.html" style="--accent: #245d6d"><span class="num">13</span><span class="name">Incertidumbre: del punto al intervalo<small>Regresión cuantílica y predicción conforme. Si el valor puntual no sirve, queda por saber si un intervalo con cobertura garantizada sí</small></span><span class="mark">92,0 %</span></a></li><li><a href="m14_lectura_causal.html" style="--accent: #21686d"><span class="num">14</span><span class="name">Lectura causal del lazo de control<small>Por qué la amina sale con el signo al revés, y qué haría falta para medir causa en una planta que se controla sola</small></span><span class="mark">+0,16</span></a></li></ul>
+</section>
+<section class="block">
+  <span class="kicker">Memoria</span>
+  <h2 class="block-title">El cerebro del proyecto, listo para copiar</h2>
+  <p>Un manual de operaci&oacute;n con las cifras, los umbrales y el veredicto. Se pega en la memoria de un asistente y cambia c&oacute;mo trabaja, sin gastar contexto en repetir el proyecto entero.</p>
+  <div class="brain">
+    <div class="brain-bar">
+      <span class="name">cerebro-silice.md</span>
+      <span class="size">6.9 KB</span>
+      <span class="spacer"></span>
+      <button id="copy" type="button">Copiar todo</button>
+      <a class="btn" href="cerebro-silice.md" download>Descargar</a>
+    </div>
+    <pre><code id="brain"># Cerebro: predicción de SiO2 en flotación de hierro
+
+Manual de operación del proyecto. No es un resumen de las lecciones: son las cifras, los
+umbrales y las decisiones que cambian cómo se trabaja sobre estos datos. Pensado para
+pegarse en la memoria de un asistente.
+
+## El problema
+
+Predecir el `% Silica Concentrate` (sílice en el concentrado) de una planta de flotación
+inversa de hierro, en tiempo real, antes de que llegue el análisis de laboratorio.
+
+Dataset: &quot;Quality Prediction in a Mining Process&quot; (Kaggle). 737.453 filas x 24 columnas,
+marzo a septiembre de 2017. Archivo en `data/MiningProcess_Flotation_Plant_Database.csv`,
+183 MB, fuera de git.
+
+## El veredicto
+
+Con estos datos, ningún modelo supera de forma significativa al baseline de persistencia.
+Recomendación: **no desplegar** machine learning para esta tarea.
+
+| Horizonte | Persistencia (R²) | Aporte del modelo |
+|---|---|---|
+| 1 h | 0,632 | +0,009 |
+| 3 h | 0,271 | menos de +0,02 |
+| 5 h y más | negativo | ninguno |
+| 12 h | negativo | el modelo del nivel llega a −0,85 |
+
+Única señal propia del modelo: predecir el **cambio** en vez del nivel da R² +0,175 a 12 h.
+
+## Tres intentos de tumbar el veredicto, y qué midió cada uno
+
+Medidos en `src/experiment_verdict.py`. El veredicto sobrevive a los tres.
+
+| Sospecha | Resultado |
+|---|---|
+| El modelo estaba congelado dos meses, sin reentrenar | Reentrenar cada 1, 3, 7, 14 o 28 días deja el aporte entre −0,001 y +0,009. No cambia nada |
+| Entrenar solo con lo reciente (ventana móvil) | **Empeora**: de −0,012 a −0,040 según la ventana |
+| Un modelo por estado operativo, ya que la planta cambió de régimen | **Empeora**: R² 0,601 contra 0,641 del modelo único. Partir el entrenamiento cuesta más de lo que arregla |
+
+**Y una corrección al módulo 6.** El clasificador de fuera de especificación se comparó contra
+&quot;siempre en spec&quot;, que no atrapa nada. Contra el baseline correcto:
+
+| Aviso | Acierto | Precisión | Atrapa | Falsas alarmas | Se escapan |
+|---|---|---|---|---|---|
+| Siempre en spec | 0,810 | - | 0 de 182 | 0 | 182 |
+| **Persistencia** | **0,912** | 0,769 | **140** | 42 | 42 |
+| Clasificador | 0,901 | 0,813 | 113 | 26 | 69 |
+
+La persistencia atrapa 27 problemas más y levanta 16 falsas alarmas más. Para una planta,
+mandar concentrado fuera de especificación suele costar más que una comprobación de más, así
+que la persistencia también gana aquí.
+
+## Reglas de trabajo sobre estos datos
+
+1. **Separación temporal siempre.** Corte el 1 de agosto de 2017: entrenamiento 563.482
+   filas (77 %, marzo a julio), prueba 172.800 (23 %, agosto y septiembre). Una separación
+   aleatoria da R² alrededor de 0,9 y es fuga, no habilidad.
+2. **Excluir `% Iron Concentrate`.** Es complementaria de la sílice (r = −0,80) y sale del
+   mismo análisis de laboratorio, una hora después. Usarla es fuga de la respuesta.
+3. **El baseline se mide antes de celebrar nada.** Persistencia a 1 h ya vale 0,632. Toda
+   métrica se reporta como diferencia contra ella.
+4. **Conservar las dos columnas de alimentación** (`% Iron Feed`, `% Silica Feed`): su
+   importancia es casi cero, pero no dañan y su ausencia se notaría en la interpretación.
+5. **Validación cruzada temporal, no k-fold aleatorio.** El corte único era optimista: la
+   validación cruzada honesta dio R² −0,13 donde el corte único daba 0,04.
+
+## Cicatrices del archivo, medidas
+
+- **1.171 filas duplicadas** en 15 marcas de tiempo.
+- **Hueco de 13 días**, del 16 al 29 de marzo de 2017.
+- **Ensayo de hierro en alimentación congelado** del 13 de mayo al 15 de junio (792 horas)
+  clavado en 64,03. El laboratorio no actualizó el valor; no es señal física. Afecta al
+  19,4 % de las filas, pero solo a 2 columnas de alimentación: proceso y objetivo siguen
+  vivos, así que esas filas **no se tiran**.
+- **Frecuencias distintas por columna.** Alimentación: 1 valor único por hora. Proceso
+  (pH, flujos, aire, niveles): 150 a 180 por hora, sensor cada 20 s. Objetivo
+  (`% Silica Concentrate`): unos 14 por hora. La creencia de que el objetivo se repite 180
+  veces por hora es falsa y se comprobó.
+- **Almidón por debajo de 100** en 3.976 filas.
+- 0 valores faltantes, lo cual es sospechoso en datos de planta: el archivo viene
+  preprocesado.
+
+## Resultados por técnica, en orden
+
+| Módulo | Técnica | Resultado |
+|---|---|---|
+| 2 | Árbol de decisión, profundidad 3 | RMSE 1,11 · R² 0,04 (baseline tonto: RMSE 1,14) |
+| 2 | Random forest podado | empata al árbol, R² alrededor de 0,04 |
+| 3 | Regresión lineal | R² 0,01 |
+| 3 | Lineal regularizada (Ridge/Lasso) | R² 0,06 |
+| 4 | Validación cruzada honesta | R² −0,13, el corte único era optimista |
+| 5 | Variables con memoria (retardos, medias móviles) | R² 0,12 a 0,49 |
+| 5 | Gradient boosting sobre esas variables | R² 0,64, el mejor del proyecto |
+| 6 | Clasificación fuera de especificación (umbral 3,5 %) | acierto 0,90 frente a 0,81 del baseline · precisión 0,81 · exhaustividad 0,62 |
+| 7 | Persistencia bien medida | 0,632, de donde el aporte real del ML es +0,009 |
+| 8 | Modelo contra persistencia a 1, 3, 6 y 12 h | el ML no gana en ningún horizonte |
+| 9 | k-medias, k = 3 por el codo | 3 estados operativos |
+| 9 | PCA | 46 % de varianza en 2 ejes. CP1 = aireación (31 %), CP2 = niveles (15 %) |
+| 10 | Red neuronal (MLPRegressor) | R² 0,165, la peor de todo el proyecto |
+| 10 | PyTorch en la RTX 5060 | R² 0,190. La GPU acelera 32 veces (541 ms a 17 ms), no mejora. El apunte viejo decía 34 veces con 580 ms; al volver a medirlo salen 541 ms |
+
+## Los tres estados de la planta (k-medias)
+
+| Estado | Carácter | SiO2 medio |
+|---|---|---|
+| 0 | aireación alta, marcha buena | 1,85 |
+| 1 | aireación baja | 2,60 |
+| 2 | peleando: alimentación sucia, reactivo al máximo | 2,46 |
+
+**El estado 1 domina marzo y abril y después desaparece.** La planta cambió de forma de
+operar en abril, y eso explica la deriva que arrastran los módulos 2 a 8.
+
+## Deriva medida (módulo 10)
+
+RMSE mensual del modelo en producción simulada: 0,44 en junio, 0,65 en agosto, 0,76 en
+septiembre. Cruza el umbral de +30 % sobre la referencia en septiembre, que es cuándo habría
+que reentrenar.
+
+## Señal real, dónde está
+
+Consistente en correlación, árbol y bosque: **aire de las columnas 3 y 4** y **amina**. La
+amina sale con signo invertido (r = +0,16) por el lazo de control: cuando la sílice sube, el
+operador dosifica más. Correlación no es causa, y aquí el control la invierte.
+
+`% Silica Feed` frente al objetivo: r = +0,07. El control de la planta borra la relación que
+la fisicoquímica haría esperar.
+
+## Entorno
+
+- `.venv` (Python 3.14): pandas, numpy, matplotlib, scikit-learn 1.9.0, shap 0.52.
+- `.venv-gpu` (Python 3.12 + PyTorch nightly cu128) solo para el apunte de GPU.
+- Los ejecutables sueltos de `.venv/Scripts` quedaron con rutas viejas tras un traslado:
+  usar `.venv\Scripts\python.exe -m pip`, no `pip.exe`.
+- Consola cp1252: forzar UTF-8 en las salidas de Python.
+</code></pre>
+  </div>
+</section>
+</main>
+<footer class="footer">
+  <div class="footer-inner">
+    <span>S&iacute;lice</span>
+    <span>generado el 2026-08-20</span>
+    <span>fuente: los 31 apuntes originales, sus scripts y el CSV de la planta</span>
+  </div>
+</footer>
+<script>
+const button = document.getElementById('copy');
+const source = document.getElementById('brain');
+button.addEventListener('click', async () => {
+  try {
+    await navigator.clipboard.writeText(source.textContent);
+  } catch (error) {
+    // file:// without a secure context refuses the clipboard API, so fall back to
+    // selecting the text and letting the reader press the shortcut.
+    const range = document.createRange();
+    range.selectNodeContents(source);
+    const selection = window.getSelection();
+    selection.removeAllRanges();
+    selection.addRange(range);
+    button.textContent = 'selecciona y copia';
+    return;
+  }
+  button.textContent = 'copiado';
+  button.classList.add('done');
+  setTimeout(() => { button.textContent = 'Copiar todo'; button.classList.remove('done'); }, 2000);
+});
+</script>
+</body>
+</html>

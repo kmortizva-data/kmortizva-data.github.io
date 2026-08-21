@@ -1,0 +1,513 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Logistic regression — Regression Analysis: Simplify Complex Data Relationships</title>
+<style>
+/* ============================================================================
+   Concentra — design tokens and shared components.
+   Inlined into every generated page by load_style(), so pages stay self-contained
+   and work offline from file:// with no external requests.
+
+   Direction: an assay lab, not a tech dashboard. The palette is taken from ore
+   and lab materials (chalcopyrite brass, malachite, hematite, quartz) on warm
+   graphite rather than the blue-black + neon of a generic dark UI. Type is
+   Bahnschrift, the DIN-descended grotesque that Windows ships and that lives on
+   machinery plates and technical drawings, over Corbel for reading.
+   ========================================================================== */
+
+:root {
+  /* Ground and surfaces: warm graphite, the colour of rock dust, not blue-black */
+  --rock: #1a1714;
+  --bench: #221e19;
+  --core: #2b251f;
+  --seam: #3d352c;
+
+  /* Ore palette. No blue and no purple anywhere: those are the tones that make a
+     page read as generated, and this palette comes from the ores instead. */
+  --brass: #c9a227;      /* chalcopyrite, the primary accent */
+  --malachite: #5d9b7a;  /* verified output, results that came out right */
+  --hematite: #b04a35;   /* iron oxide, pitfalls and warnings */
+
+  /* Text */
+  --quartz: #ece7de;
+  --dust: #9a9186;
+  --shadowed: #6f675c;
+
+  --display: Bahnschrift, 'DIN Alternate', 'Segoe UI Semibold', system-ui, sans-serif;
+  --body: Corbel, Candara, 'Segoe UI', system-ui, sans-serif;
+  --data: Consolas, 'Cascadia Mono', ui-monospace, monospace;
+
+  /* In px, not ch: ch scales with font-size, so a heading ended up wider than a
+     paragraph and the page had four different right edges instead of two. */
+  --measure: 640px;
+  --wide: 900px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--rock);
+  color: var(--quartz);
+  font-family: var(--body);
+  font-size: 16px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection { background: var(--brass); color: var(--rock); }
+
+:focus-visible {
+  outline: 2px solid var(--brass);
+  outline-offset: 3px;
+}
+
+/* --------------------------------------------------------------- the signature
+   A sieve series: ticks that get finer from left to right, coarse feed to fine
+   concentrate. It is the one ornament on the page and appears exactly twice —
+   under the wordmark and under a page title. */
+.mesh {
+  height: 10px;
+  background-image:
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 16px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 9px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 5px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 3px);
+  background-size: 25% 100%;
+  background-position: 0 0, 25% 0, 50% 0, 75% 0;
+  background-repeat: no-repeat;
+  opacity: .8;
+  transform-origin: left center;
+  animation: sieve .55s cubic-bezier(.2, .8, .3, 1) both;
+}
+@keyframes sieve { from { transform: scaleX(0); opacity: 0; } to { transform: scaleX(1); opacity: .8; } }
+@media (prefers-reduced-motion: reduce) {
+  .mesh { animation: none; }
+  * { transition: none !important; }
+}
+
+/* ------------------------------------------------------------------ page head */
+.header {
+  border-bottom: 1px solid var(--seam);
+  padding: 3.2rem 2rem 0;
+  background: linear-gradient(180deg, #221d16 0%, var(--rock) 100%);
+}
+.header-content { max-width: 1080px; margin: 0 auto; }
+
+.eyebrow {
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--brass);
+  margin-bottom: 1rem;
+}
+.eyebrow a { color: inherit; text-decoration: none; border-bottom: 1px solid transparent; }
+.eyebrow a:hover { border-bottom-color: var(--brass); }
+
+.header h1 {
+  font-family: var(--display);
+  font-size: clamp(2rem, 4.5vw, 3.1rem);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -.015em;
+  color: var(--quartz);
+  max-width: 20ch;
+}
+.header .subtitle {
+  color: var(--dust);
+  max-width: var(--measure);
+  margin-top: 1rem;
+  font-size: 1.02rem;
+}
+.header .mesh { margin: 1.8rem 0 0; }
+
+/* An assay line: the real composition of the module, in lab-report shorthand. */
+.assay {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.4rem;
+  font-family: var(--data);
+  font-size: .78rem;
+  color: var(--shadowed);
+  padding: .9rem 0 1.6rem;
+  letter-spacing: .04em;
+}
+.assay b { color: var(--dust); font-weight: 400; }
+
+/* --------------------------------------------------------------------- layout */
+/* The container hugs the widest block, so there is no orphan edge past the content. */
+.container { max-width: var(--wide); margin: 3rem auto 5rem; padding: 0 2rem; }
+
+/* Two deliberate right edges and no more: prose stops at the reading measure, and
+   only the things that genuinely need room (code, output, figures, big tables) run
+   out to the full column. */
+.section-block {
+  border-top: 1px solid var(--seam);
+  padding: 2rem 0 2.4rem;
+}
+.section-block > p,
+.section-block > ul,
+.section-block > ol,
+.section-block h3.sub,
+.section-block h4.sub,
+.section-block blockquote,
+details > *:not(summary) { max-width: var(--measure); }
+.section-block:first-child { border-top: 0; padding-top: .5rem; }
+
+/* The kicker names what kind of content follows: context, method, pitfalls.
+   It replaces decorative icons with something that actually classifies. */
+.kicker {
+  font-family: var(--data);
+  font-size: .68rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  display: block;
+  margin-bottom: .5rem;
+}
+.section-title {
+  font-family: var(--display);
+  font-size: 1.55rem;
+  font-weight: 600;
+  letter-spacing: -.01em;
+  line-height: 1.2;
+  margin-bottom: 1.2rem;
+  color: var(--quartz);
+}
+.is-warning .kicker { color: var(--hematite); }
+.is-warning .section-title { color: #e8c4b8; }
+.is-bridge .kicker, .is-decision .kicker { color: var(--malachite); }
+.is-toy .kicker, .is-result .kicker, .is-question .kicker { color: var(--brass); }
+
+/* ---------------------------------------------------------------------- prose */
+/* Justified with hyphenation. In Spanish, justifying without hyphens opens rivers of
+   white space and reads worse than ragged right; lang="es" is what feeds the
+   dictionary. Tables, code, captions and summaries stay ragged on purpose. */
+.section-block p,
+.section-block li,
+details > *:not(summary) {
+  text-align: justify;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+}
+.section-block p { margin-bottom: 1rem; }
+.section-block p:last-child { margin-bottom: 0; }
+/* Indent with padding, not margin, so the bullet sits inside the measure instead of
+   pushing the list 1.2rem past the right edge of the paragraphs. */
+.section-block ul, .section-block ol { margin: 0 0 1rem; padding-left: 1.2rem; }
+.section-block li { margin-bottom: .55rem; padding-left: .2rem; }
+.section-block li::marker { color: var(--brass); }
+td, th, figcaption, .res li, .assay { text-align: left; hyphens: manual; }
+a { color: var(--brass); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+a:hover { text-decoration-thickness: 2px; }
+strong { color: #fff; font-weight: 700; }
+em { color: var(--dust); font-style: italic; }
+
+h3.sub {
+  font-family: var(--display);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--brass);
+  margin: 2rem 0 .7rem;
+  letter-spacing: -.005em;
+}
+h3.sub:first-child { margin-top: 0; }
+h4.sub {
+  font-family: var(--display);
+  font-size: .98rem;
+  font-weight: 600;
+  color: var(--dust);
+  margin: 1.3rem 0 .5rem;
+}
+
+code {
+  font-family: var(--data);
+  font-size: .9em;
+  background: var(--core);
+  border-radius: 3px;
+  padding: .08rem .32rem;
+  color: var(--brass);
+}
+pre {
+  background: #14110e;
+  border: 1px solid var(--seam);
+  border-left: 2px solid var(--seam);
+  border-radius: 2px;
+  padding: 1.1rem 1.2rem;
+  overflow-x: auto;
+  margin-bottom: 1rem;
+}
+pre code {
+  background: none; padding: 0; color: var(--quartz);
+  font-size: .87rem; line-height: 1.6;
+}
+
+/* What the code prints. Malachite: the material that came out of the process. */
+.output {
+  position: relative;
+  border: 1px solid rgba(93, 155, 122, .32);
+  border-left: 2px solid var(--malachite);
+  border-radius: 2px;
+  background: rgba(93, 155, 122, .06);
+  padding: 1.7rem 1.2rem 1rem;
+  margin-bottom: 1rem;
+  overflow-x: auto;
+}
+.output-tag {
+  position: absolute; top: .5rem; left: 1.2rem;
+  font-family: var(--data); font-size: .64rem;
+  letter-spacing: .18em; text-transform: uppercase; color: var(--malachite);
+}
+.output pre {
+  background: none; border: 0; padding: 0; margin: 0;
+  font-family: var(--data); font-size: .85rem;
+  color: var(--quartz); white-space: pre-wrap;
+}
+
+/* Line by line explanation of a code block, for a reader new to programming.
+   Two columns: the fragment of code, and what it does. */
+.annot {
+  display: grid;
+  grid-template-columns: minmax(9rem, auto) 1fr;
+  gap: .1rem 1.2rem;
+  align-items: baseline;
+  max-width: var(--wide);
+  margin: -.4rem 0 1.4rem;
+  padding: .9rem 1.1rem 1rem;
+  border: 1px solid var(--seam);
+  border-top: 0;
+  border-radius: 0 0 2px 2px;
+  background: rgba(201, 162, 39, .04);
+}
+.annot-head {
+  grid-column: 1 / -1;
+  font-family: var(--data);
+  font-size: .64rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  margin-bottom: .5rem;
+}
+.annot dt { padding: .35rem 0; }
+.annot dt code {
+  background: var(--core);
+  color: var(--brass);
+  font-size: .82rem;
+  white-space: nowrap;
+}
+.annot dd {
+  padding: .35rem 0;
+  margin: 0;
+  color: var(--dust);
+  font-size: .93rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(61, 53, 44, .5);
+}
+.annot dt { border-bottom: 1px solid rgba(61, 53, 44, .5); }
+.annot dt:last-of-type, .annot dd:last-of-type { border-bottom: 0; }
+/* The code block sits directly on top of its annotation, as one unit. */
+pre:has(+ .annot) { margin-bottom: 0; border-radius: 2px 2px 0 0; }
+
+@media (max-width: 640px) {
+  .annot { grid-template-columns: 1fr; gap: 0; }
+  .annot dt { border-bottom: 0; padding-bottom: 0; }
+  .annot dd { padding-top: .15rem; }
+}
+
+blockquote {
+  border-left: 2px solid var(--brass);
+  padding: .3rem 0 .3rem 1.3rem;
+  margin: 0 0 1rem;
+  font-family: var(--display);
+  font-size: 1.2rem;
+  font-weight: 400;
+  line-height: 1.4;
+  color: var(--quartz);
+}
+
+/* Tables read as assay data: mono figures, hairline rules, no zebra fill.
+   They take the width they need instead of being stretched to the full column,
+   which is what left a two-column table floating in empty space. */
+.table-wrap { overflow-x: auto; margin-bottom: 1rem; }
+table { border-collapse: collapse; width: auto; max-width: 100%; font-size: .93rem; }
+th, td {
+  border-bottom: 1px solid var(--seam);
+  padding: .55rem .8rem .55rem 0;
+  text-align: left;
+  vertical-align: top;
+}
+th {
+  font-family: var(--data);
+  font-size: .7rem;
+  font-weight: 400;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  border-bottom-color: var(--brass);
+}
+td:first-child { color: var(--quartz); }
+
+/* Review questions: closed by default, so they work as recall practice. */
+details {
+  border-top: 1px solid var(--seam);
+  padding: .9rem 0;
+}
+details:last-child { border-bottom: 1px solid var(--seam); }
+summary {
+  cursor: pointer;
+  font-family: var(--display);
+  font-size: 1.02rem;
+  font-weight: 600;
+  color: var(--quartz);
+  list-style: none;
+  display: flex;
+  gap: .7rem;
+  align-items: baseline;
+}
+summary::-webkit-details-marker { display: none; }
+summary::before {
+  content: '+';
+  font-family: var(--data);
+  color: var(--brass);
+  font-size: .95rem;
+}
+details[open] summary::before { content: '−'; }
+details[open] summary { color: var(--brass); margin-bottom: .7rem; }
+details > *:not(summary) { color: var(--dust); }
+
+figure.fig {
+  margin: 1.6rem 0;
+  border: 1px solid var(--seam);
+  padding: .7rem;
+  background: var(--bench);
+}
+figure.fig img { width: 100%; height: auto; display: block; }
+/* The interactive twin of a figure. Its aspect matches the still one, 10 by 4.4, so a
+   case sheet keeps the same rhythm whichever kind of figure comes next. */
+figure.fig.is-live iframe {
+  width: 100%;
+  /* Matches INTERACTIVE_HEIGHT in src/make_figures.py. It used to be an aspect ratio, and
+     that made the figure's height depend on the window: the caption and the legend are
+     placed at fractions of the plot area, so on a wide screen they were pushed past the
+     bottom margin, clipping the caption and covering the x-axis title. */
+  height: 520px;
+  border: 0;
+  display: block;
+}
+figure.fig figcaption {
+  font-family: var(--data);
+  font-size: .72rem;
+  color: var(--shadowed);
+  margin-top: .6rem;
+  letter-spacing: .04em;
+}
+
+/* File listings on a case sheet */
+.res { list-style: none; margin-left: 0 !important; }
+.res li {
+  display: flex; align-items: baseline; gap: .8rem; flex-wrap: wrap;
+  padding: .5rem 0; border-bottom: 1px solid var(--seam); margin-bottom: 0;
+}
+.res .path { font-family: var(--data); font-size: .74rem; color: var(--shadowed); }
+.res .size { font-family: var(--data); font-size: .74rem; color: var(--shadowed); margin-left: auto; }
+.res .gone { font-family: var(--data); font-size: .74rem; color: var(--hematite); }
+
+.footer {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 2rem 4rem;
+  color: var(--shadowed);
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .03em;
+}
+
+@media (max-width: 640px) {
+  body { font-size: 15px; }
+  .header { padding: 2rem 1.2rem 0; }
+  .container { padding: 0 1.2rem; margin-top: 2rem; }
+  .footer { padding: 0 1.2rem 3rem; }
+}
+
+@media print {
+  body { background: #fff; color: #16130f; }
+  .header { background: none; border-bottom: 1px solid #bbb; padding-top: 0; }
+  .header h1, .section-title, summary { color: #16130f; }
+  .mesh { animation: none; }
+  .section-block { break-inside: avoid; max-width: none; }
+  pre, .output { background: #f6f4f0; border-color: #ccc; }
+  details:not([open]) > *:not(summary) { display: block; }
+  a { color: #16130f; }
+}
+
+</style>
+</head>
+<body>
+<header class="header">
+  <div class="header-content">
+    <div class="eyebrow"><a href="https://www.coursera.org/learn/regression-analysis-simplify-complex-data-relationships">Regression Analysis: Simplify Complex Data Relationships</a> / Módulo 5</div>
+    <h1>Logistic regression</h1>
+    <p class="subtitle">Cuando lo que quieres predecir no es un número sino un sí o un no. La escalera de probabilidad a momios y a logit, hecha con tres números redondos; por qué el coeficiente no es una probabilidad; y las cuatro métricas de una clasificación, con el caso donde acertar el 70 % es un mal resultado.</p>
+    <div class="mesh" role="presentation"></div>
+    <div class="assay"><span><b>4 h</b> de curso</span><span><b>8</b> vídeos</span><span><b>4</b> lecturas</span><span><b>5</b> tareas</span><span><b>3</b> prácticas</span></div>
+  </div>
+</header>
+<main class="container">
+<section class="section-block "><span class="kicker">Contexto</span><h2 class="section-title">Qué resuelve este módulo</h2><p>Todo lo anterior predecía un número: una recuperación, una tarifa. Muchas preguntas de verdad no son así:</p><ul><li>¿Este lote <strong>pasa</strong> o <strong>no pasa</strong> la especificación de arsénico?</li><li>¿Este usuario <strong>se va</strong> o <strong>se queda</strong>?</li><li>¿Este vídeo <strong>es</strong> una reclamación o <strong>no</strong> lo es?</li></ul><p>La respuesta es un sí o un no, y lo útil no es adivinar cuál, sino <strong>la probabilidad de que sea sí</strong>. Ahí la recta del módulo 2 no sirve, por una razón que es fácil de ver: una recta no tiene freno. Sigue subiendo y acaba prediciendo una probabilidad de 1,4, que no existe.</p><p>Este módulo es el arreglo: una curva en forma de S que se aplasta contra el 0 y contra el 1 sin llegar a pasarse nunca.</p></section>
+<section class="section-block is-toy"><span class="kicker">Ejemplo</span><h2 class="section-title">Antes de la teoría: un ejemplo de juguete</h2><h3 class="sub h3">Paso 1. De probabilidad a momios</h3><p>Los <strong>momios</strong> son otra forma de decir lo mismo que una probabilidad, y es la que se usa en las apuestas: cuántas veces pasa contra cuántas no pasa.</p><pre><code>momios = probabilidad / (1 − probabilidad)</code></pre><div class="table-wrap"><table><thead><tr><th>Probabilidad</th><th>Momios</th><th>Se lee</th></tr></thead><tbody><tr><td>0,8</td><td>0,8 / 0,2 = <strong>4</strong></td><td>Cuatro veces que sí por cada una que no</td></tr><tr><td>0,5</td><td>0,5 / 0,5 = <strong>1</strong></td><td>Una y una: lo mismo</td></tr><tr><td>0,2</td><td>0,2 / 0,8 = <strong>0,25</strong></td><td>Una que sí por cada cuatro que no</td></tr></tbody></table></div><p>Fíjate en lo que acaba de pasar con la escala. La probabilidad vive apretada entre 0 y 1. Los momios van de 0 a infinito. <strong>Se ha soltado el techo, pero no el suelo</strong>, y además la escala es fea: el doble de probable no es el doble de momios.</p><h3 class="sub h3">Paso 2. De momios a logit</h3><p>El segundo paso es tomar el logaritmo natural de los momios. Eso es el <strong>logit</strong>:</p><div class="table-wrap"><table><thead><tr><th>Probabilidad</th><th>Momios</th><th>Logit</th></tr></thead><tbody><tr><td>0,8</td><td>4</td><td>ln 4 = <strong>+1,3863</strong></td></tr><tr><td>0,5</td><td>1</td><td>ln 1 = <strong>0</strong></td></tr><tr><td>0,2</td><td>0,25</td><td>ln 0,25 = <strong>−1,3863</strong></td></tr></tbody></table></div><p>Y mira la columna de la derecha: <strong>+1,3863 y −1,3863, simétricos alrededor del cero</strong>. Eso es lo que hemos ganado. El logit va de menos infinito a más infinito, está centrado en el 0,5, y trata igual de lejos al 0,8 y al 0,2.</p><p><strong>Esa es toda la idea de la regresión logística</strong>: como el logit sí es una escala sin extremos, se le puede ajustar una recta normal y corriente. El modelo predice el logit con una recta, y luego se deshace el camino para volver a probabilidad.</p><h3 class="sub h3">Paso 3. El camino de vuelta</h3><p>Deshacer los dos pasos da la fórmula que aparece en todos los libros:</p><pre><code>probabilidad = 1 / (1 + e^(−logit))</code></pre><p>Compruébalo con el 1,3863: <code>e^(−1,3863) = 0,25</code>, así que <code>1 / 1,25 = 0,8</code>. Vuelta al punto de partida. Esa función es la <strong>sigmoide</strong>, y es la curva en S que nunca se pasa del 1 ni baja del 0.</p><h3 class="sub h3">Paso 4. Un modelo completo con noventa lotes</h3><p>Noventa lotes de dos tipos de mineral, con su resultado de especificación:</p><div class="table-wrap"><table><thead><tr><th>Mineral</th><th>Pasan</th><th>No pasan</th><th>Total</th><th>Momios de pasar</th></tr></thead><tbody><tr><td>Fácil</td><td>40</td><td>10</td><td>50</td><td>40/10 = <strong>4</strong></td></tr><tr><td>Duro</td><td>20</td><td>20</td><td>40</td><td>20/20 = <strong>1</strong></td></tr></tbody></table></div><p>El modelo tiene una sola variable, &quot;¿es duro?&quot;, que vale 1 o 0. Y sus dos coeficientes salen directos de la tabla, sin ajustar nada:</p><pre><code>intercepto  = ln(momios del mineral fácil) = ln 4 = +1,3863
+coeficiente = ln(momios duro / momios fácil) = ln(1/4) = −1,3863</code></pre><p><strong>El modelo es: logit = 1,3863 − 1,3863 × (duro).</strong> Y se lee así:</p><ul><li>Con mineral fácil, <code>duro</code> vale 0: logit 1,3863, o sea probabilidad <strong>0,8</strong>.</li><li>Con mineral duro, <code>duro</code> vale 1: logit 0, o sea probabilidad <strong>0,5</strong>.</li></ul><p>Que es exactamente lo que dice la tabla: 40 de 50 y 20 de 40.</p><h3 class="sub h3">Paso 5. Qué significa ese −1,3863</h3><p><strong>No es una probabilidad y no es una diferencia de probabilidad.</strong> Está en escala de logit, y para leerlo hay que exponenciarlo:</p><pre><code>e^(−1,3863) = 0,25</code></pre><p>Ese 0,25 es la <strong>razón de momios</strong>: el mineral duro tiene <strong>la cuarta parte</strong> de momios de pasar que el fácil. Dicho al revés, que suele entenderse mejor: el fácil tiene <strong>cuatro veces</strong> los momios del duro.</p><p>Y ojo con la traducción, porque es donde todo el mundo resbala: la probabilidad no se divide entre cuatro. Pasa de 0,8 a 0,5, que es una caída de 0,3, no de 0,6. <strong>Los momios se multiplican por un factor constante; las probabilidades no.</strong></p></section>
+<section class="section-block "><span class="kicker">Términos</span><h2 class="section-title">Glosario</h2><ul><li><strong>Regresión logística.</strong> El modelo para predecir un sí o un no. Devuelve una probabilidad, no una etiqueta.</li><li><strong>Logística binomial.</strong> La versión con dos resultados posibles, que es la de este curso. Con más de dos se llama multinomial.</li><li><strong>Momios.</strong> Probabilidad dividida entre su complemento. En inglés, <em>odds</em>.</li><li><strong>Logit.</strong> El logaritmo natural de los momios. Es lo que el modelo predice con una recta.</li><li><strong>Sigmoide.</strong> La curva en S que convierte un logit en una probabilidad.</li><li><strong>Razón de momios.</strong> El coeficiente exponenciado. Cuántas veces se multiplican los momios por cada unidad de la variable. En inglés, <em>odds ratio</em>.</li><li><strong>Máxima verosimilitud.</strong> El método con el que se ajusta este modelo. En vez de minimizar residuos al cuadrado, busca los coeficientes que hacen **más probables los datos que de hecho observaste**.</li><li><strong>Umbral.</strong> La probabilidad a partir de la cual se declara un sí. Por defecto 0,5, y casi nunca debería quedarse ahí sin pensarlo.</li><li><strong>Matriz de confusión.</strong> La tabla de aciertos y errores de una clasificación, con sus cuatro casillas.</li><li><strong>Exactitud.</strong> Aciertos totales sobre el total. En inglés, <em>accuracy</em>.</li><li><strong>Precisión.</strong> De todo lo que marcaste como sí, cuánto lo era de verdad.</li><li><strong>Sensibilidad.</strong> De todos los sí que había, cuántos pillaste. En inglés, <em>recall</em>.</li><li><strong>F1.</strong> Un único número que combina precisión y sensibilidad, castigando que una de las dos sea mala.</li><li><strong>Curva ROC y AUC.</strong> Un resumen del comportamiento del modelo **en todos los umbrales a la vez**, no solo en el 0,5.</li></ul></section>
+<section class="section-block is-recipe"><span class="kicker">Método</span><h2 class="section-title">Paso a paso</h2><h3 class="sub h3">Paso 1. Comprobar que la pregunta es binaria</h3><p>Si Y tiene dos valores posibles, logística. Si es un número, lineal. El módulo 1 ya dejó esto fijado, y la única trampa nueva es la contraria: <strong>no conviertas un número en un sí o un no sin motivo</strong>. Cortar la recuperación en &quot;buena&quot; y &quot;mala&quot; por un umbral inventado tira información que ya tenías.</p><h3 class="sub h3">Paso 2. Los supuestos, que son otros</h3><p>Los de la lineal no valen aquí tal cual. Los de la logística son cuatro:</p><div class="table-wrap"><table><thead><tr><th>Supuesto</th><th>Qué exige</th></tr></thead><tbody><tr><td>Resultado binario</td><td>Y tiene exactamente dos categorías</td></tr><tr><td>Observaciones independientes</td><td>Igual que siempre</td></tr><tr><td>Sin multicolinealidad</td><td>Igual que en el módulo 3</td></tr><tr><td><strong>Linealidad en el logit</strong></td><td>La relación recta se exige con el logit, no con la probabilidad</td></tr></tbody></table></div><p>El cuarto es el que cambia y el que más se malinterpreta. <strong>No se pide que la probabilidad suba en línea recta</strong>, porque de hecho no lo hace nunca: la sigmoide es plana en los extremos y empinada en el medio. Lo que tiene que ser recto es el logit.</p><p>Y fíjate en lo que <strong>no</strong> está en la lista: no se pide normalidad de los residuos ni varianza constante. Esos dos eran de la regresión lineal.</p><h3 class="sub h3">Paso 3. Ajustar por máxima verosimilitud</h3><p>Aquí no hay fórmula cerrada como el 400 dividido entre 1000 del módulo 2. El ordenador prueba combinaciones de coeficientes y se queda con la que hace <strong>más probables los datos observados</strong>. Se llama máxima verosimilitud.</p><p>La idea, sin matemáticas: para unos coeficientes dados, el modelo le asigna a cada lote una probabilidad de lo que en realidad le pasó. Si a un lote que pasó le da 0,9, bien; si le da 0,1, mal. Se multiplican todas esas probabilidades y se busca el máximo de ese producto.</p><h3 class="sub h3">Paso 4. Interpretar el coeficiente, que es donde se falla</h3><p>Tres frases, en orden de menos a más útil:</p><ol><li>&quot;El coeficiente es −1,3863.&quot; No dice nada a nadie.</li><li>&quot;La razón de momios es 0,25.&quot; Correcto y todavía opaco.</li><li><strong>&quot;Con mineral duro, los momios de pasar especificación son la cuarta parte.&quot;</strong> Esa es la que va al informe.</li></ol><p>Y la regla de lectura rápida del signo: <strong>coeficiente positivo, razón de momios mayor que 1, la variable sube la probabilidad</strong>. Negativo, razón menor que 1, la baja. Un coeficiente de 0 da razón de momios 1, que significa &quot;esta variable no cambia nada&quot;.</p><h3 class="sub h3">Paso 5. Elegir el umbral, que es una decisión de negocio</h3><p>El modelo entrega una probabilidad. Convertirla en un sí o un no exige un corte, y <strong>el 0,5 por defecto casi nunca es el correcto</strong>:</p><div class="table-wrap"><table><thead><tr><th>Si equivocarse cuesta...</th><th>Umbral</th><th>Consecuencia</th></tr></thead><tbody><tr><td>Mucho un fallo no detectado</td><td>Más bajo, 0,3</td><td>Más alarmas, menos escapes</td></tr><tr><td>Mucho una falsa alarma</td><td>Más alto, 0,7</td><td>Menos alarmas, más escapes</td></tr></tbody></table></div><p>En control de calidad, dejar pasar un lote fuera de especificación suele costar mucho más que revisar uno bueno de más. Eso pide bajar el umbral, y <strong>es una decisión del negocio, no del modelo</strong>.</p><h3 class="sub h3">Paso 6. Evaluar con las cuatro métricas</h3><p>La exactitud sola engaña, y engaña justo cuando más importa. El caso clásico: si solo el 2 % de los lotes falla, un modelo que diga siempre &quot;pasa&quot; acierta el 98 % de las veces y <strong>no detecta ni un solo fallo</strong>. Por eso hacen falta cuatro números y no uno:</p><div class="table-wrap"><table><thead><tr><th>Métrica</th><th>Pregunta que responde</th></tr></thead><tbody><tr><td><strong>Exactitud</strong></td><td>¿Qué proporción del total acerté?</td></tr><tr><td><strong>Precisión</strong></td><td>De lo que marqué como positivo, ¿cuánto lo era?</td></tr><tr><td><strong>Sensibilidad</strong></td><td>De todos los positivos que había, ¿cuántos pillé?</td></tr><tr><td><strong>F1</strong></td><td>¿Están las dos anteriores razonablemente bien a la vez?</td></tr></tbody></table></div><p>Precisión y sensibilidad se compran una con la otra moviendo el umbral, y por eso se reportan juntas. Y para ver el modelo en <strong>todos</strong> los umbrales a la vez está la curva ROC, cuya área bajo la curva, el AUC, va de 0,5 (una moneda) a 1 (perfecto).</p><h3 class="sub h3">Paso 7. Predecir con los distintos tipos de regresión del curso</h3><p>Con este módulo se cierra el repertorio, y conviene verlo junto, porque <strong>la predicción significa una cosa distinta en cada tipo</strong>:</p><div class="table-wrap"><table><thead><tr><th>Tipo de regresión</th><th>Qué predice</th><th>Salida</th><th>Cómo se evalúa</th></tr></thead><tbody><tr><td>Lineal simple</td><td>Un número, a partir de una variable</td><td>79,3 % de recuperación</td><td>R², RMSE</td></tr><tr><td>Lineal múltiple</td><td>Un número, a partir de varias</td><td>79,3 % de recuperación</td><td>R² ajustado, RMSE</td></tr><tr><td>Logística binomial</td><td>La probabilidad de un sí</td><td>0,80 de pasar spec</td><td>Precisión, sensibilidad, F1, AUC</td></tr></tbody></table></div><p>Tres diferencias que conviene tener claras al elegir:</p><p><strong>Lo que sale por el otro lado no es lo mismo.</strong> Las lineales devuelven una cantidad en las unidades de Y; la logística devuelve una probabilidad, y hace falta un umbral más para convertirla en una decisión.</p><p><strong>El error se mide con reglas distintas.</strong> En las lineales el error es una distancia y se resume con el RMSE. En la logística no hay distancia: o acertaste la categoría o no, y por eso hacen falta cuatro métricas en vez de una.</p><p><strong>Los supuestos no se heredan.</strong> Normalidad de los residuos y varianza constante son de las lineales. La logística pide linealidad en el logit, y no pide las otras dos.</p><p>Lo que sí es común a los tres, y es el hilo del curso entero: se ajusta un modelo, se interpretan sus coeficientes <strong>con sus unidades y manteniendo lo demás constante</strong>, se comprueban sus supuestos, y se dice hasta dónde llega su validez.</p></section>
+<section class="section-block is-recipe"><span class="kicker">Código</span><h2 class="section-title">El código, por partes</h2><h3 class="sub h3">Paso 1. Ajustar el modelo por máxima verosimilitud</h3><p>En esta máquina no hay <code>scikit-learn</code> ni <code>statsmodels</code>, así que el modelo se ajusta con <code>scipy</code> a mano. No es un apaño: es la ocasión de ver por dentro lo que esas librerías hacen en una línea.</p><pre><code class="language-python">import numpy as np
+from scipy import optimize
+
+# 90 lotes: 50 de mineral facil (40 pasaron), 40 de mineral duro (20 pasaron).
+hard = np.concatenate([np.zeros(50), np.ones(40)])
+passed = np.concatenate([np.ones(40), np.zeros(10), np.ones(20), np.zeros(20)])
+
+
+def negative_log_likelihood(params):
+    &quot;&quot;&quot;Return how badly these two coefficients explain the 90 observed lots.&quot;&quot;&quot;
+    intercept, coefficient = params
+    logit = intercept + coefficient * hard
+    probability = 1 / (1 + np.exp(-logit))
+    return -np.sum(passed * np.log(probability) + (1 - passed) * np.log(1 - probability))
+
+
+best = optimize.minimize(negative_log_likelihood, x0=[0.0, 0.0])
+intercept, coefficient = best.x
+
+print(f&quot;intercepto      = {intercept:+.4f}&quot;)
+print(f&quot;mineral duro    = {coefficient:+.4f}&quot;)
+print(f&quot;razon de momios = {np.exp(coefficient):.2f}&quot;)</code></pre><dl class="annot"><div class="annot-head">línea por línea</div><dt><code>np.zeros(50) / np.ones(40)</code></dt><dd>Vectores de ceros y de unos, de la longitud que le pidas. Es la forma corta de escribir cincuenta ceros sin escribirlos.</dd><dt><code>np.concatenate([...])</code></dt><dd>Pega varios vectores uno detrás de otro. Así se construyen las dos columnas de los 90 lotes sin teclear 90 valores.</dd><dt><code>def negative_log_likelihood(params):</code></dt><dd>La función que mide <strong>cómo de mal</strong> explican los datos unos coeficientes dados. El optimizador la va a llamar muchas veces con valores distintos.</dd><dt><code>1 / (1 + np.exp(-logit))</code></dt><dd>La sigmoide del paso 3 del ejemplo, escrita tal cual. <code>np.exp</code> es <em>e</em> elevado a algo, y se aplica a los 90 valores de una vez.</dd><dt><code>passed * np.log(probability)</code></dt><dd>El truco de escribir la verosimilitud sin un <code>if</code>: donde <code>passed</code> vale 1 queda el logaritmo de la probabilidad, y donde vale 0 ese término se anula y manda el otro.</dd><dt><code>-np.sum(...)</code></dt><dd>Se suman logaritmos en vez de multiplicar probabilidades, porque multiplicar 90 números menores que 1 da algo tan pequeño que el ordenador lo redondea a cero. Y se cambia el signo porque el optimizador sabe <strong>minimizar</strong>, así que minimizar lo negativo es maximizar.</dd><dt><code>optimize.minimize(..., x0=[0.0, 0.0])</code></dt><dd>Busca los coeficientes que hacen mínima esa función. <code>x0</code> es por dónde empieza a buscar; con dos coeficientes, empezar en cero va bien.</dd><dt><code>best.x</code></dt><dd>Los coeficientes encontrados. El objeto que devuelve <code>minimize</code> trae además si convergió y cuántas vueltas dio.</dd><dt><code>np.exp(coefficient)</code></dt><dd>El coeficiente exponenciado, que es la razón de momios. <strong>Es el número que se interpreta</strong>, no el coeficiente crudo.</dd></dl><div class="output"><span class="output-tag">sale</span><pre>intercepto      = +1.3863
+mineral duro    = -1.3863
+razon de momios = 0.25</pre></div><p>Los mismos 1,3863 que sacamos de la tabla con dos logaritmos. El ajuste numérico llega solo a la respuesta exacta.</p><h3 class="sub h3">Paso 2. Volver a probabilidades, que es lo que se reporta</h3><pre><code class="language-python">for name, value in [(&quot;facil&quot;, 0), (&quot;duro&quot;, 1)]:
+    logit = intercept + coefficient * value
+    print(f&quot;{name}: logit {logit:+.4f}  probabilidad {1 / (1 + np.exp(-logit)):.3f}&quot;)</code></pre><dl class="annot"><div class="annot-head">línea por línea</div><dt><code>for name, value in [(&quot;facil&quot;, 0), (&quot;duro&quot;, 1)]:</code></dt><dd>Un bucle sobre dos parejas. En la primera vuelta <code>name</code> es &quot;facil&quot; y <code>value</code> es 0; en la segunda, &quot;duro&quot; y 1.</dd><dt><code>intercept + coefficient * value</code></dt><dd>La recta del modelo, que predice el <strong>logit</strong>, no la probabilidad. Este es el paso que la gente se salta al interpretar.</dd><dt><code>1 / (1 + np.exp(-logit))</code></dt><dd>La sigmoide otra vez, ahora para deshacer el camino y devolver algo que se pueda decir en voz alta.</dd></dl><div class="output"><span class="output-tag">sale</span><pre>facil: logit +1.3863  probabilidad 0.800
+duro: logit +0.0000  probabilidad 0.500</pre></div><p>El 0,8 y el 0,5 de la tabla de 90 lotes. <strong>Nunca se reporta el logit</strong>: se reporta la probabilidad, o la razón de momios.</p><h3 class="sub h3">Paso 3. Las cuatro métricas, desde la matriz de confusión</h3><p>Un modelo de control de calidad aplicado a 100 lotes, donde <strong>el positivo es el lote fuera de especificación</strong>, que es lo que interesa cazar:</p><div class="table-wrap"><table><thead><tr><th></th><th>El modelo dice fuera</th><th>El modelo dice en spec</th></tr></thead><tbody><tr><td><strong>Estaba fuera</strong></td><td>40 aciertos</td><td>20 escapes</td></tr><tr><td><strong>Estaba en spec</strong></td><td>10 falsas alarmas</td><td>30 aciertos</td></tr></tbody></table></div><pre><code class="language-python">true_positive, false_positive = 40, 10
+false_negative, true_negative = 20, 30
+total = true_positive + false_positive + false_negative + true_negative
+
+accuracy = (true_positive + true_negative) / total
+precision = true_positive / (true_positive + false_positive)
+recall = true_positive / (true_positive + false_negative)
+f1 = 2 * precision * recall / (precision + recall)
+
+print(f&quot;exactitud    = {accuracy:.3f}&quot;)
+print(f&quot;precision    = {precision:.3f}&quot;)
+print(f&quot;sensibilidad = {recall:.3f}&quot;)
+print(f&quot;F1           = {f1:.3f}&quot;)</code></pre><dl class="annot"><div class="annot-head">línea por línea</div><dt><code>true_positive, false_positive = 40, 10</code></dt><dd>Dos asignaciones en una línea. Los nombres largos aquí valen la pena: <code>tp</code> y <code>fp</code> se confunden a las tres semanas.</dd><dt><code>precision = tp / (tp + fp)</code></dt><dd>El denominador es <strong>todo lo que el modelo marcó como positivo</strong>, acertado o no. Responde a &quot;cuando doy la alarma, ¿cuánto me creo?&quot;.</dd><dt><code>recall = tp / (tp + fn)</code></dt><dd>El denominador es <strong>todo lo que era positivo de verdad</strong>. Responde a &quot;de los lotes malos que había, ¿cuántos pillé?&quot;. Cambia solo una letra respecto de la anterior y significa algo completamente distinto.</dd><dt><code>2 * p * r / (p + r)</code></dt><dd>La media armónica de las dos. Se usa esta y no el promedio normal porque castiga que una de las dos sea mala: con precisión 1 y sensibilidad 0, el promedio daría 0,5 y el F1 da 0.</dd></dl><div class="output"><span class="output-tag">sale</span><pre>exactitud    = 0.700
+precision    = 0.800
+sensibilidad = 0.667
+F1           = 0.727</pre></div><p>Y aquí está el resultado que hay que saber leer. <strong>Una exactitud del 70 % suena aceptable y el modelo es malo para su propósito</strong>: la sensibilidad de 0,667 significa que <strong>un tercio de los lotes fuera de especificación se le escapa</strong>. En control de calidad eso es inaceptable, y el arreglo no es cambiar de modelo sino bajar el umbral, aceptando más falsas alarmas a cambio de menos escapes.</p></section>
+<section class="section-block is-warning"><span class="kicker">Trampas</span><h2 class="section-title">Ojo</h2><ul><li><strong>El coeficiente no es una probabilidad.</strong> Está en escala de logit y hay que exponenciarlo para leerlo como razón de momios.</li><li><strong>La razón de momios no es una razón de probabilidades.</strong> Momios cuatro veces menores llevan la probabilidad de 0,8 a 0,5, no a 0,2.</li><li><strong>Nunca reportes un logit.</strong> No significa nada para quien recibe el informe. Se reporta la probabilidad o la razón de momios.</li><li><strong>La exactitud engaña con clases desbalanceadas.</strong> Con un 2 % de fallos, decir siempre &quot;no hay fallo&quot; acierta el 98 %. Mira siempre la sensibilidad.</li><li><strong>El umbral 0,5 es una convención, no un resultado.</strong> Elegirlo es decidir qué error prefieres cometer, y eso lo decide el negocio.</li><li><strong>La linealidad se exige en el logit, no en la probabilidad.</strong> La probabilidad nunca sube en línea recta; para eso está la S.</li><li><strong>Normalidad de residuos y varianza constante no aplican aquí.</strong> Son supuestos de la regresión lineal, y arrastrarlos a la logística es un error frecuente.</li><li><strong>No conviertas un número en binario sin motivo.</strong> Si tienes la recuperación medida, usar &quot;buena o mala&quot; tira información que ya habías pagado por medir.</li></ul></section>
+<section class="section-block is-bridge"><span class="kicker">Analogía</span><h2 class="section-title">Puente metalúrgico</h2><p>Toda la planta funciona con decisiones binarias, y ninguna se resuelve con una recta.</p><p>La más clara es la que llevamos usando de ejemplo: <strong>¿este lote pasa la especificación de arsénico?</strong> No preguntas cuánto arsénico predice el modelo, preguntas si te van a rechazar el embarque. Y lo que quieres del modelo no es un sí o un no, sino <strong>la probabilidad</strong>, porque con un 55 % de pasar mandas el lote a mezcla y con un 95 % lo embarcas.</p><div class="table-wrap"><table><thead><tr><th>Pregunta de planta</th><th>Positivo</th></tr></thead><tbody><tr><td>¿El embarque pasa especificación de arsénico?</td><td>No pasa</td></tr><tr><td>¿La celda va a rebosar en el próximo turno?</td><td>Rebosa</td></tr><tr><td>¿Esta bomba falla antes del mantenimiento programado?</td><td>Falla</td></tr><tr><td>¿El testigo de este sondaje es mineral económico?</td><td>Lo es</td></tr></tbody></table></div><p>Y hay una idea que ya manejas y que es exactamente la razón de momios: <strong>los momios son el lenguaje de las apuestas y del riesgo</strong>. &quot;Cuatro a uno&quot; es una frase que se entiende en una sala de operaciones, y es literalmente lo que dice el intercepto del ejemplo.</p><p>El umbral también tiene su equivalente, y es la decisión más reconocible de todas: <strong>dónde pones la alarma</strong>. Una alarma demasiado sensible acaba ignorada por el operador porque salta siempre; una demasiado permisiva deja pasar el problema. Elegir ese punto no es un problema estadístico, es saber cuánto cuesta cada uno de los dos errores. En control de calidad la respuesta casi siempre es la misma: <strong>más vale una falsa alarma que un embarque rechazado</strong>.</p></section>
+<section class="section-block is-review"><span class="kicker">Repaso</span><h2 class="section-title">Repaso</h2><details><summary>¿Por qué no se puede usar una regresión lineal para predecir un sí o un no?</summary><p>Porque una recta no tiene límites y una probabilidad sí. Codificando el sí como 1 y el no como 0, la recta ajustada seguirá subiendo indefinidamente y predecirá valores por encima de 1 o por debajo de 0, que no existen como probabilidades. Además supondría que cada unidad de X cambia la probabilidad en la misma cantidad en todo el rango, cuando en la práctica el efecto es pequeño en los extremos y grande en el centro. La logística resuelve las dos cosas modelando el logit, que sí es una escala sin extremos, y devolviendo la probabilidad a través de una curva en S que se aplasta contra el 0 y el 1.</p></details><details><summary>Un coeficiente logístico vale 0,7. ¿Qué significa?</summary><p>Que por cada unidad que sube esa variable, los momios del sí se multiplican por e elevado a 0,7, o sea por 2, manteniendo constantes las demás variables. No significa que la probabilidad suba 0,7, ni que se duplique la probabilidad: lo que se duplica son los momios. El efecto sobre la probabilidad depende de dónde se parta, y es mayor cerca de 0,5 que en los extremos. La forma correcta de reportarlo es en momios o traduciendo a probabilidades concretas de casos de interés.</p></details><details><summary>¿Qué diferencia hay entre precisión y sensibilidad, y cuándo importa cada una?</summary><p>Las dos se calculan con los mismos aciertos positivos arriba y cambian el denominador. La precisión divide entre todo lo que el modelo marcó como positivo, y responde a cuánto se puede uno fiar de una alarma. La sensibilidad divide entre todos los positivos que existían de verdad, y responde a cuántos casos reales se detectaron. Importa más la sensibilidad cuando un caso no detectado es caro, como un lote fuera de especificación que llega al cliente, y más la precisión cuando una falsa alarma es cara, como parar una línea. Se compran una con la otra moviendo el umbral, y por eso se reportan juntas o resumidas en el F1.</p></details><details><summary>Un modelo tiene una exactitud del 98 %. ¿Es bueno?</summary><p>No se sabe sin conocer el reparto de las clases. Si solo el 2 % de los casos son positivos, un modelo que responda siempre &quot;negativo&quot; alcanza justo ese 98 % sin detectar ni un solo caso real, y su sensibilidad es cero. La exactitud es la métrica que más engaña precisamente en los problemas donde el positivo es raro, que suelen ser los importantes: fallos, fraudes, rechazos. Hay que mirar la matriz de confusión entera y reportar precisión, sensibilidad y F1.</p></details><details><summary>¿Qué se elige al fijar el umbral de clasificación, y por qué 0,5 no es la respuesta por defecto?</summary><p>Se elige qué tipo de error se prefiere cometer. Bajar el umbral marca más casos como positivos, así que sube la sensibilidad y baja la precisión: más alarmas, menos escapes. Subirlo hace lo contrario. El 0,5 es solo una convención heredada de suponer que los dos errores cuestan lo mismo y que las dos clases son igual de frecuentes, y casi nunca se cumplen las dos cosas. En control de calidad, dejar pasar un lote defectuoso cuesta bastante más que revisar uno bueno, así que el umbral correcto está por debajo de 0,5, y esa es una decisión del negocio y no del modelo.</p></details></section>
+</main>
+<footer class="footer">
+  Concentra / destilado del temario público del curso / 2026-08-20
+</footer>
+</body>
+</html>

@@ -1,0 +1,137 @@
+{
+  "project": "tiktok",
+  "course": "curso4",
+  "title": "TikTok: predecir si una cuenta está verificada",
+  "generated": "2026-08-19",
+  "source_csv": "C:\\Users\\Bruce Wayne\\Documents\\03_Data Analysis Coursera\\Course 3 - Data Analytics\\Exc_2_TikTok\\01_data\\tiktok_dataset_raw.csv",
+  "data": {
+    "rows_raw": 19382,
+    "rows_incomplete": 298,
+    "duplicates": 0,
+    "rows_clean": 19084
+  },
+  "balance": {
+    "not_verified": 17884,
+    "verified": 1200,
+    "verified_pct": 6.3,
+    "majority_baseline": 93.7,
+    "rows_after": 2400,
+    "discarded": 16684
+  },
+  "signal": {
+    "opinion_share_verified": 82.6,
+    "opinion_share_not_verified": 47.4,
+    "duration_verified": 31.77,
+    "duration_not_verified": 32.47
+  },
+  "vif_full": {
+    "video_like_count": 7.76,
+    "video_download_count": 6.3,
+    "video_view_count": 5.19,
+    "video_comment_count": 4.05,
+    "video_share_count": 3.77,
+    "is_claim": 3.04,
+    "banned": 1.08,
+    "under_review": 1.07,
+    "video_duration_sec": 1.0
+  },
+  "vif_final": {
+    "is_claim": 3.04,
+    "video_view_count": 2.93,
+    "banned": 1.08,
+    "under_review": 1.06,
+    "video_duration_sec": 1.0
+  },
+  "model": {
+    "features": [
+      "video_duration_sec",
+      "is_claim",
+      "banned",
+      "under_review",
+      "video_view_count"
+    ],
+    "dropped": [
+      "video_like_count",
+      "video_share_count",
+      "video_download_count",
+      "video_comment_count"
+    ]
+  },
+  "split": {
+    "train_rows": 1800,
+    "test_rows": 600
+  },
+  "coefficients": {
+    "const": {
+      "value": 0.6294,
+      "odds_ratio": 1.8764,
+      "p": 1.35e-07,
+      "ci_low": 1.485,
+      "ci_high": 2.3711
+    },
+    "video_duration_sec": {
+      "value": -0.0015,
+      "odds_ratio": 0.9985,
+      "p": 0.63,
+      "ci_low": 0.9923,
+      "ci_high": 1.0047
+    },
+    "is_claim": {
+      "value": -1.6331,
+      "odds_ratio": 0.1953,
+      "p": 1.92e-16,
+      "ci_low": 0.1324,
+      "ci_high": 0.2882
+    },
+    "banned": {
+      "value": -0.2759,
+      "odds_ratio": 0.7589,
+      "p": 0.234,
+      "ci_low": 0.4819,
+      "ci_high": 1.1952
+    },
+    "under_review": {
+      "value": -0.2421,
+      "odds_ratio": 0.785,
+      "p": 0.196,
+      "ci_low": 0.5438,
+      "ci_high": 1.1333
+    },
+    "video_view_count": {
+      "value": 0.0,
+      "odds_ratio": 1.0,
+      "p": 0.886,
+      "ci_low": 1.0,
+      "ci_high": 1.0
+    }
+  },
+  "fit": {
+    "pseudo_r2": 0.1046
+  },
+  "metrics_050": {
+    "accuracy": 0.6817,
+    "precision": 0.6408,
+    "recall": 0.8267,
+    "f1": 0.722,
+    "auc": 0.6969,
+    "matrix": {
+      "tn": 161,
+      "fp": 139,
+      "fn": 52,
+      "tp": 248
+    }
+  },
+  "threshold": {
+    "gap_low": 0.28,
+    "gap_high": 0.56,
+    "cases_inside_gap": 0,
+    "p_min": 0.204,
+    "p_max": 0.651,
+    "identical_between": "cualquier corte entre 0,28 y 0,56 da exactamente el mismo resultado"
+  },
+  "correlations": {
+    "counters_min": 0.5542,
+    "counters_max": 0.8325,
+    "duration_max_abs": 0.0131
+  }
+}

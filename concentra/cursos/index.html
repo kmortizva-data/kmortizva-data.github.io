@@ -1,0 +1,766 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Concentra</title>
+<style>
+/* ============================================================================
+   Concentra — design tokens and shared components.
+   Inlined into every generated page by load_style(), so pages stay self-contained
+   and work offline from file:// with no external requests.
+
+   Direction: an assay lab, not a tech dashboard. The palette is taken from ore
+   and lab materials (chalcopyrite brass, malachite, hematite, quartz) on warm
+   graphite rather than the blue-black + neon of a generic dark UI. Type is
+   Bahnschrift, the DIN-descended grotesque that Windows ships and that lives on
+   machinery plates and technical drawings, over Corbel for reading.
+   ========================================================================== */
+
+:root {
+  /* Ground and surfaces: warm graphite, the colour of rock dust, not blue-black */
+  --rock: #1a1714;
+  --bench: #221e19;
+  --core: #2b251f;
+  --seam: #3d352c;
+
+  /* Ore palette. No blue and no purple anywhere: those are the tones that make a
+     page read as generated, and this palette comes from the ores instead. */
+  --brass: #c9a227;      /* chalcopyrite, the primary accent */
+  --malachite: #5d9b7a;  /* verified output, results that came out right */
+  --hematite: #b04a35;   /* iron oxide, pitfalls and warnings */
+
+  /* Text */
+  --quartz: #ece7de;
+  --dust: #9a9186;
+  --shadowed: #6f675c;
+
+  --display: Bahnschrift, 'DIN Alternate', 'Segoe UI Semibold', system-ui, sans-serif;
+  --body: Corbel, Candara, 'Segoe UI', system-ui, sans-serif;
+  --data: Consolas, 'Cascadia Mono', ui-monospace, monospace;
+
+  /* In px, not ch: ch scales with font-size, so a heading ended up wider than a
+     paragraph and the page had four different right edges instead of two. */
+  --measure: 640px;
+  --wide: 900px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--rock);
+  color: var(--quartz);
+  font-family: var(--body);
+  font-size: 16px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection { background: var(--brass); color: var(--rock); }
+
+:focus-visible {
+  outline: 2px solid var(--brass);
+  outline-offset: 3px;
+}
+
+/* --------------------------------------------------------------- the signature
+   A sieve series: ticks that get finer from left to right, coarse feed to fine
+   concentrate. It is the one ornament on the page and appears exactly twice —
+   under the wordmark and under a page title. */
+.mesh {
+  height: 10px;
+  background-image:
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 16px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 9px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 5px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 3px);
+  background-size: 25% 100%;
+  background-position: 0 0, 25% 0, 50% 0, 75% 0;
+  background-repeat: no-repeat;
+  opacity: .8;
+  transform-origin: left center;
+  animation: sieve .55s cubic-bezier(.2, .8, .3, 1) both;
+}
+@keyframes sieve { from { transform: scaleX(0); opacity: 0; } to { transform: scaleX(1); opacity: .8; } }
+@media (prefers-reduced-motion: reduce) {
+  .mesh { animation: none; }
+  * { transition: none !important; }
+}
+
+/* ------------------------------------------------------------------ page head */
+.header {
+  border-bottom: 1px solid var(--seam);
+  padding: 3.2rem 2rem 0;
+  background: linear-gradient(180deg, #221d16 0%, var(--rock) 100%);
+}
+.header-content { max-width: 1080px; margin: 0 auto; }
+
+.eyebrow {
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--brass);
+  margin-bottom: 1rem;
+}
+.eyebrow a { color: inherit; text-decoration: none; border-bottom: 1px solid transparent; }
+.eyebrow a:hover { border-bottom-color: var(--brass); }
+
+.header h1 {
+  font-family: var(--display);
+  font-size: clamp(2rem, 4.5vw, 3.1rem);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -.015em;
+  color: var(--quartz);
+  max-width: 20ch;
+}
+.header .subtitle {
+  color: var(--dust);
+  max-width: var(--measure);
+  margin-top: 1rem;
+  font-size: 1.02rem;
+}
+.header .mesh { margin: 1.8rem 0 0; }
+
+/* An assay line: the real composition of the module, in lab-report shorthand. */
+.assay {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.4rem;
+  font-family: var(--data);
+  font-size: .78rem;
+  color: var(--shadowed);
+  padding: .9rem 0 1.6rem;
+  letter-spacing: .04em;
+}
+.assay b { color: var(--dust); font-weight: 400; }
+
+/* --------------------------------------------------------------------- layout */
+/* The container hugs the widest block, so there is no orphan edge past the content. */
+.container { max-width: var(--wide); margin: 3rem auto 5rem; padding: 0 2rem; }
+
+/* Two deliberate right edges and no more: prose stops at the reading measure, and
+   only the things that genuinely need room (code, output, figures, big tables) run
+   out to the full column. */
+.section-block {
+  border-top: 1px solid var(--seam);
+  padding: 2rem 0 2.4rem;
+}
+.section-block > p,
+.section-block > ul,
+.section-block > ol,
+.section-block h3.sub,
+.section-block h4.sub,
+.section-block blockquote,
+details > *:not(summary) { max-width: var(--measure); }
+.section-block:first-child { border-top: 0; padding-top: .5rem; }
+
+/* The kicker names what kind of content follows: context, method, pitfalls.
+   It replaces decorative icons with something that actually classifies. */
+.kicker {
+  font-family: var(--data);
+  font-size: .68rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  display: block;
+  margin-bottom: .5rem;
+}
+.section-title {
+  font-family: var(--display);
+  font-size: 1.55rem;
+  font-weight: 600;
+  letter-spacing: -.01em;
+  line-height: 1.2;
+  margin-bottom: 1.2rem;
+  color: var(--quartz);
+}
+.is-warning .kicker { color: var(--hematite); }
+.is-warning .section-title { color: #e8c4b8; }
+.is-bridge .kicker, .is-decision .kicker { color: var(--malachite); }
+.is-toy .kicker, .is-result .kicker, .is-question .kicker { color: var(--brass); }
+
+/* ---------------------------------------------------------------------- prose */
+/* Justified with hyphenation. In Spanish, justifying without hyphens opens rivers of
+   white space and reads worse than ragged right; lang="es" is what feeds the
+   dictionary. Tables, code, captions and summaries stay ragged on purpose. */
+.section-block p,
+.section-block li,
+details > *:not(summary) {
+  text-align: justify;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+}
+.section-block p { margin-bottom: 1rem; }
+.section-block p:last-child { margin-bottom: 0; }
+/* Indent with padding, not margin, so the bullet sits inside the measure instead of
+   pushing the list 1.2rem past the right edge of the paragraphs. */
+.section-block ul, .section-block ol { margin: 0 0 1rem; padding-left: 1.2rem; }
+.section-block li { margin-bottom: .55rem; padding-left: .2rem; }
+.section-block li::marker { color: var(--brass); }
+td, th, figcaption, .res li, .assay { text-align: left; hyphens: manual; }
+a { color: var(--brass); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+a:hover { text-decoration-thickness: 2px; }
+strong { color: #fff; font-weight: 700; }
+em { color: var(--dust); font-style: italic; }
+
+h3.sub {
+  font-family: var(--display);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--brass);
+  margin: 2rem 0 .7rem;
+  letter-spacing: -.005em;
+}
+h3.sub:first-child { margin-top: 0; }
+h4.sub {
+  font-family: var(--display);
+  font-size: .98rem;
+  font-weight: 600;
+  color: var(--dust);
+  margin: 1.3rem 0 .5rem;
+}
+
+code {
+  font-family: var(--data);
+  font-size: .9em;
+  background: var(--core);
+  border-radius: 3px;
+  padding: .08rem .32rem;
+  color: var(--brass);
+}
+pre {
+  background: #14110e;
+  border: 1px solid var(--seam);
+  border-left: 2px solid var(--seam);
+  border-radius: 2px;
+  padding: 1.1rem 1.2rem;
+  overflow-x: auto;
+  margin-bottom: 1rem;
+}
+pre code {
+  background: none; padding: 0; color: var(--quartz);
+  font-size: .87rem; line-height: 1.6;
+}
+
+/* What the code prints. Malachite: the material that came out of the process. */
+.output {
+  position: relative;
+  border: 1px solid rgba(93, 155, 122, .32);
+  border-left: 2px solid var(--malachite);
+  border-radius: 2px;
+  background: rgba(93, 155, 122, .06);
+  padding: 1.7rem 1.2rem 1rem;
+  margin-bottom: 1rem;
+  overflow-x: auto;
+}
+.output-tag {
+  position: absolute; top: .5rem; left: 1.2rem;
+  font-family: var(--data); font-size: .64rem;
+  letter-spacing: .18em; text-transform: uppercase; color: var(--malachite);
+}
+.output pre {
+  background: none; border: 0; padding: 0; margin: 0;
+  font-family: var(--data); font-size: .85rem;
+  color: var(--quartz); white-space: pre-wrap;
+}
+
+/* Line by line explanation of a code block, for a reader new to programming.
+   Two columns: the fragment of code, and what it does. */
+.annot {
+  display: grid;
+  grid-template-columns: minmax(9rem, auto) 1fr;
+  gap: .1rem 1.2rem;
+  align-items: baseline;
+  max-width: var(--wide);
+  margin: -.4rem 0 1.4rem;
+  padding: .9rem 1.1rem 1rem;
+  border: 1px solid var(--seam);
+  border-top: 0;
+  border-radius: 0 0 2px 2px;
+  background: rgba(201, 162, 39, .04);
+}
+.annot-head {
+  grid-column: 1 / -1;
+  font-family: var(--data);
+  font-size: .64rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  margin-bottom: .5rem;
+}
+.annot dt { padding: .35rem 0; }
+.annot dt code {
+  background: var(--core);
+  color: var(--brass);
+  font-size: .82rem;
+  white-space: nowrap;
+}
+.annot dd {
+  padding: .35rem 0;
+  margin: 0;
+  color: var(--dust);
+  font-size: .93rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(61, 53, 44, .5);
+}
+.annot dt { border-bottom: 1px solid rgba(61, 53, 44, .5); }
+.annot dt:last-of-type, .annot dd:last-of-type { border-bottom: 0; }
+/* The code block sits directly on top of its annotation, as one unit. */
+pre:has(+ .annot) { margin-bottom: 0; border-radius: 2px 2px 0 0; }
+
+@media (max-width: 640px) {
+  .annot { grid-template-columns: 1fr; gap: 0; }
+  .annot dt { border-bottom: 0; padding-bottom: 0; }
+  .annot dd { padding-top: .15rem; }
+}
+
+blockquote {
+  border-left: 2px solid var(--brass);
+  padding: .3rem 0 .3rem 1.3rem;
+  margin: 0 0 1rem;
+  font-family: var(--display);
+  font-size: 1.2rem;
+  font-weight: 400;
+  line-height: 1.4;
+  color: var(--quartz);
+}
+
+/* Tables read as assay data: mono figures, hairline rules, no zebra fill.
+   They take the width they need instead of being stretched to the full column,
+   which is what left a two-column table floating in empty space. */
+.table-wrap { overflow-x: auto; margin-bottom: 1rem; }
+table { border-collapse: collapse; width: auto; max-width: 100%; font-size: .93rem; }
+th, td {
+  border-bottom: 1px solid var(--seam);
+  padding: .55rem .8rem .55rem 0;
+  text-align: left;
+  vertical-align: top;
+}
+th {
+  font-family: var(--data);
+  font-size: .7rem;
+  font-weight: 400;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  border-bottom-color: var(--brass);
+}
+td:first-child { color: var(--quartz); }
+
+/* Review questions: closed by default, so they work as recall practice. */
+details {
+  border-top: 1px solid var(--seam);
+  padding: .9rem 0;
+}
+details:last-child { border-bottom: 1px solid var(--seam); }
+summary {
+  cursor: pointer;
+  font-family: var(--display);
+  font-size: 1.02rem;
+  font-weight: 600;
+  color: var(--quartz);
+  list-style: none;
+  display: flex;
+  gap: .7rem;
+  align-items: baseline;
+}
+summary::-webkit-details-marker { display: none; }
+summary::before {
+  content: '+';
+  font-family: var(--data);
+  color: var(--brass);
+  font-size: .95rem;
+}
+details[open] summary::before { content: '−'; }
+details[open] summary { color: var(--brass); margin-bottom: .7rem; }
+details > *:not(summary) { color: var(--dust); }
+
+figure.fig {
+  margin: 1.6rem 0;
+  border: 1px solid var(--seam);
+  padding: .7rem;
+  background: var(--bench);
+}
+figure.fig img { width: 100%; height: auto; display: block; }
+/* The interactive twin of a figure. Its aspect matches the still one, 10 by 4.4, so a
+   case sheet keeps the same rhythm whichever kind of figure comes next. */
+figure.fig.is-live iframe {
+  width: 100%;
+  /* Matches INTERACTIVE_HEIGHT in src/make_figures.py. It used to be an aspect ratio, and
+     that made the figure's height depend on the window: the caption and the legend are
+     placed at fractions of the plot area, so on a wide screen they were pushed past the
+     bottom margin, clipping the caption and covering the x-axis title. */
+  height: 520px;
+  border: 0;
+  display: block;
+}
+figure.fig figcaption {
+  font-family: var(--data);
+  font-size: .72rem;
+  color: var(--shadowed);
+  margin-top: .6rem;
+  letter-spacing: .04em;
+}
+
+/* File listings on a case sheet */
+.res { list-style: none; margin-left: 0 !important; }
+.res li {
+  display: flex; align-items: baseline; gap: .8rem; flex-wrap: wrap;
+  padding: .5rem 0; border-bottom: 1px solid var(--seam); margin-bottom: 0;
+}
+.res .path { font-family: var(--data); font-size: .74rem; color: var(--shadowed); }
+.res .size { font-family: var(--data); font-size: .74rem; color: var(--shadowed); margin-left: auto; }
+.res .gone { font-family: var(--data); font-size: .74rem; color: var(--hematite); }
+
+.footer {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 2rem 4rem;
+  color: var(--shadowed);
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .03em;
+}
+
+@media (max-width: 640px) {
+  body { font-size: 15px; }
+  .header { padding: 2rem 1.2rem 0; }
+  .container { padding: 0 1.2rem; margin-top: 2rem; }
+  .footer { padding: 0 1.2rem 3rem; }
+}
+
+@media print {
+  body { background: #fff; color: #16130f; }
+  .header { background: none; border-bottom: 1px solid #bbb; padding-top: 0; }
+  .header h1, .section-title, summary { color: #16130f; }
+  .mesh { animation: none; }
+  .section-block { break-inside: avoid; max-width: none; }
+  pre, .output { background: #f6f4f0; border-color: #ccc; }
+  details:not([open]) > *:not(summary) { display: block; }
+  a { color: #16130f; }
+}
+
+
+/* ============================================================ the shell only */
+html, body { height: 100%; }
+body { display: flex; overflow: hidden; }
+
+.sidebar {
+  --w: 300px;
+  width: var(--w);
+  flex: 0 0 var(--w);
+  height: 100%;
+  background: var(--bench);
+  border-right: 1px solid var(--seam);
+  display: flex;
+  flex-direction: column;
+  transition: width .2s ease, flex-basis .2s ease;
+}
+body.rail .sidebar { width: 0; flex-basis: 0; overflow: hidden; border-right: 0; }
+
+.brand { padding: 1.4rem 1.3rem 1rem; }
+.brand a { text-decoration: none; display: block; }
+.brand h1 {
+  font-family: var(--display);
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: .02em;
+  color: var(--quartz);
+}
+.brand .mesh { height: 7px; margin: .55rem 0 .6rem; }
+.brand p { font-family: var(--data); font-size: .68rem; color: var(--shadowed); letter-spacing: .06em; }
+
+.search { padding: 0 1.3rem 1rem; }
+.search input {
+  width: 100%;
+  background: var(--rock);
+  border: 1px solid var(--seam);
+  border-radius: 2px;
+  padding: .5rem .65rem;
+  color: var(--quartz);
+  font-family: var(--body);
+  font-size: .92rem;
+}
+.search input::placeholder { color: var(--shadowed); }
+.search input:focus { outline: none; border-color: var(--brass); }
+.search .count {
+  font-family: var(--data); font-size: .68rem; color: var(--shadowed);
+  margin-top: .45rem; min-height: 1em; letter-spacing: .06em;
+}
+
+.tree { flex: 1; overflow-y: auto; padding-bottom: 2rem; }
+.course-head {
+  width: 100%; text-align: left; background: none; border: 0;
+  color: var(--quartz); font-family: var(--display);
+  font-size: .96rem; font-weight: 600;
+  padding: .7rem 1.3rem; cursor: pointer;
+  display: flex; align-items: center; gap: .55rem;
+  border-top: 1px solid var(--seam);
+}
+.course-head:hover { color: var(--brass); }
+.course-head .chev { color: var(--shadowed); font-size: .6rem; transition: transform .15s; }
+.course[data-open="false"] .chev { transform: rotate(-90deg); }
+.course[data-open="false"] .course-body { display: none; }
+.course-head .label {
+  font-family: var(--data); font-size: .66rem; letter-spacing: .1em;
+  color: var(--brass);
+}
+
+.group {
+  font-family: var(--data); font-size: .62rem;
+  letter-spacing: .18em; text-transform: uppercase; color: var(--shadowed);
+  padding: .9rem 1.3rem .3rem;
+}
+.tree ul { list-style: none; }
+.tree li a {
+  display: flex; gap: .6rem;
+  padding: .34rem 1.3rem .34rem 1.15rem;
+  color: var(--dust); text-decoration: none;
+  font-size: .89rem; line-height: 1.4;
+  border-left: 2px solid transparent;
+}
+.tree li a:hover { color: var(--quartz); background: rgba(201,162,39,.06); }
+.tree li a .n { font-family: var(--data); font-size: .72rem; color: var(--shadowed); }
+.tree li.active a {
+  color: var(--brass); border-left-color: var(--brass);
+  background: rgba(201,162,39,.09);
+}
+.tree li.active a .n { color: var(--brass); }
+.tree li.pending span {
+  display: block; padding: .34rem 1.3rem .34rem 1.15rem;
+  color: var(--shadowed); font-size: .89rem; border-left: 2px solid transparent;
+}
+.hidden { display: none !important; }
+
+.main { flex: 1; height: 100%; display: flex; flex-direction: column; min-width: 0; }
+.topbar {
+  display: flex; align-items: center; gap: .9rem;
+  padding: .55rem 1.2rem;
+  border-bottom: 1px solid var(--seam);
+  background: var(--bench);
+  flex: 0 0 auto;
+}
+.topbar .crumb {
+  font-family: var(--data); font-size: .74rem; color: var(--dust);
+  letter-spacing: .04em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.topbar .spacer { flex: 1; }
+.topbar button, .topbar a.btn {
+  background: none; border: 1px solid var(--seam); border-radius: 2px;
+  color: var(--dust); font-family: var(--data); font-size: .7rem;
+  letter-spacing: .06em; padding: .3rem .6rem; cursor: pointer;
+  text-decoration: none; white-space: nowrap;
+}
+.topbar button:hover, .topbar a.btn:hover { color: var(--brass); border-color: var(--brass); }
+iframe { flex: 1; width: 100%; border: 0; background: var(--rock); }
+
+/* ------------------------------------------------------------------ the front */
+.home { flex: 1; overflow-y: auto; }
+.home-inner { max-width: 1080px; margin: 0 auto; padding: 4rem 2rem 5rem; }
+.home h2 {
+  font-family: var(--display);
+  font-size: clamp(2.2rem, 5vw, 3.4rem);
+  font-weight: 600; line-height: 1.05; letter-spacing: -.015em;
+  max-width: 16ch;
+}
+.home .lede { color: var(--dust); margin: 1.1rem 0 0; max-width: var(--measure); font-size: 1.05rem; }
+.home .mesh { margin: 2rem 0 .9rem; max-width: 420px; }
+.home .stats {
+  font-family: var(--data); font-size: .76rem; color: var(--shadowed);
+  letter-spacing: .1em; text-transform: uppercase; margin-bottom: 3.4rem;
+}
+
+.course-card { border-top: 1px solid var(--seam); padding: 2rem 0 2.2rem; }
+.course-card .ct {
+  display: flex; align-items: baseline; gap: .8rem; flex-wrap: wrap; margin-bottom: .3rem;
+}
+.course-card .cn { font-family: var(--data); font-size: .7rem; letter-spacing: .16em; color: var(--brass); }
+.course-card h3 { font-family: var(--display); font-size: 1.5rem; font-weight: 600; letter-spacing: -.01em; }
+.course-card .meta {
+  font-family: var(--data); font-size: .72rem; color: var(--shadowed);
+  letter-spacing: .06em; margin-bottom: 1.2rem;
+}
+.chips { display: flex; flex-wrap: wrap; gap: .4rem .5rem; max-width: 900px; }
+.chips a, .chips span.pending {
+  font-size: .84rem; text-decoration: none;
+  padding: .22rem .7rem; border: 1px solid var(--seam); border-radius: 2px;
+  color: var(--dust);
+}
+.chips a:hover { color: var(--brass); border-color: var(--brass); }
+.chips a.case { color: var(--malachite); border-color: rgba(93,155,122,.4); }
+.chips a.case:hover { border-color: var(--malachite); }
+.chips span.pending { color: var(--shadowed); border-style: dashed; }
+
+@media (max-width: 768px) {
+  .sidebar {
+    position: fixed; z-index: 20; left: 0; top: 0; bottom: 0;
+    transform: translateX(-100%); transition: transform .2s ease;
+    box-shadow: 8px 0 30px rgba(0,0,0,.6);
+  }
+  body.nav-open .sidebar { transform: translateX(0); }
+  body.rail .sidebar { width: var(--w); flex-basis: var(--w); }
+  .home-inner { padding: 2.2rem 1.2rem 3rem; }
+}
+</style>
+</head>
+<body>
+<aside class="sidebar" id="sidebar">
+  <div class="brand">
+    <a href="#">
+      <h1>Concentra</h1>
+      <div class="mesh" role="presentation"></div>
+    </a>
+    <p>5 cursos · 25/25 lecciones · 12 casos</p>
+  </div>
+  <div class="search">
+    <input id="q" type="search" placeholder="Buscar lección, caso o concepto" autocomplete="off" aria-label="Buscar en la biblioteca">
+    <div class="count" id="count" role="status"></div>
+  </div>
+  <nav class="tree" id="tree">
+<section class="course" data-open="false" data-default-open="false"><button class="course-head" type="button"><span class="chev">▼</span><span class="label">Curso 2</span><span>Go Beyond the Numbers: Translate Data into Insights</span></button><div class="course-body"><ul><li class="overview" data-route="go-beyond-the-numbers-translate-data-into-insight/curso" data-search="curso resumen cerebro memoria md"><a href="#go-beyond-the-numbers-translate-data-into-insight/curso">El curso y su cerebro</a></li></ul><div class="group">Lecciones</div><ul><li data-route="go-beyond-the-numbers-translate-data-into-insight/m01_find-and-share-stories-using-data" data-search="find and share stories using data análisis exploratorio de datos. las seis prácticas. descubrir. estructurar. limpiar. unir. validar. presentar. pace. parte interesada. relato con datos."><a href="#go-beyond-the-numbers-translate-data-into-insight/m01_find-and-share-stories-using-data"><span class="n">1</span>Find and share stories using data</a></li><li data-route="go-beyond-the-numbers-translate-data-into-insight/m02_explore-raw-data" data-search="explore raw data dataframe. tipo de dato. objeto o texto. valor nulo. datetime. formato iso. descubrir. estructurar. agrupar. histograma. procedencia del dato."><a href="#go-beyond-the-numbers-translate-data-into-insight/m02_explore-raw-data"><span class="n">2</span>Explore raw data</a></li><li data-route="go-beyond-the-numbers-translate-data-into-insight/m03_clean-your-data" data-search="clean your data valor ausente. imputar. ausente al azar. duplicado. valor atípico. cuartil. rango intercuartílico. regla 1,5 × iqr. recortar. robusto. codificación de etiquetas. codificación one-hot. validación de entrada. información personal identificable."><a href="#go-beyond-the-numbers-translate-data-into-insight/m03_clean-your-data"><span class="n">3</span>Clean your data</a></li><li data-route="go-beyond-the-numbers-translate-data-into-insight/m04_data-visualizations-and-presentations" data-search="data visualizations and presentations ciclo de vida de la visualización. gráfico exploratorio. gráfico explicativo. tableau. tableau public. dimensión. medida. panel de control. filtro. relato con datos. accesibilidad."><a href="#go-beyond-the-numbers-translate-data-into-insight/m04_data-visualizations-and-presentations"><span class="n">4</span>Data visualizations and presentations</a></li><li data-route="go-beyond-the-numbers-translate-data-into-insight/m05_course-2-end-of-course-project" data-search="course 2 end-of-course project informe de calidad del dato. valor imposible. variable derivada. forma de los huecos. documento de estrategia pace. resumen ejecutivo."><a href="#go-beyond-the-numbers-translate-data-into-insight/m05_course-2-end-of-course-project"><span class="n">5</span>Course 2 end-of-course project</a></li></ul><div class="group">Casos de estudio</div><ul><li class="case" data-route="go-beyond-the-numbers-translate-data-into-insight/case_automatidata" data-search="automatidata casi un tercio del negocio ocurre en cuatro horas, y 197 viajes no pudieron ocurrir nunca."><a href="#go-beyond-the-numbers-translate-data-into-insight/case_automatidata">Automatidata</a></li><li class="case" data-route="go-beyond-the-numbers-translate-data-into-insight/case_tiktok" data-search="tiktok el archivo dice solo cuál es su variable importante: una reclamación se ve 101 veces más que una opinión."><a href="#go-beyond-the-numbers-translate-data-into-insight/case_tiktok">TikTok</a></li><li class="case" data-route="go-beyond-the-numbers-translate-data-into-insight/case_waze" data-search="waze 461 usuarios conducen más de 24 horas en un día. no es un valor extremo, es imposible."><a href="#go-beyond-the-numbers-translate-data-into-insight/case_waze">Waze</a></li></ul></div></section>
+<section class="course" data-open="false" data-default-open="false"><button class="course-head" type="button"><span class="chev">▼</span><span class="label">Curso 3</span><span>The Power of Statistics</span></button><div class="course-body"><ul><li class="overview" data-route="the-power-of-statistics/curso" data-search="curso resumen cerebro memoria md"><a href="#the-power-of-statistics/curso">El curso y su cerebro</a></li></ul><div class="group">Lecciones</div><ul><li data-route="the-power-of-statistics/m01_introduction-to-statistics-with-python" data-search="introduction to statistics with python estadística descriptiva. estadística inferencial. población. muestra. medidas de tendencia central. media. mediana. moda. cuál de las tres usar. medidas de dispersión. rango. varianza. desviación estándar. percentil. cuartil. rango intercuartílico (iqr)."><a href="#the-power-of-statistics/m01_introduction-to-statistics-with-python"><span class="n">1</span>Introduction to statistics with Python</a></li><li data-route="the-power-of-statistics/m02_probability" data-search="probability conceptos fundamentales de la probabilidad. experimento y espacio muestral. suceso. probabilidad. regla de la suma. regla del producto. probabilidad objetiva. probabilidad subjetiva. sucesos independientes. probabilidad condicional. teorema de bayes. variable aleatoria. distribución de probabilidad. distribución binomial. distribución de poisson. distribución normal. puntuación z."><a href="#the-power-of-statistics/m02_probability"><span class="n">2</span>Probability</a></li><li data-route="the-power-of-statistics/m03_sampling" data-search="sampling población. muestra. parámetro. estadístico. muestreo probabilístico. muestreo no probabilístico. muestreo aleatorio simple. muestreo estratificado. muestreo por conglomerados. sesgo de muestreo. distribución muestral. teorema del límite central. error estándar."><a href="#the-power-of-statistics/m03_sampling"><span class="n">3</span>Sampling</a></li><li data-route="the-power-of-statistics/m04_confidence-intervals" data-search="confidence intervals estimación puntual. intervalo de confianza. error estándar. margen de error. nivel de confianza. valor crítico. distribución t de student. grados de libertad."><a href="#the-power-of-statistics/m04_confidence-intervals"><span class="n">4</span>Confidence intervals</a></li><li data-route="the-power-of-statistics/m05_introduction-to-hypothesis-testing" data-search="introduction to hypothesis testing hipótesis nula (h₀). hipótesis alternativa (hₐ). en qué se diferencian las dos hipótesis. nivel de significancia (α). valor p. estadístico t. error tipo i. error tipo ii. poder estadístico. tamaño del efecto (d de cohen). prueba de una cola. prueba t de una muestra. prueba t de dos muestras. prueba de proporciones. a/b testing."><a href="#the-power-of-statistics/m05_introduction-to-hypothesis-testing"><span class="n">5</span>Introduction to hypothesis testing</a></li><li data-route="the-power-of-statistics/m06_course-3-end-of-course-project" data-search="course 3 end-of-course project escenario de trabajo. documento pace. resumen ejecutivo. portfolio project. limitación declarada."><a href="#the-power-of-statistics/m06_course-3-end-of-course-project"><span class="n">6</span>Course 3 end-of-course project</a></li></ul><div class="group">Casos de estudio</div><ul><li class="case" data-route="the-power-of-statistics/case_automatidata" data-search="automatidata la corazonada de la gerencia era correcta, pero el tamaño del efecto la desinfla: es el caso que enseña que significativo no es lo mismo que importante."><a href="#the-power-of-statistics/case_automatidata">Automatidata</a></li><li class="case" data-route="the-power-of-statistics/case_tiktok" data-search="tiktok ¿reciben más visualizaciones los vídeos de cuentas verificadas? el resultado contradice la intuición, y el hallazgo secundario resultó más útil que el principal."><a href="#the-power-of-statistics/case_tiktok">TikTok</a></li><li class="case" data-route="the-power-of-statistics/case_waze" data-search="waze el único de los tres donde la respuesta es que no hay diferencia, y por qué eso es un resultado completo y no un proyecto fallido."><a href="#the-power-of-statistics/case_waze">Waze</a></li></ul></div></section>
+<section class="course" data-open="false" data-default-open="false"><button class="course-head" type="button"><span class="chev">▼</span><span class="label">Curso 4</span><span>Regression Analysis: Simplify Complex Data Relationships</span></button><div class="course-body"><ul><li class="overview" data-route="regression-analysis-simplify-complex-data-relationships/curso" data-search="curso resumen cerebro memoria md"><a href="#regression-analysis-simplify-complex-data-relationships/curso">El curso y su cerebro</a></li></ul><div class="group">Lecciones</div><ul><li data-route="regression-analysis-simplify-complex-data-relationships/m01_introduction-to-complex-data-relationships" data-search="introduction to complex data relationships variable independiente. variable dependiente. relación lineal. correlación. coeficiente de pearson. diagrama de dispersión. regresión lineal. regresión logística. variable continua. variable categórica. pace."><a href="#regression-analysis-simplify-complex-data-relationships/m01_introduction-to-complex-data-relationships"><span class="n">1</span>Introduction to complex data relationships</a></li><li data-route="regression-analysis-simplify-complex-data-relationships/m02_simple-linear-regression" data-search="simple linear regression mínimos cuadrados ordinarios. residuo. pendiente. intercepto. suma de cuadrados residual. r². error estándar de la pendiente. intervalo de confianza del coeficiente. valor p del coeficiente. homocedasticidad. error cuadrático medio."><a href="#regression-analysis-simplify-complex-data-relationships/m02_simple-linear-regression"><span class="n">2</span>Simple linear regression</a></li><li data-route="regression-analysis-simplify-complex-data-relationships/m03_multiple-linear-regression" data-search="multiple linear regression regresión lineal múltiple. coeficiente. variable de confusión. paradoja de simpson. variable ficticia. codificación one-hot. categoría de referencia. multicolinealidad. factor de inflación de la varianza. sobreajuste. subajuste. r² ajustado. regularización."><a href="#regression-analysis-simplify-complex-data-relationships/m03_multiple-linear-regression"><span class="n">3</span>Multiple linear regression</a></li><li data-route="regression-analysis-simplify-complex-data-relationships/m04_advanced-hypothesis-testing" data-search="advanced hypothesis testing chi cuadrado. frecuencia observada. frecuencia esperada. prueba de independencia. prueba de bondad de ajuste. anova. anova de un factor. anova de dos factores. interacción. estadístico f. post hoc. tasa de error acumulada. ancova. manova."><a href="#regression-analysis-simplify-complex-data-relationships/m04_advanced-hypothesis-testing"><span class="n">4</span>Advanced hypothesis testing</a></li><li data-route="regression-analysis-simplify-complex-data-relationships/m05_logistic-regression" data-search="logistic regression regresión logística. logística binomial. momios. logit. sigmoide. razón de momios. máxima verosimilitud. umbral. matriz de confusión. exactitud. precisión. sensibilidad. f1. curva roc y auc."><a href="#regression-analysis-simplify-complex-data-relationships/m05_logistic-regression"><span class="n">5</span>Logistic regression</a></li><li data-route="regression-analysis-simplify-complex-data-relationships/m06_course-4-end-of-course-project" data-search="course 4 end-of-course project documento de estrategia pace. resumen ejecutivo. fuga de información. disponible en el momento de la decisión. calibración. umbral de clasificación. modelo desplegable."><a href="#regression-analysis-simplify-complex-data-relationships/m06_course-4-end-of-course-project"><span class="n">6</span>Course 4 end-of-course project</a></li></ul><div class="group">Casos de estudio</div><ul><li class="case" data-route="regression-analysis-simplify-complex-data-relationships/case_automatidata" data-search="automatidata el modelo que mejor predice es el que no se puede desplegar, y medir esa diferencia resultó valer más que el modelo."><a href="#regression-analysis-simplify-complex-data-relationships/case_automatidata">Automatidata</a></li><li class="case" data-route="regression-analysis-simplify-complex-data-relationships/case_tiktok" data-search="tiktok un umbral que no decide nada, porque el modelo manda a todo el mundo a uno de dos montones y no hay nadie en medio."><a href="#regression-analysis-simplify-complex-data-relationships/case_tiktok">TikTok</a></li><li class="case" data-route="regression-analysis-simplify-complex-data-relationships/case_waze" data-search="waze acierta el 82 % y no detecta a casi nadie. el modelo no estaba mal; el umbral sí."><a href="#regression-analysis-simplify-complex-data-relationships/case_waze">Waze</a></li></ul></div></section>
+<section class="course" data-open="false" data-default-open="false"><button class="course-head" type="button"><span class="chev">▼</span><span class="label">Curso 5</span><span>The Nuts and Bolts of Machine Learning</span></button><div class="course-body"><ul><li class="overview" data-route="the-nuts-and-bolts-of-machine-learning/curso" data-search="curso resumen cerebro memoria md"><a href="#the-nuts-and-bolts-of-machine-learning/curso">El curso y su cerebro</a></li></ul><div class="group">Lecciones</div><ul><li data-route="the-nuts-and-bolts-of-machine-learning/m01_the-different-types-of-machine-learning" data-search="the different types of machine learning aprendizaje automático. aprendizaje supervisado. aprendizaje no supervisado. etiqueta. variable. variable continua. variable categórica. clasificación. regresión. agrupamiento. sistema de recomendación. sesgo. equidad."><a href="#the-nuts-and-bolts-of-machine-learning/m01_the-different-types-of-machine-learning"><span class="n">1</span>The different types of machine learning</a></li><li data-route="the-nuts-and-bolts-of-machine-learning/m02_workflow-for-building-complex-models" data-search="workflow for building complex models naive bayes. probabilidad de partida. ingeniería de variables. clases desbalanceadas. submuestreo. sobremuestreo. conjunto de entrenamiento. conjunto de validación. conjunto de prueba. estratificar. fuga de información. exactitud. precisión. sensibilidad. f1."><a href="#the-nuts-and-bolts-of-machine-learning/m02_workflow-for-building-complex-models"><span class="n">2</span>Workflow for building complex models</a></li><li data-route="the-nuts-and-bolts-of-machine-learning/m03_unsupervised-learning-techniques" data-search="unsupervised learning techniques k-medias. centroide. inercia. método del codo. coeficiente de silueta. escalar. convergencia. inicialización."><a href="#the-nuts-and-bolts-of-machine-learning/m03_unsupervised-learning-techniques"><span class="n">3</span>Unsupervised learning techniques</a></li><li data-route="the-nuts-and-bolts-of-machine-learning/m04_tree-based-modeling" data-search="tree-based modeling árbol de decisión. nodo raíz. hoja. profundidad. impureza de gini. ganancia. sobreajuste. hiperparámetro. búsqueda en rejilla. remuestreo. bosque aleatorio. refuerzo. importancia de variables."><a href="#the-nuts-and-bolts-of-machine-learning/m04_tree-based-modeling"><span class="n">4</span>Tree-based modeling</a></li><li data-route="the-nuts-and-bolts-of-machine-learning/m05_course-5-end-of-course-project" data-search="course 5 end-of-course project modelo de referencia. señal. modelo campeón. fuga de información. artefacto de generación. umbral."><a href="#the-nuts-and-bolts-of-machine-learning/m05_course-5-end-of-course-project"><span class="n">5</span>Course 5 end-of-course project</a></li></ul><div class="group">Casos de estudio</div><ul><li class="case" data-route="the-nuts-and-bolts-of-machine-learning/case_waze" data-search="waze ajustar el bosque en serio recupera casi toda la distancia y se queda a 0,0019 de una regresión que no tiene ni una perilla que tocar."><a href="#the-nuts-and-bolts-of-machine-learning/case_waze">Waze</a></li><li class="case" data-route="the-nuts-and-bolts-of-machine-learning/case_tiktok" data-search="tiktok trescientos árboles y nueve variables empatan con una sola pregunta sobre una sola columna. el mérito era del dato."><a href="#the-nuts-and-bolts-of-machine-learning/case_tiktok">TikTok</a></li><li class="case" data-route="the-nuts-and-bolts-of-machine-learning/case_automatidata" data-search="automatidata el encargo no se puede cumplir con estos datos, y demostrarlo con pruebas es el entregable."><a href="#the-nuts-and-bolts-of-machine-learning/case_automatidata">Automatidata</a></li></ul></div></section>
+<section class="course" data-open="true" data-default-open="true"><button class="course-head" type="button"><span class="chev">▼</span><span class="label">Curso 6</span><span>Google Advanced Data Analytics Capstone</span></button><div class="course-body"><ul><li class="overview" data-route="google-advanced-data-analytics-capstone/curso" data-search="curso resumen cerebro memoria md"><a href="#google-advanced-data-analytics-capstone/curso">El curso y su cerebro</a></li></ul><div class="group">Lecciones</div><ul><li data-route="google-advanced-data-analytics-capstone/m01_capstone-project" data-search="capstone project proyecto capstone. portafolio. resumen ejecutivo. ficha de caso. plan pace. archivo de resultados. currículum. sistema de seguimiento de candidatos."><a href="#google-advanced-data-analytics-capstone/m01_capstone-project"><span class="n">1</span>Capstone Project</a></li><li data-route="google-advanced-data-analytics-capstone/m02_ai-in-advanced-data-analytics" data-search="ai in advanced data analytics modelo generativo. alucinación. instrucción. coste de verificación. caso conocido. banco de pruebas. inferencia de formato."><a href="#google-advanced-data-analytics-capstone/m02_ai-in-advanced-data-analytics"><span class="n">2</span>AI in Advanced Data Analytics</a></li><li data-route="google-advanced-data-analytics-capstone/m03_put-your-certificate-to-work" data-search="put your advanced data analytics certificate to work insignia del certificado. comparabilidad. techo del dato. resultado negativo. portafolio."><a href="#google-advanced-data-analytics-capstone/m03_put-your-certificate-to-work"><span class="n">3</span>Put your Advanced Data Analytics Certificate to work</a></li></ul></div></section>
+  </nav>
+</aside>
+
+<div class="main">
+  <div class="topbar">
+    <button id="burger" aria-label="Mostrar u ocultar el panel" title="Mostrar u ocultar el panel">☰</button>
+    <span class="crumb" id="crumb">Portada</span>
+    <span class="spacer"></span>
+    <a class="btn" id="newtab" href="#" target="_blank" rel="noopener" hidden>Abrir en pestaña</a>
+    <button id="home">Portada</button>
+  </div>
+  <div class="home" id="homePanel">
+    <div class="home-inner">
+      <h2>Del temario a lo que te queda</h2>
+      <p class="lede">Un curso son horas de vídeo y lecturas. Aquí queda destilado en lecciones que
+      puedes releer en diez minutos, junto a los casos que ya analizaste tú.</p>
+      <div class="mesh" role="presentation"></div>
+      <p class="stats">5 cursos · 25/25 lecciones · 12 casos</p>
+<article class="course-card"><div class="ct"><span class="cn">Curso 2</span><h3>Go Beyond the Numbers: Translate Data into Insights</h3></div><p class="meta">5 de 5 lecciones · 3 casos de estudio</p><div class="chips"><a class="overview" href="#go-beyond-the-numbers-translate-data-into-insight/curso">El curso y su cerebro</a><a href="#go-beyond-the-numbers-translate-data-into-insight/m01_find-and-share-stories-using-data">1. Find and share stories using data</a><a href="#go-beyond-the-numbers-translate-data-into-insight/m02_explore-raw-data">2. Explore raw data</a><a href="#go-beyond-the-numbers-translate-data-into-insight/m03_clean-your-data">3. Clean your data</a><a href="#go-beyond-the-numbers-translate-data-into-insight/m04_data-visualizations-and-presentations">4. Data visualizations and presentations</a><a href="#go-beyond-the-numbers-translate-data-into-insight/m05_course-2-end-of-course-project">5. Course 2 end-of-course project</a><a class="case" href="#go-beyond-the-numbers-translate-data-into-insight/case_automatidata">Automatidata</a><a class="case" href="#go-beyond-the-numbers-translate-data-into-insight/case_tiktok">TikTok</a><a class="case" href="#go-beyond-the-numbers-translate-data-into-insight/case_waze">Waze</a></div></article>
+<article class="course-card"><div class="ct"><span class="cn">Curso 3</span><h3>The Power of Statistics</h3></div><p class="meta">6 de 6 lecciones · 3 casos de estudio</p><div class="chips"><a class="overview" href="#the-power-of-statistics/curso">El curso y su cerebro</a><a href="#the-power-of-statistics/m01_introduction-to-statistics-with-python">1. Introduction to statistics with Python</a><a href="#the-power-of-statistics/m02_probability">2. Probability</a><a href="#the-power-of-statistics/m03_sampling">3. Sampling</a><a href="#the-power-of-statistics/m04_confidence-intervals">4. Confidence intervals</a><a href="#the-power-of-statistics/m05_introduction-to-hypothesis-testing">5. Introduction to hypothesis testing</a><a href="#the-power-of-statistics/m06_course-3-end-of-course-project">6. Course 3 end-of-course project</a><a class="case" href="#the-power-of-statistics/case_automatidata">Automatidata</a><a class="case" href="#the-power-of-statistics/case_tiktok">TikTok</a><a class="case" href="#the-power-of-statistics/case_waze">Waze</a></div></article>
+<article class="course-card"><div class="ct"><span class="cn">Curso 4</span><h3>Regression Analysis: Simplify Complex Data Relationships</h3></div><p class="meta">6 de 6 lecciones · 3 casos de estudio</p><div class="chips"><a class="overview" href="#regression-analysis-simplify-complex-data-relationships/curso">El curso y su cerebro</a><a href="#regression-analysis-simplify-complex-data-relationships/m01_introduction-to-complex-data-relationships">1. Introduction to complex data relationships</a><a href="#regression-analysis-simplify-complex-data-relationships/m02_simple-linear-regression">2. Simple linear regression</a><a href="#regression-analysis-simplify-complex-data-relationships/m03_multiple-linear-regression">3. Multiple linear regression</a><a href="#regression-analysis-simplify-complex-data-relationships/m04_advanced-hypothesis-testing">4. Advanced hypothesis testing</a><a href="#regression-analysis-simplify-complex-data-relationships/m05_logistic-regression">5. Logistic regression</a><a href="#regression-analysis-simplify-complex-data-relationships/m06_course-4-end-of-course-project">6. Course 4 end-of-course project</a><a class="case" href="#regression-analysis-simplify-complex-data-relationships/case_automatidata">Automatidata</a><a class="case" href="#regression-analysis-simplify-complex-data-relationships/case_tiktok">TikTok</a><a class="case" href="#regression-analysis-simplify-complex-data-relationships/case_waze">Waze</a></div></article>
+<article class="course-card"><div class="ct"><span class="cn">Curso 5</span><h3>The Nuts and Bolts of Machine Learning</h3></div><p class="meta">5 de 5 lecciones · 3 casos de estudio</p><div class="chips"><a class="overview" href="#the-nuts-and-bolts-of-machine-learning/curso">El curso y su cerebro</a><a href="#the-nuts-and-bolts-of-machine-learning/m01_the-different-types-of-machine-learning">1. The different types of machine learning</a><a href="#the-nuts-and-bolts-of-machine-learning/m02_workflow-for-building-complex-models">2. Workflow for building complex models</a><a href="#the-nuts-and-bolts-of-machine-learning/m03_unsupervised-learning-techniques">3. Unsupervised learning techniques</a><a href="#the-nuts-and-bolts-of-machine-learning/m04_tree-based-modeling">4. Tree-based modeling</a><a href="#the-nuts-and-bolts-of-machine-learning/m05_course-5-end-of-course-project">5. Course 5 end-of-course project</a><a class="case" href="#the-nuts-and-bolts-of-machine-learning/case_waze">Waze</a><a class="case" href="#the-nuts-and-bolts-of-machine-learning/case_tiktok">TikTok</a><a class="case" href="#the-nuts-and-bolts-of-machine-learning/case_automatidata">Automatidata</a></div></article>
+<article class="course-card"><div class="ct"><span class="cn">Curso 6</span><h3>Google Advanced Data Analytics Capstone</h3></div><p class="meta">3 de 3 lecciones</p><div class="chips"><a class="overview" href="#google-advanced-data-analytics-capstone/curso">El curso y su cerebro</a><a href="#google-advanced-data-analytics-capstone/m01_capstone-project">1. Capstone Project</a><a href="#google-advanced-data-analytics-capstone/m02_ai-in-advanced-data-analytics">2. AI in Advanced Data Analytics</a><a href="#google-advanced-data-analytics-capstone/m03_put-your-certificate-to-work">3. Put your Advanced Data Analytics Certificate to work</a></div></article>
+    </div>
+  </div>
+  <iframe id="view" title="Contenido" hidden></iframe>
+</div>
+
+<script>
+const DATA = {"items": {"go-beyond-the-numbers-translate-data-into-insight/curso": {"href": "go-beyond-the-numbers-translate-data-into-insight/curso.html", "crumb": "Curso 2 · El curso y su cerebro"}, "go-beyond-the-numbers-translate-data-into-insight/m01_find-and-share-stories-using-data": {"href": "go-beyond-the-numbers-translate-data-into-insight/m01_find-and-share-stories-using-data.html", "crumb": "Curso 2 · Módulo 1 · Find and share stories using data"}, "go-beyond-the-numbers-translate-data-into-insight/m02_explore-raw-data": {"href": "go-beyond-the-numbers-translate-data-into-insight/m02_explore-raw-data.html", "crumb": "Curso 2 · Módulo 2 · Explore raw data"}, "go-beyond-the-numbers-translate-data-into-insight/m03_clean-your-data": {"href": "go-beyond-the-numbers-translate-data-into-insight/m03_clean-your-data.html", "crumb": "Curso 2 · Módulo 3 · Clean your data"}, "go-beyond-the-numbers-translate-data-into-insight/m04_data-visualizations-and-presentations": {"href": "go-beyond-the-numbers-translate-data-into-insight/m04_data-visualizations-and-presentations.html", "crumb": "Curso 2 · Módulo 4 · Data visualizations and presentations"}, "go-beyond-the-numbers-translate-data-into-insight/m05_course-2-end-of-course-project": {"href": "go-beyond-the-numbers-translate-data-into-insight/m05_course-2-end-of-course-project.html", "crumb": "Curso 2 · Módulo 5 · Course 2 end-of-course project"}, "go-beyond-the-numbers-translate-data-into-insight/case_automatidata": {"href": "go-beyond-the-numbers-translate-data-into-insight/case_automatidata.html", "crumb": "Curso 2 · Caso · Automatidata"}, "go-beyond-the-numbers-translate-data-into-insight/case_tiktok": {"href": "go-beyond-the-numbers-translate-data-into-insight/case_tiktok.html", "crumb": "Curso 2 · Caso · TikTok"}, "go-beyond-the-numbers-translate-data-into-insight/case_waze": {"href": "go-beyond-the-numbers-translate-data-into-insight/case_waze.html", "crumb": "Curso 2 · Caso · Waze"}, "the-power-of-statistics/curso": {"href": "the-power-of-statistics/curso.html", "crumb": "Curso 3 · El curso y su cerebro"}, "the-power-of-statistics/m01_introduction-to-statistics-with-python": {"href": "the-power-of-statistics/m01_introduction-to-statistics-with-python.html", "crumb": "Curso 3 · Módulo 1 · Introduction to statistics with Python"}, "the-power-of-statistics/m02_probability": {"href": "the-power-of-statistics/m02_probability.html", "crumb": "Curso 3 · Módulo 2 · Probability"}, "the-power-of-statistics/m03_sampling": {"href": "the-power-of-statistics/m03_sampling.html", "crumb": "Curso 3 · Módulo 3 · Sampling"}, "the-power-of-statistics/m04_confidence-intervals": {"href": "the-power-of-statistics/m04_confidence-intervals.html", "crumb": "Curso 3 · Módulo 4 · Confidence intervals"}, "the-power-of-statistics/m05_introduction-to-hypothesis-testing": {"href": "the-power-of-statistics/m05_introduction-to-hypothesis-testing.html", "crumb": "Curso 3 · Módulo 5 · Introduction to hypothesis testing"}, "the-power-of-statistics/m06_course-3-end-of-course-project": {"href": "the-power-of-statistics/m06_course-3-end-of-course-project.html", "crumb": "Curso 3 · Módulo 6 · Course 3 end-of-course project"}, "the-power-of-statistics/case_automatidata": {"href": "the-power-of-statistics/case_automatidata.html", "crumb": "Curso 3 · Caso · Automatidata"}, "the-power-of-statistics/case_tiktok": {"href": "the-power-of-statistics/case_tiktok.html", "crumb": "Curso 3 · Caso · TikTok"}, "the-power-of-statistics/case_waze": {"href": "the-power-of-statistics/case_waze.html", "crumb": "Curso 3 · Caso · Waze"}, "regression-analysis-simplify-complex-data-relationships/curso": {"href": "regression-analysis-simplify-complex-data-relationships/curso.html", "crumb": "Curso 4 · El curso y su cerebro"}, "regression-analysis-simplify-complex-data-relationships/m01_introduction-to-complex-data-relationships": {"href": "regression-analysis-simplify-complex-data-relationships/m01_introduction-to-complex-data-relationships.html", "crumb": "Curso 4 · Módulo 1 · Introduction to complex data relationships"}, "regression-analysis-simplify-complex-data-relationships/m02_simple-linear-regression": {"href": "regression-analysis-simplify-complex-data-relationships/m02_simple-linear-regression.html", "crumb": "Curso 4 · Módulo 2 · Simple linear regression"}, "regression-analysis-simplify-complex-data-relationships/m03_multiple-linear-regression": {"href": "regression-analysis-simplify-complex-data-relationships/m03_multiple-linear-regression.html", "crumb": "Curso 4 · Módulo 3 · Multiple linear regression"}, "regression-analysis-simplify-complex-data-relationships/m04_advanced-hypothesis-testing": {"href": "regression-analysis-simplify-complex-data-relationships/m04_advanced-hypothesis-testing.html", "crumb": "Curso 4 · Módulo 4 · Advanced hypothesis testing"}, "regression-analysis-simplify-complex-data-relationships/m05_logistic-regression": {"href": "regression-analysis-simplify-complex-data-relationships/m05_logistic-regression.html", "crumb": "Curso 4 · Módulo 5 · Logistic regression"}, "regression-analysis-simplify-complex-data-relationships/m06_course-4-end-of-course-project": {"href": "regression-analysis-simplify-complex-data-relationships/m06_course-4-end-of-course-project.html", "crumb": "Curso 4 · Módulo 6 · Course 4 end-of-course project"}, "regression-analysis-simplify-complex-data-relationships/case_automatidata": {"href": "regression-analysis-simplify-complex-data-relationships/case_automatidata.html", "crumb": "Curso 4 · Caso · Automatidata"}, "regression-analysis-simplify-complex-data-relationships/case_tiktok": {"href": "regression-analysis-simplify-complex-data-relationships/case_tiktok.html", "crumb": "Curso 4 · Caso · TikTok"}, "regression-analysis-simplify-complex-data-relationships/case_waze": {"href": "regression-analysis-simplify-complex-data-relationships/case_waze.html", "crumb": "Curso 4 · Caso · Waze"}, "the-nuts-and-bolts-of-machine-learning/curso": {"href": "the-nuts-and-bolts-of-machine-learning/curso.html", "crumb": "Curso 5 · El curso y su cerebro"}, "the-nuts-and-bolts-of-machine-learning/m01_the-different-types-of-machine-learning": {"href": "the-nuts-and-bolts-of-machine-learning/m01_the-different-types-of-machine-learning.html", "crumb": "Curso 5 · Módulo 1 · The different types of machine learning"}, "the-nuts-and-bolts-of-machine-learning/m02_workflow-for-building-complex-models": {"href": "the-nuts-and-bolts-of-machine-learning/m02_workflow-for-building-complex-models.html", "crumb": "Curso 5 · Módulo 2 · Workflow for building complex models"}, "the-nuts-and-bolts-of-machine-learning/m03_unsupervised-learning-techniques": {"href": "the-nuts-and-bolts-of-machine-learning/m03_unsupervised-learning-techniques.html", "crumb": "Curso 5 · Módulo 3 · Unsupervised learning techniques"}, "the-nuts-and-bolts-of-machine-learning/m04_tree-based-modeling": {"href": "the-nuts-and-bolts-of-machine-learning/m04_tree-based-modeling.html", "crumb": "Curso 5 · Módulo 4 · Tree-based modeling"}, "the-nuts-and-bolts-of-machine-learning/m05_course-5-end-of-course-project": {"href": "the-nuts-and-bolts-of-machine-learning/m05_course-5-end-of-course-project.html", "crumb": "Curso 5 · Módulo 5 · Course 5 end-of-course project"}, "the-nuts-and-bolts-of-machine-learning/case_waze": {"href": "the-nuts-and-bolts-of-machine-learning/case_waze.html", "crumb": "Curso 5 · Caso · Waze"}, "the-nuts-and-bolts-of-machine-learning/case_tiktok": {"href": "the-nuts-and-bolts-of-machine-learning/case_tiktok.html", "crumb": "Curso 5 · Caso · TikTok"}, "the-nuts-and-bolts-of-machine-learning/case_automatidata": {"href": "the-nuts-and-bolts-of-machine-learning/case_automatidata.html", "crumb": "Curso 5 · Caso · Automatidata"}, "google-advanced-data-analytics-capstone/curso": {"href": "google-advanced-data-analytics-capstone/curso.html", "crumb": "Curso 6 · El curso y su cerebro"}, "google-advanced-data-analytics-capstone/m01_capstone-project": {"href": "google-advanced-data-analytics-capstone/m01_capstone-project.html", "crumb": "Curso 6 · Módulo 1 · Capstone Project"}, "google-advanced-data-analytics-capstone/m02_ai-in-advanced-data-analytics": {"href": "google-advanced-data-analytics-capstone/m02_ai-in-advanced-data-analytics.html", "crumb": "Curso 6 · Módulo 2 · AI in Advanced Data Analytics"}, "google-advanced-data-analytics-capstone/m03_put-your-certificate-to-work": {"href": "google-advanced-data-analytics-capstone/m03_put-your-certificate-to-work.html", "crumb": "Curso 6 · Módulo 3 · Put your Advanced Data Analytics Certificate to work"}}};
+
+const tree = document.getElementById('tree');
+const view = document.getElementById('view');
+const homePanel = document.getElementById('homePanel');
+const crumb = document.getElementById('crumb');
+const newtab = document.getElementById('newtab');
+const input = document.getElementById('q');
+const count = document.getElementById('count');
+
+function showHome() {
+  view.hidden = true;
+  homePanel.hidden = false;
+  newtab.hidden = true;
+  crumb.textContent = 'Portada';
+  document.querySelectorAll('.tree li.active').forEach(li => li.classList.remove('active'));
+}
+
+function open(route) {
+  const item = DATA.items[route];
+  if (!item) { showHome(); return; }
+  homePanel.hidden = true;
+  view.hidden = false;
+  // location.replace() instead of view.src: assigning src pushes an entry onto the
+  // browser history for every click, which makes the back button walk through frame
+  // loads instead of through the sidebar routes.
+  if (view.dataset.loaded && view.contentWindow) {
+    view.contentWindow.location.replace(item.href);
+  } else {
+    view.src = item.href;
+    view.dataset.loaded = '1';
+  }
+  newtab.href = item.href;
+  newtab.hidden = false;
+  crumb.textContent = item.crumb;
+  document.querySelectorAll('.tree li.active').forEach(li => li.classList.remove('active'));
+  const li = tree.querySelector('li[data-route="' + CSS.escape(route) + '"]');
+  if (li) {
+    li.classList.add('active');
+    const course = li.closest('.course');
+    if (course) course.dataset.open = 'true';
+    li.scrollIntoView({ block: 'nearest' });
+  }
+  document.body.classList.remove('nav-open');
+}
+
+function route() {
+  const hash = decodeURIComponent(location.hash.replace(/^#/, ''));
+  hash ? open(hash) : showHome();
+}
+
+window.addEventListener('hashchange', route);
+
+document.querySelectorAll('.course-head').forEach(head => {
+  head.addEventListener('click', () => {
+    const course = head.closest('.course');
+    course.dataset.open = course.dataset.open === 'true' ? 'false' : 'true';
+  });
+});
+
+// One button, two behaviours: a drawer on mobile, a fold-away panel on desktop.
+const RAIL_KEY = 'concentra.rail';
+if (localStorage.getItem(RAIL_KEY) === '1') document.body.classList.add('rail');
+
+document.getElementById('burger').addEventListener('click', () => {
+  if (window.innerWidth <= 768) {
+    document.body.classList.toggle('nav-open');
+  } else {
+    const railed = document.body.classList.toggle('rail');
+    localStorage.setItem(RAIL_KEY, railed ? '1' : '0');
+  }
+});
+document.getElementById('home').addEventListener('click', () => {
+  if (location.hash) location.hash = ''; else showHome();
+});
+
+// Filter the tree by title, course name or glossary term.
+input.addEventListener('input', () => {
+  const q = input.value.trim().toLowerCase();
+  if (!q) {
+    tree.querySelectorAll('li, ul, .group, .course').forEach(el => el.classList.remove('hidden'));
+    tree.querySelectorAll('.course').forEach(c => c.dataset.open = c.dataset.defaultOpen);
+    count.textContent = '';
+    return;
+  }
+  let hits = 0;
+  tree.querySelectorAll('.course').forEach(course => {
+    let courseHits = 0;
+    course.querySelectorAll('li').forEach(li => {
+      const hay = (li.dataset.search || '') + ' ' + li.textContent.toLowerCase();
+      const match = hay.includes(q);
+      li.classList.toggle('hidden', !match);
+      if (match) courseHits++;
+    });
+    course.querySelectorAll('.group').forEach(group => {
+      const list = group.nextElementSibling;
+      const visible = list ? [...list.querySelectorAll('li')].some(li => !li.classList.contains('hidden')) : false;
+      group.classList.toggle('hidden', !visible);
+      if (list) list.classList.toggle('hidden', !visible);
+    });
+    course.classList.toggle('hidden', courseHits === 0);
+    if (courseHits) course.dataset.open = 'true';
+    hits += courseHits;
+  });
+  count.textContent = hits ? hits + (hits === 1 ? ' resultado' : ' resultados') : 'sin resultados';
+});
+
+route();
+</script>
+</body>
+</html>

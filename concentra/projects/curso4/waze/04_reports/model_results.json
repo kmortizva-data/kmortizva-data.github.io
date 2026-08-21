@@ -1,0 +1,221 @@
+{
+  "project": "waze",
+  "course": "curso4",
+  "title": "Waze: predecir qué usuario abandona la aplicación",
+  "generated": "2026-08-19",
+  "source_csv": "C:\\Users\\Bruce Wayne\\Documents\\03_Data Analysis Coursera\\Course 3 - Data Analytics\\Exc_3_Waze\\01_data\\waze_dataset.csv",
+  "data": {
+    "rows_raw": 14999,
+    "duplicates": 0,
+    "rows_labelled": 14299
+  },
+  "missing": {
+    "rows": 700,
+    "pct": 4.7,
+    "median_gap": {
+      "sessions": 0.0,
+      "drives": -1.0,
+      "driven_km_drives": -2.2,
+      "activity_days": -6.2,
+      "driving_days": 0.0,
+      "n_days_after_onboarding": -5.6
+    },
+    "worst_gap_pct": 6.2,
+    "iphone_share_missing": 63.9,
+    "iphone_share_rest": 64.5
+  },
+  "balance": {
+    "churned": 2536,
+    "churn_rate": 17.74
+  },
+  "features": {
+    "zero_driving_days": 983,
+    "km_per_day_median": 273.3,
+    "professional_drivers": 2488,
+    "professional_churn": 7.56,
+    "other_churn": 19.88
+  },
+  "vif_full": {
+    "sessions": 159.3,
+    "drives": 159.07,
+    "driving_days": 10.22,
+    "activity_days": 9.85,
+    "driven_km_drives": 2.13,
+    "duration_minutes_drives": 1.95,
+    "professional_driver": 1.61,
+    "total_sessions": 1.54,
+    "km_per_driving_day": 1.42,
+    "iphone": 1.0,
+    "n_days_after_onboarding": 1.0
+  },
+  "vif_final": {
+    "drives": 1.77,
+    "professional_driver": 1.56,
+    "total_sessions": 1.53,
+    "activity_days": 1.52,
+    "km_per_driving_day": 1.28,
+    "duration_minutes_drives": 1.08,
+    "n_days_after_onboarding": 1.0,
+    "iphone": 1.0
+  },
+  "model": {
+    "features": [
+      "drives",
+      "total_sessions",
+      "n_days_after_onboarding",
+      "duration_minutes_drives",
+      "activity_days",
+      "km_per_driving_day",
+      "professional_driver",
+      "iphone"
+    ],
+    "dropped": [
+      "sessions",
+      "driving_days",
+      "driven_km_drives"
+    ]
+  },
+  "split": {
+    "train_rows": 10724,
+    "test_rows": 3575
+  },
+  "coefficients": {
+    "const": {
+      "value": 0.15531,
+      "odds_ratio": 1.16802,
+      "p": 0.101,
+      "ci_low": 0.96997,
+      "ci_high": 1.4065
+    },
+    "drives": {
+      "value": 0.00162,
+      "odds_ratio": 1.00162,
+      "p": 0.00132,
+      "ci_low": 1.00063,
+      "ci_high": 1.00261
+    },
+    "total_sessions": {
+      "value": 0.00028,
+      "odds_ratio": 1.00028,
+      "p": 0.247,
+      "ci_low": 0.99981,
+      "ci_high": 1.00075
+    },
+    "n_days_after_onboarding": {
+      "value": -0.0004,
+      "odds_ratio": 0.9996,
+      "p": 3.09e-48,
+      "ci_low": 0.99955,
+      "ci_high": 0.99965
+    },
+    "duration_minutes_drives": {
+      "value": 7e-05,
+      "odds_ratio": 1.00007,
+      "p": 9.46e-05,
+      "ci_low": 1.00004,
+      "ci_high": 1.00011
+    },
+    "activity_days": {
+      "value": -0.10466,
+      "odds_ratio": 0.90063,
+      "p": 5.03e-139,
+      "ci_low": 0.8933,
+      "ci_high": 0.90802
+    },
+    "km_per_driving_day": {
+      "value": 2e-05,
+      "odds_ratio": 1.00002,
+      "p": 0.497,
+      "ci_low": 0.99997,
+      "ci_high": 1.00006
+    },
+    "professional_driver": {
+      "value": -0.00668,
+      "odds_ratio": 0.99334,
+      "p": 0.952,
+      "ci_low": 0.79743,
+      "ci_high": 1.23738
+    },
+    "iphone": {
+      "value": 0.01644,
+      "odds_ratio": 1.01658,
+      "p": 0.773,
+      "ci_low": 0.90912,
+      "ci_high": 1.13674
+    }
+  },
+  "fit": {
+    "pseudo_r2": 0.1348
+  },
+  "metrics_050": {
+    "accuracy": 0.8229,
+    "precision": 0.5049,
+    "recall": 0.082,
+    "f1": 0.1411,
+    "auc": 0.7368,
+    "matrix": {
+      "tn": 2890,
+      "fp": 51,
+      "fn": 582,
+      "tp": 52
+    },
+    "churners_missed": 582,
+    "churners_total": 634
+  },
+  "metrics_020": {
+    "accuracy": 0.6906,
+    "precision": 0.313,
+    "recall": 0.623,
+    "f1": 0.4167,
+    "auc": 0.7368,
+    "matrix": {
+      "tn": 2074,
+      "fp": 867,
+      "fn": 239,
+      "tp": 395
+    }
+  },
+  "correlations": {
+    "pairs": 55,
+    "above_80": 2,
+    "below_10": 40,
+    "strongest": 0.9968
+  },
+  "scaled_odds": {
+    "drives": {
+      "unit": "Cada 10 trayectos más",
+      "odds_ratio": 1.0163
+    },
+    "total_sessions": {
+      "unit": "Cada 10 sesiones históricas más",
+      "odds_ratio": 1.0028
+    },
+    "n_days_after_onboarding": {
+      "unit": "Cada año más de antigüedad",
+      "odds_ratio": 0.8638
+    },
+    "duration_minutes_drives": {
+      "unit": "Cada hora más al volante",
+      "odds_ratio": 1.0045
+    },
+    "activity_days": {
+      "unit": "Cada día de actividad más",
+      "odds_ratio": 0.9006
+    },
+    "km_per_driving_day": {
+      "unit": "Cada 100 km por día conducido",
+      "odds_ratio": 1.0015
+    },
+    "professional_driver": {
+      "unit": "Ser conductor profesional",
+      "odds_ratio": 0.9933
+    },
+    "iphone": {
+      "unit": "Usar iPhone",
+      "odds_ratio": 1.0166
+    }
+  },
+  "threshold": {
+    "recall_at_020": 0.623
+  }
+}

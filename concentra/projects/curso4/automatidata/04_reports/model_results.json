@@ -1,0 +1,169 @@
+{
+  "project": "automatidata",
+  "course": "curso4",
+  "title": "Automatidata: estimar la tarifa antes del viaje",
+  "generated": "2026-08-19",
+  "source_csv": "C:\\Users\\Bruce Wayne\\Documents\\03_Data Analysis Coursera\\Course 3 - Data Analytics\\Exc_1_Automatidata\\01_data\\C2_2017_Yellow_Taxi_Trip_Data.csv",
+  "data": {
+    "rows_raw": 22699,
+    "columns": 17,
+    "duplicates": 0,
+    "missing": 0,
+    "fare_mean": 12.85,
+    "fare_median": 9.5,
+    "distance_median": 1.63,
+    "duration_median": 11.23
+  },
+  "jfk": {
+    "trips_at_52": 514,
+    "of_those_ratecode_2": 513,
+    "ratecode_2_total": 513,
+    "trips_at_52_clean": 498
+  },
+  "cleaning": {
+    "dropped": {
+      "fare_amount": 20,
+      "duration": 27,
+      "trip_distance": 148
+    },
+    "rows_dropped": 165,
+    "rows_kept": 22534,
+    "cap": {
+      "fare_amount": 55.67,
+      "duration": 73.18,
+      "trip_distance": 20.55
+    },
+    "capped_rows": {
+      "fare_amount": 113,
+      "duration": 113,
+      "trip_distance": 113
+    }
+  },
+  "split": {
+    "train_rows": 16900,
+    "test_rows": 5634
+  },
+  "features": {
+    "pairs_learned": 3679,
+    "test_pairs_unseen": 512,
+    "test_pairs_unseen_pct": 9.1
+  },
+  "vif_full": {
+    "mean_distance": 32.17,
+    "trip_distance": 28.68,
+    "mean_duration": 7.73,
+    "duration": 4.5,
+    "airport_flat": 1.64,
+    "rush_hour": 1.01,
+    "passenger_count": 1.0
+  },
+  "models": {
+    "a_after_the_ride": {
+      "r2_test": 0.9461,
+      "rmse_test": 2.413,
+      "mae_test": 0.819,
+      "r2_adjusted_train": 0.9465
+    },
+    "b_leaky": {
+      "r2_test": 0.8847,
+      "rmse_test": 3.529,
+      "mae_test": 2.059,
+      "r2_adjusted_train": 0.8903
+    },
+    "c_honest": {
+      "r2_test": 0.6746,
+      "rmse_test": 5.929,
+      "mae_test": 3.208,
+      "r2_adjusted_train": 0.8923
+    }
+  },
+  "leakage": {
+    "r2_inflation": 0.2101,
+    "rmse_hidden": 2.4
+  },
+  "model": {
+    "features": [
+      "mean_distance",
+      "mean_duration",
+      "rush_hour",
+      "airport_flat"
+    ],
+    "excluded_by_design": [
+      "trip_distance",
+      "duration"
+    ],
+    "dropped": [
+      "passenger_count"
+    ]
+  },
+  "vif_final": {
+    "mean_distance": 5.5,
+    "mean_duration": 4.42,
+    "airport_flat": 1.63,
+    "rush_hour": 1.0
+  },
+  "coefficients": {
+    "const": {
+      "value": 2.6516,
+      "p": 0.0,
+      "ci_low": 2.5454,
+      "ci_high": 2.7579
+    },
+    "mean_distance": {
+      "value": 1.8704,
+      "p": 0.0,
+      "ci_low": 1.8363,
+      "ci_high": 1.9046
+    },
+    "mean_duration": {
+      "value": 0.3162,
+      "p": 0.0,
+      "ci_low": 0.3055,
+      "ci_high": 0.3269
+    },
+    "rush_hour": {
+      "value": 0.266,
+      "p": 2.93e-06,
+      "ci_low": 0.1545,
+      "ci_high": 0.3774
+    },
+    "airport_flat": {
+      "value": 3.2971,
+      "p": 1.63e-48,
+      "ci_low": 2.857,
+      "ci_high": 3.7372
+    }
+  },
+  "fit": {
+    "r2_train": 0.8923,
+    "r2_adjusted": 0.8923,
+    "r2_test": 0.6746,
+    "rmse_train": 3.367,
+    "rmse_test": 5.929,
+    "mae_test": 3.208
+  },
+  "routes": {
+    "seen_trips": 5122,
+    "seen_mae": 2.42,
+    "new_trips": 512,
+    "new_mae": 11.11,
+    "ratio": 4.6,
+    "errors_piled": 74
+  },
+  "assumptions": {
+    "residual_mean": 0.8692,
+    "residual_skew": 3.494,
+    "residual_kurtosis": 18.073,
+    "within_2_dollars": 53.2,
+    "bp_r2": 0.0041,
+    "bp_p": 1.74e-06
+  },
+  "segments": {
+    "cortas": 52.5,
+    "medias": 40.1,
+    "largas": 7.4
+  },
+  "residuals": {
+    "fallback_prediction": 12.68
+  }
+}

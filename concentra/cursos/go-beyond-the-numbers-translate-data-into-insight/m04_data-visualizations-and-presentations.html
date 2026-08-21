@@ -1,0 +1,513 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Data visualizations and presentations — Go Beyond the Numbers: Translate Data into Insights</title>
+<style>
+/* ============================================================================
+   Concentra — design tokens and shared components.
+   Inlined into every generated page by load_style(), so pages stay self-contained
+   and work offline from file:// with no external requests.
+
+   Direction: an assay lab, not a tech dashboard. The palette is taken from ore
+   and lab materials (chalcopyrite brass, malachite, hematite, quartz) on warm
+   graphite rather than the blue-black + neon of a generic dark UI. Type is
+   Bahnschrift, the DIN-descended grotesque that Windows ships and that lives on
+   machinery plates and technical drawings, over Corbel for reading.
+   ========================================================================== */
+
+:root {
+  /* Ground and surfaces: warm graphite, the colour of rock dust, not blue-black */
+  --rock: #1a1714;
+  --bench: #221e19;
+  --core: #2b251f;
+  --seam: #3d352c;
+
+  /* Ore palette. No blue and no purple anywhere: those are the tones that make a
+     page read as generated, and this palette comes from the ores instead. */
+  --brass: #c9a227;      /* chalcopyrite, the primary accent */
+  --malachite: #5d9b7a;  /* verified output, results that came out right */
+  --hematite: #b04a35;   /* iron oxide, pitfalls and warnings */
+
+  /* Text */
+  --quartz: #ece7de;
+  --dust: #9a9186;
+  --shadowed: #6f675c;
+
+  --display: Bahnschrift, 'DIN Alternate', 'Segoe UI Semibold', system-ui, sans-serif;
+  --body: Corbel, Candara, 'Segoe UI', system-ui, sans-serif;
+  --data: Consolas, 'Cascadia Mono', ui-monospace, monospace;
+
+  /* In px, not ch: ch scales with font-size, so a heading ended up wider than a
+     paragraph and the page had four different right edges instead of two. */
+  --measure: 640px;
+  --wide: 900px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--rock);
+  color: var(--quartz);
+  font-family: var(--body);
+  font-size: 16px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection { background: var(--brass); color: var(--rock); }
+
+:focus-visible {
+  outline: 2px solid var(--brass);
+  outline-offset: 3px;
+}
+
+/* --------------------------------------------------------------- the signature
+   A sieve series: ticks that get finer from left to right, coarse feed to fine
+   concentrate. It is the one ornament on the page and appears exactly twice —
+   under the wordmark and under a page title. */
+.mesh {
+  height: 10px;
+  background-image:
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 16px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 9px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 5px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 3px);
+  background-size: 25% 100%;
+  background-position: 0 0, 25% 0, 50% 0, 75% 0;
+  background-repeat: no-repeat;
+  opacity: .8;
+  transform-origin: left center;
+  animation: sieve .55s cubic-bezier(.2, .8, .3, 1) both;
+}
+@keyframes sieve { from { transform: scaleX(0); opacity: 0; } to { transform: scaleX(1); opacity: .8; } }
+@media (prefers-reduced-motion: reduce) {
+  .mesh { animation: none; }
+  * { transition: none !important; }
+}
+
+/* ------------------------------------------------------------------ page head */
+.header {
+  border-bottom: 1px solid var(--seam);
+  padding: 3.2rem 2rem 0;
+  background: linear-gradient(180deg, #221d16 0%, var(--rock) 100%);
+}
+.header-content { max-width: 1080px; margin: 0 auto; }
+
+.eyebrow {
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--brass);
+  margin-bottom: 1rem;
+}
+.eyebrow a { color: inherit; text-decoration: none; border-bottom: 1px solid transparent; }
+.eyebrow a:hover { border-bottom-color: var(--brass); }
+
+.header h1 {
+  font-family: var(--display);
+  font-size: clamp(2rem, 4.5vw, 3.1rem);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -.015em;
+  color: var(--quartz);
+  max-width: 20ch;
+}
+.header .subtitle {
+  color: var(--dust);
+  max-width: var(--measure);
+  margin-top: 1rem;
+  font-size: 1.02rem;
+}
+.header .mesh { margin: 1.8rem 0 0; }
+
+/* An assay line: the real composition of the module, in lab-report shorthand. */
+.assay {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.4rem;
+  font-family: var(--data);
+  font-size: .78rem;
+  color: var(--shadowed);
+  padding: .9rem 0 1.6rem;
+  letter-spacing: .04em;
+}
+.assay b { color: var(--dust); font-weight: 400; }
+
+/* --------------------------------------------------------------------- layout */
+/* The container hugs the widest block, so there is no orphan edge past the content. */
+.container { max-width: var(--wide); margin: 3rem auto 5rem; padding: 0 2rem; }
+
+/* Two deliberate right edges and no more: prose stops at the reading measure, and
+   only the things that genuinely need room (code, output, figures, big tables) run
+   out to the full column. */
+.section-block {
+  border-top: 1px solid var(--seam);
+  padding: 2rem 0 2.4rem;
+}
+.section-block > p,
+.section-block > ul,
+.section-block > ol,
+.section-block h3.sub,
+.section-block h4.sub,
+.section-block blockquote,
+details > *:not(summary) { max-width: var(--measure); }
+.section-block:first-child { border-top: 0; padding-top: .5rem; }
+
+/* The kicker names what kind of content follows: context, method, pitfalls.
+   It replaces decorative icons with something that actually classifies. */
+.kicker {
+  font-family: var(--data);
+  font-size: .68rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  display: block;
+  margin-bottom: .5rem;
+}
+.section-title {
+  font-family: var(--display);
+  font-size: 1.55rem;
+  font-weight: 600;
+  letter-spacing: -.01em;
+  line-height: 1.2;
+  margin-bottom: 1.2rem;
+  color: var(--quartz);
+}
+.is-warning .kicker { color: var(--hematite); }
+.is-warning .section-title { color: #e8c4b8; }
+.is-bridge .kicker, .is-decision .kicker { color: var(--malachite); }
+.is-toy .kicker, .is-result .kicker, .is-question .kicker { color: var(--brass); }
+
+/* ---------------------------------------------------------------------- prose */
+/* Justified with hyphenation. In Spanish, justifying without hyphens opens rivers of
+   white space and reads worse than ragged right; lang="es" is what feeds the
+   dictionary. Tables, code, captions and summaries stay ragged on purpose. */
+.section-block p,
+.section-block li,
+details > *:not(summary) {
+  text-align: justify;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+}
+.section-block p { margin-bottom: 1rem; }
+.section-block p:last-child { margin-bottom: 0; }
+/* Indent with padding, not margin, so the bullet sits inside the measure instead of
+   pushing the list 1.2rem past the right edge of the paragraphs. */
+.section-block ul, .section-block ol { margin: 0 0 1rem; padding-left: 1.2rem; }
+.section-block li { margin-bottom: .55rem; padding-left: .2rem; }
+.section-block li::marker { color: var(--brass); }
+td, th, figcaption, .res li, .assay { text-align: left; hyphens: manual; }
+a { color: var(--brass); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+a:hover { text-decoration-thickness: 2px; }
+strong { color: #fff; font-weight: 700; }
+em { color: var(--dust); font-style: italic; }
+
+h3.sub {
+  font-family: var(--display);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--brass);
+  margin: 2rem 0 .7rem;
+  letter-spacing: -.005em;
+}
+h3.sub:first-child { margin-top: 0; }
+h4.sub {
+  font-family: var(--display);
+  font-size: .98rem;
+  font-weight: 600;
+  color: var(--dust);
+  margin: 1.3rem 0 .5rem;
+}
+
+code {
+  font-family: var(--data);
+  font-size: .9em;
+  background: var(--core);
+  border-radius: 3px;
+  padding: .08rem .32rem;
+  color: var(--brass);
+}
+pre {
+  background: #14110e;
+  border: 1px solid var(--seam);
+  border-left: 2px solid var(--seam);
+  border-radius: 2px;
+  padding: 1.1rem 1.2rem;
+  overflow-x: auto;
+  margin-bottom: 1rem;
+}
+pre code {
+  background: none; padding: 0; color: var(--quartz);
+  font-size: .87rem; line-height: 1.6;
+}
+
+/* What the code prints. Malachite: the material that came out of the process. */
+.output {
+  position: relative;
+  border: 1px solid rgba(93, 155, 122, .32);
+  border-left: 2px solid var(--malachite);
+  border-radius: 2px;
+  background: rgba(93, 155, 122, .06);
+  padding: 1.7rem 1.2rem 1rem;
+  margin-bottom: 1rem;
+  overflow-x: auto;
+}
+.output-tag {
+  position: absolute; top: .5rem; left: 1.2rem;
+  font-family: var(--data); font-size: .64rem;
+  letter-spacing: .18em; text-transform: uppercase; color: var(--malachite);
+}
+.output pre {
+  background: none; border: 0; padding: 0; margin: 0;
+  font-family: var(--data); font-size: .85rem;
+  color: var(--quartz); white-space: pre-wrap;
+}
+
+/* Line by line explanation of a code block, for a reader new to programming.
+   Two columns: the fragment of code, and what it does. */
+.annot {
+  display: grid;
+  grid-template-columns: minmax(9rem, auto) 1fr;
+  gap: .1rem 1.2rem;
+  align-items: baseline;
+  max-width: var(--wide);
+  margin: -.4rem 0 1.4rem;
+  padding: .9rem 1.1rem 1rem;
+  border: 1px solid var(--seam);
+  border-top: 0;
+  border-radius: 0 0 2px 2px;
+  background: rgba(201, 162, 39, .04);
+}
+.annot-head {
+  grid-column: 1 / -1;
+  font-family: var(--data);
+  font-size: .64rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  margin-bottom: .5rem;
+}
+.annot dt { padding: .35rem 0; }
+.annot dt code {
+  background: var(--core);
+  color: var(--brass);
+  font-size: .82rem;
+  white-space: nowrap;
+}
+.annot dd {
+  padding: .35rem 0;
+  margin: 0;
+  color: var(--dust);
+  font-size: .93rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(61, 53, 44, .5);
+}
+.annot dt { border-bottom: 1px solid rgba(61, 53, 44, .5); }
+.annot dt:last-of-type, .annot dd:last-of-type { border-bottom: 0; }
+/* The code block sits directly on top of its annotation, as one unit. */
+pre:has(+ .annot) { margin-bottom: 0; border-radius: 2px 2px 0 0; }
+
+@media (max-width: 640px) {
+  .annot { grid-template-columns: 1fr; gap: 0; }
+  .annot dt { border-bottom: 0; padding-bottom: 0; }
+  .annot dd { padding-top: .15rem; }
+}
+
+blockquote {
+  border-left: 2px solid var(--brass);
+  padding: .3rem 0 .3rem 1.3rem;
+  margin: 0 0 1rem;
+  font-family: var(--display);
+  font-size: 1.2rem;
+  font-weight: 400;
+  line-height: 1.4;
+  color: var(--quartz);
+}
+
+/* Tables read as assay data: mono figures, hairline rules, no zebra fill.
+   They take the width they need instead of being stretched to the full column,
+   which is what left a two-column table floating in empty space. */
+.table-wrap { overflow-x: auto; margin-bottom: 1rem; }
+table { border-collapse: collapse; width: auto; max-width: 100%; font-size: .93rem; }
+th, td {
+  border-bottom: 1px solid var(--seam);
+  padding: .55rem .8rem .55rem 0;
+  text-align: left;
+  vertical-align: top;
+}
+th {
+  font-family: var(--data);
+  font-size: .7rem;
+  font-weight: 400;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  border-bottom-color: var(--brass);
+}
+td:first-child { color: var(--quartz); }
+
+/* Review questions: closed by default, so they work as recall practice. */
+details {
+  border-top: 1px solid var(--seam);
+  padding: .9rem 0;
+}
+details:last-child { border-bottom: 1px solid var(--seam); }
+summary {
+  cursor: pointer;
+  font-family: var(--display);
+  font-size: 1.02rem;
+  font-weight: 600;
+  color: var(--quartz);
+  list-style: none;
+  display: flex;
+  gap: .7rem;
+  align-items: baseline;
+}
+summary::-webkit-details-marker { display: none; }
+summary::before {
+  content: '+';
+  font-family: var(--data);
+  color: var(--brass);
+  font-size: .95rem;
+}
+details[open] summary::before { content: '−'; }
+details[open] summary { color: var(--brass); margin-bottom: .7rem; }
+details > *:not(summary) { color: var(--dust); }
+
+figure.fig {
+  margin: 1.6rem 0;
+  border: 1px solid var(--seam);
+  padding: .7rem;
+  background: var(--bench);
+}
+figure.fig img { width: 100%; height: auto; display: block; }
+/* The interactive twin of a figure. Its aspect matches the still one, 10 by 4.4, so a
+   case sheet keeps the same rhythm whichever kind of figure comes next. */
+figure.fig.is-live iframe {
+  width: 100%;
+  /* Matches INTERACTIVE_HEIGHT in src/make_figures.py. It used to be an aspect ratio, and
+     that made the figure's height depend on the window: the caption and the legend are
+     placed at fractions of the plot area, so on a wide screen they were pushed past the
+     bottom margin, clipping the caption and covering the x-axis title. */
+  height: 520px;
+  border: 0;
+  display: block;
+}
+figure.fig figcaption {
+  font-family: var(--data);
+  font-size: .72rem;
+  color: var(--shadowed);
+  margin-top: .6rem;
+  letter-spacing: .04em;
+}
+
+/* File listings on a case sheet */
+.res { list-style: none; margin-left: 0 !important; }
+.res li {
+  display: flex; align-items: baseline; gap: .8rem; flex-wrap: wrap;
+  padding: .5rem 0; border-bottom: 1px solid var(--seam); margin-bottom: 0;
+}
+.res .path { font-family: var(--data); font-size: .74rem; color: var(--shadowed); }
+.res .size { font-family: var(--data); font-size: .74rem; color: var(--shadowed); margin-left: auto; }
+.res .gone { font-family: var(--data); font-size: .74rem; color: var(--hematite); }
+
+.footer {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 2rem 4rem;
+  color: var(--shadowed);
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .03em;
+}
+
+@media (max-width: 640px) {
+  body { font-size: 15px; }
+  .header { padding: 2rem 1.2rem 0; }
+  .container { padding: 0 1.2rem; margin-top: 2rem; }
+  .footer { padding: 0 1.2rem 3rem; }
+}
+
+@media print {
+  body { background: #fff; color: #16130f; }
+  .header { background: none; border-bottom: 1px solid #bbb; padding-top: 0; }
+  .header h1, .section-title, summary { color: #16130f; }
+  .mesh { animation: none; }
+  .section-block { break-inside: avoid; max-width: none; }
+  pre, .output { background: #f6f4f0; border-color: #ccc; }
+  details:not([open]) > *:not(summary) { display: block; }
+  a { color: #16130f; }
+}
+
+</style>
+</head>
+<body>
+<header class="header">
+  <div class="header-content">
+    <div class="eyebrow"><a href="https://www.coursera.org/learn/go-beyond-the-numbers-translate-data-into-insight">Go Beyond the Numbers: Translate Data into Insights</a> / Módulo 4</div>
+    <h1>Data visualizations and presentations</h1>
+    <p class="subtitle">Cuatro conjuntos de datos con la misma media, la misma desviación, la misma correlación y la misma recta, y cuatro formas que no se parecen en nada. Es el cuarteto de Anscombe, y es la mejor razón que existe para dibujar antes de resumir. Además, el ciclo de vida de un gráfico y qué se puede y qué no se puede hacer con Tableau.</p>
+    <div class="mesh" role="presentation"></div>
+    <div class="assay"><span><b>4 h</b> de curso</span><span><b>8</b> vídeos</span><span><b>11</b> lecturas</span><span><b>5</b> tareas</span><span><b>2</b> interactivos</span></div>
+  </div>
+</header>
+<main class="container">
+<section class="section-block "><span class="kicker">Contexto</span><h2 class="section-title">Qué resuelve este módulo</h2><p>Los tres módulos anteriores iban de encontrar lo que hay en los datos. Este va de la parte que decide si alguien hace algo con ello: <strong>enseñarlo</strong>.</p><p>Y empieza por un argumento que no admite discusión. Se pueden construir conjuntos de datos que coinciden en <strong>todos</strong> los números que uno calcularía por costumbre, y que al dibujarlos resultan ser cosas completamente distintas. No es un caso raro de laboratorio: es la demostración de que el resumen y el dibujo ven cosas diferentes, y de que el dibujo ve más.</p></section>
+<section class="section-block is-toy"><span class="kicker">Ejemplo</span><h2 class="section-title">Antes de la teoría: un ejemplo de juguete</h2><p>Cuatro conjuntos de once puntos cada uno, con sus x y sus y. Se llaman I, II, III y IV.</p><h3 class="sub h3">Paso 1. Los resúmenes de los cuatro</h3><div class="table-wrap"><table><thead><tr><th>Conjunto</th><th>Media de x</th><th>Media de y</th><th>Desviación de y</th><th>Correlación</th><th>Recta</th></tr></thead><tbody><tr><td>I</td><td>9,00</td><td>7,50</td><td>2,03</td><td>0,816</td><td>y = 3,00 + 0,50 x</td></tr><tr><td>II</td><td>9,00</td><td>7,50</td><td>2,03</td><td>0,816</td><td>y = 3,00 + 0,50 x</td></tr><tr><td>III</td><td>9,00</td><td>7,50</td><td>2,03</td><td>0,816</td><td>y = 3,00 + 0,50 x</td></tr><tr><td>IV</td><td>9,00</td><td>7,50</td><td>2,03</td><td>0,817</td><td>y = 3,00 + 0,50 x</td></tr></tbody></table></div><p><strong>Las cuatro filas son la misma fila.</strong> Cualquier informe que resuma estos conjuntos con media, desviación, correlación y recta ajustada dirá que los cuatro son intercambiables.</p><h3 class="sub h3">Paso 2. Y ahora se dibujan</h3><figure class="fig"><img src="../../figures/curso2/anscombe.1bb798f3.png" alt="anscombe" loading="lazy"><figcaption>anscombe.png</figcaption></figure><div class="table-wrap"><table><thead><tr><th>Conjunto</th><th>Qué es en realidad</th></tr></thead><tbody><tr><td><strong>I</strong></td><td>Una nube alrededor de la recta. <strong>El único donde el resumen no miente</strong></td></tr><tr><td><strong>II</strong></td><td>Una curva perfecta. La recta se equivoca por arriba en el centro y por abajo en los extremos</td></tr><tr><td><strong>III</strong></td><td>Once puntos en una recta distinta, y <strong>uno disparado que tuerce la que se ajusta</strong></td></tr><tr><td><strong>IV</strong></td><td>Diez medidas en la misma x y <strong>un solo punto que decide la recta él solo</strong></td></tr></tbody></table></div><h3 class="sub h3">Paso 3. Qué significa cada caso</h3><p>Los tres últimos son tres formas distintas de que un resumen mienta, y las tres se dan en datos de verdad:</p><ul><li><strong>El II</strong> es una relación curva resumida con una recta. La correlación de 0,816 suena fuerte y el modelo se equivocará sistemáticamente en los extremos, que es justo donde uno suele querer predecir.</li><li><strong>El III</strong> es el atípico del módulo anterior. Sin él, los diez puntos restantes están casi sobre una recta perfecta y con otra pendiente. <strong>Un dato de once decide el resultado.</strong></li><li><strong>El IV</strong> es peor: sin ese punto único a la derecha no habría relación ninguna que medir, porque todos los demás comparten la misma x. **La correlación entera descansa en una sola observación.**</li></ul><p>Y por eso el módulo empieza aquí:</p><blockquote>Si no lo has dibujado, no lo has mirado.</blockquote></section>
+<section class="section-block "><span class="kicker">Términos</span><h2 class="section-title">Glosario</h2><ul><li><strong>Ciclo de vida de la visualización.</strong> Que un gráfico se planifica, se prototipa, se revisa y se refina. El primero que sale casi nunca es el que se presenta.</li><li><strong>Gráfico exploratorio.</strong> El que haces para ti mismo mientras analizas. Feo, rápido y muchos.</li><li><strong>Gráfico explicativo.</strong> El que haces para quien va a decidir. Uno solo, limpio, con el hallazgo escrito encima.</li><li><strong>Tableau.</strong> Herramienta de ventana para construir gráficos y paneles arrastrando campos. Es la que enseña este módulo.</li><li><strong>Tableau Public.</strong> La versión gratuita. <strong>Publica en un perfil web abierto</strong>, así que no se sube nada confidencial.</li><li><strong>Dimensión.</strong> En Tableau, un campo categórico o de fecha: lo que <strong>corta</strong> los datos.</li><li><strong>Medida.</strong> Un campo numérico que se agrega: lo que se <strong>cuenta o se suma</strong>.</li><li><strong>Panel de control.</strong> Varias visualizaciones juntas en una vista. En inglés, <em>dashboard</em>.</li><li><strong>Filtro.</strong> Restringe qué datos entran en la vista.</li><li><strong>Relato con datos.</strong> Contar el hallazgo con estructura: contexto, conflicto y resolución.</li><li><strong>Accesibilidad.</strong> Que el gráfico se entienda en blanco y negro, con daltonismo y a tamaño pequeño.</li></ul></section>
+<section class="section-block is-recipe"><span class="kicker">Método</span><h2 class="section-title">Paso a paso</h2><h3 class="sub h3">Paso 1. Dibujar antes de resumir, y varias veces</h3><p>Es la conclusión del cuarteto y se aplica siempre, no solo cuando hay sospechas. Con una variable numérica, el mínimo son dos dibujos: <strong>un histograma</strong> para ver la forma y <strong>un diagrama de dispersión</strong> contra lo que te interese, para ver la relación.</p><p>Y el módulo 2 ya avisó de lo suyo: <strong>el histograma se dibuja con varios cortes</strong>, porque el número de barras cambia lo que parece decir.</p><figure class="fig"><img src="../../figures/curso2/histograma_barras.7ac97dc9.png" alt="histograma_barras" loading="lazy"><figcaption>histograma_barras.png</figcaption></figure><h3 class="sub h3">Paso 2. Elegir el gráfico según la pregunta</h3><p>No hay muchos casos y casi todos los errores son de esta tabla:</p><div class="table-wrap"><table><thead><tr><th>La pregunta</th><th>El gráfico</th></tr></thead><tbody><tr><td>¿Cómo se reparten los valores de una variable?</td><td>Histograma</td></tr><tr><td>¿Cómo se relacionan dos variables numéricas?</td><td>Diagrama de dispersión</td></tr><tr><td>¿Cuánto tiene cada categoría?</td><td>Barras</td></tr><tr><td>¿Cómo evoluciona en el tiempo?</td><td>Líneas</td></tr><tr><td>¿Cómo se comparan los repartos de varios grupos?</td><td>Un histograma por grupo, con los mismos ejes</td></tr><tr><td>¿Cuánto vale una parte del total?</td><td>Barras, casi siempre mejor que un sector circular</td></tr></tbody></table></div><p>El sector circular merece su frase: el ojo compara longitudes mucho mejor que ángulos, así que con más de tres categorías o con valores parecidos, unas barras se leen mejor.</p><h3 class="sub h3">Paso 3. Las reglas que hacen un gráfico honesto</h3><div class="table-wrap"><table><thead><tr><th>Regla</th><th>Por qué</th></tr></thead><tbody><tr><td><strong>El eje de las barras empieza en cero</strong></td><td>Recortarlo exagera diferencias pequeñas</td></tr><tr><td><strong>Mismos ejes al comparar grupos</strong></td><td>Escalas distintas hacen que cosas distintas parezcan iguales</td></tr><tr><td><strong>Escala logarítmica</strong> si el dato abarca órdenes de magnitud</td><td>Si no, todo se apelotona contra el eje</td></tr><tr><td><strong>Los ejes se etiquetan con sus unidades</strong></td><td>Un número sin unidad no es un dato</td></tr><tr><td><strong>El color no puede ser el único portador del significado</strong></td><td>Daltonismo y blanco y negro</td></tr><tr><td><strong>Escribe en el gráfico qué hay que mirar</strong></td><td>Si hace falta un párrafo aparte, no está terminado</td></tr></tbody></table></div><p>La última es la que más se salta y la que más rinde. Un título que diga &quot;Recuperación por turno&quot; describe los ejes; uno que diga &quot;El turno de noche recupera cuatro puntos menos&quot; dice el hallazgo.</p><h3 class="sub h3">Paso 4. El ciclo de vida, que explica por qué el primero nunca vale</h3><p>Un gráfico se planifica, se prototipa, se revisa y se refina. En la práctica:</p><ol><li><strong>Planificar.</strong> Qué pregunta responde y quién lo va a mirar.</li><li><strong>Prototipar.</strong> Rápido y feo, para ver si el dato dice lo que crees.</li><li><strong>Revisar.</strong> Enseñárselo a alguien que no ha estado en el análisis y ver qué entiende.</li><li><strong>Refinar.</strong> Quitar todo lo que no ayude, y solo entonces cuidar el aspecto.</li></ol><p>El paso 3 es el que la gente se salta, y es el que descubre que el gráfico que llevas dos horas puliendo se entiende al revés.</p><h3 class="sub h3">Paso 5. Tableau, y qué se hace con él</h3><p>Tableau construye gráficos y paneles arrastrando campos, sin escribir código. La distinción que hay que entender es la que organiza toda la herramienta:</p><ul><li><strong>Las dimensiones cortan</strong> los datos: turno, mineral, mes.</li><li><strong>Las medidas se agregan</strong>: recuperación, tonelaje, número de lotes.</li></ul><p>Y una advertencia práctica: <strong>Tableau Public publica en un perfil web abierto</strong>. Sirve para portafolio y no sirve para datos de empresa.</p><p><strong>Esta parte hay que hacerla en Tableau, no aquí.</strong> Es una herramienta de ventana y se aprende usándola. Lo que se puede hacer en Python, y es lo que hacen los proyectos de este curso, es el equivalente en gráficos: las mismas decisiones, distinto botón.</p><h3 class="sub h3">Paso 6. Los datasets que hay que descargar para practicar</h3><p>El módulo pide bajarse sus conjuntos de datos y empezar a construir con ellos. Son los <strong>registros de descargas eléctricas de la NOAA</strong>, con tres columnas que van directas a un mapa: la fecha, las coordenadas y el número de rayos.</p><div class="table-wrap"><table><thead><tr><th>Archivo</th><th>Qué trae</th><th>Tamaño</th></tr></thead><tbody><tr><td><code>tableau_dataset.csv</code></td><td>Un año de descargas con longitud y latitud</td><td>302 MB</td></tr><tr><td><code>tableau_main_2009_to_2018.csv</code></td><td>Diez años, con coordenadas x e y</td><td>372 MB</td></tr></tbody></table></div><p><strong>Ya los tienes descargados</strong>, en tu carpeta de material del curso. Y son grandes, lo cual trae dos consecuencias prácticas que conviene saber antes de abrirlos:</p><ul><li><strong>En Tableau se pueden usar tal cual</strong>, porque está pensado para eso.</li><li><strong>En Python conviene leerlos una vez, agregar y guardar el resumen.</strong> Un archivo de 300 MB tarda en cargar cada vez que ejecutas el cuaderno, y lo que se dibuja al final son unos cientos de filas agregadas por mes o por celda del mapa.</li></ul><p>Ese es exactamente el camino que sigue el proyecto de este curso: leer una vez, agregar, y dibujar desde un resumen de unos pocos kilobytes.</p></section>
+<section class="section-block is-recipe"><span class="kicker">Código</span><h2 class="section-title">El código, por partes</h2><h3 class="sub h3">Paso 1. Comprobar que los cuatro conjuntos dan los mismos números</h3><pre><code class="language-python">import numpy as np
+import pandas as pd
+from scipy import stats
+
+shared_x = [10, 8, 13, 9, 11, 14, 6, 4, 12, 7, 5]
+quartet = pd.DataFrame({
+    &quot;x1&quot;: shared_x,
+    &quot;y1&quot;: [8.04, 6.95, 7.58, 8.81, 8.33, 9.96, 7.24, 4.26, 10.84, 4.82, 5.68],
+    &quot;x2&quot;: shared_x,
+    &quot;y2&quot;: [9.14, 8.14, 8.74, 8.77, 9.26, 8.10, 6.13, 3.10, 9.13, 7.26, 4.74],
+    &quot;x3&quot;: shared_x,
+    &quot;y3&quot;: [7.46, 6.77, 12.74, 7.11, 7.81, 8.84, 6.08, 5.39, 8.15, 6.42, 5.73],
+    &quot;x4&quot;: [8, 8, 8, 8, 8, 8, 8, 19, 8, 8, 8],
+    &quot;y4&quot;: [6.58, 5.76, 7.71, 8.84, 8.47, 7.04, 5.25, 12.50, 5.56, 7.91, 6.89],
+})
+
+rows = []
+for n in (1, 2, 3, 4):
+    x, y = quartet[f&quot;x{n}&quot;], quartet[f&quot;y{n}&quot;]
+    fit = stats.linregress(x, y)
+    rows.append({&quot;conjunto&quot;: n, &quot;media x&quot;: x.mean(), &quot;media y&quot;: round(y.mean(), 2),
+                 &quot;desv y&quot;: round(y.std(ddof=1), 2),
+                 &quot;correlacion&quot;: round(fit.rvalue, 3),
+                 &quot;pendiente&quot;: round(fit.slope, 3),
+                 &quot;intercepto&quot;: round(fit.intercept, 2)})
+
+print(pd.DataFrame(rows).to_string(index=False))</code></pre><dl class="annot"><div class="annot-head">línea por línea</div><dt><code>shared_x = [...]</code></dt><dd>Tres de los cuatro conjuntos comparten las mismas x, así que se escriben una vez y se reutilizan. El cuarto tiene las suyas, que son casi todas iguales entre sí.</dd><dt><code>f&quot;x{n}&quot;</code></dt><dd>Una f-string para construir el nombre de la columna dentro del bucle: en la primera vuelta vale &quot;x1&quot;, en la segunda &quot;x2&quot;. Es la forma de recorrer columnas que se llaman igual con un número al final.</dd><dt><code>y.std(ddof=1)</code></dt><dd>La desviación de una <strong>muestra</strong>, dividiendo entre n − 1. Sin <code>ddof=1</code> numpy divide entre n, que es la desviación de una población, y da un número distinto.</dd><dt><code>rows.append({...})</code></dt><dd>Se van acumulando diccionarios en una lista y al final se convierten en tabla de una vez. Es más rápido y más legible que ir añadiendo filas a un DataFrame.</dd><dt><code>pd.DataFrame(rows)</code></dt><dd>Una lista de diccionarios se convierte en tabla directamente: cada diccionario es una fila y sus claves son las columnas.</dd></dl><div class="output"><span class="output-tag">sale</span><pre> conjunto  media x  media y  desv y  correlacion  pendiente  intercepto
+        1      9.0      7.5    2.03        0.816        0.5         3.0
+        2      9.0      7.5    2.03        0.816        0.5         3.0
+        3      9.0      7.5    2.03        0.816        0.5         3.0
+        4      9.0      7.5    2.03        0.817        0.5         3.0</pre></div><p><strong>Seis columnas de números y las cuatro filas coinciden</strong>, salvo un 0,817 en la última correlación. Ningún informe construido con esta tabla distinguiría los cuatro conjuntos.</p><h3 class="sub h3">Paso 2. Dibujarlos, que es lo único que los distingue</h3><pre><code class="language-python">import matplotlib.pyplot as plt
+
+fig, axes = plt.subplots(2, 2, figsize=(9, 7), sharex=True, sharey=True)
+
+for ax, n in zip(axes.flat, (1, 2, 3, 4)):
+    x, y = quartet[f&quot;x{n}&quot;], quartet[f&quot;y{n}&quot;]
+    fit = stats.linregress(x, y)
+    span = np.array([2, 20])
+    ax.plot(span, fit.intercept + fit.slope * span, linewidth=1.6)
+    ax.plot(x, y, &quot;o&quot;, markersize=8)
+    ax.set_title(f&quot;Conjunto {n}&quot;, loc=&quot;left&quot;)
+
+fig.savefig(&quot;anscombe.png&quot;, dpi=200, bbox_inches=&quot;tight&quot;)</code></pre><dl class="annot"><div class="annot-head">línea por línea</div><dt><code>plt.subplots(2, 2)</code></dt><dd>Crea una rejilla de dos por dos y devuelve la figura y una matriz de ejes. Cada eje es un panel independiente.</dd><dt><code>sharex=True, sharey=True</code></dt><dd>Los cuatro paneles comparten los dos ejes. <strong>Es obligatorio al comparar</strong>: con escalas distintas, cuatro formas diferentes pueden parecer la misma.</dd><dt><code>axes.flat</code></dt><dd>Recorre la rejilla como si fuera una lista de cuatro, sin tener que escribir dos bucles anidados.</dd><dt><code>zip(axes.flat, (1, 2, 3, 4))</code></dt><dd>Empareja cada panel con su número de conjunto, para recorrer las dos cosas a la vez.</dd><dt><code>span = np.array([2, 20])</code></dt><dd>Solo dos puntos: una recta queda definida con su principio y su final, no hace falta calcular valores intermedios.</dd><dt><code>&quot;o&quot;</code></dt><dd>El estilo de marca: puntos sueltos sin línea que los una.</dd><dt><code>bbox_inches=&quot;tight&quot;</code></dt><dd>Recorta el margen sobrante al guardar. Sin esto, las etiquetas de los ejes salen cortadas a menudo.</dd></dl><div class="output"><span class="output-tag">sale</span><pre>(no imprime nada: escribe el archivo anscombe.png)</pre></div><p>La figura de arriba está hecha con esta misma receta, con la paleta del proyecto y las anotaciones que dicen qué mirar en cada panel.</p></section>
+<section class="section-block is-warning"><span class="kicker">Trampas</span><h2 class="section-title">Ojo</h2><ul><li><strong>Los cuatro conjuntos del cuarteto tienen los mismos números.</strong> Si tu informe se apoya solo en media, desviación y correlación, no distingue una recta de una curva.</li><li><strong>Una correlación de 0,816 no significa que la recta sirva.</strong> En el conjunto II la relación es curva y la recta se equivoca sistemáticamente en los extremos.</li><li><strong>Un solo punto puede decidir el resultado.</strong> En el III tuerce la recta y en el IV es la única razón de que exista correlación.</li><li><strong>Al comparar grupos, los mismos ejes.</strong> Escalas distintas hacen que cosas distintas parezcan iguales, que es el error de diseño más frecuente.</li><li><strong>El eje de un gráfico de barras empieza en cero.</strong> Recortarlo convierte una diferencia del 2 % en una montaña.</li><li><strong>El primer gráfico no es el que se presenta.</strong> Prototipar, enseñárselo a alguien de fuera y refinar.</li><li><strong>Tableau Public es público.</strong> No se suben datos de empresa a un perfil abierto.</li><li><strong>Un título que describe los ejes desaprovecha el mejor sitio del gráfico.</strong> Ahí va el hallazgo.</li><li><strong>El color no puede ser el único portador del significado</strong>, o el gráfico deja de funcionar en blanco y negro y para quien no distingue rojo y verde.</li></ul></section>
+<section class="section-block is-bridge"><span class="kicker">Analogía</span><h2 class="section-title">Puente metalúrgico</h2><p>El cuarteto de Anscombe tiene un equivalente exacto en planta, y es la razón por la que nadie de proceso acepta un promedio sin ver la curva: <strong>la curva ley-recuperación</strong>.</p><p>Dos circuitos pueden entregar la misma recuperación media y la misma ley media de concentrado, y tener curvas completamente distintas. Uno puede estar operando en la zona plana, donde apretar la ley cuesta poco, y el otro en la caída, donde cada punto de ley se paga con varios de recuperación. <strong>El promedio no distingue esos dos casos y decide cosas opuestas.</strong></p><div class="table-wrap"><table><thead><tr><th>En el cuarteto</th><th>En la planta</th></tr></thead><tbody><tr><td>Conjunto I, la nube en línea</td><td>Un circuito estable, donde el promedio describe bien</td></tr><tr><td>Conjunto II, la curva</td><td>La zona de caída de la curva ley-recuperación</td></tr><tr><td>Conjunto III, el punto disparado</td><td>La campaña con un lote anómalo que arrastra el mes</td></tr><tr><td>Conjunto IV, una sola x</td><td>El ensayo con una sola condición probada y un punto suelto</td></tr></tbody></table></div><p>Y el ciclo de vida del gráfico también lo reconoces: <strong>el gráfico que va al comité no es el que hiciste para entenderlo tú</strong>. El de trabajo lleva todos los puntos, las condiciones y las anotaciones a mano. El del comité lleva una curva, el punto de operación actual y una flecha diciendo hacia dónde moverse.</p><p>Lo que no cambia entre los dos es el eje: <strong>si empieza en 80 % en vez de en 0 % para que la mejora parezca grande, eso no es diseño, es otra cosa</strong>.</p></section>
+<section class="section-block is-review"><span class="kicker">Repaso</span><h2 class="section-title">Repaso</h2><details><summary>¿Qué demuestra el cuarteto de Anscombe y por qué importa?</summary><p>Que cuatro conjuntos de datos pueden coincidir en todos los resúmenes habituales, media de x de 9,00, media de y de 7,50, desviación de 2,03, correlación de 0,816 y la misma recta ajustada, y aun así tener formas completamente distintas: una nube en línea, una curva, una recta con un punto disparado y una sola x con un único punto lejano. Importa porque significa que un informe apoyado solo en esos números no distingue esos cuatro casos, y tres de ellos exigen decisiones diferentes. Por eso se dibuja antes de resumir y no después.</p></details><details><summary>¿Por qué es obligatorio compartir los ejes al comparar grupos en varios paneles?</summary><p>Porque cuando cada panel escala su eje a sus propios datos, las alturas dejan de ser comparables: dos grupos con magnitudes muy distintas se dibujan igual de altos y parecen iguales, y dos grupos parecidos pueden verse muy diferentes. El lector compara formas y tamaños sin leer los ejes, así que un eje independiente por panel es una forma silenciosa de inducir a error. Con ejes compartidos, lo que se ve corresponde a lo que hay.</p></details><details><summary>¿Qué significa que el número de barras de un histograma es una decisión analítica?</summary><p>Que la elección cambia la conclusión, no solo el aspecto. Las mismas doce recuperaciones con tres barras dan un reparto plano de [4, 4, 4], que no cuenta nada, y con seis barras dan [4, 0, 2, 2, 0, 4], donde aparecen tres grupos separados por huecos. Pocas barras funden grupos distintos y demasiadas convierten el ruido en picos. La costumbre correcta es probar varios cortes antes de afirmar nada sobre la forma, y si el dibujo enseña grupos, reportarlos por separado en vez de resumirlos con una media que solo describe a una parte.</p></details><details><summary>¿Cuál es la diferencia entre un gráfico exploratorio y uno explicativo?</summary><p>El destinatario, y de ahí todo lo demás. El exploratorio es para uno mismo durante el análisis: se hacen muchos, rápidos y feos, y sirven para ver. El explicativo es para quien va a decidir: es uno solo, limpio, sin nada que no ayude, y lleva el hallazgo escrito en el título en vez de una descripción de los ejes. Confundirlos produce los dos errores típicos, que son perder horas puliendo un gráfico de trabajo o presentar uno de trabajo en una reunión.</p></details><details><summary>¿Qué hay que tener en cuenta antes de publicar en Tableau Public?</summary><p>Que es público de verdad: lo que se sube queda en un perfil web abierto y accesible por cualquiera. Sirve muy bien para portafolio, que es justamente para lo que lo usa el certificado, y no sirve para datos de empresa, datos personales ni nada bajo acuerdo de confidencialidad. Y como la publicación es el paso final, la comprobación de qué contiene el archivo, incluidos los campos que no se muestran pero viajan con él, se hace antes de subir y no después.</p></details></section>
+</main>
+<footer class="footer">
+  Concentra / destilado del temario público del curso / 2026-08-20
+</footer>
+</body>
+</html>

@@ -1,0 +1,119 @@
+{
+  "project": "tiktok",
+  "course": "curso5",
+  "title": "TikTok: reclamación u opinión, y quién hizo el trabajo",
+  "generated": "2026-08-19",
+  "source_csv": "C:\\Users\\Bruce Wayne\\Documents\\03_Data Analysis Coursera\\Course 3 - Data Analytics\\Exc_2_TikTok\\01_data\\tiktok_dataset_raw.csv",
+  "data": {
+    "rows_raw": 19382,
+    "rows_incomplete": 298,
+    "rows_clean": 19084,
+    "claim_pct": 50.3,
+    "needs_balancing": false
+  },
+  "signal": {
+    "claim_mean_views": 501029.5,
+    "opinion_mean_views": 4956.4,
+    "view_ratio": 101.1,
+    "opinion_max_views": 9998,
+    "claim_min_views": 1049
+  },
+  "split": {
+    "train_rows": 11450,
+    "validation_rows": 3817,
+    "test_rows": 3817
+  },
+  "lone": {
+    "column": "video_view_count",
+    "threshold": 10031.5,
+    "validation_accuracy": 0.9961,
+    "exceptions_train": 65,
+    "exceptions_are_claims": 65
+  },
+  "candidates": {
+    "logistica_auc": 0.9968,
+    "logistica_accuracy": 0.9932,
+    "arbol_auc": 0.9937,
+    "arbol_accuracy": 0.9937,
+    "bosque_auc": 0.9975,
+    "bosque_accuracy": 0.9963,
+    "xgboost_auc": 0.9974,
+    "xgboost_accuracy": 0.9953
+  },
+  "tuning": {
+    "bosque": {
+      "combinations": 24,
+      "seconds": 40.6,
+      "best_params": {
+        "max_depth": "None",
+        "max_features": "sqrt",
+        "min_samples_leaf": "5"
+      },
+      "cv_auc": 0.9974,
+      "validation_auc": 0.9979
+    },
+    "xgboost": {
+      "combinations": 12,
+      "seconds": 3.6,
+      "best_params": {
+        "learning_rate": "0.1",
+        "max_depth": "2",
+        "n_estimators": "400"
+      },
+      "cv_auc": 0.9975,
+      "validation_auc": 0.9978
+    }
+  },
+  "finalists": {
+    "logistica_validation_auc": 0.9968,
+    "bosque_validation_auc": 0.9979,
+    "xgboost_validation_auc": 0.9978
+  },
+  "champion": "bosque",
+  "test": {
+    "lone": {
+      "accuracy": 0.9958,
+      "precision": 1.0,
+      "recall": 0.9917,
+      "f1": 0.9958,
+      "auc": 0.9958
+    },
+    "logistica": {
+      "accuracy": 0.994,
+      "precision": 1.0,
+      "recall": 0.988,
+      "f1": 0.994,
+      "auc": 0.9973
+    },
+    "bosque": {
+      "accuracy": 0.9958,
+      "precision": 0.9995,
+      "recall": 0.9922,
+      "f1": 0.9958,
+      "auc": 0.9986
+    },
+    "xgboost": {
+      "accuracy": 0.9948,
+      "precision": 0.999,
+      "recall": 0.9906,
+      "f1": 0.9948,
+      "auc": 0.9979
+    }
+  },
+  "verdict": {
+    "lone_accuracy": 0.9958,
+    "best_model_accuracy": 0.9958,
+    "gain_over_one_question": 0.0
+  },
+  "importance": {
+    "verified": 0.0,
+    "video_duration_sec": 0.0007,
+    "under_review": 0.0008,
+    "banned": 0.0021,
+    "video_comment_count": 0.0569,
+    "video_download_count": 0.1062,
+    "video_share_count": 0.1126,
+    "video_like_count": 0.3211,
+    "video_view_count": 0.3995
+  }
+}

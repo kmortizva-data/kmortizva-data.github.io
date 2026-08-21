@@ -1,0 +1,488 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Probability — The Power of Statistics</title>
+<style>
+/* ============================================================================
+   Concentra — design tokens and shared components.
+   Inlined into every generated page by load_style(), so pages stay self-contained
+   and work offline from file:// with no external requests.
+
+   Direction: an assay lab, not a tech dashboard. The palette is taken from ore
+   and lab materials (chalcopyrite brass, malachite, hematite, quartz) on warm
+   graphite rather than the blue-black + neon of a generic dark UI. Type is
+   Bahnschrift, the DIN-descended grotesque that Windows ships and that lives on
+   machinery plates and technical drawings, over Corbel for reading.
+   ========================================================================== */
+
+:root {
+  /* Ground and surfaces: warm graphite, the colour of rock dust, not blue-black */
+  --rock: #1a1714;
+  --bench: #221e19;
+  --core: #2b251f;
+  --seam: #3d352c;
+
+  /* Ore palette. No blue and no purple anywhere: those are the tones that make a
+     page read as generated, and this palette comes from the ores instead. */
+  --brass: #c9a227;      /* chalcopyrite, the primary accent */
+  --malachite: #5d9b7a;  /* verified output, results that came out right */
+  --hematite: #b04a35;   /* iron oxide, pitfalls and warnings */
+
+  /* Text */
+  --quartz: #ece7de;
+  --dust: #9a9186;
+  --shadowed: #6f675c;
+
+  --display: Bahnschrift, 'DIN Alternate', 'Segoe UI Semibold', system-ui, sans-serif;
+  --body: Corbel, Candara, 'Segoe UI', system-ui, sans-serif;
+  --data: Consolas, 'Cascadia Mono', ui-monospace, monospace;
+
+  /* In px, not ch: ch scales with font-size, so a heading ended up wider than a
+     paragraph and the page had four different right edges instead of two. */
+  --measure: 640px;
+  --wide: 900px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--rock);
+  color: var(--quartz);
+  font-family: var(--body);
+  font-size: 16px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection { background: var(--brass); color: var(--rock); }
+
+:focus-visible {
+  outline: 2px solid var(--brass);
+  outline-offset: 3px;
+}
+
+/* --------------------------------------------------------------- the signature
+   A sieve series: ticks that get finer from left to right, coarse feed to fine
+   concentrate. It is the one ornament on the page and appears exactly twice —
+   under the wordmark and under a page title. */
+.mesh {
+  height: 10px;
+  background-image:
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 16px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 9px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 5px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 3px);
+  background-size: 25% 100%;
+  background-position: 0 0, 25% 0, 50% 0, 75% 0;
+  background-repeat: no-repeat;
+  opacity: .8;
+  transform-origin: left center;
+  animation: sieve .55s cubic-bezier(.2, .8, .3, 1) both;
+}
+@keyframes sieve { from { transform: scaleX(0); opacity: 0; } to { transform: scaleX(1); opacity: .8; } }
+@media (prefers-reduced-motion: reduce) {
+  .mesh { animation: none; }
+  * { transition: none !important; }
+}
+
+/* ------------------------------------------------------------------ page head */
+.header {
+  border-bottom: 1px solid var(--seam);
+  padding: 3.2rem 2rem 0;
+  background: linear-gradient(180deg, #221d16 0%, var(--rock) 100%);
+}
+.header-content { max-width: 1080px; margin: 0 auto; }
+
+.eyebrow {
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--brass);
+  margin-bottom: 1rem;
+}
+.eyebrow a { color: inherit; text-decoration: none; border-bottom: 1px solid transparent; }
+.eyebrow a:hover { border-bottom-color: var(--brass); }
+
+.header h1 {
+  font-family: var(--display);
+  font-size: clamp(2rem, 4.5vw, 3.1rem);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -.015em;
+  color: var(--quartz);
+  max-width: 20ch;
+}
+.header .subtitle {
+  color: var(--dust);
+  max-width: var(--measure);
+  margin-top: 1rem;
+  font-size: 1.02rem;
+}
+.header .mesh { margin: 1.8rem 0 0; }
+
+/* An assay line: the real composition of the module, in lab-report shorthand. */
+.assay {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.4rem;
+  font-family: var(--data);
+  font-size: .78rem;
+  color: var(--shadowed);
+  padding: .9rem 0 1.6rem;
+  letter-spacing: .04em;
+}
+.assay b { color: var(--dust); font-weight: 400; }
+
+/* --------------------------------------------------------------------- layout */
+/* The container hugs the widest block, so there is no orphan edge past the content. */
+.container { max-width: var(--wide); margin: 3rem auto 5rem; padding: 0 2rem; }
+
+/* Two deliberate right edges and no more: prose stops at the reading measure, and
+   only the things that genuinely need room (code, output, figures, big tables) run
+   out to the full column. */
+.section-block {
+  border-top: 1px solid var(--seam);
+  padding: 2rem 0 2.4rem;
+}
+.section-block > p,
+.section-block > ul,
+.section-block > ol,
+.section-block h3.sub,
+.section-block h4.sub,
+.section-block blockquote,
+details > *:not(summary) { max-width: var(--measure); }
+.section-block:first-child { border-top: 0; padding-top: .5rem; }
+
+/* The kicker names what kind of content follows: context, method, pitfalls.
+   It replaces decorative icons with something that actually classifies. */
+.kicker {
+  font-family: var(--data);
+  font-size: .68rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  display: block;
+  margin-bottom: .5rem;
+}
+.section-title {
+  font-family: var(--display);
+  font-size: 1.55rem;
+  font-weight: 600;
+  letter-spacing: -.01em;
+  line-height: 1.2;
+  margin-bottom: 1.2rem;
+  color: var(--quartz);
+}
+.is-warning .kicker { color: var(--hematite); }
+.is-warning .section-title { color: #e8c4b8; }
+.is-bridge .kicker, .is-decision .kicker { color: var(--malachite); }
+.is-toy .kicker, .is-result .kicker, .is-question .kicker { color: var(--brass); }
+
+/* ---------------------------------------------------------------------- prose */
+/* Justified with hyphenation. In Spanish, justifying without hyphens opens rivers of
+   white space and reads worse than ragged right; lang="es" is what feeds the
+   dictionary. Tables, code, captions and summaries stay ragged on purpose. */
+.section-block p,
+.section-block li,
+details > *:not(summary) {
+  text-align: justify;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+}
+.section-block p { margin-bottom: 1rem; }
+.section-block p:last-child { margin-bottom: 0; }
+/* Indent with padding, not margin, so the bullet sits inside the measure instead of
+   pushing the list 1.2rem past the right edge of the paragraphs. */
+.section-block ul, .section-block ol { margin: 0 0 1rem; padding-left: 1.2rem; }
+.section-block li { margin-bottom: .55rem; padding-left: .2rem; }
+.section-block li::marker { color: var(--brass); }
+td, th, figcaption, .res li, .assay { text-align: left; hyphens: manual; }
+a { color: var(--brass); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+a:hover { text-decoration-thickness: 2px; }
+strong { color: #fff; font-weight: 700; }
+em { color: var(--dust); font-style: italic; }
+
+h3.sub {
+  font-family: var(--display);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--brass);
+  margin: 2rem 0 .7rem;
+  letter-spacing: -.005em;
+}
+h3.sub:first-child { margin-top: 0; }
+h4.sub {
+  font-family: var(--display);
+  font-size: .98rem;
+  font-weight: 600;
+  color: var(--dust);
+  margin: 1.3rem 0 .5rem;
+}
+
+code {
+  font-family: var(--data);
+  font-size: .9em;
+  background: var(--core);
+  border-radius: 3px;
+  padding: .08rem .32rem;
+  color: var(--brass);
+}
+pre {
+  background: #14110e;
+  border: 1px solid var(--seam);
+  border-left: 2px solid var(--seam);
+  border-radius: 2px;
+  padding: 1.1rem 1.2rem;
+  overflow-x: auto;
+  margin-bottom: 1rem;
+}
+pre code {
+  background: none; padding: 0; color: var(--quartz);
+  font-size: .87rem; line-height: 1.6;
+}
+
+/* What the code prints. Malachite: the material that came out of the process. */
+.output {
+  position: relative;
+  border: 1px solid rgba(93, 155, 122, .32);
+  border-left: 2px solid var(--malachite);
+  border-radius: 2px;
+  background: rgba(93, 155, 122, .06);
+  padding: 1.7rem 1.2rem 1rem;
+  margin-bottom: 1rem;
+  overflow-x: auto;
+}
+.output-tag {
+  position: absolute; top: .5rem; left: 1.2rem;
+  font-family: var(--data); font-size: .64rem;
+  letter-spacing: .18em; text-transform: uppercase; color: var(--malachite);
+}
+.output pre {
+  background: none; border: 0; padding: 0; margin: 0;
+  font-family: var(--data); font-size: .85rem;
+  color: var(--quartz); white-space: pre-wrap;
+}
+
+/* Line by line explanation of a code block, for a reader new to programming.
+   Two columns: the fragment of code, and what it does. */
+.annot {
+  display: grid;
+  grid-template-columns: minmax(9rem, auto) 1fr;
+  gap: .1rem 1.2rem;
+  align-items: baseline;
+  max-width: var(--wide);
+  margin: -.4rem 0 1.4rem;
+  padding: .9rem 1.1rem 1rem;
+  border: 1px solid var(--seam);
+  border-top: 0;
+  border-radius: 0 0 2px 2px;
+  background: rgba(201, 162, 39, .04);
+}
+.annot-head {
+  grid-column: 1 / -1;
+  font-family: var(--data);
+  font-size: .64rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  margin-bottom: .5rem;
+}
+.annot dt { padding: .35rem 0; }
+.annot dt code {
+  background: var(--core);
+  color: var(--brass);
+  font-size: .82rem;
+  white-space: nowrap;
+}
+.annot dd {
+  padding: .35rem 0;
+  margin: 0;
+  color: var(--dust);
+  font-size: .93rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(61, 53, 44, .5);
+}
+.annot dt { border-bottom: 1px solid rgba(61, 53, 44, .5); }
+.annot dt:last-of-type, .annot dd:last-of-type { border-bottom: 0; }
+/* The code block sits directly on top of its annotation, as one unit. */
+pre:has(+ .annot) { margin-bottom: 0; border-radius: 2px 2px 0 0; }
+
+@media (max-width: 640px) {
+  .annot { grid-template-columns: 1fr; gap: 0; }
+  .annot dt { border-bottom: 0; padding-bottom: 0; }
+  .annot dd { padding-top: .15rem; }
+}
+
+blockquote {
+  border-left: 2px solid var(--brass);
+  padding: .3rem 0 .3rem 1.3rem;
+  margin: 0 0 1rem;
+  font-family: var(--display);
+  font-size: 1.2rem;
+  font-weight: 400;
+  line-height: 1.4;
+  color: var(--quartz);
+}
+
+/* Tables read as assay data: mono figures, hairline rules, no zebra fill.
+   They take the width they need instead of being stretched to the full column,
+   which is what left a two-column table floating in empty space. */
+.table-wrap { overflow-x: auto; margin-bottom: 1rem; }
+table { border-collapse: collapse; width: auto; max-width: 100%; font-size: .93rem; }
+th, td {
+  border-bottom: 1px solid var(--seam);
+  padding: .55rem .8rem .55rem 0;
+  text-align: left;
+  vertical-align: top;
+}
+th {
+  font-family: var(--data);
+  font-size: .7rem;
+  font-weight: 400;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  border-bottom-color: var(--brass);
+}
+td:first-child { color: var(--quartz); }
+
+/* Review questions: closed by default, so they work as recall practice. */
+details {
+  border-top: 1px solid var(--seam);
+  padding: .9rem 0;
+}
+details:last-child { border-bottom: 1px solid var(--seam); }
+summary {
+  cursor: pointer;
+  font-family: var(--display);
+  font-size: 1.02rem;
+  font-weight: 600;
+  color: var(--quartz);
+  list-style: none;
+  display: flex;
+  gap: .7rem;
+  align-items: baseline;
+}
+summary::-webkit-details-marker { display: none; }
+summary::before {
+  content: '+';
+  font-family: var(--data);
+  color: var(--brass);
+  font-size: .95rem;
+}
+details[open] summary::before { content: '−'; }
+details[open] summary { color: var(--brass); margin-bottom: .7rem; }
+details > *:not(summary) { color: var(--dust); }
+
+figure.fig {
+  margin: 1.6rem 0;
+  border: 1px solid var(--seam);
+  padding: .7rem;
+  background: var(--bench);
+}
+figure.fig img { width: 100%; height: auto; display: block; }
+/* The interactive twin of a figure. Its aspect matches the still one, 10 by 4.4, so a
+   case sheet keeps the same rhythm whichever kind of figure comes next. */
+figure.fig.is-live iframe {
+  width: 100%;
+  /* Matches INTERACTIVE_HEIGHT in src/make_figures.py. It used to be an aspect ratio, and
+     that made the figure's height depend on the window: the caption and the legend are
+     placed at fractions of the plot area, so on a wide screen they were pushed past the
+     bottom margin, clipping the caption and covering the x-axis title. */
+  height: 520px;
+  border: 0;
+  display: block;
+}
+figure.fig figcaption {
+  font-family: var(--data);
+  font-size: .72rem;
+  color: var(--shadowed);
+  margin-top: .6rem;
+  letter-spacing: .04em;
+}
+
+/* File listings on a case sheet */
+.res { list-style: none; margin-left: 0 !important; }
+.res li {
+  display: flex; align-items: baseline; gap: .8rem; flex-wrap: wrap;
+  padding: .5rem 0; border-bottom: 1px solid var(--seam); margin-bottom: 0;
+}
+.res .path { font-family: var(--data); font-size: .74rem; color: var(--shadowed); }
+.res .size { font-family: var(--data); font-size: .74rem; color: var(--shadowed); margin-left: auto; }
+.res .gone { font-family: var(--data); font-size: .74rem; color: var(--hematite); }
+
+.footer {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 2rem 4rem;
+  color: var(--shadowed);
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .03em;
+}
+
+@media (max-width: 640px) {
+  body { font-size: 15px; }
+  .header { padding: 2rem 1.2rem 0; }
+  .container { padding: 0 1.2rem; margin-top: 2rem; }
+  .footer { padding: 0 1.2rem 3rem; }
+}
+
+@media print {
+  body { background: #fff; color: #16130f; }
+  .header { background: none; border-bottom: 1px solid #bbb; padding-top: 0; }
+  .header h1, .section-title, summary { color: #16130f; }
+  .mesh { animation: none; }
+  .section-block { break-inside: avoid; max-width: none; }
+  pre, .output { background: #f6f4f0; border-color: #ccc; }
+  details:not([open]) > *:not(summary) { display: block; }
+  a { color: #16130f; }
+}
+
+</style>
+</head>
+<body>
+<header class="header">
+  <div class="header-content">
+    <div class="eyebrow"><a href="https://www.coursera.org/learn/the-power-of-statistics">The Power of Statistics</a> / Módulo 2</div>
+    <h1>Probability</h1>
+    <p class="subtitle">El lenguaje en el que están escritas las pruebas de hipótesis. Con una bolsa de diez testigos se construye la probabilidad condicional, y luego el teorema de Bayes demuestra que el mismo analizador puede acertar un 66 % o un 19 % según lo que ya sabías.</p>
+    <div class="mesh" role="presentation"></div>
+    <div class="assay"><span><b>6 h</b> de curso</span><span><b>14</b> vídeos</span><span><b>7</b> lecturas</span><span><b>6</b> tareas</span><span><b>3</b> prácticas</span><span><b>4</b> interactivos</span></div>
+  </div>
+</header>
+<main class="container">
+<section class="section-block "><span class="kicker">Contexto</span><h2 class="section-title">Qué resuelve este módulo</h2><p>Sin probabilidad, un valor p es una palabra mágica. Con probabilidad, es un número que se puede calcular y discutir.</p><p>El módulo tiene dos mitades. La primera son las <strong>reglas</strong>: cómo se combinan sucesos, qué cambia cuando uno depende de otro, y cómo se actualiza una creencia cuando llega evidencia nueva. La segunda son las <strong>distribuciones</strong>: los tres moldes que describen a casi cualquier fenómeno real, y cuándo usar cada uno.</p></section>
+<section class="section-block is-toy"><span class="kicker">Ejemplo</span><h2 class="section-title">Antes de la teoría: un ejemplo de juguete</h2><p>Una bolsa con <strong>diez testigos</strong> de sondaje. Tres están mineralizados y siete son estériles:</p><pre><code>M  M  M  E  E  E  E  E  E  E</code></pre><p>Metes la mano sin mirar. Con esto se construye todo el módulo.</p><h3 class="sub h3">Paso 1. La probabilidad más simple</h3><p>Sacas uno. ¿Qué probabilidad hay de que esté mineralizado?</p><pre><code>casos favorables / casos posibles = 3 / 10 = 0.30</code></pre><p>Un <strong>30 %</strong>. Eso es toda la definición: cuántos de los resultados posibles te sirven.</p><h3 class="sub h3">Paso 2. Sacas dos, y aquí aparece lo interesante</h3><p>Sacas un testigo, resulta mineralizado, y <strong>no lo devuelves</strong>. Ahora sacas otro. ¿Qué probabilidad hay de que este segundo también lo esté?</p><p>Ya no quedan diez testigos, quedan nueve. Y ya no quedan tres mineralizados, quedan dos:</p><pre><code>2 / 9 = 0.2222</code></pre><p>Bajó del 30 % al 22,2 %, y no porque haya cambiado la bolsa por arte de magia, sino porque <strong>sacaste información</strong>. Eso es una <strong>probabilidad condicional</strong>: la probabilidad de algo <em>dado que</em> ya sabes otra cosa. Se escribe <code>P(segundo M | primero M)</code>, y la barra vertical se lee &quot;dado que&quot;.</p><h3 class="sub h3">Paso 3. ¿Y la probabilidad de que los dos salgan mineralizados?</h3><p>Se multiplican, pero con cuidado. La del segundo tiene que ser la <strong>condicional</strong>, porque el primero ya cambió la bolsa:</p><pre><code>P(los dos) = 3/10 × 2/9 = 6/90 = 0.0667</code></pre><p>Un 6,7 %. Ahora compáralo con lo que pasaría si <strong>devolvieras</strong> el primer testigo a la bolsa antes de sacar el segundo:</p><pre><code>P(los dos) = 3/10 × 3/10 = 0.09</code></pre><p>Un 9 %. La misma pregunta, dos respuestas distintas, y la única diferencia es si devuelves el testigo. Cuando devolverlo no cambia nada para el siguiente, los sucesos son <strong>independientes</strong>. Cuando sí cambia, son <strong>dependientes</strong> y hay que usar la condicional.</p><h3 class="sub h3">Paso 4. Bayes, o cómo darle la vuelta a la pregunta</h3><p>Ahora lo que de verdad importa. Tienes un analizador portátil que detecta mineralización. Sabes dos cosas de él:</p><ul><li>Cuando un testigo <strong>sí</strong> está mineralizado, acierta el 90 % de las veces.</li><li>Cuando <strong>no</strong> lo está, se equivoca y da positivo el 20 % de las veces.</li></ul><p>Pasas el analizador por un testigo de la bolsa y <strong>da positivo</strong>. La pregunta del millón: ¿qué probabilidad hay de que ese testigo esté realmente mineralizado?</p><p>La respuesta intuitiva es &quot;90 %, que es lo que acierta el aparato&quot;. <strong>Y está mal.</strong> Vamos a contarlo con testigos concretos. Imagina 100 testigos de esta bolsa:</p><div class="table-wrap"><table><thead><tr><th></th><th>Cuántos hay</th><th>Dan positivo</th><th>Cuántos positivos</th></tr></thead><tbody><tr><td>Mineralizados</td><td>30</td><td>el 90 %</td><td><strong>27</strong></td></tr><tr><td>Estériles</td><td>70</td><td>el 20 %</td><td><strong>14</strong></td></tr><tr><td></td><td></td><td><strong>Total positivos</strong></td><td><strong>41</strong></td></tr></tbody></table></div><p>De los 41 testigos que dan positivo, solo 27 están mineralizados de verdad:</p><pre><code>27 / 41 = 0.6585  →  65.9 %</code></pre><p>No es 90 %, es <strong>65,9 %</strong>. Los 14 falsos positivos vienen de que hay muchos más estériles que mineralizados, así que incluso un error del 20 % sobre ellos produce un montón de positivos falsos en términos absolutos.</p><h3 class="sub h3">Paso 5. Y ahora lo que hace a Bayes imprescindible</h3><p>Repite la cuenta en una zona pobre, donde solo el <strong>5 %</strong> de los testigos está mineralizado. El analizador es exactamente el mismo:</p><div class="table-wrap"><table><thead><tr><th></th><th>Cuántos hay</th><th>Dan positivo</th><th>Cuántos positivos</th></tr></thead><tbody><tr><td>Mineralizados</td><td>5</td><td>el 90 %</td><td><strong>4,5</strong></td></tr><tr><td>Estériles</td><td>95</td><td>el 20 %</td><td><strong>19</strong></td></tr><tr><td></td><td></td><td><strong>Total positivos</strong></td><td><strong>23,5</strong></td></tr></tbody></table></div><pre><code>4.5 / 23.5 = 0.1915  →  19.1 %</code></pre><p><strong>El mismo aparato, el mismo positivo, y ahora solo un 19 % de probabilidad de acertar.</strong></p><p>Lo único que cambió fue lo que sabías antes de medir. Esa es la idea entera del teorema de Bayes: una evidencia nueva no habla sola, se combina con lo que ya sabías. Y por eso un positivo en una zona rica significa algo muy distinto que el mismo positivo en una zona pobre.</p></section>
+<section class="section-block "><span class="kicker">Términos</span><h2 class="section-title">Glosario</h2><ul><li><strong>Conceptos fundamentales de la probabilidad.</strong> El bloque que recorre este módulo, y que en los cuestionarios aparece con ese nombre: el experimento y su espacio muestral, el suceso, cómo se combinan sucesos con las reglas de la suma y del producto, la independencia y la probabilidad condicional. Todo lo demás del módulo, Bayes y las distribuciones, se construye encima de esos cinco.</li><li><strong>Experimento y espacio muestral.</strong> El experimento es la acción con azar, sacar un testigo de la bolsa. El espacio muestral es la lista de todo lo que puede salir. Escribir esa lista es lo que convierte un problema confuso en uno contable.</li><li><strong>Suceso.</strong> Un resultado posible del experimento, como &quot;sale mineralizado&quot;.</li><li><strong>Probabilidad.</strong> Casos favorables entre casos posibles, un número entre 0 y 1.</li><li><strong>Regla de la suma.</strong> Para la probabilidad de que ocurra <strong>uno u otro</strong> suceso: se suman y se resta lo que comparten, para no contarlo dos veces.</li><li><strong>Regla del producto.</strong> Para la probabilidad de que ocurran <strong>los dos</strong>: se multiplican, usando la condicional del segundo si no son independientes.</li><li><strong>Probabilidad objetiva.</strong> Se calcula con datos o con teoría, como nuestro 3 entre 10.</li><li><strong>Probabilidad subjetiva.</strong> Es un juicio informado cuando no hay datos suficientes.</li><li><strong>Sucesos independientes.</strong> Que ocurra uno no cambia la probabilidad del otro. Sacar con reposición los vuelve independientes.</li><li><strong>Probabilidad condicional.</strong> <code>P(A|B)</code>, la probabilidad de A <strong>dado que</strong> B ya ocurrió. Es la idea central del módulo.</li><li><strong>Teorema de Bayes.</strong> La fórmula que le da la vuelta a una condicional: combina lo que ya sabías (la probabilidad previa) con la evidencia nueva.</li><li><strong>Variable aleatoria.</strong> Un número que sale de un proceso con azar, como cuántos sondajes intersectan mineral en una campaña.</li><li><strong>Distribución de probabilidad.</strong> La lista de todos los valores que puede tomar una variable aleatoria y con qué probabilidad ocurre cada uno.</li><li><strong>Distribución binomial.</strong> Cuenta éxitos en un número fijo de intentos, con probabilidad de éxito constante.</li><li><strong>Distribución de Poisson.</strong> Cuenta cuántas veces ocurre algo poco frecuente en un intervalo de tiempo o espacio.</li><li><strong>Distribución normal.</strong> La campana simétrica. Describe variables continuas que se agrupan alrededor de un centro.</li><li><strong>Puntuación z.</strong> A cuántas desviaciones estándar está un valor de la media.</li></ul></section>
+<section class="section-block is-recipe"><span class="kicker">Método</span><h2 class="section-title">Paso a paso</h2><h3 class="sub h3">Paso 1. Escribe la pregunta antes de buscar la fórmula</h3><p>La mitad de los errores de este módulo son de traducción, no de cálculo. &quot;¿Qué probabilidad hay de que el testigo esté mineralizado <strong>si</strong> el analizador dio positivo?&quot; es <code>P(M | +)</code>. &quot;¿Qué probabilidad hay de que el analizador dé positivo <strong>si</strong> el testigo está mineralizado?&quot; es <code>P(+ | M)</code>. Son preguntas distintas y respuestas distintas: 65,9 % frente a 90 %.</p><h3 class="sub h3">Paso 2. Para combinar sucesos, decide primero si son independientes</h3><p>Pregúntate: ¿el primer resultado cambia las condiciones del segundo? Si sacas sin reposición, sí. Si el sondaje de hoy no afecta al de mañana, no.</p><div class="table-wrap"><table><thead><tr><th>Situación</th><th>Regla</th></tr></thead><tbody><tr><td>Independientes</td><td><code>P(A y B) = P(A) × P(B)</code></td></tr><tr><td>Dependientes</td><td>`P(A y B) = P(A) × P(B</td><td>A)`</td></tr><tr><td>Uno u otro</td><td><code>P(A o B) = P(A) + P(B) − P(A y B)</code></td></tr></tbody></table></div><p>Esa resta del final está para no contar dos veces los casos en que ocurren ambos.</p><h3 class="sub h3">Paso 3. Para darle la vuelta a una condicional, cuenta casos</h3><p>Puedes memorizar la fórmula de Bayes, pero es más difícil equivocarse <strong>contando sobre 100 casos</strong>, que es lo que hicimos en el ejemplo de juguete. Construye la tabla, suma la columna de positivos, y divide los que te interesan entre el total. Sale lo mismo y se entiende.</p><h3 class="sub h3">Paso 4. Elige la distribución según lo que estés contando</h3><div class="table-wrap"><table><thead><tr><th>Tu pregunta</th><th>Distribución</th></tr></thead><tbody><tr><td>¿Cuántos éxitos en un número fijo de intentos?</td><td>Binomial</td></tr><tr><td>¿Cuántas veces ocurre algo poco frecuente en un intervalo?</td><td>Poisson</td></tr><tr><td>¿Qué valor toma una variable continua que se agrupa en un centro?</td><td>Normal</td></tr></tbody></table></div><p>La pregunta que las separa es si hay un número de intentos contable (binomial) o un flujo continuo de oportunidades (Poisson).</p><h3 class="sub h3">Paso 5. Con la normal, todo pasa por la puntuación z</h3><p>Convertir un valor a z te dice al instante si es común o raro, porque la campana siempre reparte igual: alrededor del <strong>68 %</strong> de los datos cae a menos de una desviación estándar de la media, el <strong>95 %</strong> a menos de dos, y el 99,7 % a menos de tres.</p></section>
+<section class="section-block is-recipe"><span class="kicker">Código</span><h2 class="section-title">El código, por partes</h2><h3 class="sub h3">Paso 1. Guardar los tres datos del problema con nombres que se entiendan</h3><p>Antes de calcular nada conviene dejar claro qué es cada número. Un <code>0.90</code> suelto en medio del código no dice nada dentro de un mes.</p><pre><code class="language-python">prior = 0.30              # 3 de cada 10 testigos estan mineralizados
+sens = 0.90               # acierta cuando SI hay mineral
+false_pos = 0.20          # se equivoca cuando NO lo hay</code></pre><dl class="annot"><div class="annot-head">línea por línea</div><dt><code>prior = 0.30</code></dt><dd>Guarda 0,30 con el nombre <code>prior</code>, que es como se llama en estadística a &quot;lo que ya sabías antes de medir&quot;.</dd><dt><code># 3 de cada 10...</code></dt><dd>Todo lo que va detrás de una almohadilla es un <strong>comentario</strong>: Python lo ignora por completo. Está solo para quien lee el código, y ese alguien probablemente seas tú dentro de seis meses.</dd><dt><code>sens</code></dt><dd>Abreviatura de sensibilidad. Los nombres cortos están bien si el comentario explica qué son.</dd></dl><h3 class="sub h3">Paso 2. La cuenta de Bayes, escrita tal cual se piensa</h3><pre><code class="language-python">p_positive = sens * prior + false_pos * (1 - prior)
+print(f&quot;P(positivo)      = {p_positive:.4f}&quot;)
+print(f&quot;P(mineral | +)   = {sens * prior / p_positive:.4f}&quot;)</code></pre><dl class="annot"><div class="annot-head">línea por línea</div><dt><code>sens * prior</code></dt><dd>Los positivos verdaderos: de los que sí tienen mineral (30 %), el aparato acierta en el 90 %. Multiplicar dos probabilidades es lo que hicimos a mano en la tabla.</dd><dt><code>(1 - prior)</code></dt><dd>La proporción que <strong>no</strong> tiene mineral. Si el 30 % lo tiene, el resto es 1 menos 0,30, o sea 0,70. Restarle algo a 1 es la forma habitual de decir &quot;los demás&quot;.</dd><dt><code>+</code></dt><dd>Se suman las dos vías por las que puede salir un positivo: acertando sobre mineral y equivocándose sobre estéril.</dd><dt><code>p_positive =</code></dt><dd>El resultado se guarda porque se va a usar dos veces. Calcular una cosa una sola vez y reutilizarla evita errores.</dd><dt><code>sens * prior / p_positive</code></dt><dd>Python multiplica y divide de izquierda a derecha, así que esto es (sens × prior) ÷ p_positive, que es justo lo que queremos.</dd><dt><code>:.4f</code></dt><dd>Cuatro decimales. Aquí hacen falta porque el resultado se compara con la cuenta a mano.</dd></dl><div class="output"><span class="output-tag">sale</span><pre>P(positivo)      = 0.4100
+P(mineral | +)   = 0.6585</pre></div><p>El 0,41 son los 41 positivos de cada 100 de nuestra tabla, y el 0,6585 es la respuesta. Idéntico a contarlo a mano.</p><h3 class="sub h3">Paso 3. Repetir la cuenta cambiando solo lo que ya sabías</h3><p>Aquí aparece la herramienta más útil de todo el curso: hacer que el ordenador repita lo mismo con datos distintos, en vez de copiar y pegar el bloque.</p><pre><code class="language-python">for prior in (0.30, 0.05):
+    p_positive = sens * prior + false_pos * (1 - prior)
+    print(f&quot;si el {prior:.0%} esta mineralizado -&gt; P(mineral | +) = {sens * prior / p_positive:.1%}&quot;)</code></pre><dl class="annot"><div class="annot-head">línea por línea</div><dt><code>for prior in (...)</code></dt><dd>Un <strong>bucle</strong>. Se lee así: &quot;para cada valor de esta lista, llámalo <code>prior</code> y haz lo de abajo&quot;. Se ejecuta dos veces, una con 0,30 y otra con 0,05.</dd><dt><code>(0.30, 0.05)</code></dt><dd>Los paréntesis con comas son una tupla, que es una lista que no se puede modificar. Para recorrer valores fijos es lo habitual.</dd><dt><code>:</code></dt><dd>Los dos puntos al final anuncian que viene un bloque. Siempre que veas dos puntos al final de una línea, lo siguiente va indentado.</dd><dt><code>la sangría</code></dt><dd>Las dos líneas de abajo llevan cuatro espacios delante. <strong>Eso no es decoración</strong>: en Python la sangría es lo que marca qué está dentro del bucle. Si las quitas, deja de repetirse.</dd><dt><code>:.0%</code></dt><dd>Formato de porcentaje: multiplica por 100 y pone el símbolo, con cero decimales. Por eso 0,30 sale como <code>30%</code> y no como <code>0.3000</code>.</dd><dt><code>:.1%</code></dt><dd>Lo mismo con un decimal, para que 65,9 % no se redondee a 66 %.</dd></dl><div class="output"><span class="output-tag">sale</span><pre>si el 30% esta mineralizado -&gt; P(mineral | +) = 65.9%
+si el 5% esta mineralizado -&gt; P(mineral | +) = 19.1%</pre></div><p>Estas tres líneas son el módulo entero. El aparato no cambió, cambió el terreno.</p><h3 class="sub h3">Paso 4. La binomial, para contar aciertos en una campaña</h3><p>Diez sondajes, cada uno con un 30 % de probabilidad de intersectar mineral.</p><pre><code class="language-python">from scipy import stats
+
+print(f&quot;exactamente 3 aciertos = {stats.binom.pmf(3, n=10, p=0.3):.4f}&quot;)
+print(f&quot;al menos 1 acierto     = {1 - stats.binom.pmf(0, n=10, p=0.3):.4f}&quot;)</code></pre><dl class="annot"><div class="annot-head">línea por línea</div><dt><code>stats.binom</code></dt><dd>Dentro del cajón de estadística hay un subcajón por cada distribución. Este es el de la binomial.</dd><dt><code>.pmf(...)</code></dt><dd>Siglas de <em>probability mass function</em>. Responde a &quot;¿qué probabilidad hay de que salga exactamente este número?&quot;.</dd><dt><code>n=10, p=0.3</code></dt><dd><strong>Argumentos con nombre.</strong> En vez de confiar en el orden, se dice qué es cada cosa: <code>n</code> intentos y <code>p</code> de probabilidad. Es más largo de escribir y mucho más difícil de equivocar.</dd><dt><code>1 - stats.binom.pmf(0, ...)</code></dt><dd>El truco del complementario: en vez de sumar las probabilidades de 1, 2, 3 y así hasta 10, se calcula la de ninguno y se resta a 1.</dd></dl><div class="output"><span class="output-tag">sale</span><pre>exactamente 3 aciertos = 0.2668
+al menos 1 acierto     = 0.9718</pre></div><h3 class="sub h3">Paso 5. La Poisson, para lo que pasa poco</h3><p>Un chancador que se para dos veces por turno de media.</p><pre><code class="language-python">print(f&quot;ningun paro este turno = {stats.poisson.pmf(0, mu=2):.4f}&quot;)
+print(f&quot;5 paros este turno     = {stats.poisson.pmf(5, mu=2):.4f}&quot;)</code></pre><dl class="annot"><div class="annot-head">línea por línea</div><dt><code>stats.poisson</code></dt><dd>El subcajón de la distribución de Poisson. La forma de llamarla es idéntica a la binomial, y eso no es casualidad: scipy usa el mismo patrón para todas.</dd><dt><code>mu=2</code></dt><dd>La letra griega mu es como se llama por convención al promedio de eventos por intervalo. Aquí, dos paradas por turno.</dd><dt><code>pmf(0, ...)</code></dt><dd>Ninguna parada. Se pregunta por el cero igual que por cualquier otro número.</dd></dl><div class="output"><span class="output-tag">sale</span><pre>ningun paro este turno = 0.1353
+5 paros este turno     = 0.0361</pre></div><p>Que cinco paradas tengan solo un 3,6 % de probabilidad es lo que convierte un turno así en una señal de que algo va mal, y no en mala suerte.</p><h3 class="sub h3">Paso 6. La normal y la puntuación z</h3><p>Un yacimiento con ley media 2,40 % y desviación 0,25, donde aparece una muestra de 2,90.</p><pre><code class="language-python">z = (2.90 - 2.40) / 0.25
+print(f&quot;z = {z:.2f}&quot;)
+print(f&quot;muestras por encima de 2.90: {1 - stats.norm.cdf(z):.4f}&quot;)</code></pre><dl class="annot"><div class="annot-head">línea por línea</div><dt><code>(2.90 - 2.40) / 0.25</code></dt><dd>Los paréntesis <strong>mandan</strong>: primero la resta, luego la división. Sin ellos Python dividiría 2,40 entre 0,25 antes de restar, y saldría cualquier cosa.</dd><dt><code>stats.norm</code></dt><dd>El subcajón de la distribución normal. Mismo patrón otra vez.</dd><dt><code>.cdf(z)</code></dt><dd>Siglas de <em>cumulative distribution function</em>. Devuelve qué proporción de los datos queda <strong>por debajo</strong> de ese punto.</dd><dt><code>1 - stats.norm.cdf(z)</code></dt><dd>Como <code>cdf</code> da lo que queda por debajo, restarlo a 1 da lo que queda por encima. Es el mismo truco del complementario del paso 4.</dd></dl><div class="output"><span class="output-tag">sale</span><pre>z = 2.00
+muestras por encima de 2.90: 0.0228</pre></div><p>Está a dos desviaciones estándar de la media, y solo un 2,3 % de las muestras llegarían tan alto por azar. Ese mismo cálculo es el que sostiene los valores p del módulo 5.</p></section>
+<section class="section-block is-warning"><span class="kicker">Trampas</span><h2 class="section-title">Ojo</h2><ul><li><strong><code>P(A|B)</code> y <code>P(B|A)</code> casi nunca son iguales</strong>, y confundirlas es el error más caro del módulo. Nuestro analizador acierta el 90 % de las veces sobre mineral, pero un positivo suyo solo significa mineral el 65,9 % de las veces.</li><li><strong>Cuanto más raro es lo que buscas, peor funciona un test bueno.</strong> Con un 5 % de mineralización, el mismo analizador baja al 19,1 %. No es que el aparato falle más: es que hay muchísimo más estéril donde equivocarse.</li><li><strong>Independencia no se supone, se comprueba.</strong> Dos sensores de la misma máquina suelen fallar juntos, y tratarlos como independientes multiplica probabilidades que no se pueden multiplicar.</li><li><strong>La binomial exige que la probabilidad no cambie entre intentos.</strong> Sacar sin reposición la cambia, como vimos en el paso 2, y entonces la binomial no es la distribución correcta.</li><li><strong>La Poisson asume que los eventos no se provocan entre sí.</strong> Si una parada del chancador causa otras dos, subestima la variabilidad real.</li><li><strong>No todo lo continuo es normal.</strong> Tiempos de espera, ingresos y tiempos entre fallos están sesgados. Comprueba con un histograma antes de aplicar nada que asuma normalidad.</li></ul></section>
+<section class="section-block is-bridge"><span class="kicker">Analogía</span><h2 class="section-title">Puente metalúrgico</h2><p>El teorema de Bayes es exactamente <strong>cómo un geólogo con experiencia interpreta un ensayo anómalo</strong>, solo que escrito con símbolos.</p><p>Llega un resultado de 8 % Cu en una zona donde la geología regional dice que lo normal es 2 %. Nadie lo acepta a ciegas ni lo tira a la basura: se combina lo que ya se sabía del yacimiento con la fiabilidad conocida del laboratorio, y de ahí sale una creencia actualizada. Eso es Bayes. La diferencia es que el geólogo lo hace por intuición y la fórmula lo hace con números que se pueden defender en un comité.</p><p>Y las tres distribuciones viven en la planta:</p><div class="table-wrap"><table><thead><tr><th>Distribución</th><th>Dónde aparece</th></tr></thead><tbody><tr><td>Binomial</td><td>Piezas defectuosas en un lote; sondajes que cortan mineral económico en una campaña</td></tr><tr><td>Poisson</td><td>Paradas no programadas del chancador por turno; fallos de un equipo por mes</td></tr><tr><td>Normal</td><td>Ley de un mineral homogéneo alrededor de su media; error de un analizador bien calibrado</td></tr></tbody></table></div><p>Y la regla del 68-95-99,7 no es teoría: es el criterio de las <strong>cartas de control</strong> de calidad. Un punto fuera de las tres desviaciones no se trata como ruido, se trata como alarma, precisamente porque la probabilidad de que ocurra por azar es de 3 en 1.000.</p></section>
+<section class="section-block is-review"><span class="kicker">Repaso</span><h2 class="section-title">Repaso</h2><details><summary>¿Por qué <code>P(A|B)</code> puede ser tan distinto de <code>P(B|A)</code>?</summary><p>Porque condicionan sobre cosas diferentes, y la relación entre ambas depende de qué tan frecuente es cada suceso por separado. El analizador del ejemplo acierta el 90 % de las veces cuando hay mineral, pero como los testigos estériles son mayoría, sus falsos positivos son numerosos en términos absolutos y arrastran hacia abajo la probabilidad de que un positivo signifique mineral, que queda en 65,9 %. Ignorar esta diferencia es de los errores estadísticos más comunes fuera del aula, y aparece en medicina, en seguridad y en control de calidad.</p></details><details><summary>El mismo analizador da 65,9 % en una zona y 19,1 % en otra. ¿Cómo puede ser?</summary><p>Porque lo que cambia no es el aparato, sino lo que se sabía antes de usarlo. En la zona rica hay 30 testigos mineralizados por cada 100 y el analizador produce 27 positivos verdaderos frente a 14 falsos. En la zona pobre solo hay 5 mineralizados, así que produce 4,5 positivos verdaderos frente a 19 falsos, y la proporción se invierte. La evidencia nueva nunca habla sola: se combina con la probabilidad previa, y ese es exactamente el contenido del teorema de Bayes.</p></details><details><summary>¿Cuándo usarías la binomial y cuándo la Poisson?</summary><p>La binomial cuando hay un número fijo y contable de intentos con probabilidad de éxito constante, como diez sondajes con un 30 % de acierto cada uno. La Poisson cuando se cuenta cuántas veces ocurre algo poco frecuente dentro de un intervalo continuo de tiempo o espacio, sin un número de intentos definido, como las paradas de un chancador por turno. La pregunta que las separa es si se pueden contar los ensayos o solo el intervalo.</p></details><details><summary>¿Qué significa una puntuación z de 2,00?</summary><p>Que el valor está dos desviaciones estándar por encima de la media. Como la campana reparte el 95 % de los datos dentro de más menos dos desviaciones, un valor en 2,00 deja solo un 2,3 % de la distribución por encima de él. Es el mismo cálculo que hay detrás de un valor p: un resultado significativo es, en el fondo, un estadístico lo bastante alejado del centro como para que el azar lo explique mal.</p></details><details><summary>Sacas dos testigos de la bolsa sin devolver el primero. ¿Por qué no puedes multiplicar 3/10 por 3/10?</summary><p>Porque al no devolver el primero, la bolsa cambia: quedan nueve testigos en lugar de diez y dos mineralizados en lugar de tres. Los sucesos dejan de ser independientes, así que la probabilidad del segundo tiene que ser la condicional, 2/9, y el producto correcto es 3/10 por 2/9, que da 0,0667. Multiplicar 3/10 por 3/10 daría 0,09, que es la respuesta a otra pregunta: la de sacar con reposición.</p></details></section>
+</main>
+<footer class="footer">
+  Concentra / destilado del temario público del curso / 2026-08-20
+</footer>
+</body>
+</html>

@@ -1,0 +1,677 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Los tres estados de la planta · Sílice, módulo 9</title>
+<style>
+/* Sílice: la hoja de estilos del curso.
+ *
+ * Identidad de papel de informe de planta, no de pantalla. El proyecto termina
+ * recomendando no desplegar, y eso es un informe técnico: papel hueso, tinta grafito,
+ * y una retícula de milimetrado muy tenue en la cabecera.
+ *
+ * Dos familias tipográficas y ni una más, las dos del sistema porque el sitio se abre
+ * desde file:// y tiene que funcionar sin internet: serif para la prosa (se lee como
+ * informe) y monoespaciada para todo lo que es dato, código, cifra o etiqueta.
+ *
+ * El acento lo inyecta cada página con --accent: es el del módulo, y marca su posición
+ * en el arco del proyecto. Los diez pasan check_palette.py antes de entrar aquí.
+ */
+
+:root {
+  --paper: #f6f3ec;
+  --bench: #eeeade;
+  --ink: #2a2622;
+  --ink-soft: #57504a;
+  --ink-faint: #8a8177;
+  --rule: #ddd6c6;
+  --rule-soft: #e8e2d4;
+  --grid: rgba(84, 69, 73, .07);
+  --accent: #632727;
+
+  --prose: Georgia, "Iowan Old Style", "Palatino Linotype", Palatino, "Times New Roman", serif;
+  --data: "Cascadia Mono", Consolas, "DejaVu Sans Mono", "Liberation Mono", monospace;
+
+  --measure: 680px;   /* la medida de la prosa, en píxeles y nunca en ch */
+  --wide: 1180px;     /* el borde derecho de los bloques anchos */
+  --margin: 132px;    /* la columna del margen, donde cuelgan los kickers */
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--prose);
+  font-size: 17px;
+  line-height: 1.62;
+  -webkit-text-size-adjust: 100%;
+}
+
+::selection { background: var(--accent); color: var(--paper); }
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+/* --------------------------------------------------------------- cabecera */
+
+.masthead {
+  border-bottom: 1px solid var(--rule);
+  background-color: var(--bench);
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 26px 26px;
+  background-position: -1px -1px;
+}
+
+.masthead-inner {
+  max-width: var(--wide);
+  margin: 0 auto;
+  padding: 2.4rem 2rem 1.6rem;
+}
+
+.eyebrow {
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-bottom: 1rem;
+}
+
+.eyebrow a { color: inherit; text-decoration: none; border-bottom: 1px solid transparent; }
+.eyebrow a:hover { border-bottom-color: var(--accent); color: var(--accent); }
+.eyebrow b { color: var(--accent); font-weight: 400; }
+
+.masthead h1 {
+  margin: 0;
+  font-size: clamp(1.9rem, 4.4vw, 2.9rem);
+  line-height: 1.14;
+  font-weight: 400;
+  letter-spacing: -.012em;
+  max-width: 900px;
+}
+
+.standfirst {
+  margin: .9rem 0 0;
+  max-width: var(--measure);
+  color: var(--ink-soft);
+  font-size: 1.02rem;
+  line-height: 1.55;
+}
+
+/* La cifra del módulo: el número que dejó, en grande, junto al título. Es lo que
+   convierte la cabecera en parte del argumento y no en decoración. */
+.figure-mark {
+  margin-top: 1.6rem;
+  display: flex;
+  align-items: baseline;
+  gap: .8rem;
+  flex-wrap: wrap;
+  border-left: 3px solid var(--accent);
+  padding-left: .9rem;
+}
+
+.figure-value {
+  font-family: var(--data);
+  font-size: clamp(1.5rem, 3.4vw, 2.1rem);
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: -.02em;
+}
+
+.figure-label {
+  font-family: var(--data);
+  font-size: .78rem;
+  letter-spacing: .04em;
+  color: var(--ink-soft);
+}
+
+/* El hilo del proyecto: diez segmentos, uno por módulo, con su cifra debajo. Desde
+   cualquier página se ve el recorrido entero, que es justo lo que a los apuntes
+   sueltos les faltaba. */
+.thread {
+  margin-top: 1.8rem;
+  display: grid;
+  /* One equal column per segment, whatever the temario says. It was pinned to ten and
+     the course grew to fourteen. */
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: 4px;
+}
+
+/* Where part 2 starts: the four modules that were never in the original project. */
+.thread .starts-part { margin-left: 10px; position: relative; }
+.thread .starts-part::after {
+  content: '';
+  position: absolute;
+  left: -7px; top: -3px; bottom: 0;
+  border-left: 1px solid var(--rule);
+}
+
+.thread a, .thread span {
+  display: block;
+  text-decoration: none;
+  color: var(--ink-faint);
+  font-family: var(--data);
+  font-size: .62rem;
+  letter-spacing: .04em;
+  padding-top: .4rem;
+  border-top: 3px solid var(--rule);
+  transition: color .12s, border-color .12s;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.thread a:hover { color: var(--ink); border-top-color: var(--ink-soft); }
+.thread [aria-current="page"] { color: var(--accent); border-top-color: var(--accent); }
+.thread .n { font-weight: 700; }
+.thread .v { color: inherit; opacity: .75; }
+
+/* Las pastillas de composición: de qué está hecho el módulo. */
+.assay {
+  margin-top: 1.6rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.4rem;
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .05em;
+  color: var(--ink-faint);
+}
+
+.assay b { color: var(--ink); font-weight: 700; }
+
+/* ----------------------------------------------------------------- cuerpo */
+
+.container {
+  max-width: var(--wide);
+  margin: 0 auto;
+  padding: 2.6rem 2rem 4rem;
+}
+
+/* Cada sección es una anotación de cuaderno: el kicker cuelga en el margen
+   izquierdo y el contenido corre en la columna principal. En pantalla estrecha el
+   kicker se pone encima. */
+.block {
+  display: grid;
+  grid-template-columns: var(--margin) minmax(0, 1fr);
+  column-gap: 2rem;
+  padding: 2.2rem 0;
+  border-top: 1px solid var(--rule);
+}
+
+.block:first-child { border-top: 0; padding-top: .6rem; }
+
+.kicker {
+  grid-column: 1;
+  font-family: var(--data);
+  font-size: .68rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding-top: .45rem;
+}
+
+.block > :not(.kicker) { grid-column: 2; }
+
+.block-title {
+  margin: 0 0 1.1rem;
+  font-size: 1.42rem;
+  font-weight: 400;
+  line-height: 1.25;
+  letter-spacing: -.008em;
+}
+
+.is-warning .kicker, .is-result .kicker { color: var(--accent); }
+.is-warning .block-title { border-bottom: 2px solid var(--accent); padding-bottom: .4rem; display: inline-block; }
+.is-result { background: var(--bench); margin: 0 -1.2rem; padding: 2.2rem 1.2rem; }
+.is-result .block-title { color: var(--accent); }
+
+/* Prosa: justificada con partición, que sin partición el español justificado abre
+   ríos. Tablas, código y pies de figura se quedan sin justificar. */
+.block p, .block li, .block dd, details > *:not(summary) {
+  max-width: var(--measure);
+  text-align: justify;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+}
+
+.block p { margin: 0 0 1rem; }
+.block p:last-child { margin-bottom: 0; }
+.block ul, .block ol { margin: 0 0 1rem; padding-left: 1.3rem; max-width: var(--measure); }
+.block li { margin-bottom: .5rem; }
+.block li::marker { color: var(--accent); font-family: var(--data); font-size: .85em; }
+
+td, th, figcaption, .assay, .thread a, .res li { text-align: left; hyphens: manual; }
+
+a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+a:hover { text-decoration-thickness: 2px; }
+strong { font-weight: 700; }
+em { font-style: italic; color: var(--ink-soft); }
+
+h3.sub {
+  margin: 1.9rem 0 .7rem;
+  font-size: 1.07rem;
+  font-weight: 700;
+  letter-spacing: -.004em;
+}
+
+h3.sub:first-child { margin-top: 0; }
+
+h4.sub {
+  margin: 1.4rem 0 .5rem;
+  font-family: var(--data);
+  font-size: .82rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  color: var(--ink-soft);
+}
+
+/* ------------------------------------------------------------ código y datos */
+
+code {
+  font-family: var(--data);
+  font-size: .87em;
+  background: var(--bench);
+  padding: .1em .32em;
+  border-radius: 2px;
+}
+
+pre {
+  margin: 0 0 1rem;
+  padding: 1rem 1.1rem;
+  background: var(--bench);
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--accent);
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+pre code { background: none; padding: 0; font-size: .82rem; line-height: 1.62; }
+
+/* La salida es lo que imprime el código, no código para correr: se marca aparte
+   para que nadie confunda entrada con salida. */
+.output {
+  margin: 0 0 1rem;
+  border: 1px dashed var(--rule);
+  background: transparent;
+}
+
+.output-tag {
+  display: block;
+  font-family: var(--data);
+  font-size: .64rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding: .45rem 1.1rem 0;
+}
+
+.output pre {
+  margin: 0;
+  border: 0;
+  background: none;
+  padding: .3rem 1.1rem 1rem;
+}
+
+.output pre code { color: var(--ink-soft); }
+
+/* La anotación línea por línea, para quien no ha programado antes. */
+.annot {
+  margin: 0 0 1.2rem;
+  border: 1px solid var(--rule);
+  border-top: 0;
+  padding: 0 1.1rem .6rem;
+  background: transparent;
+}
+
+.annot-head {
+  font-family: var(--data);
+  font-size: .64rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding: .55rem 0 .5rem;
+  border-bottom: 1px solid var(--rule-soft);
+  margin-bottom: .4rem;
+}
+
+.annot dt { padding: .4rem 0 .1rem; }
+.annot dt code { background: none; padding: 0; color: var(--accent); font-weight: 700; }
+.annot dd {
+  margin: 0 0 .4rem;
+  color: var(--ink-soft);
+  font-size: .94rem;
+  border-bottom: 1px solid var(--rule-soft);
+  padding-bottom: .5rem;
+}
+.annot dd:last-of-type { border-bottom: 0; }
+
+pre:has(+ .annot) { margin-bottom: 0; }
+
+blockquote {
+  margin: 0 0 1rem;
+  padding: .2rem 0 .2rem 1.1rem;
+  border-left: 3px solid var(--rule);
+  color: var(--ink-soft);
+  font-style: italic;
+  max-width: var(--measure);
+}
+
+/* --------------------------------------------------------------- tablas */
+
+.table-wrap { overflow-x: auto; margin: 0 0 1.2rem; }
+
+table {
+  border-collapse: collapse;
+  width: auto;
+  max-width: 100%;
+  font-size: .92rem;
+}
+
+th, td {
+  padding: .5rem .9rem .5rem 0;
+  border-bottom: 1px solid var(--rule-soft);
+  vertical-align: top;
+}
+
+th {
+  font-family: var(--data);
+  font-size: .7rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--ink-faint);
+  border-bottom: 1px solid var(--rule);
+  white-space: nowrap;
+}
+
+/* -------------------------------------------------------------- repaso */
+
+details {
+  border-bottom: 1px solid var(--rule-soft);
+  padding: .2rem 0;
+  max-width: var(--measure);
+}
+
+summary {
+  cursor: pointer;
+  list-style: none;
+  padding: .7rem 0 .7rem 1.5rem;
+  position: relative;
+  font-weight: 700;
+}
+
+summary::-webkit-details-marker { display: none; }
+
+summary::before {
+  content: '+';
+  position: absolute;
+  left: 0;
+  font-family: var(--data);
+  color: var(--accent);
+  font-weight: 700;
+}
+
+details[open] summary::before { content: '\2212'; }
+details[open] summary { color: var(--accent); }
+details > *:not(summary) { color: var(--ink-soft); }
+details > *:last-child { padding-bottom: .8rem; }
+
+/* -------------------------------------------------------------- figuras */
+
+figure.fig {
+  margin: 0 0 1.4rem;
+  max-width: 100%;
+  border: 1px solid var(--rule);
+  background: #fff;
+  padding: .6rem;
+}
+
+figure.fig img { width: 100%; height: auto; display: block; }
+
+figure.fig figcaption {
+  margin-top: .6rem;
+  padding-top: .5rem;
+  border-top: 1px solid var(--rule-soft);
+  font-family: var(--data);
+  font-size: .7rem;
+  letter-spacing: .04em;
+  color: var(--ink-faint);
+}
+
+.gone {
+  font-family: var(--data);
+  font-size: .76rem;
+  color: var(--accent);
+  border: 1px dashed var(--accent);
+  padding: .5rem .8rem;
+}
+
+/* ------------------------------------------------------- pie y navegación */
+
+.pager {
+  max-width: var(--wide);
+  margin: 0 auto;
+  padding: 0 2rem 3rem;
+  display: flex;
+  gap: 1.4rem;
+  justify-content: space-between;
+  font-family: var(--data);
+  font-size: .78rem;
+}
+
+.pager a { max-width: 46%; text-decoration: none; border-bottom: 1px solid var(--rule); padding-bottom: .3rem; }
+.pager a:hover { border-bottom-color: var(--accent); }
+.pager .dir { display: block; font-size: .64rem; letter-spacing: .13em; text-transform: uppercase; color: var(--ink-faint); }
+.pager .next { text-align: right; margin-left: auto; }
+
+.footer {
+  border-top: 1px solid var(--rule);
+  padding: 1.4rem 2rem 2.4rem;
+  font-family: var(--data);
+  font-size: .72rem;
+  letter-spacing: .06em;
+  color: var(--ink-faint);
+}
+
+.footer-inner { max-width: var(--wide); margin: 0 auto; display: flex; gap: 1.4rem; flex-wrap: wrap; }
+
+/* ------------------------------------------------------------- índice */
+
+.toc { list-style: none; margin: 0; padding: 0; max-width: 100%; }
+
+.toc li {
+  border-top: 1px solid var(--rule-soft);
+  max-width: 100%;
+}
+
+.toc li:last-child { border-bottom: 1px solid var(--rule-soft); }
+
+.toc a, .toc .pending {
+  display: grid;
+  grid-template-columns: 3rem minmax(0, 1fr) auto;
+  gap: 1.2rem;
+  align-items: baseline;
+  padding: 1rem .4rem;
+  text-decoration: none;
+  color: inherit;
+}
+
+.toc a:hover { background: var(--bench); }
+.toc .pending { color: var(--ink-faint); }
+.toc .num { font-family: var(--data); font-size: .82rem; font-weight: 700; }
+.toc .name { font-size: 1.05rem; }
+.toc .name small { display: block; font-family: var(--prose); font-size: .86rem; color: var(--ink-soft); margin-top: .2rem; }
+.toc .mark { font-family: var(--data); font-size: .82rem; font-weight: 700; white-space: nowrap; }
+.toc .tag { font-family: var(--data); font-size: .66rem; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-faint); }
+
+/* ---------------------------------------------------------- responsive */
+
+@media (max-width: 900px) {
+  .block { grid-template-columns: minmax(0, 1fr); }
+  .block > :not(.kicker) { grid-column: 1; }
+  .kicker { grid-column: 1; padding-top: 0; margin-bottom: .7rem; }
+  .thread { grid-auto-flow: row; grid-template-columns: repeat(5, 1fr); gap: 6px 4px; }
+  .thread .starts-part { margin-left: 0; }
+  .thread .starts-part::after { display: none; }
+  .toc a, .toc .pending { grid-template-columns: 2.2rem minmax(0, 1fr); }
+  .toc .mark { grid-column: 2; }
+}
+
+@media (max-width: 620px) {
+  body { font-size: 16px; }
+  .masthead-inner, .container, .pager, .footer { padding-left: 1.2rem; padding-right: 1.2rem; }
+  .is-result { margin: 0; padding: 2rem 1rem; }
+  .block p, .block li { text-align: left; }
+}
+
+@media print {
+  .thread, .pager { display: none; }
+  body { font-size: 11pt; }
+  .masthead { background: none; }
+  .block { break-inside: avoid; }
+}
+
+/* -------------------------------------------------- resumen y plegables */
+
+/* El resumen de entrada: la cifra, la trampa y la decision, en cinco vinetas.
+   Se lee en 30 segundos o se sigue leyendo. */
+.is-brief {
+  border-top: 0;
+  padding-top: .4rem;
+}
+
+.is-brief .kicker { color: var(--accent); }
+
+.is-brief ul {
+  list-style: none;
+  padding-left: 0;
+  max-width: var(--measure);
+  border-left: 3px solid var(--accent);
+  padding: .2rem 0 .2rem 1.1rem;
+}
+
+.is-brief li { margin-bottom: .7rem; text-align: left; }
+.is-brief li:last-child { margin-bottom: 0; }
+
+/* Los plegables de contenido denso: el glosario y la anotacion del codigo.
+   Cerrados por defecto, para que la pagina no sea un muro. */
+details.fold {
+  border: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+  background: transparent;
+  margin: 0 0 1.2rem;
+  padding: 0;
+  max-width: 100%;
+}
+
+details.fold > summary {
+  font-family: var(--data);
+  font-size: .68rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  font-weight: 400;
+  color: var(--ink-faint);
+  padding: .55rem .9rem .55rem 2rem;
+}
+
+details.fold > summary::before { left: .9rem; }
+details.fold[open] > summary {
+  color: var(--accent);
+  border-bottom: 1px solid var(--rule-soft);
+  margin-bottom: 0;
+}
+
+details.fold > *:not(summary) { padding: .8rem .9rem; color: inherit; }
+details.fold ul { margin-bottom: 0; }
+details.fold .annot { border: 0; padding: 0; margin: 0; }
+details.fold .annot dd { max-width: var(--measure); }
+
+/* Un bloque de codigo seguido de su plegable van pegados. */
+pre:has(+ details.fold) { margin-bottom: 0; border-bottom: 0; }
+
+:root { --accent: #5a393f; }
+</style>
+</head>
+<body>
+<header class="masthead">
+  <div class="masthead-inner">
+    <div class="eyebrow"><a href="index.html">Sílice</a> / M&oacute;dulo <b>9</b> de 14</div>
+    <h1>Los tres estados de la planta</h1>
+    <p class="standfirst">Sin etiquetas, k-medias y PCA encuentran tres regímenes operativos, y uno de ellos desaparece en abril</p>
+    <div class="figure-mark">
+      <span class="figure-value">k = 3</span>
+      <span class="figure-label">estados, y uno se acaba en abril</span>
+    </div>
+    <nav class="thread" aria-label="El arco del proyecto"><a href="m01_radiografia_del_dataset.html" title="1. Radiografía del dataset"><span class="n">1</span> <span class="v">737.453</span></a><a href="m02_el_primer_modelo_y_el_techo.html" title="2. El primer modelo, y el techo que apareció enseguida"><span class="n">2</span> <span class="v">R² 0,04</span></a><a href="m03_como_aprende_un_modelo.html" title="3. Cómo aprende un modelo por dentro"><span class="n">3</span> <span class="v">R² 0,06</span></a><a href="m04_preprocesar_y_validar.html" title="4. Preprocesar y validar sin hacer trampa"><span class="n">4</span> <span class="v">R² −0,13</span></a><a href="m05_darle_memoria_al_modelo.html" title="5. Darle memoria al modelo"><span class="n">5</span> <span class="v">R² 0,64</span></a><a href="m06_clasificar_fuera_de_spec.html" title="6. Clasificar: dentro o fuera de especificación"><span class="n">6</span> <span class="v">0,62 vs 0,77</span></a><a href="m07_contra_que_se_compara.html" title="7. Contra qué se compara un modelo"><span class="n">7</span> <span class="v">+0,009</span></a><a href="m08_donde_aporta_el_ml.html" title="8. ¿Dónde aporta el ML de verdad?"><span class="n">8</span> <span class="v">0 de 4</span></a><span aria-current="page" title="9. Los tres estados de la planta"><span class="n">9</span> <span class="v">k = 3</span></span><a href="m10_redes_producto_y_cierre.html" title="10. Redes, producto y cierre"><span class="n">10</span> <span class="v">0,76</span></a><a class="starts-part" href="m11_modelos_de_secuencia.html" title="11. Modelos de secuencia: LSTM, GRU y convolución causal"><span class="n">11</span> <span class="v">+0,215</span></a><a href="m12_practica_de_pronostico.html" title="12. La práctica de pronóstico que faltó"><span class="n">12</span> <span class="v">0,52 vs 0,63</span></a><a href="m13_incertidumbre.html" title="13. Incertidumbre: del punto al intervalo"><span class="n">13</span> <span class="v">92,0 %</span></a><a href="m14_lectura_causal.html" title="14. Lectura causal del lazo de control"><span class="n">14</span> <span class="v">+0,16</span></a></nav>
+    <div class="assay"><span><b>2</b> apuntes de origen</span><span><b>4</b> figuras</span><span><b>3</b> scripts</span></div>
+  </div>
+</header>
+<main class="container">
+<section class="block is-brief"><span class="kicker">Resumen</span><h2 class="block-title">En 30 segundos</h2><ul><li><strong>k = 3.</strong> Sin mirar el objetivo, la planta se separa sola en tres estados operativos.</li><li><strong>Uno de ellos desaparece en mayo.</strong> El estado 1 ocupa el 100 % de marzo, el 78 % de abril y el 2 % de mayo.</li><li><strong>Ahí está la causa de todo lo anterior.</strong> Los modelos se entrenaron con una planta y se probaron con otra.</li><li><strong>Los estados tienen calidades distintas</strong>: 1,85 · 2,60 · 2,46 de SiO₂ medio. El aire de columna los separa.</li><li><strong>PCA confirma la estructura</strong>: 46 % de la variación en dos ejes, aireación y niveles.</li></ul></section>
+<section class="block "><span class="kicker">Contexto</span><h2 class="block-title">Qué resuelve este módulo</h2><p>Los módulos 2 a 8 midieron que no se puede predecir. Ninguno explicó por qué.</p><p>Aquí se busca la causa sin usar el objetivo. Eso es aprendizaje no supervisado: encontrar estructura en los datos sin decirle al algoritmo qué buscar.</p><p>Y aparece la explicación que faltaba, que no es sobre el modelo sino sobre la planta.</p></section>
+<section class="block is-toy"><span class="kicker">A mano</span><h2 class="block-title">Antes de la teoría: un ejemplo de juguete</h2><p>Seis horas, una sola variable: el caudal de aire de una columna.</p><pre><code>240   245   250   290   295   300</code></pre><p>A ojo hay dos grupos. Vamos a encontrarlos midiendo, y de paso a decidir cuántos hay.</p><h3 class="sub">Paso 1. Un solo grupo</h3><p>Si todo es un grupo, su centro es la media.</p><pre><code>centro = (240 + 245 + 250 + 290 + 295 + 300) / 6 = 1620 / 6 = 270</code></pre><p>La <strong>inercia</strong> es la suma de las distancias al cuadrado de cada punto a su centro.</p><pre><code>inercia = 30² + 25² + 20² + 20² + 25² + 30²
+        = 900 + 625 + 400 + 400 + 625 + 900
+        = 3850</code></pre><h3 class="sub">Paso 2. Dos grupos</h3><p>Los tres bajos por un lado y los tres altos por otro.</p><pre><code>grupo A: 240, 245, 250    centro 245    inercia = 25 + 0 + 25 = 50
+grupo B: 290, 295, 300    centro 295    inercia = 25 + 0 + 25 = 50
+inercia total = 100</code></pre><p><strong>De 3850 a 100.</strong> La inercia cae a la cuarentava parte con una sola división.</p><h3 class="sub">Paso 3. Tres grupos</h3><p>Partiendo el grupo A en dos:</p><pre><code>grupo A1: 240, 245        centro 242,5   inercia = 6,25 + 6,25 = 12,5
+grupo A2: 250             centro 250     inercia = 0
+grupo B:  290, 295, 300   centro 295     inercia = 50
+inercia total = 62,5</code></pre><h3 class="sub">Paso 4. El codo</h3><div class="table-wrap"><table><thead><tr><th>Grupos</th><th>Inercia</th><th>Lo que bajó</th></tr></thead><tbody><tr><td>1</td><td>3850</td><td>referencia</td></tr><tr><td>2</td><td>100</td><td>3750</td></tr><tr><td>3</td><td>62,5</td><td>37,5</td></tr></tbody></table></div><p><strong>El codo está en 2.</strong> Pasar de uno a dos grupos quita el 97 % de la inercia. Pasar de dos a tres quita casi nada.</p><p>Añadir grupos siempre baja la inercia, hasta llegar a un grupo por punto y una inercia de cero. Por eso no se elige el mínimo: se elige donde la curva deja de caer en picado.</p><h3 class="sub">Paso 5. Qué acaba de pasar</h3><p>El algoritmo no sabía nada de sílice, ni de calidad, ni de especificación. Solo agrupó horas parecidas entre sí.</p><p>Eso es lo que lo hace útil aquí. <strong>Si aparecen grupos con calidades distintas, esos grupos son un hallazgo y no una construcción.</strong> Nadie los metió en los datos.</p></section>
+<section class="block is-terms"><span class="kicker">Términos</span><h2 class="block-title">Glosario</h2><details class="fold"><summary>10 términos, en palabras simples</summary><ul><li><strong>Aprendizaje no supervisado.</strong> Buscar estructura en los datos sin usar la respuesta.</li><li><strong>Agrupamiento.</strong> Repartir las filas en grupos de filas parecidas. En inglés, <em>clustering</em>.</li><li><strong>k-medias.</strong> El método más común. Coloca k centros y va moviéndolos hasta que se estabilizan.</li><li><strong>Inercia.</strong> La suma de distancias al cuadrado de cada punto a su centro. Baja siempre al añadir grupos.</li><li><strong>Método del codo.</strong> Dibujar la inercia contra k y buscar dónde la curva se dobla.</li><li><strong>Estado operativo.</strong> Un grupo de horas en las que la planta se comportaba de forma parecida.</li><li><strong>PCA.</strong> Análisis de componentes principales. Busca las combinaciones de variables que más variación explican.</li><li><strong>Componente principal.</strong> Cada uno de esos ejes nuevos. El primero es el que más variación captura.</li><li><strong>Varianza explicada.</strong> Qué porcentaje de la variación total recoge cada componente.</li><li><strong>Deriva de concepto.</strong> Que la relación entre variables y objetivo cambie con el tiempo. En inglés, <em>concept drift</em>.</li></ul></details></section>
+<section class="block is-method"><span class="kicker">Método</span><h2 class="block-title">Paso a paso</h2><h3 class="sub">Paso 1. Escalar, porque aquí las distancias mandan</h3><p>k-medias mide distancias. Sin escalar, un caudal de 300 pesa cien veces más que un pH de 9,8, y los grupos salen decididos por las unidades.</p><h3 class="sub">Paso 2. Usar solo variables de proceso</h3><p>El objetivo se deja fuera a propósito. Si se metiera, los grupos saldrían separados por sílice por construcción y no demostrarían nada.</p><p>Dejándolo fuera, la sílice media de cada grupo es una comprobación independiente.</p><h3 class="sub">Paso 3. Elegir k con el codo</h3><p>Se corre k-medias para varios valores de k y se dibuja la inercia. Donde la curva se dobla, ahí está el número de estados.</p><h3 class="sub">Paso 4. Leer el perfil de cada estado</h3><p>Un número de grupo no dice nada. Hay que mirar los valores medios de cada variable dentro de cada grupo y traducirlos a lenguaje de planta.</p><h3 class="sub">Paso 5. Mirar cuándo mandó cada estado</h3><p>Esta es la pasada que resuelve el proyecto. Los grupos se colocan en el tiempo, mes a mes.</p><h3 class="sub">Paso 6. Confirmar con PCA</h3><p>k-medias podría estar inventando grupos donde solo hay una nube continua. PCA proyecta los datos en dos ejes y permite verlos.</p></section>
+<section class="block is-code"><span class="kicker">Código</span><h2 class="block-title">El código, por partes</h2><h3 class="sub">Paso 1. Escalar y buscar el codo</h3><pre><code class="language-python">from sklearn.cluster import KMeans
+from sklearn.preprocessing import StandardScaler
+
+X = StandardScaler().fit_transform(data[base])
+for k in range(1, 11):
+    print(k, KMeans(n_clusters=k, n_init=10, random_state=0).fit(X).inertia_)</code></pre><details class="fold"><summary>línea por línea, 4 entradas</summary><dl class="annot"><dt><code>StandardScaler().fit_transform(...)</code></dt><dd>Ajusta y aplica en un paso. Aquí no hay fuga posible, porque no se predice nada.</dd><dt><code>KMeans(n_clusters=k)</code></dt><dd>Coloca k centros y los mueve hasta que dejan de cambiar.</dd><dt><code>n_init=10</code></dt><dd>Repite diez veces con arranques distintos y se queda con el mejor. k-medias depende del punto de partida.</dd><dt><code>.inertia_</code></dt><dd>La suma de distancias al cuadrado a los centros. El guion bajo final marca lo que el modelo aprendió al ajustar.</dd></dl></details><div class="output"><span class="output-tag">sale</span><pre><code>Perfil de cada estado (unidades reales):
+         Ore Pulp pH  Ore Pulp Density  Amina Flow  Starch Flow  % Silica Feed  Flotation Column 01 Air Flow  % SiO2 concentrado  horas
+cluster
+0               9.85              1.66      458.87      2999.39          13.72                        296.46                1.85   1083
+1               9.62              1.69      475.82      2328.70          14.20                        239.11                2.60    935
+2               9.79              1.68      509.05      3045.81          15.35                        290.30                2.46   2073</code></pre></div><figure class="fig"><img src="../figuras/fig_m9_codo.bc507b2e.png" alt="La inercia contra el número de grupos. El codo marca k = 3." loading="lazy"><figcaption>La inercia contra el número de grupos. El codo marca k = 3.</figcaption></figure><h3 class="sub">Paso 2. Leer los tres estados</h3><figure class="fig"><img src="../figuras/fig_m9_perfiles.9e51c066.png" alt="El perfil de cada estado, en desviaciones respecto al promedio general. En rojo lo que está por encima y en azul lo que está por debajo." loading="lazy"><figcaption>El perfil de cada estado, en desviaciones respecto al promedio general. En rojo lo que está por encima y en azul lo que está por debajo.</figcaption></figure><div class="table-wrap"><table><thead><tr><th>Estado</th><th>Horas</th><th>Aire columna 1</th><th>Amina</th><th>Almidón</th><th>SiO₂ feed</th><th><strong>SiO₂ concentrado</strong></th></tr></thead><tbody><tr><td>0</td><td>1.083</td><td>296</td><td>459</td><td>2.999</td><td>13,7</td><td><strong>1,85</strong></td></tr><tr><td>1</td><td>935</td><td><strong>239</strong></td><td>476</td><td><strong>2.329</strong></td><td>14,2</td><td><strong>2,60</strong></td></tr><tr><td>2</td><td>2.073</td><td>290</td><td><strong>509</strong></td><td>3.046</td><td><strong>15,4</strong></td><td><strong>2,46</strong></td></tr></tbody></table></div><p>Traducido a lenguaje de planta:</p><ul><li><strong>Estado 0, la marcha buena.</strong> Aire alto, alimentación limpia, y la mejor calidad del histórico con 1,85 % de sílice.</li><li><strong>Estado 1, aire bajo.</strong> El caudal de aire cae a 239 frente a los 290 y 296 de los otros dos, y el almidón también baja. La calidad se va a 2,60.</li><li><strong>Estado 2, peleando.</strong> La alimentación llega más sucia, con 15,4 % de sílice, y la amina sube al máximo, 509. La planta compensa y se queda en 2,46.</li></ul><p>Los grupos salieron de variables de proceso, sin mirar la sílice. Que las tres calidades medias sean distintas es la comprobación de que los estados son reales.</p><h3 class="sub">Paso 3. Colocar los estados en el tiempo</h3><pre><code class="language-python">por_mes = etiquetas.groupby([data.index.to_period(&quot;M&quot;), &quot;estado&quot;]).size().unstack(fill_value=0)
+print((por_mes.T / por_mes.sum(axis=1)).T.mul(100).round(0).to_string())</code></pre><details class="fold"><summary>línea por línea, 3 entradas</summary><dl class="annot"><dt><code>.to_period(&quot;M&quot;)</code></dt><dd>Convierte cada fecha en su mes, para poder agrupar por mes.</dd><dt><code>.unstack(fill_value=0)</code></dt><dd>Convierte los estados en columnas. Los meses sin ese estado quedan en cero.</dd><dt><code>(tabla.T / tabla.sum(axis=1)).T</code></dt><dd>Convierte los conteos en porcentaje de cada mes. La doble transposición es para que la división vaya por filas.</dd></dl></details><div class="output"><span class="output-tag">sale</span><pre><code>estado    0    1   2
+date
+2017-03   0  100   0
+2017-04   2   78  21
+2017-05  20    2  78
+2017-06  42    4  55
+2017-07  45   15  40
+2017-08  38    1  61
+2017-09   1    6  93</code></pre></div><figure class="fig"><img src="../figuras/fig_m9_tiempo.f728a390.png" alt="Cada hora coloreada por su estado, a lo largo de los seis meses. El estado 1 domina el principio y después desaparece." loading="lazy"><figcaption>Cada hora coloreada por su estado, a lo largo de los seis meses. El estado 1 domina el principio y después desaparece.</figcaption></figure><h3 class="sub">Paso 4. Confirmar con PCA</h3><pre><code class="language-python">from sklearn.decomposition import PCA
+
+pca = PCA(n_components=2).fit(X)
+print(pca.explained_variance_ratio_.round(3))</code></pre><details class="fold"><summary>línea por línea, 3 entradas</summary><dl class="annot"><dt><code>PCA(n_components=2)</code></dt><dd>Busca los dos ejes que más variación capturan, combinando todas las columnas.</dd><dt><code>.explained_variance_ratio_</code></dt><dd>Qué fracción de la variación total recoge cada eje.</dd><dt><code>.components_</code></dt><dd>El peso de cada variable original en cada eje. Es lo que permite ponerles nombre.</dd></dl></details><div class="output"><span class="output-tag">sale</span><pre><code>Variables que mas definen la componente 1:
+Flotation Column 06 Air Flow    0.305658
+Flotation Column 07 Air Flow    0.305294
+Flotation Column 01 Air Flow    0.299694
+Flotation Column 01 Level       0.297969
+
+Variables que mas definen la componente 2:
+Flotation Column 05 Level       0.404971
+Flotation Column 04 Level       0.400331
+Flotation Column 07 Level       0.386301</code></pre></div><figure class="fig"><img src="../figuras/fig_m9_pca.25c11c9d.png" alt="Izquierda: cuánta variación guarda cada componente. Derecha: las 4.091 horas proyectadas en dos ejes, coloreadas por estado." loading="lazy"><figcaption>Izquierda: cuánta variación guarda cada componente. Derecha: las 4.091 horas proyectadas en dos ejes, coloreadas por estado.</figcaption></figure><p>Los dos primeros ejes guardan el <strong>46 %</strong> de la variación: 31 % el primero y 15 % el segundo.</p><p>El primero está dominado por caudales de aire, así que es <strong>aireación</strong>. El segundo, por niveles de columna. Dos perillas de operación, encontradas sin decirle al método qué buscar.</p></section>
+<section class="block is-result"><span class="kicker">Resultado</span><h2 class="block-title">El resultado, medido</h2><p><strong>Qué esperábamos.</strong> Grupos difusos, o grupos que separasen turnos o días de la semana. Lo habitual al agrupar datos de proceso.</p><p><strong>Qué salió.</strong> Tres estados con calidades distintas, y uno de ellos con fecha de caducidad.</p><div class="table-wrap"><table><thead><tr><th>Mes</th><th>Estado 0</th><th>Estado 1</th><th>Estado 2</th></tr></thead><tbody><tr><td>Marzo</td><td>0 %</td><td><strong>100 %</strong></td><td>0 %</td></tr><tr><td>Abril</td><td>2 %</td><td><strong>78 %</strong></td><td>21 %</td></tr><tr><td>Mayo</td><td>20 %</td><td><strong>2 %</strong></td><td>78 %</td></tr><tr><td>Junio</td><td>42 %</td><td>4 %</td><td>55 %</td></tr><tr><td>Julio</td><td>45 %</td><td>15 %</td><td>40 %</td></tr><tr><td>Agosto</td><td>38 %</td><td>1 %</td><td>61 %</td></tr><tr><td>Septiembre</td><td>1 %</td><td>6 %</td><td><strong>93 %</strong></td></tr></tbody></table></div><p><strong>Qué significa.</strong> El estado 1 pasa del 100 % de las horas de marzo al 2 % en mayo. <strong>La planta cambió de forma de operar entre abril y mayo, y no volvió.</strong></p><p>Ese estado se caracteriza por aire bajo, 239 frente a 290 y 296. Alguien subió el aire de las columnas, y desde entonces la planta opera de otra manera.</p><h3 class="sub">Por qué esto explica los módulos 2 a 8</h3><p>El corte de entrenamiento del proyecto es el 1 de agosto. Marzo y abril, que son el 100 % y el 78 % del estado 1, están dentro del entrenamiento. Septiembre, que es 93 % estado 2, está dentro de la prueba.</p><p>Los modelos aprendieron relaciones de una planta y se examinaron sobre otra. Eso explica tres cosas medidas antes:</p><ul><li>La <strong>dispersión entre pliegues</strong> del módulo 4, de −0,011 a −0,271. Cada pliegue cae en una mezcla de estados distinta.</li><li>La <strong>deriva</strong> que el módulo 10 va a medir mes a mes.</li><li>Por qué <strong>reentrenar no arregla nada</strong>, medido en el módulo 8. El problema no es que el modelo envejezca, es que no hay una relación estable que aprender.</li></ul><h3 class="sub">El hallazgo, en una frase</h3><p><strong>El aprendizaje no supervisado encontró la causa que ocho módulos de aprendizaje supervisado no pudieron ver</strong>, y lo hizo sin usar el objetivo ni una sola vez.</p><h3 class="sub">Lo que este módulo deja abierto</h3><p>Falta cerrar el proyecto. Queda probar la técnica que todavía no se ha usado, las redes neuronales, y convertir todo esto en una recomendación defendible.</p><p>El módulo 10 hace las dos cosas, y mide la deriva que este módulo acaba de explicar.</p></section>
+<section class="block is-warning"><span class="kicker">Trampas</span><h2 class="block-title">Ojo</h2><ul><li><strong>La inercia siempre baja al añadir grupos.</strong> Con k igual al número de puntos vale cero. Por eso el codo se busca, y no el mínimo.</li><li><strong>Sin escalar, los grupos los deciden las unidades.</strong> Un caudal de 300 aplasta a un pH de 9,8.</li><li><strong>El objetivo se deja fuera del agrupamiento.</strong> Si entra, los grupos se separan por sílice por construcción y la comprobación se pierde.</li><li><strong>k-medias depende del arranque.</strong> Con <code>n_init=1</code> puede caer en una solución mala. Diez arranques es el mínimo razonable.</li><li><strong>k-medias siempre devuelve k grupos</strong>, haya estructura o no. El codo y la proyección de PCA son las dos comprobaciones de que los grupos existen.</li><li><strong>Un cambio de régimen no se arregla reentrenando.</strong> Si la relación cambió, el modelo viejo no estaba desactualizado: estaba describiendo otra planta.</li></ul></section>
+<section class="block is-bridge"><span class="kicker">Analogía</span><h2 class="block-title">Puente metalúrgico</h2><p>Los tres estados son <strong>tres campañas de operación</strong>, y cualquier metalurgista los reconocería sin necesidad de k-medias si tuviera el registro de consignas delante. El problema es que ese registro no está en el archivo.</p><p>El estado 1 es un circuito con <strong>aireación baja</strong>: menos aire arrastra menos espuma, la selección mejora en teoría pero la capacidad cae, y la sílice se va a 2,60. El estado 2 es la planta <strong>compensando alimentación sucia</strong>. Entra 15,4 % de sílice frente a 13,7 %, y se sube la amina a 509 para arrastrar más ganga. Aun así el concentrado sale a 2,46.</p><p>Y el cambio de abril a mayo es una <strong>decisión de operación</strong>, no un fenómeno natural. Alguien subió el aire y lo dejó subido.</p><p>Modelar seis meses de esa planta con un solo modelo se parece a calibrar con patrones de dos preparaciones distintas. Sale una curva promedio, y no describe bien a ninguna de las dos.</p></section>
+<section class="block is-review"><span class="kicker">Repaso</span><h2 class="block-title">Repaso</h2><details><summary>¿Por qué no se elige el k con la inercia más baja?</summary><p>Porque la inercia siempre baja al añadir grupos, hasta llegar a cero con un grupo por punto. Es una métrica que no puede elegir.</p><p>En el ejemplo de juguete pasa de 3850 con un grupo a 100 con dos, y a 62,5 con tres. La primera división quita el 97 % y la segunda casi nada. El codo es ese punto donde la curva deja de caer en picado, y marca cuántos grupos hay de verdad. Sobre los datos reales el codo está en k = 3.</p></details><details><summary>¿Por qué se deja el objetivo fuera del agrupamiento?</summary><p>Para que la sílice media de cada grupo sirva como comprobación independiente.</p><p>Si el objetivo entrara entre las variables usadas para agrupar, k-medias separaría las horas por sílice y después encontraríamos, sin ninguna sorpresa, que los grupos tienen sílices distintas. Sería circular.</p><p>Agrupando solo con variables de proceso, las tres medias salen 1,85, 2,60 y 2,46. Eso es información nueva. Las condiciones de operación que el algoritmo distinguió tienen consecuencias reales sobre la calidad.</p></details><details><summary>El estado 1 pasa del 100 % de marzo al 2 % de mayo. ¿Qué significa eso para el proyecto?</summary><p>Que los modelos se entrenaron con una planta y se examinaron con otra.</p><p>El corte de entrenamiento está el 1 de agosto, así que marzo y abril, dominados por el estado 1, son parte del entrenamiento. Septiembre, que es 93 % estado 2, es parte de la prueba. Las relaciones entre variables de proceso y sílice aprendidas en un régimen no tienen por qué valer en el otro. Eso explica la dispersión entre pliegues del módulo 4 y la deriva mes a mes.</p></details><details><summary>Si el problema es el cambio de régimen, ¿por qué reentrenar no lo arregla?</summary><p>Porque reentrenar corrige un modelo viejo. No inventa una relación estable donde no la hay.</p><p>El módulo 8 lo midió: reentrenando cada día, cada tres, cada semana o cada mes, el aporte se queda entre −0,001 y +0,009. Y entrenar un modelo por estado operativo empeora el resultado, 0,601 contra 0,641, porque cada modelo se queda con un tercio de los datos. La conclusión es que dentro de cada régimen tampoco hay una relación fuerte entre proceso y sílice que un modelo pueda explotar.</p></details><details><summary>¿Qué aporta PCA que k-medias no aporte?</summary><p>Dos cosas: comprobación y nombres.</p><p>k-medias devuelve k grupos siempre, tenga sentido o no, así que hace falta ver si están realmente separados. PCA proyecta las 4.091 horas en dos ejes que guardan el 46 % de la variación. Ahí los tres grupos se ven separados, y no como cortes arbitrarios de una nube continua. Además, mirando qué variables pesan en cada eje se les puede poner nombre: el primero está dominado por caudales de aire y el segundo por niveles de columna. Son las dos perillas de operación que gobiernan el circuito.</p></details></section>
+</main>
+<nav class="pager"><a class="prev" href="m08_donde_aporta_el_ml.html"><span class="dir">Anterior</span>8. ¿Dónde aporta el ML de verdad?</a><a class="next" href="m10_redes_producto_y_cierre.html"><span class="dir">Siguiente</span>10. Redes, producto y cierre</a></nav>
+<footer class="footer">
+  <div class="footer-inner">
+    <span>S&iacute;lice / M&oacute;dulo 9</span>
+    <span>generado el 2026-08-20</span>
+    <span>fuente: los 31 apuntes originales, sus scripts y el CSV de la planta</span>
+  </div>
+</footer>
+</body>
+</html>

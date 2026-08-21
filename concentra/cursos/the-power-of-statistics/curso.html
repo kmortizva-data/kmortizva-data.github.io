@@ -1,0 +1,690 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Power of Statistics — el curso</title>
+<style>
+/* ============================================================================
+   Concentra — design tokens and shared components.
+   Inlined into every generated page by load_style(), so pages stay self-contained
+   and work offline from file:// with no external requests.
+
+   Direction: an assay lab, not a tech dashboard. The palette is taken from ore
+   and lab materials (chalcopyrite brass, malachite, hematite, quartz) on warm
+   graphite rather than the blue-black + neon of a generic dark UI. Type is
+   Bahnschrift, the DIN-descended grotesque that Windows ships and that lives on
+   machinery plates and technical drawings, over Corbel for reading.
+   ========================================================================== */
+
+:root {
+  /* Ground and surfaces: warm graphite, the colour of rock dust, not blue-black */
+  --rock: #1a1714;
+  --bench: #221e19;
+  --core: #2b251f;
+  --seam: #3d352c;
+
+  /* Ore palette. No blue and no purple anywhere: those are the tones that make a
+     page read as generated, and this palette comes from the ores instead. */
+  --brass: #c9a227;      /* chalcopyrite, the primary accent */
+  --malachite: #5d9b7a;  /* verified output, results that came out right */
+  --hematite: #b04a35;   /* iron oxide, pitfalls and warnings */
+
+  /* Text */
+  --quartz: #ece7de;
+  --dust: #9a9186;
+  --shadowed: #6f675c;
+
+  --display: Bahnschrift, 'DIN Alternate', 'Segoe UI Semibold', system-ui, sans-serif;
+  --body: Corbel, Candara, 'Segoe UI', system-ui, sans-serif;
+  --data: Consolas, 'Cascadia Mono', ui-monospace, monospace;
+
+  /* In px, not ch: ch scales with font-size, so a heading ended up wider than a
+     paragraph and the page had four different right edges instead of two. */
+  --measure: 640px;
+  --wide: 900px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--rock);
+  color: var(--quartz);
+  font-family: var(--body);
+  font-size: 16px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection { background: var(--brass); color: var(--rock); }
+
+:focus-visible {
+  outline: 2px solid var(--brass);
+  outline-offset: 3px;
+}
+
+/* --------------------------------------------------------------- the signature
+   A sieve series: ticks that get finer from left to right, coarse feed to fine
+   concentrate. It is the one ornament on the page and appears exactly twice —
+   under the wordmark and under a page title. */
+.mesh {
+  height: 10px;
+  background-image:
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 16px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 9px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 5px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 3px);
+  background-size: 25% 100%;
+  background-position: 0 0, 25% 0, 50% 0, 75% 0;
+  background-repeat: no-repeat;
+  opacity: .8;
+  transform-origin: left center;
+  animation: sieve .55s cubic-bezier(.2, .8, .3, 1) both;
+}
+@keyframes sieve { from { transform: scaleX(0); opacity: 0; } to { transform: scaleX(1); opacity: .8; } }
+@media (prefers-reduced-motion: reduce) {
+  .mesh { animation: none; }
+  * { transition: none !important; }
+}
+
+/* ------------------------------------------------------------------ page head */
+.header {
+  border-bottom: 1px solid var(--seam);
+  padding: 3.2rem 2rem 0;
+  background: linear-gradient(180deg, #221d16 0%, var(--rock) 100%);
+}
+.header-content { max-width: 1080px; margin: 0 auto; }
+
+.eyebrow {
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--brass);
+  margin-bottom: 1rem;
+}
+.eyebrow a { color: inherit; text-decoration: none; border-bottom: 1px solid transparent; }
+.eyebrow a:hover { border-bottom-color: var(--brass); }
+
+.header h1 {
+  font-family: var(--display);
+  font-size: clamp(2rem, 4.5vw, 3.1rem);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -.015em;
+  color: var(--quartz);
+  max-width: 20ch;
+}
+.header .subtitle {
+  color: var(--dust);
+  max-width: var(--measure);
+  margin-top: 1rem;
+  font-size: 1.02rem;
+}
+.header .mesh { margin: 1.8rem 0 0; }
+
+/* An assay line: the real composition of the module, in lab-report shorthand. */
+.assay {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.4rem;
+  font-family: var(--data);
+  font-size: .78rem;
+  color: var(--shadowed);
+  padding: .9rem 0 1.6rem;
+  letter-spacing: .04em;
+}
+.assay b { color: var(--dust); font-weight: 400; }
+
+/* --------------------------------------------------------------------- layout */
+/* The container hugs the widest block, so there is no orphan edge past the content. */
+.container { max-width: var(--wide); margin: 3rem auto 5rem; padding: 0 2rem; }
+
+/* Two deliberate right edges and no more: prose stops at the reading measure, and
+   only the things that genuinely need room (code, output, figures, big tables) run
+   out to the full column. */
+.section-block {
+  border-top: 1px solid var(--seam);
+  padding: 2rem 0 2.4rem;
+}
+.section-block > p,
+.section-block > ul,
+.section-block > ol,
+.section-block h3.sub,
+.section-block h4.sub,
+.section-block blockquote,
+details > *:not(summary) { max-width: var(--measure); }
+.section-block:first-child { border-top: 0; padding-top: .5rem; }
+
+/* The kicker names what kind of content follows: context, method, pitfalls.
+   It replaces decorative icons with something that actually classifies. */
+.kicker {
+  font-family: var(--data);
+  font-size: .68rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  display: block;
+  margin-bottom: .5rem;
+}
+.section-title {
+  font-family: var(--display);
+  font-size: 1.55rem;
+  font-weight: 600;
+  letter-spacing: -.01em;
+  line-height: 1.2;
+  margin-bottom: 1.2rem;
+  color: var(--quartz);
+}
+.is-warning .kicker { color: var(--hematite); }
+.is-warning .section-title { color: #e8c4b8; }
+.is-bridge .kicker, .is-decision .kicker { color: var(--malachite); }
+.is-toy .kicker, .is-result .kicker, .is-question .kicker { color: var(--brass); }
+
+/* ---------------------------------------------------------------------- prose */
+/* Justified with hyphenation. In Spanish, justifying without hyphens opens rivers of
+   white space and reads worse than ragged right; lang="es" is what feeds the
+   dictionary. Tables, code, captions and summaries stay ragged on purpose. */
+.section-block p,
+.section-block li,
+details > *:not(summary) {
+  text-align: justify;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+}
+.section-block p { margin-bottom: 1rem; }
+.section-block p:last-child { margin-bottom: 0; }
+/* Indent with padding, not margin, so the bullet sits inside the measure instead of
+   pushing the list 1.2rem past the right edge of the paragraphs. */
+.section-block ul, .section-block ol { margin: 0 0 1rem; padding-left: 1.2rem; }
+.section-block li { margin-bottom: .55rem; padding-left: .2rem; }
+.section-block li::marker { color: var(--brass); }
+td, th, figcaption, .res li, .assay { text-align: left; hyphens: manual; }
+a { color: var(--brass); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+a:hover { text-decoration-thickness: 2px; }
+strong { color: #fff; font-weight: 700; }
+em { color: var(--dust); font-style: italic; }
+
+h3.sub {
+  font-family: var(--display);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--brass);
+  margin: 2rem 0 .7rem;
+  letter-spacing: -.005em;
+}
+h3.sub:first-child { margin-top: 0; }
+h4.sub {
+  font-family: var(--display);
+  font-size: .98rem;
+  font-weight: 600;
+  color: var(--dust);
+  margin: 1.3rem 0 .5rem;
+}
+
+code {
+  font-family: var(--data);
+  font-size: .9em;
+  background: var(--core);
+  border-radius: 3px;
+  padding: .08rem .32rem;
+  color: var(--brass);
+}
+pre {
+  background: #14110e;
+  border: 1px solid var(--seam);
+  border-left: 2px solid var(--seam);
+  border-radius: 2px;
+  padding: 1.1rem 1.2rem;
+  overflow-x: auto;
+  margin-bottom: 1rem;
+}
+pre code {
+  background: none; padding: 0; color: var(--quartz);
+  font-size: .87rem; line-height: 1.6;
+}
+
+/* What the code prints. Malachite: the material that came out of the process. */
+.output {
+  position: relative;
+  border: 1px solid rgba(93, 155, 122, .32);
+  border-left: 2px solid var(--malachite);
+  border-radius: 2px;
+  background: rgba(93, 155, 122, .06);
+  padding: 1.7rem 1.2rem 1rem;
+  margin-bottom: 1rem;
+  overflow-x: auto;
+}
+.output-tag {
+  position: absolute; top: .5rem; left: 1.2rem;
+  font-family: var(--data); font-size: .64rem;
+  letter-spacing: .18em; text-transform: uppercase; color: var(--malachite);
+}
+.output pre {
+  background: none; border: 0; padding: 0; margin: 0;
+  font-family: var(--data); font-size: .85rem;
+  color: var(--quartz); white-space: pre-wrap;
+}
+
+/* Line by line explanation of a code block, for a reader new to programming.
+   Two columns: the fragment of code, and what it does. */
+.annot {
+  display: grid;
+  grid-template-columns: minmax(9rem, auto) 1fr;
+  gap: .1rem 1.2rem;
+  align-items: baseline;
+  max-width: var(--wide);
+  margin: -.4rem 0 1.4rem;
+  padding: .9rem 1.1rem 1rem;
+  border: 1px solid var(--seam);
+  border-top: 0;
+  border-radius: 0 0 2px 2px;
+  background: rgba(201, 162, 39, .04);
+}
+.annot-head {
+  grid-column: 1 / -1;
+  font-family: var(--data);
+  font-size: .64rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  margin-bottom: .5rem;
+}
+.annot dt { padding: .35rem 0; }
+.annot dt code {
+  background: var(--core);
+  color: var(--brass);
+  font-size: .82rem;
+  white-space: nowrap;
+}
+.annot dd {
+  padding: .35rem 0;
+  margin: 0;
+  color: var(--dust);
+  font-size: .93rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(61, 53, 44, .5);
+}
+.annot dt { border-bottom: 1px solid rgba(61, 53, 44, .5); }
+.annot dt:last-of-type, .annot dd:last-of-type { border-bottom: 0; }
+/* The code block sits directly on top of its annotation, as one unit. */
+pre:has(+ .annot) { margin-bottom: 0; border-radius: 2px 2px 0 0; }
+
+@media (max-width: 640px) {
+  .annot { grid-template-columns: 1fr; gap: 0; }
+  .annot dt { border-bottom: 0; padding-bottom: 0; }
+  .annot dd { padding-top: .15rem; }
+}
+
+blockquote {
+  border-left: 2px solid var(--brass);
+  padding: .3rem 0 .3rem 1.3rem;
+  margin: 0 0 1rem;
+  font-family: var(--display);
+  font-size: 1.2rem;
+  font-weight: 400;
+  line-height: 1.4;
+  color: var(--quartz);
+}
+
+/* Tables read as assay data: mono figures, hairline rules, no zebra fill.
+   They take the width they need instead of being stretched to the full column,
+   which is what left a two-column table floating in empty space. */
+.table-wrap { overflow-x: auto; margin-bottom: 1rem; }
+table { border-collapse: collapse; width: auto; max-width: 100%; font-size: .93rem; }
+th, td {
+  border-bottom: 1px solid var(--seam);
+  padding: .55rem .8rem .55rem 0;
+  text-align: left;
+  vertical-align: top;
+}
+th {
+  font-family: var(--data);
+  font-size: .7rem;
+  font-weight: 400;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  border-bottom-color: var(--brass);
+}
+td:first-child { color: var(--quartz); }
+
+/* Review questions: closed by default, so they work as recall practice. */
+details {
+  border-top: 1px solid var(--seam);
+  padding: .9rem 0;
+}
+details:last-child { border-bottom: 1px solid var(--seam); }
+summary {
+  cursor: pointer;
+  font-family: var(--display);
+  font-size: 1.02rem;
+  font-weight: 600;
+  color: var(--quartz);
+  list-style: none;
+  display: flex;
+  gap: .7rem;
+  align-items: baseline;
+}
+summary::-webkit-details-marker { display: none; }
+summary::before {
+  content: '+';
+  font-family: var(--data);
+  color: var(--brass);
+  font-size: .95rem;
+}
+details[open] summary::before { content: '−'; }
+details[open] summary { color: var(--brass); margin-bottom: .7rem; }
+details > *:not(summary) { color: var(--dust); }
+
+figure.fig {
+  margin: 1.6rem 0;
+  border: 1px solid var(--seam);
+  padding: .7rem;
+  background: var(--bench);
+}
+figure.fig img { width: 100%; height: auto; display: block; }
+/* The interactive twin of a figure. Its aspect matches the still one, 10 by 4.4, so a
+   case sheet keeps the same rhythm whichever kind of figure comes next. */
+figure.fig.is-live iframe {
+  width: 100%;
+  /* Matches INTERACTIVE_HEIGHT in src/make_figures.py. It used to be an aspect ratio, and
+     that made the figure's height depend on the window: the caption and the legend are
+     placed at fractions of the plot area, so on a wide screen they were pushed past the
+     bottom margin, clipping the caption and covering the x-axis title. */
+  height: 520px;
+  border: 0;
+  display: block;
+}
+figure.fig figcaption {
+  font-family: var(--data);
+  font-size: .72rem;
+  color: var(--shadowed);
+  margin-top: .6rem;
+  letter-spacing: .04em;
+}
+
+/* File listings on a case sheet */
+.res { list-style: none; margin-left: 0 !important; }
+.res li {
+  display: flex; align-items: baseline; gap: .8rem; flex-wrap: wrap;
+  padding: .5rem 0; border-bottom: 1px solid var(--seam); margin-bottom: 0;
+}
+.res .path { font-family: var(--data); font-size: .74rem; color: var(--shadowed); }
+.res .size { font-family: var(--data); font-size: .74rem; color: var(--shadowed); margin-left: auto; }
+.res .gone { font-family: var(--data); font-size: .74rem; color: var(--hematite); }
+
+.footer {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 2rem 4rem;
+  color: var(--shadowed);
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .03em;
+}
+
+@media (max-width: 640px) {
+  body { font-size: 15px; }
+  .header { padding: 2rem 1.2rem 0; }
+  .container { padding: 0 1.2rem; margin-top: 2rem; }
+  .footer { padding: 0 1.2rem 3rem; }
+}
+
+@media print {
+  body { background: #fff; color: #16130f; }
+  .header { background: none; border-bottom: 1px solid #bbb; padding-top: 0; }
+  .header h1, .section-title, summary { color: #16130f; }
+  .mesh { animation: none; }
+  .section-block { break-inside: avoid; max-width: none; }
+  pre, .output { background: #f6f4f0; border-color: #ccc; }
+  details:not([open]) > *:not(summary) { display: block; }
+  a { color: #16130f; }
+}
+
+
+/* The brain file, ready to be copied into an assistant's memory. */
+.brain { max-width: 880px; margin-top: 1.2rem; }
+.brain-bar {
+  display: flex; align-items: center; gap: .8rem; flex-wrap: wrap;
+  border: 1px solid var(--seam); border-bottom: 0;
+  padding: .6rem .9rem; background: var(--bench);
+}
+.brain-bar .name {
+  font-family: var(--data); font-size: .76rem; color: var(--brass); letter-spacing: .06em;
+}
+.brain-bar .size { font-family: var(--data); font-size: .72rem; color: var(--shadowed); }
+.brain-bar .spacer { flex: 1; }
+.brain-bar button, .brain-bar a.btn {
+  background: none; border: 1px solid var(--seam); border-radius: 2px;
+  color: var(--dust); font-family: var(--data); font-size: .72rem;
+  letter-spacing: .06em; padding: .3rem .7rem; cursor: pointer;
+  text-decoration: none; white-space: nowrap;
+}
+.brain-bar button:hover, .brain-bar a.btn:hover { color: var(--brass); border-color: var(--brass); }
+.brain-bar button.done { color: var(--malachite); border-color: var(--malachite); }
+.brain pre {
+  margin: 0; max-height: 26rem; overflow: auto;
+  border-radius: 0; border-color: var(--seam);
+}
+.brain pre code { font-size: .8rem; }
+</style>
+</head>
+<body>
+<header class="header">
+  <div class="header-content">
+    <div class="eyebrow">Curso 3 / <a href="https://www.coursera.org/learn/the-power-of-statistics">ver en Coursera</a></div>
+    <h1>The Power of Statistics</h1>
+    <p class="subtitle"></p>
+    <div class="mesh" role="presentation"></div>
+    <div class="assay"><span>6 módulos</span><span>34 h de curso</span><span>154 tasks</span><span>3 casos propios</span></div>
+  </div>
+</header>
+<main class="container">
+<section class="section-block "><span class="kicker">Resumen</span><h2 class="section-title">De qué va este curso</h2><p>Es el curso donde el análisis deja de describir y empieza a <strong>decidir</strong>. Los cursos anteriores enseñan a mirar los datos y contar lo que se ve. Este responde a la pregunta que viene después y que es la que paga: <strong>¿la diferencia que estoy viendo es real, o es casualidad de esta muestra?</strong></p><p>Toda la maquinaria del curso existe para eso. La probabilidad da el lenguaje, el muestreo explica por qué una parte puede hablar por el todo, los intervalos de confianza ponen números a lo que no sabemos, y las pruebas de hipótesis convierten todo eso en un sí o un no defendible frente a alguien que va a gastar dinero según tu respuesta.</p><p>Termina en un proyecto de portafolio que es un A/B test completo sobre datos reales de empresa. Ahí es donde se ve si lo anterior se entendió.</p></section>
+<section class="section-block is-recipe"><span class="kicker">Recorrido</span><h2 class="section-title">El recorrido, módulo a módulo</h2><ol><li><strong>Introducción a la estadística con Python.</strong> El vocabulario: descriptiva frente a inferencial, y las tres familias de estadísticos (centro, dispersión, posición).</li><li><strong>Probabilidad.</strong> Reglas básicas, probabilidad condicional, teorema de Bayes y las distribuciones que modelan datos reales: binomial, Poisson y normal.</li><li><strong>Muestreo.</strong> Métodos de selección, el sesgo que ningún cálculo posterior arregla, y el teorema del límite central, que es el resultado que sostiene todo lo demás.</li><li><strong>Intervalos de confianza.</strong> Cómo pasar de un número suelto a un rango honesto, y la interpretación del 95 % que casi todo el mundo dice mal.</li><li><strong>Pruebas de hipótesis.</strong> H₀ y Hₐ, errores tipo I y II, pruebas de una y dos muestras, y el A/B testing.</li><li><strong>Proyecto final.</strong> Un escenario de empresa, un análisis completo y un documento PACE.</li></ol></section>
+<section class="section-block is-decision"><span class="kicker">Resultado</span><h2 class="section-title">Qué sabes hacer al terminar</h2><ul><li>Decidir si una diferencia entre dos grupos es real o ruido, con la prueba adecuada y sus supuestos verificados.</li><li>Acompañar cualquier resultado del tamaño del efecto y su intervalo de confianza, que es lo que distingue un análisis profesional de un valor p suelto.</li><li>Detectar cuándo un resultado significativo es irrelevante en la práctica.</li><li>Convertir todo eso en una recomendación que alguien sin formación estadística pueda ejecutar.</li></ul></section>
+<section class="section-block is-toy"><span class="kicker">Para qué sirve</span><h2 class="section-title">El cerebro de este curso</h2><p>Debajo está el archivo para copiar y pegar como memoria de un asistente. <strong>No es un resumen de las lecciones</strong>: es el manual de operación, con el procedimiento en orden, los umbrales, las reglas de decisión, las trampas conocidas y los tres casos propios con sus números reales para calibrar.</p><p>Esa diferencia es deliberada. Un resumen de las clases le da material de estudio a algo que no necesita estudiar, y gasta contexto sin cambiar cómo trabaja. El manual de operación ocupa una fracción y sí cambia el resultado.</p></section>
+<section class="section-block">
+  <span class="kicker">Memoria</span>
+  <h2 class="section-title">El archivo, listo para copiar</h2>
+  <div class="brain">
+    <div class="brain-bar">
+      <span class="name">cerebro-curso-3.md</span>
+      <span class="size">7.5 KB</span>
+      <span class="spacer"></span>
+      <button id="copy" type="button">Copiar todo</button>
+      <a class="btn" href="cerebro-curso-3.md" download>Descargar</a>
+    </div>
+    <pre><code id="brain"># Cerebro: inferencia estadística para decisiones de negocio
+
+Manual de operación, no material de estudio. Describe cómo trabajo una pregunta del tipo
+&quot;¿esta diferencia es real?&quot;: el orden, los umbrales, lo que siempre reporto y lo que nunca
+hago. Pégalo como memoria y asume estas reglas sin volver a preguntarlas.
+
+## Qué resuelvo con esto
+
+Comparar dos grupos y decidir si la diferencia observada justifica actuar. Tasas de
+conversión, tiempos, importes, métricas de uso, recuperación de un proceso. La respuesta
+siempre es una decisión de negocio, nunca un número suelto.
+
+## El procedimiento, en este orden
+
+1. **Escribir H₀ y Hₐ en lenguaje de negocio, antes de mirar los datos.** Si se formulan
+   después de ver el resultado, la prueba no vale.
+2. **Fijar α antes también.** Por defecto 0,05. Se baja a 0,01 cuando un falso positivo
+   sale caro.
+3. **Explorar**: tamaño de cada grupo, medias, medianas, desviaciones, y mirar la forma con
+   histograma y diagrama de caja.
+4. **Comprobar supuestos**: Levene para igualdad de varianzas, y tamaño de muestra para
+   apoyarse en el teorema del límite central.
+5. **Elegir la prueba** según la tabla de decisión de abajo.
+6. **Validar el resultado** con al menos dos respaldos: repetir sin atípicos y añadir una
+   prueba no paramétrica.
+7. **Reportar** el bloque completo de la sección &quot;lo que siempre se reporta&quot;.
+8. **Traducir a una recomendación accionable** y declarar las limitaciones.
+
+## Reglas de decisión
+
+### Qué prueba usar
+
+| Lo que comparo | Prueba |
+|---|---|
+| Una media contra un valor de referencia | t de una muestra |
+| Medias de dos grupos independientes | t de dos muestras (Welch por defecto) |
+| Dos proporciones o tasas | prueba z de proporciones |
+| Confirmar sin asumir normalidad | Mann-Whitney U |
+| Igualdad de varianzas | Levene |
+| Reparto de la asignación | chi cuadrado (SRM) |
+
+### Welch o Student
+
+Welch por defecto, siempre. Si Levene da `p &lt; 0,05` las varianzas son desiguales y Student
+queda descartado. Si Levene da `p ≥ 0,05` Student sería válido, pero Welch da
+prácticamente el mismo resultado, así que no se gana nada cambiando. En código:
+`stats.ttest_ind(a, b, equal_var=False)`.
+
+### t o z
+
+Se usa **t** siempre que la variabilidad de la población se estime desde la muestra, que
+es el caso real. La **z** solo si esa variabilidad se conoce de verdad. Con n grande las
+dos convergen: con n=100 el multiplicador es 1,984 frente a 1,960.
+
+### Atípicos
+
+No se borran por defecto. Se detectan con la regla del IQR (`Q1 − 1,5·IQR` a
+`Q3 + 1,5·IQR`), se decide con criterio de dominio, y **se repite el análisis con y sin
+ellos** reportando ambos. Solo se eliminan si son físicamente imposibles, y entonces se
+documenta cuántas filas y qué porcentaje.
+
+### Datos faltantes
+
+Primero se investiga **por qué** faltan. Eliminar filas si son pocas y al azar; imputar con
+mediana antes que con media; dejarlos como nulos si el modelo los maneja. Cualquier
+imputación se calcula **después** de partir en entrenamiento y prueba, nunca antes, o se
+mete fuga de datos.
+
+## Lo que siempre se reporta
+
+Nunca un valor p solo. El bloque mínimo es:
+
+| Elemento | Por qué |
+|---|---|
+| Tamaño de cada grupo | Determina cuánta confianza merece la estimación |
+| Medias y desviaciones | El dato crudo que sostiene todo lo demás |
+| Estadístico y valor p | La evidencia contra H₀ |
+| **Tamaño del efecto (Cohen&#x27;s d)** | Impide confundir significativo con importante |
+| **Intervalo de confianza de la diferencia** | Si cruza el cero, no hay diferencia demostrada |
+| Prueba de respaldo | Descarta que el resultado sea artefacto de la forma o los extremos |
+| Limitaciones | Las encuentro yo antes de que las encuentre quien revisa |
+
+**Escala de Cohen&#x27;s d**: por debajo de 0,2 es despreciable; alrededor de 0,5 es medio;
+por encima de 0,8 es grande.
+
+## Trampas que ya conozco
+
+- **El valor p no es la probabilidad de que H₀ sea verdadera.** Es la probabilidad de ver
+  un resultado así de extremo si H₀ lo fuera.
+- **Con muestra grande, cualquier diferencia trivial sale significativa.** Por eso el
+  tamaño del efecto es obligatorio.
+- **&quot;No rechazar H₀&quot; no es &quot;demostrar que son iguales&quot;.** Puede ser falta de poder
+  estadístico. Se dice &quot;no hay evidencia suficiente&quot;.
+- **Un intervalo de confianza no dice que el parámetro esté ahí con 95 % de probabilidad.**
+  El 95 % describe el método a la larga, no ese intervalo concreto.
+- **Elegir prueba de una cola después de ver los datos es hacer trampa.** La dirección se
+  decide antes y con razón de negocio.
+- **Más muestra no arregla el sesgo de selección.** Solo un método de muestreo mejor.
+- **Asociación no es causa.** En estudios observacionales se nombran los factores de
+  confusión plausibles de forma explícita.
+- **`scale` recibe el error estándar, no la desviación estándar**, al construir intervalos
+  con `scipy`.
+- **`ppf(0.975)` para un intervalo del 95 %**, porque el 5 % se reparte en dos colas.
+
+## Casos de referencia, con números reales
+
+Sirven para calibrar qué es grande y qué no. Son análisis propios, ya ejecutados.
+
+| Caso | Comparación | Resultado | Lectura |
+|---|---|---|---|
+| **TikTok** | Cuentas verificadas contra no verificadas, sobre visualizaciones. n=19.084 | `t = 25,4994`, `p = 2,61e-120`, `d = −0,544`, IC [−187.626, −160.823] | Diferencia real y de magnitud media. Hallazgo secundario más fuerte: vídeos con reclamación 501.029 visualizaciones frente a 4.956 de opinión |
+| **Automatidata** | Tarjeta contra efectivo, sobre tarifa de taxi. n=22.532 | `t = 6,8668`, `p = 6,80e-12`, `d = 0,0922`, IC [0,87 $, 1,56 $] | Diferencia real pero **despreciable**. El caso que demuestra que un p diminuto no implica un efecto grande |
+| **Waze** | iPhone contra Android, sobre número de viajes. n=14.999 | `t = 1,4635`, `p = 0,1434`, `d = 0,0247`, IC [−0,55, 3,81] | Sin evidencia de diferencia. El intervalo cruza el cero y las tres validaciones coinciden |
+
+Los tres se validaron igual: Levene, luego Welch, luego repetición sin atípicos, luego
+Mann-Whitney. En los tres, las tres validaciones coincidieron entre sí.
+
+## Cómo quiero los entregables
+
+- **Documento PACE** (Plan, Analyze, Construct, Execute) como entregable escrito. Pesa más
+  que el notebook, porque es lo que lee quien decide.
+- **Resumen ejecutivo de una página**: hallazgo, evidencia, recomendación, limitaciones.
+- **Cada decisión de limpieza documentada** con criterio, número de filas y porcentaje. No
+  vale &quot;limpié los datos&quot;.
+- **La recomendación en una frase que alguien sin formación estadística pueda ejecutar.**
+  &quot;p = 0,03&quot; no es una recomendación.
+- **Código en inglés**, explicaciones en español.
+- **Ningún resultado cuenta como hecho** si no está explicado en palabras simples en el
+  entregable visible, aunque el número ya esté calculado en un script o un JSON.
+
+## Vocabulario, español e inglés
+
+Los cursos y la documentación vienen en inglés; los entregables van en español.
+
+| Español | Inglés |
+|---|---|
+| Hipótesis nula / alternativa | null / alternative hypothesis |
+| Nivel de significancia | significance level, alpha |
+| Valor p | p-value |
+| Tamaño del efecto | effect size |
+| Intervalo de confianza | confidence interval |
+| Error estándar | standard error |
+| Grados de libertad | degrees of freedom |
+| Distribución muestral | sampling distribution |
+| Teorema del límite central | central limit theorem |
+| Error tipo I / tipo II | type I / type II error |
+| Poder estadístico | statistical power |
+| Muestreo estratificado | stratified sampling |
+| Sesgo de muestreo | sampling bias |
+| Valor atípico | outlier |
+</code></pre>
+  </div>
+</section>
+</main>
+<footer class="footer">
+  Concentra / 2026-08-20
+</footer>
+<script>
+const button = document.getElementById('copy');
+const source = document.getElementById('brain');
+
+function selectSource() {
+  const range = document.createRange();
+  range.selectNodeContents(source);
+  const selection = window.getSelection();
+  selection.removeAllRanges();
+  selection.addRange(range);
+}
+
+button.addEventListener('click', async () => {
+  const text = source.textContent;
+  let copied = false;
+  // The clipboard API needs a secure context, which file:// is not, so fall back to
+  // selecting the text and letting the old command (or the reader's Ctrl+C) do it.
+  try {
+    await navigator.clipboard.writeText(text);
+    copied = true;
+  } catch {
+    selectSource();
+    try { copied = document.execCommand('copy'); } catch { copied = false; }
+  }
+  button.textContent = copied ? 'Copiado' : 'Seleccionado: pulsa Ctrl+C';
+  button.classList.toggle('done', copied);
+  if (!copied) selectSource();
+  setTimeout(() => {
+    button.textContent = 'Copiar todo';
+    button.classList.remove('done');
+  }, 2600);
+});
+</script>
+</body>
+</html>

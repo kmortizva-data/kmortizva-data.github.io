@@ -1,0 +1,79 @@
+{
+  "project": "automatidata",
+  "course": "curso2",
+  "title": "Automatidata: qué hay en el archivo de viajes",
+  "generated": "2026-08-19",
+  "source_csv": "C:\\Users\\Bruce Wayne\\Documents\\03_Data Analysis Coursera\\Course 3 - Data Analytics\\Exc_1_Automatidata\\01_data\\C2_2017_Yellow_Taxi_Trip_Data.csv",
+  "quality": {
+    "rows": 22699,
+    "columns": 20,
+    "duplicate_rows": 0,
+    "incomplete_rows": 0,
+    "incomplete_pct": 0.0,
+    "columns_with_missing": 0,
+    "text_columns": 3,
+    "numeric_stored_as_text": []
+  },
+  "categories": {
+    "store_and_fwd_flag": {
+      "distinct": 2
+    }
+  },
+  "outliers": {
+    "fare_amount": {
+      "count": 2064,
+      "pct": 9.09,
+      "upper_fence": 26.5
+    },
+    "trip_distance": {
+      "count": 2527,
+      "pct": 11.13,
+      "upper_fence": 6.17
+    },
+    "duration": {
+      "count": 1228,
+      "pct": 5.41,
+      "upper_fence": 35.98
+    },
+    "total_amount": {
+      "count": 2161,
+      "pct": 9.52,
+      "upper_fence": 31.38
+    }
+  },
+  "impossible": {
+    "tarifa cero o negativa": 20,
+    "distancia cero": 148,
+    "termina antes de empezar": 27,
+    "cero pasajeros": 33,
+    "mas de 24 horas de viaje": 0
+  },
+  "dates": {
+    "format": "MM/DD/YYYY hh:mm:ss AM/PM",
+    "span_days": 364,
+    "first": "2017-01-01",
+    "last": "2017-12-31"
+  },
+  "flat_fare": {
+    "trips": 514,
+    "ratecode_2": 513,
+    "pct_of_file": 2.26
+  },
+  "story": {
+    "peak_hour": 19,
+    "peak_trips": 1454,
+    "quiet_hour": 4,
+    "quiet_trips": 235,
+    "peak_over_quiet": 6.2,
+    "evening_trips": 6695,
+    "evening_share": 29.5
+  },
+  "impossible_detail": {
+    "Tarifa cero o negativa": 20,
+    "Distancia cero": 148,
+    "Termina antes de empezar": 27,
+    "Cero pasajeros": 33,
+    "Importe total negativo": 14,
+    "rows_with_any": 197
+  }
+}

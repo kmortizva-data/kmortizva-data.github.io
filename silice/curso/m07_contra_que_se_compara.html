@@ -1,0 +1,672 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Contra qué se compara un modelo · Sílice, módulo 7</title>
+<style>
+/* Sílice: la hoja de estilos del curso.
+ *
+ * Identidad de papel de informe de planta, no de pantalla. El proyecto termina
+ * recomendando no desplegar, y eso es un informe técnico: papel hueso, tinta grafito,
+ * y una retícula de milimetrado muy tenue en la cabecera.
+ *
+ * Dos familias tipográficas y ni una más, las dos del sistema porque el sitio se abre
+ * desde file:// y tiene que funcionar sin internet: serif para la prosa (se lee como
+ * informe) y monoespaciada para todo lo que es dato, código, cifra o etiqueta.
+ *
+ * El acento lo inyecta cada página con --accent: es el del módulo, y marca su posición
+ * en el arco del proyecto. Los diez pasan check_palette.py antes de entrar aquí.
+ */
+
+:root {
+  --paper: #f6f3ec;
+  --bench: #eeeade;
+  --ink: #2a2622;
+  --ink-soft: #57504a;
+  --ink-faint: #8a8177;
+  --rule: #ddd6c6;
+  --rule-soft: #e8e2d4;
+  --grid: rgba(84, 69, 73, .07);
+  --accent: #632727;
+
+  --prose: Georgia, "Iowan Old Style", "Palatino Linotype", Palatino, "Times New Roman", serif;
+  --data: "Cascadia Mono", Consolas, "DejaVu Sans Mono", "Liberation Mono", monospace;
+
+  --measure: 680px;   /* la medida de la prosa, en píxeles y nunca en ch */
+  --wide: 1180px;     /* el borde derecho de los bloques anchos */
+  --margin: 132px;    /* la columna del margen, donde cuelgan los kickers */
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--prose);
+  font-size: 17px;
+  line-height: 1.62;
+  -webkit-text-size-adjust: 100%;
+}
+
+::selection { background: var(--accent); color: var(--paper); }
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+/* --------------------------------------------------------------- cabecera */
+
+.masthead {
+  border-bottom: 1px solid var(--rule);
+  background-color: var(--bench);
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 26px 26px;
+  background-position: -1px -1px;
+}
+
+.masthead-inner {
+  max-width: var(--wide);
+  margin: 0 auto;
+  padding: 2.4rem 2rem 1.6rem;
+}
+
+.eyebrow {
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-bottom: 1rem;
+}
+
+.eyebrow a { color: inherit; text-decoration: none; border-bottom: 1px solid transparent; }
+.eyebrow a:hover { border-bottom-color: var(--accent); color: var(--accent); }
+.eyebrow b { color: var(--accent); font-weight: 400; }
+
+.masthead h1 {
+  margin: 0;
+  font-size: clamp(1.9rem, 4.4vw, 2.9rem);
+  line-height: 1.14;
+  font-weight: 400;
+  letter-spacing: -.012em;
+  max-width: 900px;
+}
+
+.standfirst {
+  margin: .9rem 0 0;
+  max-width: var(--measure);
+  color: var(--ink-soft);
+  font-size: 1.02rem;
+  line-height: 1.55;
+}
+
+/* La cifra del módulo: el número que dejó, en grande, junto al título. Es lo que
+   convierte la cabecera en parte del argumento y no en decoración. */
+.figure-mark {
+  margin-top: 1.6rem;
+  display: flex;
+  align-items: baseline;
+  gap: .8rem;
+  flex-wrap: wrap;
+  border-left: 3px solid var(--accent);
+  padding-left: .9rem;
+}
+
+.figure-value {
+  font-family: var(--data);
+  font-size: clamp(1.5rem, 3.4vw, 2.1rem);
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: -.02em;
+}
+
+.figure-label {
+  font-family: var(--data);
+  font-size: .78rem;
+  letter-spacing: .04em;
+  color: var(--ink-soft);
+}
+
+/* El hilo del proyecto: diez segmentos, uno por módulo, con su cifra debajo. Desde
+   cualquier página se ve el recorrido entero, que es justo lo que a los apuntes
+   sueltos les faltaba. */
+.thread {
+  margin-top: 1.8rem;
+  display: grid;
+  /* One equal column per segment, whatever the temario says. It was pinned to ten and
+     the course grew to fourteen. */
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: 4px;
+}
+
+/* Where part 2 starts: the four modules that were never in the original project. */
+.thread .starts-part { margin-left: 10px; position: relative; }
+.thread .starts-part::after {
+  content: '';
+  position: absolute;
+  left: -7px; top: -3px; bottom: 0;
+  border-left: 1px solid var(--rule);
+}
+
+.thread a, .thread span {
+  display: block;
+  text-decoration: none;
+  color: var(--ink-faint);
+  font-family: var(--data);
+  font-size: .62rem;
+  letter-spacing: .04em;
+  padding-top: .4rem;
+  border-top: 3px solid var(--rule);
+  transition: color .12s, border-color .12s;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.thread a:hover { color: var(--ink); border-top-color: var(--ink-soft); }
+.thread [aria-current="page"] { color: var(--accent); border-top-color: var(--accent); }
+.thread .n { font-weight: 700; }
+.thread .v { color: inherit; opacity: .75; }
+
+/* Las pastillas de composición: de qué está hecho el módulo. */
+.assay {
+  margin-top: 1.6rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.4rem;
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .05em;
+  color: var(--ink-faint);
+}
+
+.assay b { color: var(--ink); font-weight: 700; }
+
+/* ----------------------------------------------------------------- cuerpo */
+
+.container {
+  max-width: var(--wide);
+  margin: 0 auto;
+  padding: 2.6rem 2rem 4rem;
+}
+
+/* Cada sección es una anotación de cuaderno: el kicker cuelga en el margen
+   izquierdo y el contenido corre en la columna principal. En pantalla estrecha el
+   kicker se pone encima. */
+.block {
+  display: grid;
+  grid-template-columns: var(--margin) minmax(0, 1fr);
+  column-gap: 2rem;
+  padding: 2.2rem 0;
+  border-top: 1px solid var(--rule);
+}
+
+.block:first-child { border-top: 0; padding-top: .6rem; }
+
+.kicker {
+  grid-column: 1;
+  font-family: var(--data);
+  font-size: .68rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding-top: .45rem;
+}
+
+.block > :not(.kicker) { grid-column: 2; }
+
+.block-title {
+  margin: 0 0 1.1rem;
+  font-size: 1.42rem;
+  font-weight: 400;
+  line-height: 1.25;
+  letter-spacing: -.008em;
+}
+
+.is-warning .kicker, .is-result .kicker { color: var(--accent); }
+.is-warning .block-title { border-bottom: 2px solid var(--accent); padding-bottom: .4rem; display: inline-block; }
+.is-result { background: var(--bench); margin: 0 -1.2rem; padding: 2.2rem 1.2rem; }
+.is-result .block-title { color: var(--accent); }
+
+/* Prosa: justificada con partición, que sin partición el español justificado abre
+   ríos. Tablas, código y pies de figura se quedan sin justificar. */
+.block p, .block li, .block dd, details > *:not(summary) {
+  max-width: var(--measure);
+  text-align: justify;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+}
+
+.block p { margin: 0 0 1rem; }
+.block p:last-child { margin-bottom: 0; }
+.block ul, .block ol { margin: 0 0 1rem; padding-left: 1.3rem; max-width: var(--measure); }
+.block li { margin-bottom: .5rem; }
+.block li::marker { color: var(--accent); font-family: var(--data); font-size: .85em; }
+
+td, th, figcaption, .assay, .thread a, .res li { text-align: left; hyphens: manual; }
+
+a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+a:hover { text-decoration-thickness: 2px; }
+strong { font-weight: 700; }
+em { font-style: italic; color: var(--ink-soft); }
+
+h3.sub {
+  margin: 1.9rem 0 .7rem;
+  font-size: 1.07rem;
+  font-weight: 700;
+  letter-spacing: -.004em;
+}
+
+h3.sub:first-child { margin-top: 0; }
+
+h4.sub {
+  margin: 1.4rem 0 .5rem;
+  font-family: var(--data);
+  font-size: .82rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  color: var(--ink-soft);
+}
+
+/* ------------------------------------------------------------ código y datos */
+
+code {
+  font-family: var(--data);
+  font-size: .87em;
+  background: var(--bench);
+  padding: .1em .32em;
+  border-radius: 2px;
+}
+
+pre {
+  margin: 0 0 1rem;
+  padding: 1rem 1.1rem;
+  background: var(--bench);
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--accent);
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+pre code { background: none; padding: 0; font-size: .82rem; line-height: 1.62; }
+
+/* La salida es lo que imprime el código, no código para correr: se marca aparte
+   para que nadie confunda entrada con salida. */
+.output {
+  margin: 0 0 1rem;
+  border: 1px dashed var(--rule);
+  background: transparent;
+}
+
+.output-tag {
+  display: block;
+  font-family: var(--data);
+  font-size: .64rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding: .45rem 1.1rem 0;
+}
+
+.output pre {
+  margin: 0;
+  border: 0;
+  background: none;
+  padding: .3rem 1.1rem 1rem;
+}
+
+.output pre code { color: var(--ink-soft); }
+
+/* La anotación línea por línea, para quien no ha programado antes. */
+.annot {
+  margin: 0 0 1.2rem;
+  border: 1px solid var(--rule);
+  border-top: 0;
+  padding: 0 1.1rem .6rem;
+  background: transparent;
+}
+
+.annot-head {
+  font-family: var(--data);
+  font-size: .64rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding: .55rem 0 .5rem;
+  border-bottom: 1px solid var(--rule-soft);
+  margin-bottom: .4rem;
+}
+
+.annot dt { padding: .4rem 0 .1rem; }
+.annot dt code { background: none; padding: 0; color: var(--accent); font-weight: 700; }
+.annot dd {
+  margin: 0 0 .4rem;
+  color: var(--ink-soft);
+  font-size: .94rem;
+  border-bottom: 1px solid var(--rule-soft);
+  padding-bottom: .5rem;
+}
+.annot dd:last-of-type { border-bottom: 0; }
+
+pre:has(+ .annot) { margin-bottom: 0; }
+
+blockquote {
+  margin: 0 0 1rem;
+  padding: .2rem 0 .2rem 1.1rem;
+  border-left: 3px solid var(--rule);
+  color: var(--ink-soft);
+  font-style: italic;
+  max-width: var(--measure);
+}
+
+/* --------------------------------------------------------------- tablas */
+
+.table-wrap { overflow-x: auto; margin: 0 0 1.2rem; }
+
+table {
+  border-collapse: collapse;
+  width: auto;
+  max-width: 100%;
+  font-size: .92rem;
+}
+
+th, td {
+  padding: .5rem .9rem .5rem 0;
+  border-bottom: 1px solid var(--rule-soft);
+  vertical-align: top;
+}
+
+th {
+  font-family: var(--data);
+  font-size: .7rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--ink-faint);
+  border-bottom: 1px solid var(--rule);
+  white-space: nowrap;
+}
+
+/* -------------------------------------------------------------- repaso */
+
+details {
+  border-bottom: 1px solid var(--rule-soft);
+  padding: .2rem 0;
+  max-width: var(--measure);
+}
+
+summary {
+  cursor: pointer;
+  list-style: none;
+  padding: .7rem 0 .7rem 1.5rem;
+  position: relative;
+  font-weight: 700;
+}
+
+summary::-webkit-details-marker { display: none; }
+
+summary::before {
+  content: '+';
+  position: absolute;
+  left: 0;
+  font-family: var(--data);
+  color: var(--accent);
+  font-weight: 700;
+}
+
+details[open] summary::before { content: '\2212'; }
+details[open] summary { color: var(--accent); }
+details > *:not(summary) { color: var(--ink-soft); }
+details > *:last-child { padding-bottom: .8rem; }
+
+/* -------------------------------------------------------------- figuras */
+
+figure.fig {
+  margin: 0 0 1.4rem;
+  max-width: 100%;
+  border: 1px solid var(--rule);
+  background: #fff;
+  padding: .6rem;
+}
+
+figure.fig img { width: 100%; height: auto; display: block; }
+
+figure.fig figcaption {
+  margin-top: .6rem;
+  padding-top: .5rem;
+  border-top: 1px solid var(--rule-soft);
+  font-family: var(--data);
+  font-size: .7rem;
+  letter-spacing: .04em;
+  color: var(--ink-faint);
+}
+
+.gone {
+  font-family: var(--data);
+  font-size: .76rem;
+  color: var(--accent);
+  border: 1px dashed var(--accent);
+  padding: .5rem .8rem;
+}
+
+/* ------------------------------------------------------- pie y navegación */
+
+.pager {
+  max-width: var(--wide);
+  margin: 0 auto;
+  padding: 0 2rem 3rem;
+  display: flex;
+  gap: 1.4rem;
+  justify-content: space-between;
+  font-family: var(--data);
+  font-size: .78rem;
+}
+
+.pager a { max-width: 46%; text-decoration: none; border-bottom: 1px solid var(--rule); padding-bottom: .3rem; }
+.pager a:hover { border-bottom-color: var(--accent); }
+.pager .dir { display: block; font-size: .64rem; letter-spacing: .13em; text-transform: uppercase; color: var(--ink-faint); }
+.pager .next { text-align: right; margin-left: auto; }
+
+.footer {
+  border-top: 1px solid var(--rule);
+  padding: 1.4rem 2rem 2.4rem;
+  font-family: var(--data);
+  font-size: .72rem;
+  letter-spacing: .06em;
+  color: var(--ink-faint);
+}
+
+.footer-inner { max-width: var(--wide); margin: 0 auto; display: flex; gap: 1.4rem; flex-wrap: wrap; }
+
+/* ------------------------------------------------------------- índice */
+
+.toc { list-style: none; margin: 0; padding: 0; max-width: 100%; }
+
+.toc li {
+  border-top: 1px solid var(--rule-soft);
+  max-width: 100%;
+}
+
+.toc li:last-child { border-bottom: 1px solid var(--rule-soft); }
+
+.toc a, .toc .pending {
+  display: grid;
+  grid-template-columns: 3rem minmax(0, 1fr) auto;
+  gap: 1.2rem;
+  align-items: baseline;
+  padding: 1rem .4rem;
+  text-decoration: none;
+  color: inherit;
+}
+
+.toc a:hover { background: var(--bench); }
+.toc .pending { color: var(--ink-faint); }
+.toc .num { font-family: var(--data); font-size: .82rem; font-weight: 700; }
+.toc .name { font-size: 1.05rem; }
+.toc .name small { display: block; font-family: var(--prose); font-size: .86rem; color: var(--ink-soft); margin-top: .2rem; }
+.toc .mark { font-family: var(--data); font-size: .82rem; font-weight: 700; white-space: nowrap; }
+.toc .tag { font-family: var(--data); font-size: .66rem; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-faint); }
+
+/* ---------------------------------------------------------- responsive */
+
+@media (max-width: 900px) {
+  .block { grid-template-columns: minmax(0, 1fr); }
+  .block > :not(.kicker) { grid-column: 1; }
+  .kicker { grid-column: 1; padding-top: 0; margin-bottom: .7rem; }
+  .thread { grid-auto-flow: row; grid-template-columns: repeat(5, 1fr); gap: 6px 4px; }
+  .thread .starts-part { margin-left: 0; }
+  .thread .starts-part::after { display: none; }
+  .toc a, .toc .pending { grid-template-columns: 2.2rem minmax(0, 1fr); }
+  .toc .mark { grid-column: 2; }
+}
+
+@media (max-width: 620px) {
+  body { font-size: 16px; }
+  .masthead-inner, .container, .pager, .footer { padding-left: 1.2rem; padding-right: 1.2rem; }
+  .is-result { margin: 0; padding: 2rem 1rem; }
+  .block p, .block li { text-align: left; }
+}
+
+@media print {
+  .thread, .pager { display: none; }
+  body { font-size: 11pt; }
+  .masthead { background: none; }
+  .block { break-inside: avoid; }
+}
+
+/* -------------------------------------------------- resumen y plegables */
+
+/* El resumen de entrada: la cifra, la trampa y la decision, en cinco vinetas.
+   Se lee en 30 segundos o se sigue leyendo. */
+.is-brief {
+  border-top: 0;
+  padding-top: .4rem;
+}
+
+.is-brief .kicker { color: var(--accent); }
+
+.is-brief ul {
+  list-style: none;
+  padding-left: 0;
+  max-width: var(--measure);
+  border-left: 3px solid var(--accent);
+  padding: .2rem 0 .2rem 1.1rem;
+}
+
+.is-brief li { margin-bottom: .7rem; text-align: left; }
+.is-brief li:last-child { margin-bottom: 0; }
+
+/* Los plegables de contenido denso: el glosario y la anotacion del codigo.
+   Cerrados por defecto, para que la pagina no sea un muro. */
+details.fold {
+  border: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+  background: transparent;
+  margin: 0 0 1.2rem;
+  padding: 0;
+  max-width: 100%;
+}
+
+details.fold > summary {
+  font-family: var(--data);
+  font-size: .68rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  font-weight: 400;
+  color: var(--ink-faint);
+  padding: .55rem .9rem .55rem 2rem;
+}
+
+details.fold > summary::before { left: .9rem; }
+details.fold[open] > summary {
+  color: var(--accent);
+  border-bottom: 1px solid var(--rule-soft);
+  margin-bottom: 0;
+}
+
+details.fold > *:not(summary) { padding: .8rem .9rem; color: inherit; }
+details.fold ul { margin-bottom: 0; }
+details.fold .annot { border: 0; padding: 0; margin: 0; }
+details.fold .annot dd { max-width: var(--measure); }
+
+/* Un bloque de codigo seguido de su plegable van pegados. */
+pre:has(+ details.fold) { margin-bottom: 0; border-bottom: 0; }
+
+:root { --accent: #632727; }
+</style>
+</head>
+<body>
+<header class="masthead">
+  <div class="masthead-inner">
+    <div class="eyebrow"><a href="index.html">Sílice</a> / M&oacute;dulo <b>7</b> de 14</div>
+    <h1>Contra qué se compara un modelo</h1>
+    <p class="standfirst">Importancia por permutación, SHAP, y la medición que le quita al módulo 5 casi todo el mérito</p>
+    <div class="figure-mark">
+      <span class="figure-value">+0,009</span>
+      <span class="figure-label">lo que aporta el ML sobre la persistencia</span>
+    </div>
+    <nav class="thread" aria-label="El arco del proyecto"><a href="m01_radiografia_del_dataset.html" title="1. Radiografía del dataset"><span class="n">1</span> <span class="v">737.453</span></a><a href="m02_el_primer_modelo_y_el_techo.html" title="2. El primer modelo, y el techo que apareció enseguida"><span class="n">2</span> <span class="v">R² 0,04</span></a><a href="m03_como_aprende_un_modelo.html" title="3. Cómo aprende un modelo por dentro"><span class="n">3</span> <span class="v">R² 0,06</span></a><a href="m04_preprocesar_y_validar.html" title="4. Preprocesar y validar sin hacer trampa"><span class="n">4</span> <span class="v">R² −0,13</span></a><a href="m05_darle_memoria_al_modelo.html" title="5. Darle memoria al modelo"><span class="n">5</span> <span class="v">R² 0,64</span></a><a href="m06_clasificar_fuera_de_spec.html" title="6. Clasificar: dentro o fuera de especificación"><span class="n">6</span> <span class="v">0,62 vs 0,77</span></a><span aria-current="page" title="7. Contra qué se compara un modelo"><span class="n">7</span> <span class="v">+0,009</span></span><a href="m08_donde_aporta_el_ml.html" title="8. ¿Dónde aporta el ML de verdad?"><span class="n">8</span> <span class="v">0 de 4</span></a><a href="m09_los_tres_estados_de_la_planta.html" title="9. Los tres estados de la planta"><span class="n">9</span> <span class="v">k = 3</span></a><a href="m10_redes_producto_y_cierre.html" title="10. Redes, producto y cierre"><span class="n">10</span> <span class="v">0,76</span></a><a class="starts-part" href="m11_modelos_de_secuencia.html" title="11. Modelos de secuencia: LSTM, GRU y convolución causal"><span class="n">11</span> <span class="v">+0,215</span></a><a href="m12_practica_de_pronostico.html" title="12. La práctica de pronóstico que faltó"><span class="n">12</span> <span class="v">0,52 vs 0,63</span></a><a href="m13_incertidumbre.html" title="13. Incertidumbre: del punto al intervalo"><span class="n">13</span> <span class="v">92,0 %</span></a><a href="m14_lectura_causal.html" title="14. Lectura causal del lazo de control"><span class="n">14</span> <span class="v">+0,16</span></a></nav>
+    <div class="assay"><span><b>2</b> apuntes de origen</span><span><b>4</b> figuras</span><span><b>3</b> scripts</span></div>
+  </div>
+</header>
+<main class="container">
+<section class="block is-brief"><span class="kicker">Resumen</span><h2 class="block-title">En 30 segundos</h2><ul><li><strong>+0,009.</strong> Eso es todo lo que el machine learning aporta sobre repetir el último análisis del laboratorio.</li><li><strong>La persistencia ya valía 0,632.</strong> El 0,641 del módulo 5 no era mérito del modelo, era inercia del proceso.</li><li><strong>La importancia por permutación lo delata.</strong> Barajar <code>sil_lag1</code> hunde el R² en 0,818. La siguiente variable apenas vale 0,050.</li><li><strong>SHAP explica al modelo, no al proceso.</strong> Enseña de dónde saca cada predicción, y aquí saca casi todo del mismo sitio.</li><li><strong>Esta es la lección más cara del proyecto.</strong> Elegir el rival antes de ver el resultado.</li></ul></section>
+<section class="block "><span class="kicker">Contexto</span><h2 class="block-title">Qué resuelve este módulo</h2><p>El módulo 5 dejó una pregunta abierta a propósito. Su mejor variable era la sílice de la hora anterior, y su ejemplo de juguete ya avisaba de que esa columna sola predice bastante bien.</p><p>Aquí se contesta con dos herramientas. La primera mide de qué se agarra el modelo. La segunda le pone enfrente el rival correcto.</p><p>Las dos apuntan al mismo sitio, y el resultado obliga a releer los módulos 5 y 6.</p></section>
+<section class="block is-toy"><span class="kicker">A mano</span><h2 class="block-title">Antes de la teoría: un ejemplo de juguete</h2><p>Las mismas seis horas del módulo 5, prediciendo de la 2 a la 6.</p><div class="table-wrap"><table><thead><tr><th>Hora</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th></tr></thead><tbody><tr><td><strong>% SiO₂</strong></td><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td><td>6</td></tr></tbody></table></div><h3 class="sub">Paso 1. Cuánta variación hay que explicar</h3><p>La media de las horas 2 a 6 es 4.</p><pre><code>variación total = (2−4)² + (3−4)² + (4−4)² + (5−4)² + (6−4)²
+                =   4    +   1    +   0    +   1    +   4
+                = 10</code></pre><p>El R² se construye comparando el error de un modelo contra ese 10.</p><h3 class="sub">Paso 2. Un modelo que parece muy bueno</h3><p>Un modelo predice 1,5 · 2,5 · 3,5 · 4,5 · 5,0.</p><pre><code>real:      2      3      4      5      6
+predicho: 1,5    2,5    3,5    4,5    5,0
+fallo:   −0,5   −0,5   −0,5   −0,5   −1,0
+error =  0,25 + 0,25 + 0,25 + 0,25 + 1,00 = 2</code></pre><pre><code>R² = 1 − (2 / 10) = 1 − 0,2 = 0,80</code></pre><p><strong>R² 0,80.</strong> Un resultado que en cualquier informe se presenta como un éxito.</p><h3 class="sub">Paso 3. Lo que consigue una regla sin modelo</h3><p>Repetir la hora anterior, como en el módulo 5.</p><pre><code>real:      2      3      4      5      6
+predicho:  1      2      3      4      5
+fallo:    +1     +1     +1     +1     +1
+error =   1 + 1 + 1 + 1 + 1 = 5</code></pre><pre><code>R² = 1 − (5 / 10) = 1 − 0,5 = 0,50</code></pre><h3 class="sub">Paso 4. Repartir el mérito</h3><pre><code>el modelo explica            0,80
+la persistencia ya explicaba 0,50
+                             ----
+aporte propio del modelo     0,30</code></pre><p><strong>De ese 0,80, dos tercios ya estaban ahí gratis.</strong> El modelo aporta 0,30, no 0,80.</p><h3 class="sub">Paso 5. Y cómo saber de qué se agarra el modelo</h3><p>Se baraja una columna al azar, se vuelve a puntuar, y se mira cuánto cayó. Si al destruir una columna el modelo se hunde, esa columna lo sostenía.</p><div class="table-wrap"><table><thead><tr><th>Columna barajada</th><th>R² después</th><th>Caída</th></tr></thead><tbody><tr><td>Ninguna</td><td>0,80</td><td>referencia</td></tr><tr><td>Sílice hora anterior</td><td>0,10</td><td><strong>0,70</strong></td></tr><tr><td>pH</td><td>0,78</td><td>0,02</td></tr><tr><td>Aire</td><td>0,80</td><td>0,00</td></tr></tbody></table></div><p>Una columna se lleva 0,70 y las demás no llegan a 0,02. Ese es el perfil de un modelo que se apoya en una sola cosa. <strong>Y esa cosa es gratis.</strong></p></section>
+<section class="block is-terms"><span class="kicker">Términos</span><h2 class="block-title">Glosario</h2><details class="fold"><summary>9 términos, en palabras simples</summary><ul><li><strong>Baseline de persistencia.</strong> Predecir que el próximo valor será igual al último medido. Sin modelo y sin coste.</li><li><strong>Aporte del modelo.</strong> La diferencia entre lo que puntúa el modelo y lo que puntúa el baseline correcto. Es lo único que se le puede atribuir.</li><li><strong>Importancia por permutación.</strong> Barajar una columna y medir cuánto empeora el modelo. Se hace sobre datos de prueba y con el modelo ya entrenado.</li><li><strong>Importancia por impureza.</strong> La del módulo 2, que sale de los cortes del árbol. Se sesga hacia variables con muchos valores distintos.</li><li><strong>SHAP.</strong> Un método que reparte cada predicción concreta entre las variables que la empujaron. En inglés, <em>SHapley Additive exPlanations</em>.</li><li><strong>Explicación local.</strong> Por qué el modelo dijo lo que dijo en <strong>un</strong> caso concreto.</li><li><strong>Explicación global.</strong> De qué se agarra el modelo en general, sumando muchos casos.</li><li><strong>Diagrama de cascada.</strong> La figura de SHAP que enseña un caso, apilando las contribuciones.</li><li><strong>Diagrama de enjambre.</strong> La figura de SHAP que enseña muchos casos a la vez, una fila por variable.</li></ul></details></section>
+<section class="block is-method"><span class="kicker">Método</span><h2 class="block-title">Paso a paso</h2><h3 class="sub">Paso 1. Volver a medir la importancia, mejor</h3><p>La importancia del módulo 2 salía de cómo se construyó el árbol. Sirve, pero se sesga.</p><p>La importancia por permutación es más directa. Coge el modelo ya entrenado, destroza una columna barajándola, y mide cuánto empeora. Lo que mide es <strong>cuánto depende el modelo de esa columna</strong>.</p><h3 class="sub">Paso 2. Leer el perfil de dependencias</h3><p>Si la importancia está repartida entre muchas columnas, el modelo combina información. Si una sola se lleva casi todo, el modelo es esa columna con adornos.</p><h3 class="sub">Paso 3. Poner enfrente el rival correcto</h3><p>Tres competidores, no dos:</p><ul><li>predecir siempre la media, que es el rival del módulo 2,</li><li>repetir el último análisis, que es la persistencia,</li><li>el modelo completo.</li></ul><h3 class="sub">Paso 4. Restar, no comparar</h3><p>El número que importa no es el R² del modelo. Es la diferencia contra el baseline correcto.</p><h3 class="sub">Paso 5. Abrir una predicción concreta</h3><p>La importancia global dice de qué depende el modelo en promedio. SHAP baja al caso: por qué esta alarma concreta, a esta hora concreta.</p></section>
+<section class="block is-code"><span class="kicker">Código</span><h2 class="block-title">El código, por partes</h2><h3 class="sub">Paso 1. Importancia por permutación</h3><pre><code class="language-python">from sklearn.inspection import permutation_importance
+
+resultado = permutation_importance(modelo, X_test, y_test,
+                                   n_repeats=5, random_state=0, scoring=&quot;r2&quot;)
+orden = resultado.importances_mean.argsort()[::-1]
+for i in orden[:4]:
+    print(f&quot;  {resultado.importances_mean[i]:.3f}  {feats[i]}&quot;)</code></pre><details class="fold"><summary>línea por línea, 4 entradas</summary><dl class="annot"><dt><code>permutation_importance(...)</code></dt><dd>Baraja cada columna por turno y mide la caída de la métrica.</dd><dt><code>n_repeats=5</code></dt><dd>Repite el barajado cinco veces por columna, porque el azar de una sola vez engaña.</dd><dt><code>.importances_mean</code></dt><dd>La caída media de cada columna. Está en las unidades de la métrica, aquí R².</dd><dt><code>.argsort()[::-1]</code></dt><dd>Ordena de menor a mayor y luego le da la vuelta, así que quedan de mayor a menor.</dd></dl></details><div class="output"><span class="output-tag">sale</span><pre><code>R2 del modelo: 0.641
+Top 6 por permutacion:
+  0.818  sil_lag1
+  0.050  sil_lag2
+  0.010  sil_roll3
+  0.006  sil_lag3
+  0.004  Ore Pulp Density
+  0.002  Flotation Column 04 Level</code></pre></div><figure class="fig"><img src="../figuras/fig_m7_permutation.39ea6a4f.png" alt="La caída de R² al barajar cada columna. En verde las cuatro de memoria. Una sola se lleva prácticamente todo." loading="lazy"><figcaption>La caída de R² al barajar cada columna. En verde las cuatro de memoria. Una sola se lleva prácticamente todo.</figcaption></figure><p><strong>0,818 contra 0,050.</strong> Barajar la sílice de la hora anterior hunde al modelo más de lo que vale su propio R². Ninguna variable de proceso llega a 0,005.</p><p>El modelo no aprendió el proceso. Aprendió que el proceso cambia despacio.</p><h3 class="sub">Paso 2. Poner los tres competidores en la misma escala</h3><pre><code class="language-python">r2_media = r2_score(y_test, [y_train.mean()] * len(y_test))
+r2_persistencia = r2_score(y_test, test[&quot;sil_lag1&quot;])
+r2_modelo = r2_score(y_test, modelo.predict(X_test))
+print(f&quot;aporte del ML sobre persistencia: {r2_modelo - r2_persistencia:+.3f}&quot;)</code></pre><details class="fold"><summary>línea por línea, 2 entradas</summary><dl class="annot"><dt><code>test[&quot;sil_lag1&quot;]</code></dt><dd>La columna del retardo usada directamente como predicción. Es la persistencia entera, sin modelo.</dd><dt><code>{...:+.3f}</code></dt><dd>El signo más fuerza que se imprima el signo, también cuando el número es positivo.</dd></dl></details><div class="output"><span class="output-tag">sale</span><pre><code>mean -0.000 | persistencia 0.632 | modelo 0.641
+aporte del ML sobre persistencia: +0.009</code></pre></div><figure class="fig"><img src="../figuras/fig_m7_persistencia.c1244c91.png" alt="Los tres competidores. La flecha entre las dos barras de la derecha es todo lo que aporta el machine learning." loading="lazy"><figcaption>Los tres competidores. La flecha entre las dos barras de la derecha es todo lo que aporta el machine learning.</figcaption></figure><h3 class="sub">Paso 3. Abrir una predicción con SHAP</h3><pre><code class="language-python">import shap
+
+explainer = shap.TreeExplainer(clasificador)
+valores = explainer(X_test.iloc[:300])
+shap.plots.waterfall(valores[264])</code></pre><details class="fold"><summary>línea por línea, 3 entradas</summary><dl class="annot"><dt><code>shap.TreeExplainer</code></dt><dd>La versión rápida de SHAP para modelos de árboles. Con otros modelos hay que usar la genérica, que es mucho más lenta.</dd><dt><code>explainer(X)</code></dt><dd>Calcula, para cada fila y cada columna, cuánto empujó esa columna la predicción.</dd><dt><code>valores[264]</code></dt><dd>Una fila concreta. La cascada explica ese caso, no el modelo entero.</dd></dl></details><div class="output"><span class="output-tag">sale</span><pre><code>shape de los valores SHAP: (300, 25)
+Caso explicado: fila 264, probabilidad 0.889</code></pre></div><figure class="fig"><img src="../figuras/fig_m7_shap_caso.fcb78c14.png" alt="Una alarma concreta, con probabilidad 0,889, abierta en canal. Cada barra es lo que aportó una variable." loading="lazy"><figcaption>Una alarma concreta, con probabilidad 0,889, abierta en canal. Cada barra es lo que aportó una variable.</figcaption></figure><figure class="fig"><img src="../figuras/fig_m7_shap_global.7d692c35.png" alt="El enjambre: 300 casos a la vez. Una fila por variable, y el color es el valor de esa variable." loading="lazy"><figcaption>El enjambre: 300 casos a la vez. Una fila por variable, y el color es el valor de esa variable.</figcaption></figure><p>En la cascada, la sílice de la hora anterior valía 4,79 y empuja la alarma <strong>+3,4</strong>. Todo lo demás junto no llega a +1,3. El enjambre confirma lo mismo en 300 casos.</p></section>
+<section class="block is-result"><span class="kicker">Resultado</span><h2 class="block-title">El resultado, medido</h2><p><strong>Qué esperábamos.</strong> Que el modelo combinara memoria y proceso, y que el aporte sobre la persistencia fuera modesto pero claro, quizá 0,05 o 0,10.</p><p><strong>Qué salió.</strong></p><div class="table-wrap"><table><thead><tr><th>Competidor</th><th>R² prueba</th></tr></thead><tbody><tr><td>Predecir la media</td><td>−0,000</td></tr><tr><td><strong>Repetir el último análisis del laboratorio</strong></td><td><strong>0,632</strong></td></tr><tr><td>Boosting con 25 variables</td><td>0,641</td></tr><tr><td><strong>Aporte propio del machine learning</strong></td><td><strong>+0,009</strong></td></tr></tbody></table></div><p><strong>Qué significa.</strong> El 0,641 del módulo 5 era real, y casi todo era inercia. La planta cambia despacio, así que el valor de hace una hora es una predicción excelente por sí solo.</p><p>Nueve milésimas es el precio de todo el proyecto: la limpieza, las variables construidas, el boosting y el ajuste. <strong>Nada de eso compra un modelo que valga la pena desplegar.</strong></p><h3 class="sub">La lectura correcta de los módulos anteriores</h3><p>No hay que tirar nada de lo anterior. Hay que releerlo con el rival correcto delante.</p><div class="table-wrap"><table><thead><tr><th>Módulo</th><th>Lo que decía</th><th>Lo que dice con el baseline correcto</th></tr></thead><tbody><tr><td>2</td><td>R² 0,04, techo del problema</td><td>Correcto, y contra un rival flojo</td></tr><tr><td>4</td><td>R² −0,13 con validación honesta</td><td>Correcto, y todavía más severo</td></tr><tr><td>5</td><td>R² 0,64, el mejor del proyecto</td><td>El número es real. El mérito propio es +0,009</td></tr><tr><td>6</td><td>El clasificador gana al baseline</td><td>Contra la persistencia, pierde: atrapa 113 de 182 frente a 140</td></tr></tbody></table></div><h3 class="sub">Por qué esto no es un fracaso</h3><p>Un resultado negativo bien medido es un resultado. Y este está medido tres veces: por permutación, por comparación directa y por SHAP.</p><p>Lo que aquí se demuestra es que <strong>la inercia del proceso ya contiene casi toda la información predecible a una hora vista</strong>. Eso es un hallazgo sobre la planta, no sobre el modelo.</p><h3 class="sub">Lo que este módulo deja abierto</h3><p>Queda una salida. A una hora, la persistencia es imbatible porque el proceso apenas se ha movido. A horizontes más largos esa ventaja tiene que desaparecer.</p><p>Si el machine learning aporta algo, tiene que ser ahí. El módulo 8 repite la medición a 1, 3, 6 y 12 horas, y también cambia la pregunta: predecir el <strong>cambio</strong> en vez del nivel.</p></section>
+<section class="block is-warning"><span class="kicker">Trampas</span><h2 class="block-title">Ojo</h2><ul><li><strong>Un R² alto no es mérito hasta que se resta el baseline.</strong> Aquí 0,641 se convierte en +0,009.</li><li><strong>El baseline se elige antes de ver el resultado.</strong> Si se elige después, se elige el que mejor deja al modelo.</li><li><strong>La importancia por impureza y la de permutación no miden lo mismo.</strong> La primera sale de cómo se construyó el árbol. La segunda, de cuánto depende el modelo ya hecho.</li><li><strong>La permutación se hace sobre datos de prueba.</strong> Sobre entrenamiento mide memorización.</li><li><strong>SHAP explica al modelo, nunca al proceso.</strong> Si el modelo aprendió una correlación invertida por el lazo de control, SHAP la explicará con toda naturalidad.</li><li><strong>Una sola variable con importancia dominante es una alarma.</strong> Casi siempre significa fuga, o que esa variable es el objetivo disfrazado.</li></ul></section>
+<section class="block is-bridge"><span class="kicker">Analogía</span><h2 class="block-title">Puente metalúrgico</h2><p>El baseline correcto es el <strong>blanco de un ensayo</strong>. Nadie reporta la recuperación de un reactivo nuevo sin correr en paralelo una prueba sin reactivo. Si la prueba en blanco ya da el 90 % de lo que da el reactivo, el reactivo aporta el 10 % restante, no el 100 % que marca el medidor.</p><p>La persistencia es la prueba en blanco de este proyecto. Marca 0,632 sin hacer nada.</p><p>La importancia por permutación es un <strong>ensayo de sensibilidad en planta</strong>. Se perturba una variable y se mira cuánto se mueve el resultado. Si desconectar un sensor no cambia nada, ese sensor no estaba gobernando el proceso.</p><p>Y el resultado tiene una lectura de operación muy concreta. Que la ley de hace una hora prediga la de ahora significa que <strong>el circuito tiene un tiempo de residencia largo comparado con la frecuencia del laboratorio</strong>. Es información real sobre la planta, y no la da ningún modelo: la da el baseline.</p></section>
+<section class="block is-review"><span class="kicker">Repaso</span><h2 class="block-title">Repaso</h2><details><summary>El modelo da R² 0,641 y la persistencia 0,632. ¿Cómo se resume eso en una frase?</summary><p>El modelo aporta nueve milésimas sobre repetir el último análisis del laboratorio.</p><p>Ese es el número que hay que dar, no el 0,641. El R² de un modelo se mide contra predecir la media, que aquí es un rival sin ninguna información. La persistencia sí usa información que la planta ya tiene, así que es el rival honesto. Todo el trabajo de limpieza, variables construidas y boosting compra +0,009.</p></details><details><summary>Barajar una columna hunde el R² en 0,818, cuando el modelo entero vale 0,641. ¿Cómo puede ser?</summary><p>Porque el R² puede irse por debajo de cero, y ahí es donde cae el modelo sin esa columna.</p><p>La importancia por permutación mide la diferencia entre el R² con la columna intacta y el R² con la columna barajada. Si con ella vale 0,641 y sin ella cae a −0,177, la caída es 0,818. No hay tope en 1: la caída puede superar el R² original cuando el modelo destrozado predice peor que la media.</p></details><details><summary>¿Qué explica SHAP exactamente, y qué no?</summary><p>Explica al modelo. No explica al proceso.</p><p>SHAP reparte una predicción concreta entre las variables que la empujaron, y lo hace fielmente: dice de dónde salió ese número. Lo que no puede decir es si esa relación es causal. En este proyecto la amina aparece con signo invertido respecto a la química, porque el operador dosifica más cuando la sílice sube. SHAP reproducirá esa relación invertida sin inmutarse, porque es la que el modelo aprendió. Confundir una explicación de SHAP con una explicación física es el error más común al usarlo.</p></details><details><summary>El proyecto llevaba cinco módulos celebrando mejoras. ¿Estaban mal?</summary><p>No estaban mal, estaban mal comparadas. Las mediciones eran correctas y siguen siéndolo.</p><p>El módulo 2 midió bien su 0,04, el 4 midió bien su −0,126 y el 5 midió bien su 0,641. Lo que faltaba era el rival correcto en la misma tabla. En cuanto aparece, el 0,641 se descompone en 0,632 de inercia y 0,009 de modelo. La lección práctica es que el baseline se define al empezar el proyecto, no al terminarlo, porque elegirlo al final significa elegir el que mejor deja al trabajo hecho.</p></details><details><summary>Si a una hora la persistencia gana, ¿dónde podría aportar el machine learning?</summary><p>A horizontes más largos, y prediciendo el cambio en vez del nivel.</p><p>La persistencia gana a una hora porque el proceso apenas se ha movido en ese tiempo. Cuanto más lejos se mire, más se degrada esa ventaja, y ahí es donde un modelo con información de proceso podría aportar algo propio. La otra vía es cambiar la pregunta: en vez de predecir cuánta sílice habrá, predecir cuánto va a subir o bajar. La persistencia, por definición, predice cero cambio siempre. El módulo 8 mide las dos ideas.</p></details></section>
+</main>
+<nav class="pager"><a class="prev" href="m06_clasificar_fuera_de_spec.html"><span class="dir">Anterior</span>6. Clasificar: dentro o fuera de especificación</a><a class="next" href="m08_donde_aporta_el_ml.html"><span class="dir">Siguiente</span>8. ¿Dónde aporta el ML de verdad?</a></nav>
+<footer class="footer">
+  <div class="footer-inner">
+    <span>S&iacute;lice / M&oacute;dulo 7</span>
+    <span>generado el 2026-08-20</span>
+    <span>fuente: los 31 apuntes originales, sus scripts y el CSV de la planta</span>
+  </div>
+</footer>
+</body>
+</html>

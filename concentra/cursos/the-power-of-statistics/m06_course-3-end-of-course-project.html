@@ -1,0 +1,496 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Course 3 end-of-course project — The Power of Statistics</title>
+<style>
+/* ============================================================================
+   Concentra — design tokens and shared components.
+   Inlined into every generated page by load_style(), so pages stay self-contained
+   and work offline from file:// with no external requests.
+
+   Direction: an assay lab, not a tech dashboard. The palette is taken from ore
+   and lab materials (chalcopyrite brass, malachite, hematite, quartz) on warm
+   graphite rather than the blue-black + neon of a generic dark UI. Type is
+   Bahnschrift, the DIN-descended grotesque that Windows ships and that lives on
+   machinery plates and technical drawings, over Corbel for reading.
+   ========================================================================== */
+
+:root {
+  /* Ground and surfaces: warm graphite, the colour of rock dust, not blue-black */
+  --rock: #1a1714;
+  --bench: #221e19;
+  --core: #2b251f;
+  --seam: #3d352c;
+
+  /* Ore palette. No blue and no purple anywhere: those are the tones that make a
+     page read as generated, and this palette comes from the ores instead. */
+  --brass: #c9a227;      /* chalcopyrite, the primary accent */
+  --malachite: #5d9b7a;  /* verified output, results that came out right */
+  --hematite: #b04a35;   /* iron oxide, pitfalls and warnings */
+
+  /* Text */
+  --quartz: #ece7de;
+  --dust: #9a9186;
+  --shadowed: #6f675c;
+
+  --display: Bahnschrift, 'DIN Alternate', 'Segoe UI Semibold', system-ui, sans-serif;
+  --body: Corbel, Candara, 'Segoe UI', system-ui, sans-serif;
+  --data: Consolas, 'Cascadia Mono', ui-monospace, monospace;
+
+  /* In px, not ch: ch scales with font-size, so a heading ended up wider than a
+     paragraph and the page had four different right edges instead of two. */
+  --measure: 640px;
+  --wide: 900px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--rock);
+  color: var(--quartz);
+  font-family: var(--body);
+  font-size: 16px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection { background: var(--brass); color: var(--rock); }
+
+:focus-visible {
+  outline: 2px solid var(--brass);
+  outline-offset: 3px;
+}
+
+/* --------------------------------------------------------------- the signature
+   A sieve series: ticks that get finer from left to right, coarse feed to fine
+   concentrate. It is the one ornament on the page and appears exactly twice —
+   under the wordmark and under a page title. */
+.mesh {
+  height: 10px;
+  background-image:
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 16px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 9px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 5px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 3px);
+  background-size: 25% 100%;
+  background-position: 0 0, 25% 0, 50% 0, 75% 0;
+  background-repeat: no-repeat;
+  opacity: .8;
+  transform-origin: left center;
+  animation: sieve .55s cubic-bezier(.2, .8, .3, 1) both;
+}
+@keyframes sieve { from { transform: scaleX(0); opacity: 0; } to { transform: scaleX(1); opacity: .8; } }
+@media (prefers-reduced-motion: reduce) {
+  .mesh { animation: none; }
+  * { transition: none !important; }
+}
+
+/* ------------------------------------------------------------------ page head */
+.header {
+  border-bottom: 1px solid var(--seam);
+  padding: 3.2rem 2rem 0;
+  background: linear-gradient(180deg, #221d16 0%, var(--rock) 100%);
+}
+.header-content { max-width: 1080px; margin: 0 auto; }
+
+.eyebrow {
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--brass);
+  margin-bottom: 1rem;
+}
+.eyebrow a { color: inherit; text-decoration: none; border-bottom: 1px solid transparent; }
+.eyebrow a:hover { border-bottom-color: var(--brass); }
+
+.header h1 {
+  font-family: var(--display);
+  font-size: clamp(2rem, 4.5vw, 3.1rem);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -.015em;
+  color: var(--quartz);
+  max-width: 20ch;
+}
+.header .subtitle {
+  color: var(--dust);
+  max-width: var(--measure);
+  margin-top: 1rem;
+  font-size: 1.02rem;
+}
+.header .mesh { margin: 1.8rem 0 0; }
+
+/* An assay line: the real composition of the module, in lab-report shorthand. */
+.assay {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.4rem;
+  font-family: var(--data);
+  font-size: .78rem;
+  color: var(--shadowed);
+  padding: .9rem 0 1.6rem;
+  letter-spacing: .04em;
+}
+.assay b { color: var(--dust); font-weight: 400; }
+
+/* --------------------------------------------------------------------- layout */
+/* The container hugs the widest block, so there is no orphan edge past the content. */
+.container { max-width: var(--wide); margin: 3rem auto 5rem; padding: 0 2rem; }
+
+/* Two deliberate right edges and no more: prose stops at the reading measure, and
+   only the things that genuinely need room (code, output, figures, big tables) run
+   out to the full column. */
+.section-block {
+  border-top: 1px solid var(--seam);
+  padding: 2rem 0 2.4rem;
+}
+.section-block > p,
+.section-block > ul,
+.section-block > ol,
+.section-block h3.sub,
+.section-block h4.sub,
+.section-block blockquote,
+details > *:not(summary) { max-width: var(--measure); }
+.section-block:first-child { border-top: 0; padding-top: .5rem; }
+
+/* The kicker names what kind of content follows: context, method, pitfalls.
+   It replaces decorative icons with something that actually classifies. */
+.kicker {
+  font-family: var(--data);
+  font-size: .68rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  display: block;
+  margin-bottom: .5rem;
+}
+.section-title {
+  font-family: var(--display);
+  font-size: 1.55rem;
+  font-weight: 600;
+  letter-spacing: -.01em;
+  line-height: 1.2;
+  margin-bottom: 1.2rem;
+  color: var(--quartz);
+}
+.is-warning .kicker { color: var(--hematite); }
+.is-warning .section-title { color: #e8c4b8; }
+.is-bridge .kicker, .is-decision .kicker { color: var(--malachite); }
+.is-toy .kicker, .is-result .kicker, .is-question .kicker { color: var(--brass); }
+
+/* ---------------------------------------------------------------------- prose */
+/* Justified with hyphenation. In Spanish, justifying without hyphens opens rivers of
+   white space and reads worse than ragged right; lang="es" is what feeds the
+   dictionary. Tables, code, captions and summaries stay ragged on purpose. */
+.section-block p,
+.section-block li,
+details > *:not(summary) {
+  text-align: justify;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+}
+.section-block p { margin-bottom: 1rem; }
+.section-block p:last-child { margin-bottom: 0; }
+/* Indent with padding, not margin, so the bullet sits inside the measure instead of
+   pushing the list 1.2rem past the right edge of the paragraphs. */
+.section-block ul, .section-block ol { margin: 0 0 1rem; padding-left: 1.2rem; }
+.section-block li { margin-bottom: .55rem; padding-left: .2rem; }
+.section-block li::marker { color: var(--brass); }
+td, th, figcaption, .res li, .assay { text-align: left; hyphens: manual; }
+a { color: var(--brass); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+a:hover { text-decoration-thickness: 2px; }
+strong { color: #fff; font-weight: 700; }
+em { color: var(--dust); font-style: italic; }
+
+h3.sub {
+  font-family: var(--display);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--brass);
+  margin: 2rem 0 .7rem;
+  letter-spacing: -.005em;
+}
+h3.sub:first-child { margin-top: 0; }
+h4.sub {
+  font-family: var(--display);
+  font-size: .98rem;
+  font-weight: 600;
+  color: var(--dust);
+  margin: 1.3rem 0 .5rem;
+}
+
+code {
+  font-family: var(--data);
+  font-size: .9em;
+  background: var(--core);
+  border-radius: 3px;
+  padding: .08rem .32rem;
+  color: var(--brass);
+}
+pre {
+  background: #14110e;
+  border: 1px solid var(--seam);
+  border-left: 2px solid var(--seam);
+  border-radius: 2px;
+  padding: 1.1rem 1.2rem;
+  overflow-x: auto;
+  margin-bottom: 1rem;
+}
+pre code {
+  background: none; padding: 0; color: var(--quartz);
+  font-size: .87rem; line-height: 1.6;
+}
+
+/* What the code prints. Malachite: the material that came out of the process. */
+.output {
+  position: relative;
+  border: 1px solid rgba(93, 155, 122, .32);
+  border-left: 2px solid var(--malachite);
+  border-radius: 2px;
+  background: rgba(93, 155, 122, .06);
+  padding: 1.7rem 1.2rem 1rem;
+  margin-bottom: 1rem;
+  overflow-x: auto;
+}
+.output-tag {
+  position: absolute; top: .5rem; left: 1.2rem;
+  font-family: var(--data); font-size: .64rem;
+  letter-spacing: .18em; text-transform: uppercase; color: var(--malachite);
+}
+.output pre {
+  background: none; border: 0; padding: 0; margin: 0;
+  font-family: var(--data); font-size: .85rem;
+  color: var(--quartz); white-space: pre-wrap;
+}
+
+/* Line by line explanation of a code block, for a reader new to programming.
+   Two columns: the fragment of code, and what it does. */
+.annot {
+  display: grid;
+  grid-template-columns: minmax(9rem, auto) 1fr;
+  gap: .1rem 1.2rem;
+  align-items: baseline;
+  max-width: var(--wide);
+  margin: -.4rem 0 1.4rem;
+  padding: .9rem 1.1rem 1rem;
+  border: 1px solid var(--seam);
+  border-top: 0;
+  border-radius: 0 0 2px 2px;
+  background: rgba(201, 162, 39, .04);
+}
+.annot-head {
+  grid-column: 1 / -1;
+  font-family: var(--data);
+  font-size: .64rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  margin-bottom: .5rem;
+}
+.annot dt { padding: .35rem 0; }
+.annot dt code {
+  background: var(--core);
+  color: var(--brass);
+  font-size: .82rem;
+  white-space: nowrap;
+}
+.annot dd {
+  padding: .35rem 0;
+  margin: 0;
+  color: var(--dust);
+  font-size: .93rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(61, 53, 44, .5);
+}
+.annot dt { border-bottom: 1px solid rgba(61, 53, 44, .5); }
+.annot dt:last-of-type, .annot dd:last-of-type { border-bottom: 0; }
+/* The code block sits directly on top of its annotation, as one unit. */
+pre:has(+ .annot) { margin-bottom: 0; border-radius: 2px 2px 0 0; }
+
+@media (max-width: 640px) {
+  .annot { grid-template-columns: 1fr; gap: 0; }
+  .annot dt { border-bottom: 0; padding-bottom: 0; }
+  .annot dd { padding-top: .15rem; }
+}
+
+blockquote {
+  border-left: 2px solid var(--brass);
+  padding: .3rem 0 .3rem 1.3rem;
+  margin: 0 0 1rem;
+  font-family: var(--display);
+  font-size: 1.2rem;
+  font-weight: 400;
+  line-height: 1.4;
+  color: var(--quartz);
+}
+
+/* Tables read as assay data: mono figures, hairline rules, no zebra fill.
+   They take the width they need instead of being stretched to the full column,
+   which is what left a two-column table floating in empty space. */
+.table-wrap { overflow-x: auto; margin-bottom: 1rem; }
+table { border-collapse: collapse; width: auto; max-width: 100%; font-size: .93rem; }
+th, td {
+  border-bottom: 1px solid var(--seam);
+  padding: .55rem .8rem .55rem 0;
+  text-align: left;
+  vertical-align: top;
+}
+th {
+  font-family: var(--data);
+  font-size: .7rem;
+  font-weight: 400;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  border-bottom-color: var(--brass);
+}
+td:first-child { color: var(--quartz); }
+
+/* Review questions: closed by default, so they work as recall practice. */
+details {
+  border-top: 1px solid var(--seam);
+  padding: .9rem 0;
+}
+details:last-child { border-bottom: 1px solid var(--seam); }
+summary {
+  cursor: pointer;
+  font-family: var(--display);
+  font-size: 1.02rem;
+  font-weight: 600;
+  color: var(--quartz);
+  list-style: none;
+  display: flex;
+  gap: .7rem;
+  align-items: baseline;
+}
+summary::-webkit-details-marker { display: none; }
+summary::before {
+  content: '+';
+  font-family: var(--data);
+  color: var(--brass);
+  font-size: .95rem;
+}
+details[open] summary::before { content: '−'; }
+details[open] summary { color: var(--brass); margin-bottom: .7rem; }
+details > *:not(summary) { color: var(--dust); }
+
+figure.fig {
+  margin: 1.6rem 0;
+  border: 1px solid var(--seam);
+  padding: .7rem;
+  background: var(--bench);
+}
+figure.fig img { width: 100%; height: auto; display: block; }
+/* The interactive twin of a figure. Its aspect matches the still one, 10 by 4.4, so a
+   case sheet keeps the same rhythm whichever kind of figure comes next. */
+figure.fig.is-live iframe {
+  width: 100%;
+  /* Matches INTERACTIVE_HEIGHT in src/make_figures.py. It used to be an aspect ratio, and
+     that made the figure's height depend on the window: the caption and the legend are
+     placed at fractions of the plot area, so on a wide screen they were pushed past the
+     bottom margin, clipping the caption and covering the x-axis title. */
+  height: 520px;
+  border: 0;
+  display: block;
+}
+figure.fig figcaption {
+  font-family: var(--data);
+  font-size: .72rem;
+  color: var(--shadowed);
+  margin-top: .6rem;
+  letter-spacing: .04em;
+}
+
+/* File listings on a case sheet */
+.res { list-style: none; margin-left: 0 !important; }
+.res li {
+  display: flex; align-items: baseline; gap: .8rem; flex-wrap: wrap;
+  padding: .5rem 0; border-bottom: 1px solid var(--seam); margin-bottom: 0;
+}
+.res .path { font-family: var(--data); font-size: .74rem; color: var(--shadowed); }
+.res .size { font-family: var(--data); font-size: .74rem; color: var(--shadowed); margin-left: auto; }
+.res .gone { font-family: var(--data); font-size: .74rem; color: var(--hematite); }
+
+.footer {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 2rem 4rem;
+  color: var(--shadowed);
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .03em;
+}
+
+@media (max-width: 640px) {
+  body { font-size: 15px; }
+  .header { padding: 2rem 1.2rem 0; }
+  .container { padding: 0 1.2rem; margin-top: 2rem; }
+  .footer { padding: 0 1.2rem 3rem; }
+}
+
+@media print {
+  body { background: #fff; color: #16130f; }
+  .header { background: none; border-bottom: 1px solid #bbb; padding-top: 0; }
+  .header h1, .section-title, summary { color: #16130f; }
+  .mesh { animation: none; }
+  .section-block { break-inside: avoid; max-width: none; }
+  pre, .output { background: #f6f4f0; border-color: #ccc; }
+  details:not([open]) > *:not(summary) { display: block; }
+  a { color: #16130f; }
+}
+
+</style>
+</head>
+<body>
+<header class="header">
+  <div class="header-content">
+    <div class="eyebrow"><a href="https://www.coursera.org/learn/the-power-of-statistics">The Power of Statistics</a> / Módulo 6</div>
+    <h1>Course 3 end-of-course project</h1>
+    <p class="subtitle">La entrega. No hay conceptos nuevos, hay que demostrar que los cinco módulos anteriores sirvieron. Y como los tres casos ya están hechos, este módulo los pone en la misma escala para ver qué enseña cada uno.</p>
+    <div class="mesh" role="presentation"></div>
+    <div class="assay"><span><b>7 h</b> de curso</span><span><b>5</b> vídeos</span><span><b>10</b> lecturas</span><span><b>4</b> tareas</span><span><b>6</b> prácticas</span></div>
+  </div>
+</header>
+<main class="container">
+<section class="section-block "><span class="kicker">Contexto</span><h2 class="section-title">Qué resuelve este módulo</h2><p>Es donde se cobra todo lo anterior. Eliges un escenario de empresa, aplicas el análisis completo y entregas un documento de estrategia. Sin teoría nueva.</p><p>Y como los tres casos de este curso ya están analizados, este módulo hace algo que ninguno de ellos podía hacer por separado: <strong>ponerlos uno al lado del otro</strong>. Es ahí donde se ve que la estadística no da una respuesta, da tres tipos de respuesta, y saber cuál te tocó es la mitad del trabajo.</p><p>Cada caso tiene su ficha completa, con el encargo, las hipótesis, las figuras explicadas y la decisión de negocio:</p><ul><li><strong><a href="case_automatidata.html">Automatidata</a></strong>, taxis de Nueva York y la forma de pago.</li><li><strong><a href="case_tiktok.html">TikTok</a></strong>, cuentas verificadas y alcance de los vídeos.</li><li><strong><a href="case_waze.html">Waze</a></strong>, tipo de dispositivo y uso de la aplicación.</li></ul></section>
+<section class="section-block is-toy"><span class="kicker">Ejemplo</span><h2 class="section-title">Los tres casos, en la misma escala</h2><figure class="fig"><img src="../../figures/00_comparativa_casos.ce4077d2.png" alt="00_comparativa_casos" loading="lazy"><figcaption>00_comparativa_casos.png</figcaption></figure><p>El gráfico coloca el tamaño del efecto de los tres, con su intervalo de confianza, sobre un mismo eje. La línea vertical del cero es la posición de &quot;no hay diferencia&quot;, y las líneas de puntos marcan los umbrales de Cohen.</p><p>Y las tres respuestas son distintas:</p><div class="table-wrap"><table><thead><tr><th>Caso</th><th>Valor p</th><th>d de Cohen</th><th>Qué significa</th></tr></thead><tbody><tr><td><strong>TikTok</strong></td><td>2,61e-120</td><td>0,544</td><td>Hay diferencia <strong>y</strong> es de magnitud media</td></tr><tr><td><strong>Automatidata</strong></td><td>6,80e-12</td><td>0,092</td><td>Hay diferencia pero es <strong>despreciable</strong></td></tr><tr><td><strong>Waze</strong></td><td>0,1434</td><td>0,025</td><td><strong>No hay evidencia</strong> de diferencia</td></tr></tbody></table></div><p>Léelo de arriba abajo y tienes el resumen del curso entero:</p><p><strong>TikTok</strong> es el caso fácil de comunicar. Valor p diminuto, efecto medio, intervalo lejos del cero. Hay hallazgo y merece actuar.</p><p><strong>Automatidata</strong> es el caso traicionero. El valor p tiene doce ceros y parece gritar que el hallazgo es enorme, pero el efecto es de 0,09, por debajo del umbral de lo despreciable. La diferencia existe, es real, y son 1,22 dólares por carrera. Si presentas ese p sin el tamaño del efecto, estás engañando aunque no mientas.</p><p><strong>Waze</strong> es el caso que la gente cree que es un fracaso, y no lo es. El intervalo cruza el cero, así que no hay evidencia de diferencia, y eso es una respuesta completa: le dice al equipo de producto que no invierta en desarrollo diferenciado por plataforma. Ahorrar un proyecto es tan valioso como recomendar uno.</p><p>Y hay un cuarto caso, el del módulo 5. Dos turnos de planta con d de Cohen de <strong>1,26</strong>, un efecto grande, y un valor p de 0,08 que no llega a significativo por falta de mediciones. Ese es el cuadrante que falta en la tabla: efecto grande sin evidencia suficiente.</p></section>
+<section class="section-block "><span class="kicker">Términos</span><h2 class="section-title">Glosario</h2><ul><li><strong>Escenario de trabajo.</strong> El contexto de empresa, ficticio pero realista, sobre el que se aplica el curso. Los tres son de sectores distintos a propósito.</li><li><strong>Documento PACE.</strong> El entregable escrito, con las cuatro fases: Plan, Analyze, Construct y Execute. Es lo que lee quien decide.</li><li><strong>Resumen ejecutivo.</strong> Una página para quien no va a abrir el análisis: hallazgo, evidencia, recomendación y limitaciones.</li><li><strong>Portfolio project.</strong> Trabajo pensado para enseñarse. Se juzga por si se entiende, no por si es complicado.</li><li><strong>Limitación declarada.</strong> Una debilidad del análisis que señalas tú antes de que la encuentre quien revisa.</li></ul></section>
+<section class="section-block is-recipe"><span class="kicker">Método</span><h2 class="section-title">Paso a paso</h2><h3 class="sub h3">Paso 1. Elige el escenario por el sector, no por la dificultad</h3><p>Los tres tienen dificultad parecida. Lo que cambia es de qué vas a poder hablar en una entrevista. Elige aquel cuyo negocio te interese de verdad y termínalo bien, en vez de hacer los tres a medias.</p><h3 class="sub h3">Paso 2. Escribe el plan antes de abrir el archivo de datos</h3><p>Media página: cuál es la pregunta de negocio, quién decide con la respuesta, qué datos hay y qué datos <strong>no</strong> hay. Escribir esto primero es lo que impide adaptar la hipótesis al resultado más adelante.</p><h3 class="sub h3">Paso 3. Aplica el procedimiento completo, sin saltarte pasos</h3><p>Explorar, comprobar supuestos con Levene, elegir la prueba, ejecutarla, y validar el resultado con al menos dos respaldos: repetirla sin atípicos y añadir una prueba que no asuma normalidad. Los tres casos de este curso siguen exactamente esa secuencia, y por eso sus conclusiones se sostienen.</p><h3 class="sub h3">Paso 4. Reporta el bloque completo, nunca un valor p suelto</h3><p>Este es el paso que separa un trabajo de curso de un trabajo profesional:</p><div class="table-wrap"><table><thead><tr><th>Elemento</th><th>Por qué no puede faltar</th></tr></thead><tbody><tr><td>Tamaño de cada grupo</td><td>Determina cuánta confianza merece la estimación</td></tr><tr><td>Medias y desviaciones</td><td>El dato crudo del que sale todo lo demás</td></tr><tr><td>Estadístico y valor p</td><td>La evidencia contra la hipótesis nula</td></tr><tr><td><strong>Tamaño del efecto</strong></td><td>Distingue Automatidata de TikTok, que si no parecen lo mismo</td></tr><tr><td><strong>Intervalo de confianza</strong></td><td>Si cruza el cero, no hay diferencia demostrada</td></tr><tr><td>Prueba de respaldo</td><td>Descarta que el resultado sea artefacto de la forma o los extremos</td></tr><tr><td>Limitaciones</td><td>Las encuentras tú antes que quien revisa</td></tr></tbody></table></div><h3 class="sub h3">Paso 5. Traduce a una frase que alguien pueda ejecutar</h3><p>&quot;p = 0,03&quot; no es una recomendación. &quot;Los pagos con tarjeta dejan 1,22 dólares más por carrera, con un efecto pequeño, así que conviene promoverlos sin esperar un salto de ingresos&quot; sí lo es.</p><h3 class="sub h3">Paso 6. Declara las limitaciones tú mismo</h3><p>Un análisis sin limitaciones declaradas no parece más sólido, parece menos revisado. Si son datos observacionales, dilo: puedes afirmar asociación, no causa.</p></section>
+<section class="section-block is-recipe"><span class="kicker">Código</span><h2 class="section-title">El código, por partes</h2><h3 class="sub h3">Paso 1. Definir una función propia, que es lo nuevo aquí</h3><p>Hasta ahora hemos usado funciones que otros escribieron. Como el paso 4 pide siempre lo mismo, conviene escribir la nuestra una vez y reutilizarla siempre.</p><pre><code class="language-python">def reportar(a, b, nombre_a, nombre_b, alpha=0.05):</code></pre><dl class="annot"><div class="annot-head">línea por línea</div><dt><code>def</code></dt><dd>Del inglés <em>define</em>. Anuncia que estamos creando una función nueva, no llamando a una existente.</dd><dt><code>reportar</code></dt><dd>El nombre que le damos. A partir de ahora, escribir <code>reportar(...)</code> ejecuta todo lo que venga debajo.</dd><dt><code>(a, b, nombre_a, ...)</code></dt><dd>Los <strong>parámetros</strong>: los huecos que hay que rellenar al usarla. Dentro de la función, <code>a</code> significará lo que sea que le pasen en esa posición.</dd><dt><code>alpha=0.05</code></dt><dd>Un parámetro <strong>con valor por defecto</strong>. Si no se lo pasas, vale 0,05; si quieres otro umbral, lo pones y manda el tuyo. Los parámetros con valor por defecto van siempre al final.</dd><dt><code>:</code></dt><dd>Dos puntos otra vez, y todo el cuerpo de la función irá indentado debajo, igual que en el bucle y en el <code>if</code>.</dd></dl><h3 class="sub h3">Paso 2. El cuerpo, que ya conoces entero</h3><p>Todo lo de dentro son piezas de los módulos anteriores, puestas en fila.</p><pre><code class="language-python">    lev = stats.levene(a, b)
+    t, p = stats.ttest_ind(a, b, equal_var=False)
+    dif = a.mean() - b.mean()
+
+    se = np.sqrt(a.var(ddof=1) / len(a) + b.var(ddof=1) / len(b))
+    gl = se**4 / ((a.var(ddof=1) / len(a))**2 / (len(a) - 1)
+                  + (b.var(ddof=1) / len(b))**2 / (len(b) - 1))
+    lo, hi = stats.t.interval(0.95, df=gl, loc=dif, scale=se)
+
+    junta = np.sqrt(((len(a) - 1) * a.var(ddof=1) + (len(b) - 1) * b.var(ddof=1))
+                    / (len(a) + len(b) - 2))
+    d = dif / junta</code></pre><dl class="annot"><div class="annot-head">línea por línea</div><dt><code>la sangría</code></dt><dd>Estas líneas llevan cuatro espacios porque están <strong>dentro</strong> de la función. Es el mismo mecanismo del bucle del módulo 2: la sangría es lo que marca la pertenencia.</dd><dt><code>lev.pvalue</code></dt><dd>Cuando una función devuelve varias cosas con nombre, se piden con un punto. Aquí se guarda el resultado entero en <code>lev</code> y luego se le pide su valor p.</dd><dt><code>**</code></dt><dd>Elevar a una potencia. <code>se**4</code> es el error estándar a la cuarta.</dd><dt><code>gl</code></dt><dd>Los grados de libertad de Welch. La fórmula es fea y no hay que memorizarla; lo importante es que <strong>no</strong> son simplemente n menos uno cuando los grupos tienen variabilidades distintas.</dd><dt><code>( ... \n ... )</code></dt><dd>Una expresión puede partirse en varias líneas si está dentro de paréntesis. Es lo que permite que una fórmula larga siga siendo legible.</dd><dt><code>(len(a) - 1) * a.var(...)</code></dt><dd>Aquí sí se pondera por el tamaño de cada grupo, a diferencia del atajo del módulo 5, porque esta función tiene que funcionar también con grupos de tamaños distintos.</dd></dl><h3 class="sub h3">Paso 3. Imprimir el bloque completo</h3><pre><code class="language-python">    print(f&quot;{nombre_a}: n = {len(a)}, media = {a.mean():.2f}&quot;)
+    print(f&quot;{nombre_b}: n = {len(b)}, media = {b.mean():.2f}&quot;)
+    print(f&quot;Levene    : p = {lev.pvalue:.4f}&quot;)
+    print(f&quot;Welch     : t = {t:.4f}, p = {p:.4f}&quot;)
+    print(f&quot;Diferencia: {dif:.2f}  IC 95% [{lo:.2f}, {hi:.2f}]&quot;)
+    print(f&quot;Cohen d   : {d:.4f}&quot;)
+    print(f&quot;Veredicto : {&#x27;se rechaza H0&#x27; if p &lt; alpha else &#x27;no hay evidencia suficiente&#x27;}&quot;)</code></pre><dl class="annot"><div class="annot-head">línea por línea</div><dt><code>&quot;Levene    : &quot;</code></dt><dd>Los espacios de más están puestos a mano para que los dos puntos queden en columna. Una salida alineada se lee mucho más rápido.</dd><dt><code>{&#x27;a&#x27; if cond else &#x27;b&#x27;}</code></dt><dd>Un <code>if</code> escrito en una sola línea, dentro de las llaves. Se lee de corrido: &quot;esto si se cumple, si no, esto otro&quot;. Es el mismo condicional del módulo 5, en versión compacta.</dd><dt><code>print y no return</code></dt><dd>Esta función <strong>imprime</strong> en vez de devolver. Sirve para mirar el resultado, no para seguir calculando con él. Si quisieras usar los números después, habría que cambiarla para que los devolviera.</dd></dl><h3 class="sub h3">Paso 4. Usarla</h3><pre><code class="language-python">reportar(np.array([84, 86, 85, 88, 87]),
+         np.array([83, 85, 82, 86, 84]),
+         &quot;Turno dia&quot;, &quot;Turno noche&quot;)</code></pre><dl class="annot"><div class="annot-head">línea por línea</div><dt><code>reportar(...)</code></dt><dd>Aquí se <strong>llama</strong>. Los valores se van colocando en los parámetros por orden: el primer array en <code>a</code>, el segundo en <code>b</code>, y los dos textos en los nombres.</dd><dt><code>alpha</code></dt><dd>No se pasa, así que se usa su valor por defecto de 0,05.</dd></dl><div class="output"><span class="output-tag">sale</span><pre>Turno dia: n = 5, media = 86.00
+Turno noche: n = 5, media = 84.00
+Levene    : p = 1.0000
+Welch     : t = 2.0000, p = 0.0805
+Diferencia: 2.00  IC 95% [-0.31, 4.31]
+Cohen d   : 1.2649
+Veredicto : no hay evidencia suficiente</pre></div><p>Siete líneas de salida en lugar de un valor p suelto. Esta función es el paso 4 del método convertido en código, y se puede pegar tal cual en cualquier proyecto nuevo.</p></section>
+<section class="section-block is-warning"><span class="kicker">Trampas</span><h2 class="section-title">Ojo</h2><ul><li><strong>El proyecto final no pide un modelo predictivo.</strong> Termina en una decisión estadística respaldada, no en un clasificador. No mezcles los entregables.</li><li><strong>El documento pesa más que el notebook.</strong> Un análisis impecable con un documento pobre se percibe como un análisis pobre, porque nadie va a leer tu código.</li><li><strong>Cada decisión de limpieza va documentada</strong> con criterio, número de filas y porcentaje. &quot;Limpié los datos&quot; no es una justificación.</li><li><strong>Un resultado no significativo es un resultado completo.</strong> Waze lo demuestra. Forzar la significancia bajando el umbral después de ver los datos sí sería un fracaso.</li><li><strong>Reutilizar el mismo marco en los tres casos está bien.</strong> Demuestra que entendiste el método y que es transferible, que es justo lo que se busca en un portafolio.</li><li><strong>No subas datos personales a un repositorio público.</strong> Los tres escenarios traen datos de usuarios, y revisar eso es parte de la entrega.</li></ul></section>
+<section class="section-block is-bridge"><span class="kicker">Analogía</span><h2 class="section-title">Puente metalúrgico</h2><p>Este cierre es <strong>el informe final de una campaña de pruebas metalúrgicas</strong>.</p><p>Has hecho el muestreo, las pruebas de flotación y los balances. Nada de eso se entrega en crudo. Se entrega un informe con el objetivo, la metodología, los criterios de descarte de ensayos, los resultados y una recomendación de circuito. El cliente decide con eso, no con tu cuaderno de laboratorio.</p><p>Y las dos cosas que un buen informe metalúrgico nunca omite son exactamente las dos que más se olvidan aquí. La primera, <strong>qué ensayos descartaste y por qué</strong>, porque un informe que no lo dice levanta sospechas: siempre se descarta algo. La segunda, <strong>hasta dónde llega la validez del resultado</strong>, esa frase de &quot;estas condiciones se probaron sobre mineral de la zona norte, no extrapolar al sur&quot; que es literalmente una limitación declarada.</p><p>El documento PACE es tu informe de campaña. El notebook es el cuaderno de laboratorio: imprescindible, y no es lo que se entrega.</p></section>
+<section class="section-block is-review"><span class="kicker">Repaso</span><h2 class="section-title">Repaso</h2><details><summary>Los tres casos dan respuestas distintas. ¿Cuál es la de cada uno?</summary><p>TikTok tiene un valor p diminuto y un efecto medio, así que hay diferencia y merece actuar. Automatidata tiene un valor p aún más pequeño pero un efecto de 0,09, despreciable, así que la diferencia es real y a la vez casi irrelevante para el negocio. Waze tiene un valor p de 0,14 y un intervalo que cruza el cero, así que no hay evidencia de diferencia, lo cual es una recomendación útil: no invertir en desarrollo diferenciado por plataforma. Saber cuál de los tres casos tienes delante es la mitad del trabajo de un analista.</p></details><details><summary>¿Por qué el tamaño del efecto es obligatorio en el reporte?</summary><p>Porque sin él, Automatidata y TikTok parecen el mismo resultado. Los dos tienen valores p absurdamente pequeños, pero uno tiene un efecto medio y el otro uno despreciable, y las decisiones de negocio que se derivan son opuestas. El valor p solo responde a si la diferencia se distingue del azar, y esa pregunta depende del tamaño de muestra tanto como del fenómeno. El tamaño del efecto responde a la pregunta que de verdad importa, que es si la diferencia es lo bastante grande como para hacer algo al respecto.</p></details><details><summary>¿Qué distingue este proyecto final del proyecto final del curso anterior?</summary><p>El del curso anterior terminaba en una visualización que comunicaba un hallazgo exploratorio. Este termina en una prueba de hipótesis formal que respalda una decisión con un nivel de confianza declarado. El primero responde a qué muestran los datos, el segundo a si la diferencia observada es real y qué conviene hacer. Es la misma estructura de trabajo, pero la fase de construcción produce ahora un estadístico y un intervalo en lugar de un gráfico.</p></details><details><summary>Tu análisis no encuentra diferencia significativa. ¿Cómo lo presentas?</summary><p>Como el resultado que es, sin disculparse. Reporto el valor p, el tamaño del efecto y el intervalo de confianza, y señalo explícitamente que el intervalo incluye el cero. Añado la consideración de poder estadístico, porque no encontrar diferencia con una muestra pequeña no es lo mismo que no encontrarla con una grande: en el ejemplo de los dos turnos del módulo 5 el efecto era grande y aun así no se detectó, mientras que en Waze el efecto también era casi nulo, lo que refuerza la conclusión. Y cierro con la recomendación correspondiente, que muchas veces es no invertir en algo, y eso ahorra dinero.</p></details><details><summary>¿Por qué declarar limitaciones no debilita el trabajo?</summary><p>Porque todo análisis las tiene, y la única diferencia está en si las encuentras tú o las encuentra quien te evalúa. Declararlas demuestra que entiendes el alcance real de tus datos y adelanta la primera objeción de cualquier revisión seria. En los tres casos de este curso la limitación principal es la misma y es de peso: son estudios observacionales, no experimentos, así que se puede afirmar que existe asociación pero no que exista causa.</p></details></section>
+</main>
+<footer class="footer">
+  Concentra / destilado del temario público del curso / 2026-08-20
+</footer>
+</body>
+</html>
