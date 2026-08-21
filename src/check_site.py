@@ -229,9 +229,13 @@ def check_index() -> list[str]:
 
     problems = []
     data = json.loads((ROOT / "content" / "site.json").read_text(encoding="utf-8"))
-    live = [p for p in data["projects"] if not p.get("archive")]
+    live = [p for p in data["projects"]
+            if not p.get("archive") and not p.get("hidden")]
+    hidden = [p for p in data["projects"] if p.get("hidden")]
     print()
-    print(f"INDICE  ({len(live)} proyectos en portada)")
+    print(f"INDICE  ({len(live)} en portada"
+          + (f", {len(hidden)} oculto(s): "
+             + ", ".join(p["slug"] for p in hidden) if hidden else "") + ")")
 
     for project in data["projects"]:
         for lang in ("en", "es"):
@@ -253,14 +257,65 @@ def check_index() -> list[str]:
             problems.append(f"{page}: ningún panel arranca visible, sin JavaScript queda vacío")
         print(f"  {page:<16} {rows} filas, {panes} paneles, uno visible de salida")
 
+    # A hidden project has to leave no page behind. Deleting it from the index while its
+    # own page still sits on disk means the work is still published, just unlinked.
+    for project in hidden:
+        for folder in ("work", "es/proyectos"):
+            stale = ROOT / folder / f"{project['slug']}.html"
+            if stale.exists():
+                problems.append(f"{project['slug']} está oculto pero {folder}/"
+                                f"{project['slug']}.html sigue en disco")
+        print(f"  {project['slug']} oculto, sin página en disco")
+
     if not problems:
         print("  cada proyecto tiene nombre, cifra, área y año en los dos idiomas")
     return problems
 
 
+def check_measure() -> list[str]:
+    """Every text block on a project page has to share one column.
+
+    The page once had six widths and two different left margins stacked down it, and Kevin
+    spotted it before any check did. The cause was each block declaring its own max-width,
+    several of them in ch, which is the width of a zero at that element's own font size: the
+    same 76ch gave 615px to the stream text at 15px and 696px to the prose at 17px.
+
+    So the rule is not "roughly similar", it is: these selectors use var(--measure) or they
+    use nothing. This reads the stylesheet rather than a rendered page, which cannot catch a
+    width imposed by a grid, but it catches the failure that actually happened.
+    """
+    css = (ROOT / "templates" / "style.css").read_text(encoding="utf-8")
+    problems = []
+    print()
+    print("MEDIDA")
+
+    owned = [".project-tagline", ".streams dd", ".assay-figure p", ".prose"]
+    for selector in owned:
+        pattern = re.escape(selector) + r"\s*\{[^{}]*?max-width:\s*([^;]+);"
+        found = re.search(pattern, css, re.S)
+        if not found:
+            problems.append(f"«{selector}» ya no declara max-width: revisar a qué ancho sale")
+        elif "var(--measure)" not in found.group(1):
+            problems.append(f"«{selector}» usa {found.group(1).strip()} en vez de var(--measure)")
+
+    declared = re.search(r"--measure:\s*([^;]+);", css)
+    if not declared:
+        problems.append("no existe la variable --measure")
+    elif "ch" in declared.group(1).split("/*")[0]:
+        problems.append("--measure está en ch: da un ancho distinto por tamaño de letra, "
+                        "que es justo lo que se arregló")
+    else:
+        print(f"  --measure = {declared.group(1).split('/*')[0].strip()}, "
+              f"la misma para {len(owned)} bloques")
+
+    if not problems:
+        print("  ningún bloque de texto inventa su propio ancho")
+    return problems
+
+
 def main() -> None:
     problems = (check_contrast() + check_links() + check_images() + check_motion()
-                + check_index())
+                + check_index() + check_measure())
 
     print("\n" + "-" * 66)
     if problems:

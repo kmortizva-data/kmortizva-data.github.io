@@ -152,6 +152,31 @@ def stack_of(project: dict) -> str:
     return "".join(f"<li>{esc(s)}</li>" for s in project["stack"])
 
 
+# Spelled out, because "Four projects" reads like prose and "4 projects" reads like a
+# database. Beyond twelve the digit is the better choice anyway.
+NUMBER_WORDS = {
+    "en": ["no", "one", "two", "three", "four", "five", "six",
+           "seven", "eight", "nine", "ten", "eleven", "twelve"],
+    "es": ["ningún", "un", "dos", "tres", "cuatro", "cinco", "seis",
+           "siete", "ocho", "nueve", "diez", "once", "doce"],
+}
+
+
+def spell(count: int, lang: str) -> str:
+    words = NUMBER_WORDS[lang]
+    return words[count] if count < len(words) else str(count)
+
+
+def fill_counts(text: str, count: int, lang: str) -> str:
+    """Replace {n} with the spelled count, and {N} with it capitalised.
+
+    The project count used to be typed into six strings across two languages. Hiding one
+    project made all six wrong at once, and nothing complained. Now it is computed.
+    """
+    word = spell(count, lang)
+    return text.replace("{n}", word).replace("{N}", word[0].upper() + word[1:])
+
+
 def work_index(data: dict, lang: str, ui: dict, depth: int) -> str:
     """The projects as an index with a preview panel, instead of four tall cards.
 
@@ -163,7 +188,7 @@ def work_index(data: dict, lang: str, ui: dict, depth: int) -> str:
     project actually measured. Only the picture is behind the hover, so the page still
     works on a phone, under a screen reader, and with the script switched off.
     """
-    live = [project for project in data["projects"] if not project.get("archive")]
+    live = [p for p in shown_projects(data) if not p.get("archive")]
 
     rows = []
     for number, project in enumerate(live, start=1):
@@ -176,6 +201,7 @@ def work_index(data: dict, lang: str, ui: dict, depth: int) -> str:
             f'<span class="index-num">{number:02d}</span>'
             f'<span class="index-thumb">{shot_block(project, lang, depth)}</span>'
             f'<span class="index-name">{esc(p["name"])}</span>'
+            f'<span class="index-say">{esc(p["tagline"])}</span>'
             f'<span class="index-assay">{esc(p["mark"])}</span>'
             f'<span class="index-area">{esc(p["area"])}</span>'
             f'</a></li>')
@@ -200,7 +226,7 @@ def archive_section(data: dict, lang: str, ui: dict, depth: int) -> str:
     readable, and everything that has had its turn moves down here, where a row costs one
     line instead of a screenshot and four paragraphs.
     """
-    old = [project for project in data["projects"] if project.get("archive")]
+    old = [p for p in shown_projects(data) if p.get("archive")]
     if not old:
         return ""
 
@@ -233,9 +259,16 @@ def marquee(data: dict, lang: str) -> str:
 </div>'''
 
 
+def shown_projects(data: dict) -> list:
+    """The projects the site actually publishes. One definition, used by every builder."""
+    return [p for p in data["projects"] if not p.get("hidden")]
+
+
 def about_section(data: dict, lang: str) -> str:
     about = data["about"][lang]
-    paragraphs = "".join(f"<p>{esc(par)}</p>" for par in about["body"])
+    count = len([p for p in shown_projects(data) if not p.get("archive")])
+    paragraphs = "".join(f"<p>{esc(fill_counts(par, count, lang))}</p>"
+                         for par in about["body"])
     marks = "".join(
         f'<div><span class="mark-value">{esc(m["value"])}</span>'
         f'<span class="mark-label">{esc(m["label"])}</span></div>'
@@ -295,6 +328,7 @@ def home_page(data: dict, lang: str) -> str:
     contact = data["contact"][lang]
     depth = 0 if lang == "en" else 1
     up = rel(depth)
+    live_count = len([p for p in shown_projects(data) if not p.get("archive")])
 
     note_items = "".join(
         f'<li><a href="{up}{esc(n["file"])}">'
@@ -308,7 +342,7 @@ def home_page(data: dict, lang: str) -> str:
   <h1 class="split">{split_words(hero["headline"])}</h1>
   <div class="hero-foot">
     <p class="lede">{esc(hero["lede"])}</p>
-    <p class="meta">{esc(hero["meta"])}</p>
+    <p class="meta">{esc(fill_counts(hero["meta"], live_count, lang))}</p>
   </div>
   <p class="hero-actions">
     <a class="cta" href="#work">{esc(ui["see_work"])}</a>
@@ -325,7 +359,7 @@ def home_page(data: dict, lang: str) -> str:
 <section id="work" class="wrap section">
   <div class="section-head reveal">
     <h2>{esc(work["title"])}</h2>
-    <p>{esc(work["text"])}</p>
+    <p>{esc(fill_counts(work["text"], live_count, lang))}</p>
   </div>
   {work_index(data, lang, ui, depth)}
 </section>
@@ -414,6 +448,8 @@ def main() -> int:
         write(base / "index.html", home_page(data, lang))
         pages += 1
         for project in data["projects"]:
+            if project.get("hidden"):
+                continue
             write(ROOT / LANGS[lang]["work"] / f"{project['slug']}.html",
                   project_page(project, data, lang))
             pages += 1

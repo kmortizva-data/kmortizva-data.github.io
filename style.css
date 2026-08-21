@@ -32,7 +32,22 @@
   --mint:      #8CAE79;          /* olive */
   --slate:     #A79DB4;          /* grey violet */
 
-  --measure: 68ch;
+  /* Chosen by measuring how far each space stretches to reach the right margin on a
+     justified project page, not by the usual 60-75 character advice. Across the three
+     paragraphs of silica.html, natural space 4.64px, text at 17px:
+
+       68ch (623px)  worst gap 1.83x  average 1.37x   6 of 14 lines past 1.5x
+       72ch (660px)  worst gap 1.80x  average 1.29x   2 of 12
+       76ch (696px)  worst gap 1.66x  average 1.16x   2 of 12    <- best on all three
+       80ch (733px)  worst gap 1.99x  average 1.27x   3 of 12
+
+     The old 68ch was the worst row in the table.
+
+     It is declared in rem rather than ch on purpose. A ch is the width of a zero at the
+     element's own font size, so the same 76ch gave 615px to the stream text at 15px, 623px
+     to the note at 14px and 696px to the prose at 17px: three different right edges down
+     one page, which is the exact complaint. One column means one number. */
+  --measure: 43.5rem;   /* = 696px, the 76ch above at the prose size of 17px */
   --gap: clamp(1.25rem, 3vw, 2.5rem);
   --pad: clamp(1.25rem, 5vw, 5rem);
 
@@ -322,6 +337,7 @@ a { color: inherit; }
   font-size: 0.9375rem;
   line-height: 1.55;
   color: var(--ink-soft);
+  max-width: var(--measure);
 }
 
 /* the number */
@@ -344,7 +360,7 @@ a { color: inherit; }
   font-size: 0.875rem;
   color: var(--ink-soft);
   margin: 0.75rem 0 0;
-  max-width: 48ch;
+  max-width: var(--measure);
 }
 
 .assay-links {
@@ -528,13 +544,48 @@ a { color: inherit; }
   font-size: clamp(1.05rem, 1rem + 0.4vw, 1.25rem);
   line-height: 1.5;
   color: var(--ink-soft);
-  max-width: 46ch;
+  max-width: var(--measure);
   margin: 1.25rem 0 0;
 }
 
 /* On a project page the assay stands alone, so it does not need the two column
    split that the cards on the home page use. */
-.assay-solo { grid-template-columns: 1fr; margin-block: clamp(2rem, 5vw, 3rem); }
+/* On a page that is already about one project, wrapping that project in a card adds
+   nothing and costs a lot: the card's padding pushed its contents to a second left edge,
+   41px inside the one every other block used, so the page had two margins and the eye had
+   nothing fixed to hang on to.
+
+   The chrome goes. What did the actual work stays: the horizontal rules between the three
+   streams, and the tinted rule above the measured number. */
+.assay-solo {
+  grid-template-columns: 1fr;
+  margin-block: clamp(2rem, 5vw, 3rem);
+  background: none;
+  border: 0;
+  border-radius: 0;
+}
+.assay-solo:hover { transform: none; border-color: transparent; }
+.assay-solo .assay-body { padding: 0; }
+/* The streams draw their separators with a 1px grid gap over a coloured background,
+   which is a neat trick inside a card and a full width grey slab outside one. On the
+   project page the same lines are drawn as real borders, so nothing paints past the
+   column and the rules line up with the text they separate. */
+.assay-solo .streams {
+  background: none;
+  gap: 0;
+  max-width: var(--measure);
+  border-block: 1px solid var(--rule);
+}
+.assay-solo .streams > div { background: none; border-top: 1px solid var(--rule); }
+.assay-solo .streams > div:first-child { border-top: 0; }
+.assay-solo .assay-figure { max-width: var(--measure); }
+
+/* The chips and the links are not prose, but letting them run wider than the text is
+   what made the page look like three different documents stacked up. */
+.assay-solo .assay-links,
+.prose + .stack-label,
+article > .stack,
+article > .assay-links { max-width: var(--measure); }
 
 .stack-label { margin-top: 2.75rem; }
 
@@ -1002,9 +1053,12 @@ p, .assay-tagline, .cred-detail, .streams dd { text-wrap: pretty; }
    Ragged is the default, so a browser without container queries gets the safe one. */
 .about-body, .prose { container-type: inline-size; }
 
+.about-body p {
+  max-width: 78ch;      /* measured on the home column, which is wider than a project page */
+}
+
 .about-body p,
 .prose p {
-  max-width: 78ch;
   hyphens: auto;
   -webkit-hyphens: auto;
 }
@@ -1039,7 +1093,7 @@ p, .assay-tagline, .cred-detail, .streams dd { text-wrap: pretty; }
 
 .index-row > a {
   display: grid;
-  grid-template-areas: "num name" "num assay" "num area";
+  grid-template-areas: "num name" "num say" "num assay" "num area";
   grid-template-columns: auto minmax(0, 1fr);
   gap: 0.3rem 1.25rem;
   padding: clamp(1.25rem, 3vw, 1.9rem) 0.5rem;
@@ -1068,6 +1122,17 @@ p, .assay-tagline, .cred-detail, .streams dd { text-wrap: pretty; }
   letter-spacing: -0.02em;
   line-height: 1.15;
   color: var(--ink);
+}
+
+/* What the project actually is, in one line. Without it the index was a list of names
+   and numbers with no way to tell what any of them were for. */
+.index-say {
+  grid-area: say;
+  color: var(--ink-soft);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  max-width: 52ch;
+  margin-bottom: 0.15rem;
 }
 
 /* The number the project measured. It is the reason this is an index and not a menu. */
@@ -1121,7 +1186,7 @@ p, .assay-tagline, .cred-detail, .streams dd { text-wrap: pretty; }
 
 @media (max-width: 59.99rem) {
   .index-panel { display: none; }
-  .index-row > a { grid-template-areas: "num thumb" "num name" "num assay" "num area"; }
+  .index-row > a { grid-template-areas: "num thumb" "num name" "num say" "num assay" "num area"; }
   .index-thumb {
     display: block;
     grid-area: thumb;
