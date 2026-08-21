@@ -37,10 +37,20 @@
       var link = event.target.closest && event.target.closest("a");
       if (!link) return;
       var href = link.getAttribute("href");
-      if (!href || href.charAt(0) === "#" || link.target === "_blank") return;
+      if (!href || link.target === "_blank") return;
       if (link.hasAttribute("download")) return;
-      if (link.host && link.host !== window.location.host) return;   /* leaving the site */
       if (event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0) return;
+
+      /* Only http(s) gets a curtain. mailto: and tel: hand off to another application and
+         never load a new page here, so covering the screen for them leaves it covered. */
+      if (link.protocol !== "http:" && link.protocol !== "https:") return;
+      if (link.host !== window.location.host) return;              /* leaving the site */
+
+      /* The important one. The nav writes its in-page links as "index.html#about" rather
+         than "#about", so a check on the first character missed them: the curtain came
+         down, the browser only moved the hash instead of loading anything, and the page
+         stayed black. Compare resolved paths, not the text of the href. */
+      if (link.pathname === window.location.pathname) return;
 
       event.preventDefault();
       curtain.classList.add("on");
@@ -84,12 +94,19 @@
   /* Lenis is vendored next to this file. If it failed to load for any reason the page
      simply scrolls the way the browser scrolls, which is not a defect. */
   var lenis = null;
+  var framesRun = false;
   if (typeof window.Lenis === "function") {
     lenis = new window.Lenis({ duration: 1.1, smoothWheel: true });
-    (function frame(time) {
+    /* The loop has to be started BY requestAnimationFrame, never called by hand with a
+       made up first timestamp. Seeding it with 0 meant the next real frame arrived as a
+       two minute jump, which broke Lenis's time base: it left lenis-scrolling stuck on
+       <html> and scrollTo silently stopped moving anything. */
+    function frame(time) {
+      framesRun = true;
       lenis.raf(time);
       requestAnimationFrame(frame);
-    })(0);
+    }
+    requestAnimationFrame(frame);
 
     /* The in-page nav links have to go through Lenis or they fight it. */
     document.addEventListener("click", function (event) {
@@ -99,7 +116,16 @@
       var target = id && document.getElementById(id);
       if (!target) return;
       event.preventDefault();
-      lenis.scrollTo(target, { offset: -24 });
+
+      /* Only hand the scroll to Lenis if Lenis is actually animating. A background or
+         hidden tab suspends requestAnimationFrame, so its rAF loop never ticks, and
+         scrollTo would queue a move that never happens: the link would cancel the click
+         and then do nothing at all, which is the worst of both. */
+      if (framesRun) {
+        lenis.scrollTo(target, { offset: -24 });
+      } else {
+        target.scrollIntoView();
+      }
     });
   }
 

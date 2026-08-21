@@ -311,10 +311,13 @@ def credentials_section(data: dict, lang: str) -> str:
         f'<span class="cred-detail">{esc(item["detail"])}</span>'
         f'</li>'
         for item in block["items"])
+    # An empty note used to render as an empty <p>, which still takes its grid column and
+    # leaves the heading looking like it lost something.
+    note = f'<p>{esc(block["note"])}</p>' if block.get("note") else ""
     return f'''<section id="credentials" class="wrap section">
   <div class="section-head reveal">
     <h2>{esc(block["title"])}</h2>
-    <p>{esc(block["note"])}</p>
+    {note}
   </div>
   <ul class="creds">{rows}</ul>
 </section>'''

@@ -313,9 +313,84 @@ def check_measure() -> list[str]:
     return problems
 
 
+def check_dashes() -> list[str]:
+    """Kevin does not want em or en dashes in the copy, and spots them instantly.
+
+    They are the kind of thing that slips in while writing and then has to be argued about
+    afterwards, which costs more than the four lines it takes to measure.
+    """
+    import json
+
+    raw = json.loads((ROOT / "content" / "site.json").read_text(encoding="utf-8"))
+    problems = []
+    print()
+    print("RAYAS")
+
+    def walk(node, path=""):
+        if isinstance(node, dict):
+            for key, value in node.items():
+                walk(value, f"{path}.{key}")
+        elif isinstance(node, list):
+            for index, value in enumerate(node):
+                walk(value, f"{path}[{index}]")
+        elif isinstance(node, str):
+            for dash, name in (("—", "raya larga"), ("–", "raya media")):
+                if dash in node:
+                    spot = node.index(dash)
+                    problems.append(f"{name} en {path}: ...{node[max(0, spot - 30):spot + 30]}...")
+
+    walk(raw)
+    print(f"  {len(problems)} en el contenido" + (", usar coma o punto" if problems else ""))
+    return problems
+
+
+def check_css_health() -> list[str]:
+    """Every var(--x) must resolve, and every comment must close.
+
+    This exists because of a real failure. Writing a measurement table next to --measure,
+    I left the opening slash-star unclosed, so the declaration itself ended up inside the
+    comment and the variable simply did not exist. Everything depending on it fell back to
+    the container width, and the project prose shipped at 1072px and 129 characters, the
+    exact extreme we had rejected as unreadable.
+
+    The old check passed the whole time: it verified that selectors DECLARE var(--measure),
+    and they did. What nobody verified was that --measure existed.
+    """
+    css = (ROOT / "templates" / "style.css").read_text(encoding="utf-8")
+    problems = []
+    print()
+    print("SALUD DEL CSS")
+
+    opened, closed = css.count("/*"), css.count("*/")
+    if opened != closed:
+        problems.append(f"comentarios descuadrados: {opened} abiertos y {closed} cerrados")
+    else:
+        print(f"  {opened} comentarios, todos cerrados")
+
+    # Strip comments before looking for declarations, so a declaration that is commented
+    # out does not count as declared. That is exactly the bug this catches.
+    live = re.sub(r"/\*.*?\*/", "", css, flags=re.S)
+    declared = set(re.findall(r"(--[\w-]+)\s*:", live))
+    used = set(re.findall(r"var\(\s*(--[\w-]+)", live))
+
+    # A variable can also be set from the markup: build.py writes style="--w:3" on each
+    # word of the split headline. Those are declared, just not here.
+    for page in ROOT.glob("index.html"):
+        html = page.read_text(encoding="utf-8")
+        declared |= set(re.findall(r'style="[^"]*?(--[\w-]+)\s*:', html))
+
+    missing = sorted(used - declared)
+    for name in missing:
+        problems.append(f"«{name}» se usa pero no está declarado en ninguna parte")
+
+    print(f"  {len(used)} variables usadas, {len(declared)} declaradas, "
+          f"{len(missing)} sin declarar")
+    return problems
+
+
 def main() -> None:
     problems = (check_contrast() + check_links() + check_images() + check_motion()
-                + check_index() + check_measure())
+                + check_index() + check_measure() + check_dashes() + check_css_health())
 
     print("\n" + "-" * 66)
     if problems:

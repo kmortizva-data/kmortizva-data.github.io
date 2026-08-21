@@ -32,22 +32,24 @@
   --mint:      #8CAE79;          /* olive */
   --slate:     #A79DB4;          /* grey violet */
 
-  /* Chosen by measuring how far each space stretches to reach the right margin on a
-     justified project page, not by the usual 60-75 character advice. Across the three
-     paragraphs of silica.html, natural space 4.64px, text at 17px:
+  /* Chosen by measuring how far each space has to stretch to reach the right margin,
+     not by the usual reading advice. Kevin asked for wider text than the 84 characters
+     the page had; measured on the prose of work/froth.html, natural space 4.64px:
 
-       68ch (623px)  worst gap 1.83x  average 1.37x   6 of 14 lines past 1.5x
-       72ch (660px)  worst gap 1.80x  average 1.29x   2 of 12
-       76ch (696px)  worst gap 1.66x  average 1.16x   2 of 12    <- best on all three
-       80ch (733px)  worst gap 1.99x  average 1.27x   3 of 12
+       696px   84 chars   worst gap 2.03x   average 1.33x   2 of 11 lines past 1.5x
+       800px   96 chars   worst gap 1.82x   average 1.24x   2 of 11
+       848px  102 chars   worst gap 2.00x   average 1.45x   3 of 9
+       880px  106 chars   worst gap 1.26x   average 1.11x   0 of 8      <- best row
+       912px  110 chars   worst gap 1.65x   average 1.24x   2 of 8
 
-     The old 68ch was the worst row in the table.
+     Widening did not cost anything: more words per line share the gap out better, so the
+     width he asked for is also the one with no rivers in it.
 
-     It is declared in rem rather than ch on purpose. A ch is the width of a zero at the
-     element's own font size, so the same 76ch gave 615px to the stream text at 15px, 623px
-     to the note at 14px and 696px to the prose at 17px: three different right edges down
-     one page, which is the exact complaint. One column means one number. */
-  --measure: 43.5rem;   /* = 696px, the 76ch above at the prose size of 17px */
+     106 characters is past the 45-75 that plain reading advice gives, which is a real
+     trade and his call to make. It is declared in rem rather than ch because a ch is the
+     width of a zero at the element's own font size, so one value in ch produces a
+     different right edge for every block on the page. */
+  --measure: 55rem;   /* 880px, about 106 characters at the prose size of 17px */
   --gap: clamp(1.25rem, 3vw, 2.5rem);
   --pad: clamp(1.25rem, 5vw, 5rem);
 
@@ -200,7 +202,13 @@ a { color: inherit; }
   margin-bottom: clamp(2rem, 5vw, 3.5rem);
 }
 @media (min-width: 52rem) {
-  .section-head { grid-template-columns: minmax(0, 22ch) minmax(0, 46ch); align-items: start; }
+  /* Fractions, not ch. The old minmax(0, 50ch) capped the intro at 458px while the
+     "who I am" column next to it ran to 737, which is the mismatch Kevin spotted on
+     Notes and Get in touch. Same split .about uses, so the two read as one page. */
+  .section-head {
+    grid-template-columns: minmax(0, 0.55fr) minmax(0, 1.45fr);
+    align-items: start;
+  }
 }
 
 .section-head h2 {
@@ -696,7 +704,6 @@ article > .assay-links { max-width: var(--measure); }
 }
 
 @media (min-width: 60rem) {
-  .about { grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.6fr); }
 }
 
 .about h2 {
@@ -768,7 +775,6 @@ article > .assay-links { max-width: var(--measure); }
    paragraph sat beside them. Wider column, and the heading gets the same weight
    as the rest of the redesign. */
 @media (min-width: 52rem) {
-  .section-head { grid-template-columns: minmax(0, 30ch) minmax(0, 50ch); }
 }
 .section-head h2 { font-weight: 700; letter-spacing: -0.02em; }
 
@@ -1054,7 +1060,7 @@ p, .assay-tagline, .cred-detail, .streams dd { text-wrap: pretty; }
 .about-body, .prose { container-type: inline-size; }
 
 .about-body p {
-  max-width: 78ch;      /* measured on the home column, which is wider than a project page */
+  max-width: var(--measure);
 }
 
 .about-body p,
@@ -1222,3 +1228,24 @@ p, .assay-tagline, .cred-detail, .streams dd { text-wrap: pretty; }
 .archive-name { font-weight: 600; color: var(--ink); }
 .archive-area { color: var(--ink-soft); font-size: 0.9375rem; }
 .archive-year { font-family: var(--mono); font-size: 0.8125rem; color: var(--ink-faint); }
+
+/* --- the section intros ---------------------------------------------------- */
+
+/* Notes, Get in touch and The work each open with a line of intro that never got the
+   measure the rest of the page uses: 55 characters and ragged, sitting next to a "who I
+   am" column running 89 and justified. Same page, two typographic rules.
+
+   The justification is gated on the viewport rather than on a container query, because a
+   container query here would measure .section-head itself (the whole grid) rather than
+   the column the paragraph actually sits in. At 60rem the intro column is comfortably
+   past the width where justifying starts producing rivers. */
+.section-head p { max-width: var(--measure); }
+
+@media (min-width: 60rem) {
+  .section-head p {
+    text-align: justify;
+    text-align-last: start;
+    hyphens: auto;
+    -webkit-hyphens: auto;
+  }
+}
