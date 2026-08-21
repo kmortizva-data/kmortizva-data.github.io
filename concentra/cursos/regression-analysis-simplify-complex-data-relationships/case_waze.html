@@ -1,0 +1,483 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Waze — Regression Analysis: Simplify Complex Data Relationships</title>
+<style>
+/* ============================================================================
+   Concentra — design tokens and shared components.
+   Inlined into every generated page by load_style(), so pages stay self-contained
+   and work offline from file:// with no external requests.
+
+   Direction: an assay lab, not a tech dashboard. The palette is taken from ore
+   and lab materials (chalcopyrite brass, malachite, hematite, quartz) on warm
+   graphite rather than the blue-black + neon of a generic dark UI. Type is
+   Bahnschrift, the DIN-descended grotesque that Windows ships and that lives on
+   machinery plates and technical drawings, over Corbel for reading.
+   ========================================================================== */
+
+:root {
+  /* Ground and surfaces: warm graphite, the colour of rock dust, not blue-black */
+  --rock: #1a1714;
+  --bench: #221e19;
+  --core: #2b251f;
+  --seam: #3d352c;
+
+  /* Ore palette. No blue and no purple anywhere: those are the tones that make a
+     page read as generated, and this palette comes from the ores instead. */
+  --brass: #c9a227;      /* chalcopyrite, the primary accent */
+  --malachite: #5d9b7a;  /* verified output, results that came out right */
+  --hematite: #b04a35;   /* iron oxide, pitfalls and warnings */
+
+  /* Text */
+  --quartz: #ece7de;
+  --dust: #9a9186;
+  --shadowed: #6f675c;
+
+  --display: Bahnschrift, 'DIN Alternate', 'Segoe UI Semibold', system-ui, sans-serif;
+  --body: Corbel, Candara, 'Segoe UI', system-ui, sans-serif;
+  --data: Consolas, 'Cascadia Mono', ui-monospace, monospace;
+
+  /* In px, not ch: ch scales with font-size, so a heading ended up wider than a
+     paragraph and the page had four different right edges instead of two. */
+  --measure: 640px;
+  --wide: 900px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--rock);
+  color: var(--quartz);
+  font-family: var(--body);
+  font-size: 16px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection { background: var(--brass); color: var(--rock); }
+
+:focus-visible {
+  outline: 2px solid var(--brass);
+  outline-offset: 3px;
+}
+
+/* --------------------------------------------------------------- the signature
+   A sieve series: ticks that get finer from left to right, coarse feed to fine
+   concentrate. It is the one ornament on the page and appears exactly twice —
+   under the wordmark and under a page title. */
+.mesh {
+  height: 10px;
+  background-image:
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 16px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 9px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 5px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 3px);
+  background-size: 25% 100%;
+  background-position: 0 0, 25% 0, 50% 0, 75% 0;
+  background-repeat: no-repeat;
+  opacity: .8;
+  transform-origin: left center;
+  animation: sieve .55s cubic-bezier(.2, .8, .3, 1) both;
+}
+@keyframes sieve { from { transform: scaleX(0); opacity: 0; } to { transform: scaleX(1); opacity: .8; } }
+@media (prefers-reduced-motion: reduce) {
+  .mesh { animation: none; }
+  * { transition: none !important; }
+}
+
+/* ------------------------------------------------------------------ page head */
+.header {
+  border-bottom: 1px solid var(--seam);
+  padding: 3.2rem 2rem 0;
+  background: linear-gradient(180deg, #221d16 0%, var(--rock) 100%);
+}
+.header-content { max-width: 1080px; margin: 0 auto; }
+
+.eyebrow {
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--brass);
+  margin-bottom: 1rem;
+}
+.eyebrow a { color: inherit; text-decoration: none; border-bottom: 1px solid transparent; }
+.eyebrow a:hover { border-bottom-color: var(--brass); }
+
+.header h1 {
+  font-family: var(--display);
+  font-size: clamp(2rem, 4.5vw, 3.1rem);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -.015em;
+  color: var(--quartz);
+  max-width: 20ch;
+}
+.header .subtitle {
+  color: var(--dust);
+  max-width: var(--measure);
+  margin-top: 1rem;
+  font-size: 1.02rem;
+}
+.header .mesh { margin: 1.8rem 0 0; }
+
+/* An assay line: the real composition of the module, in lab-report shorthand. */
+.assay {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.4rem;
+  font-family: var(--data);
+  font-size: .78rem;
+  color: var(--shadowed);
+  padding: .9rem 0 1.6rem;
+  letter-spacing: .04em;
+}
+.assay b { color: var(--dust); font-weight: 400; }
+
+/* --------------------------------------------------------------------- layout */
+/* The container hugs the widest block, so there is no orphan edge past the content. */
+.container { max-width: var(--wide); margin: 3rem auto 5rem; padding: 0 2rem; }
+
+/* Two deliberate right edges and no more: prose stops at the reading measure, and
+   only the things that genuinely need room (code, output, figures, big tables) run
+   out to the full column. */
+.section-block {
+  border-top: 1px solid var(--seam);
+  padding: 2rem 0 2.4rem;
+}
+.section-block > p,
+.section-block > ul,
+.section-block > ol,
+.section-block h3.sub,
+.section-block h4.sub,
+.section-block blockquote,
+details > *:not(summary) { max-width: var(--measure); }
+.section-block:first-child { border-top: 0; padding-top: .5rem; }
+
+/* The kicker names what kind of content follows: context, method, pitfalls.
+   It replaces decorative icons with something that actually classifies. */
+.kicker {
+  font-family: var(--data);
+  font-size: .68rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  display: block;
+  margin-bottom: .5rem;
+}
+.section-title {
+  font-family: var(--display);
+  font-size: 1.55rem;
+  font-weight: 600;
+  letter-spacing: -.01em;
+  line-height: 1.2;
+  margin-bottom: 1.2rem;
+  color: var(--quartz);
+}
+.is-warning .kicker { color: var(--hematite); }
+.is-warning .section-title { color: #e8c4b8; }
+.is-bridge .kicker, .is-decision .kicker { color: var(--malachite); }
+.is-toy .kicker, .is-result .kicker, .is-question .kicker { color: var(--brass); }
+
+/* ---------------------------------------------------------------------- prose */
+/* Justified with hyphenation. In Spanish, justifying without hyphens opens rivers of
+   white space and reads worse than ragged right; lang="es" is what feeds the
+   dictionary. Tables, code, captions and summaries stay ragged on purpose. */
+.section-block p,
+.section-block li,
+details > *:not(summary) {
+  text-align: justify;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+}
+.section-block p { margin-bottom: 1rem; }
+.section-block p:last-child { margin-bottom: 0; }
+/* Indent with padding, not margin, so the bullet sits inside the measure instead of
+   pushing the list 1.2rem past the right edge of the paragraphs. */
+.section-block ul, .section-block ol { margin: 0 0 1rem; padding-left: 1.2rem; }
+.section-block li { margin-bottom: .55rem; padding-left: .2rem; }
+.section-block li::marker { color: var(--brass); }
+td, th, figcaption, .res li, .assay { text-align: left; hyphens: manual; }
+a { color: var(--brass); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+a:hover { text-decoration-thickness: 2px; }
+strong { color: #fff; font-weight: 700; }
+em { color: var(--dust); font-style: italic; }
+
+h3.sub {
+  font-family: var(--display);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--brass);
+  margin: 2rem 0 .7rem;
+  letter-spacing: -.005em;
+}
+h3.sub:first-child { margin-top: 0; }
+h4.sub {
+  font-family: var(--display);
+  font-size: .98rem;
+  font-weight: 600;
+  color: var(--dust);
+  margin: 1.3rem 0 .5rem;
+}
+
+code {
+  font-family: var(--data);
+  font-size: .9em;
+  background: var(--core);
+  border-radius: 3px;
+  padding: .08rem .32rem;
+  color: var(--brass);
+}
+pre {
+  background: #14110e;
+  border: 1px solid var(--seam);
+  border-left: 2px solid var(--seam);
+  border-radius: 2px;
+  padding: 1.1rem 1.2rem;
+  overflow-x: auto;
+  margin-bottom: 1rem;
+}
+pre code {
+  background: none; padding: 0; color: var(--quartz);
+  font-size: .87rem; line-height: 1.6;
+}
+
+/* What the code prints. Malachite: the material that came out of the process. */
+.output {
+  position: relative;
+  border: 1px solid rgba(93, 155, 122, .32);
+  border-left: 2px solid var(--malachite);
+  border-radius: 2px;
+  background: rgba(93, 155, 122, .06);
+  padding: 1.7rem 1.2rem 1rem;
+  margin-bottom: 1rem;
+  overflow-x: auto;
+}
+.output-tag {
+  position: absolute; top: .5rem; left: 1.2rem;
+  font-family: var(--data); font-size: .64rem;
+  letter-spacing: .18em; text-transform: uppercase; color: var(--malachite);
+}
+.output pre {
+  background: none; border: 0; padding: 0; margin: 0;
+  font-family: var(--data); font-size: .85rem;
+  color: var(--quartz); white-space: pre-wrap;
+}
+
+/* Line by line explanation of a code block, for a reader new to programming.
+   Two columns: the fragment of code, and what it does. */
+.annot {
+  display: grid;
+  grid-template-columns: minmax(9rem, auto) 1fr;
+  gap: .1rem 1.2rem;
+  align-items: baseline;
+  max-width: var(--wide);
+  margin: -.4rem 0 1.4rem;
+  padding: .9rem 1.1rem 1rem;
+  border: 1px solid var(--seam);
+  border-top: 0;
+  border-radius: 0 0 2px 2px;
+  background: rgba(201, 162, 39, .04);
+}
+.annot-head {
+  grid-column: 1 / -1;
+  font-family: var(--data);
+  font-size: .64rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  margin-bottom: .5rem;
+}
+.annot dt { padding: .35rem 0; }
+.annot dt code {
+  background: var(--core);
+  color: var(--brass);
+  font-size: .82rem;
+  white-space: nowrap;
+}
+.annot dd {
+  padding: .35rem 0;
+  margin: 0;
+  color: var(--dust);
+  font-size: .93rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(61, 53, 44, .5);
+}
+.annot dt { border-bottom: 1px solid rgba(61, 53, 44, .5); }
+.annot dt:last-of-type, .annot dd:last-of-type { border-bottom: 0; }
+/* The code block sits directly on top of its annotation, as one unit. */
+pre:has(+ .annot) { margin-bottom: 0; border-radius: 2px 2px 0 0; }
+
+@media (max-width: 640px) {
+  .annot { grid-template-columns: 1fr; gap: 0; }
+  .annot dt { border-bottom: 0; padding-bottom: 0; }
+  .annot dd { padding-top: .15rem; }
+}
+
+blockquote {
+  border-left: 2px solid var(--brass);
+  padding: .3rem 0 .3rem 1.3rem;
+  margin: 0 0 1rem;
+  font-family: var(--display);
+  font-size: 1.2rem;
+  font-weight: 400;
+  line-height: 1.4;
+  color: var(--quartz);
+}
+
+/* Tables read as assay data: mono figures, hairline rules, no zebra fill.
+   They take the width they need instead of being stretched to the full column,
+   which is what left a two-column table floating in empty space. */
+.table-wrap { overflow-x: auto; margin-bottom: 1rem; }
+table { border-collapse: collapse; width: auto; max-width: 100%; font-size: .93rem; }
+th, td {
+  border-bottom: 1px solid var(--seam);
+  padding: .55rem .8rem .55rem 0;
+  text-align: left;
+  vertical-align: top;
+}
+th {
+  font-family: var(--data);
+  font-size: .7rem;
+  font-weight: 400;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  border-bottom-color: var(--brass);
+}
+td:first-child { color: var(--quartz); }
+
+/* Review questions: closed by default, so they work as recall practice. */
+details {
+  border-top: 1px solid var(--seam);
+  padding: .9rem 0;
+}
+details:last-child { border-bottom: 1px solid var(--seam); }
+summary {
+  cursor: pointer;
+  font-family: var(--display);
+  font-size: 1.02rem;
+  font-weight: 600;
+  color: var(--quartz);
+  list-style: none;
+  display: flex;
+  gap: .7rem;
+  align-items: baseline;
+}
+summary::-webkit-details-marker { display: none; }
+summary::before {
+  content: '+';
+  font-family: var(--data);
+  color: var(--brass);
+  font-size: .95rem;
+}
+details[open] summary::before { content: '−'; }
+details[open] summary { color: var(--brass); margin-bottom: .7rem; }
+details > *:not(summary) { color: var(--dust); }
+
+figure.fig {
+  margin: 1.6rem 0;
+  border: 1px solid var(--seam);
+  padding: .7rem;
+  background: var(--bench);
+}
+figure.fig img { width: 100%; height: auto; display: block; }
+/* The interactive twin of a figure. Its aspect matches the still one, 10 by 4.4, so a
+   case sheet keeps the same rhythm whichever kind of figure comes next. */
+figure.fig.is-live iframe {
+  width: 100%;
+  /* Matches INTERACTIVE_HEIGHT in src/make_figures.py. It used to be an aspect ratio, and
+     that made the figure's height depend on the window: the caption and the legend are
+     placed at fractions of the plot area, so on a wide screen they were pushed past the
+     bottom margin, clipping the caption and covering the x-axis title. */
+  height: 520px;
+  border: 0;
+  display: block;
+}
+figure.fig figcaption {
+  font-family: var(--data);
+  font-size: .72rem;
+  color: var(--shadowed);
+  margin-top: .6rem;
+  letter-spacing: .04em;
+}
+
+/* File listings on a case sheet */
+.res { list-style: none; margin-left: 0 !important; }
+.res li {
+  display: flex; align-items: baseline; gap: .8rem; flex-wrap: wrap;
+  padding: .5rem 0; border-bottom: 1px solid var(--seam); margin-bottom: 0;
+}
+.res .path { font-family: var(--data); font-size: .74rem; color: var(--shadowed); }
+.res .size { font-family: var(--data); font-size: .74rem; color: var(--shadowed); margin-left: auto; }
+.res .gone { font-family: var(--data); font-size: .74rem; color: var(--hematite); }
+
+.footer {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 2rem 4rem;
+  color: var(--shadowed);
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .03em;
+}
+
+@media (max-width: 640px) {
+  body { font-size: 15px; }
+  .header { padding: 2rem 1.2rem 0; }
+  .container { padding: 0 1.2rem; margin-top: 2rem; }
+  .footer { padding: 0 1.2rem 3rem; }
+}
+
+@media print {
+  body { background: #fff; color: #16130f; }
+  .header { background: none; border-bottom: 1px solid #bbb; padding-top: 0; }
+  .header h1, .section-title, summary { color: #16130f; }
+  .mesh { animation: none; }
+  .section-block { break-inside: avoid; max-width: none; }
+  pre, .output { background: #f6f4f0; border-color: #ccc; }
+  details:not([open]) > *:not(summary) { display: block; }
+  a { color: #16130f; }
+}
+
+</style>
+</head>
+<body>
+<header class="header">
+  <div class="header-content">
+    <div class="eyebrow">Curso 4 · Regression Analysis: Simplify Complex Data Relationships / Caso de estudio</div>
+    <h1>Waze</h1>
+    <p class="subtitle">Acierta el 82 % y no detecta a casi nadie. El modelo no estaba mal; el umbral sí.</p>
+    <div class="mesh" role="presentation"></div>
+    <div class="assay"><span>14.299 usuarios</span><span>logística binomial</span><span>abandono 17,74 %</span><span>AUC 0,737</span></div>
+  </div>
+</header>
+<main class="container">
+<section class="section-block "><span class="kicker">Encargo</span><h2 class="section-title">El encargo</h2><p><strong>Waze</strong> quiere crecer, y para eso necesita que la gente no se vaya. El encargo es un modelo que señale a quién está a punto de abandonar la aplicación, para poder actuar antes de que lo haga.</p><p>Es el mismo escenario del Curso 3, donde la pregunta era si el tipo de teléfono influía en cuánto se usa la app y la respuesta fue que no. Ahora la pregunta es más ambiciosa.</p></section>
+<section class="section-block is-question"><span class="kicker">Pregunta</span><h2 class="section-title">La pregunta</h2><blockquote>¿Se puede saber quién va a abandonar la aplicación mirando cómo la usa?</blockquote><p><strong>Y una expectativa, escrita antes de ajustar nada precisamente para no poder ajustarla después:</strong> solo el 17,74 % de los usuarios abandona, las variables disponibles describen comportamiento y no causas, y en el archivo no hay ni un dato sobre por qué se fue nadie. Lo probable es que el modelo deje escapar a la mayoría de los que se van. Si ocurre, se reporta como resultado.</p><p>Ocurrió.</p></section>
+<section class="section-block is-data"><span class="kicker">Datos</span><h2 class="section-title">Los datos</h2><p><code>waze_dataset.csv</code>, <strong>14.999 usuarios</strong> y 13 columnas. Datos sintéticos creados por Waze para el certificado. La variable a predecir es <code>label</code>: abandonó o se quedó.</p></section>
+<section class="section-block is-data"><span class="kicker">Limpieza</span><h2 class="section-title">Lo que hubo que arreglar</h2><p><strong>700 usuarios no tienen etiqueta</strong>, el 4,7 %. Tirarlos sin mirarlos sería un error: excluir a un grupo solo es inocuo si ese grupo se parece al resto.</p><figure class="fig"><img src="../../projects/curso4/waze/03_figures/01_ausentes.d63f095f.png" alt="01_ausentes" loading="lazy"><figcaption>01_ausentes.png</figcaption></figure><p>La mayor diferencia de medianas es del <strong>6,2 %</strong>, y el reparto de dispositivo es prácticamente idéntico: 63,9 % de iPhone entre los que no tienen etiqueta frente a 64,5 % entre el resto. Se pueden excluir sin sesgar nada. Quedan <strong>14.299 usuarios</strong>, de los que <strong>2.536 abandonan</strong>.</p><p><strong>Una división por cero escondida.</strong> 983 usuarios condujeron cero días. Calcular kilómetros por día conducido sobre ellos da infinito, que entra en el modelo sin avisar y rompe el ajuste. Como no condujeron nada, su ratio es cero.</p><p><strong>Multicolinealidad, y aquí sí es grave.</strong></p><figure class="fig"><img src="../../projects/curso4/waze/03_figures/03b_correlaciones.d704eaae.png" alt="03b_correlaciones" loading="lazy"><figcaption>03b_correlaciones.png</figcaption></figure><p>De los <strong>55 pares</strong> de variables, <strong>40 no llegan a 0,10</strong>: casi nada tiene que ver con casi nada. Lo que se ve son unos pocos pares, y dos de ellos delatan una variable de sobra.</p><p>Sesiones y trayectos correlacionan a <strong>0,997</strong>, y días activo con días conduciendo a <strong>0,948</strong>. Traducido al número que decide:</p><figure class="fig"><img src="../../projects/curso4/waze/03_figures/03_multicolinealidad.a828908f.png" alt="03_multicolinealidad" loading="lazy"><figcaption>03_multicolinealidad.png</figcaption></figure><p>Sus factores de inflación de la varianza son de <strong>159,3 y 159,1</strong>, muy por encima del umbral de 10: son la misma información contada dos veces. Se quedan trayectos y días activo. En el modelo final ninguna variable pasa de 1,8.</p></section>
+<section class="section-block is-figures"><span class="kicker">Exploración</span><h2 class="section-title">Lo que mostró la exploración</h2><figure class="fig"><img src="../../projects/curso4/waze/03_figures/02_actividad.fd699b07.png" alt="02_actividad" loading="lazy"><figcaption>02_actividad.png</figcaption></figure><p>Quien abandona lleva una mediana de <strong>8 días de actividad</strong> en el último mes. Quien se queda, <strong>17</strong>. Los dos paneles comparten los dos ejes, así que las alturas se pueden comparar: los que se van se amontonan a la izquierda y los que se quedan se reparten por todo el mes.</p><p>Y un dato de la exploración que luego resulta ser una trampa: los 2.488 <strong>conductores profesionales</strong> (60 o más trayectos en 15 o más días) abandonan al <strong>7,56 %</strong> frente al <strong>19,88 %</strong> del resto. Parece el mejor predictor del archivo.</p></section>
+<section class="section-block is-recipe"><span class="kicker">Modelo</span><h2 class="section-title">El modelo, y por qué este modelo</h2><p>La variable a predecir es un sí o un no, así que <strong>logística binomial</strong>, ajustada sobre 10.724 usuarios con 3.575 reservados.</p><figure class="fig"><img src="../../projects/curso4/waze/03_figures/04_momios.206df441.png" alt="04_momios" loading="lazy"><figcaption>04_momios.png</figcaption></figure><p>Los coeficientes están <strong>escalados a unidades que se puedan imaginar</strong>. Por unidad suelta casi todos salen 1,000 con un intervalo de 1,000 a 1,000, aunque su valor p sea de 3e-48: el problema es la unidad, no el efecto. Un día entre dos mil desde el alta no mueve nada; un año, sí.</p><div class="table-wrap"><table><thead><tr><th>Variable</th><th>Razón de momios</th><th>p</th></tr></thead><tbody><tr><td><strong>Cada año más de antigüedad</strong></td><td><strong>0,864</strong></td><td>3,09e-48</td></tr><tr><td><strong>Cada día de actividad más</strong></td><td><strong>0,901</strong></td><td>5,03e-139</td></tr><tr><td>Cada 10 trayectos más</td><td>1,016</td><td>0,00132</td></tr><tr><td>Cada hora más al volante</td><td>1,004</td><td>9,46e-05</td></tr><tr><td>Cada 10 sesiones históricas</td><td>1,003</td><td>0,247</td></tr><tr><td>Cada 100 km por día conducido</td><td>1,002</td><td>0,497</td></tr><tr><td>Usar iPhone</td><td>1,017</td><td>0,773</td></tr><tr><td>Ser conductor profesional</td><td>0,993</td><td>0,952</td></tr></tbody></table></div><p><strong>Dos lecturas que valen el caso entero.</strong></p><p><strong>El conductor profesional desaparece.</strong> En crudo abandonaba menos de la mitad que el resto; dentro del modelo su razón de momios es 0,993 con un p de 0,952, es decir nada. La explicación es la del módulo 3: los días de actividad ya recogían ese efecto, y ser profesional no añadía nada propio. Era <strong>una variable de confusión disfrazada de hallazgo</strong>.</p><p><strong>El dispositivo tampoco importa</strong>, con un p de 0,773. Es exactamente la misma conclusión a la que llegó el proyecto del Curso 3 con una prueba t, ahora controlando por otras siete variables a la vez. Los dos cursos coinciden.</p></section>
+<section class="section-block is-recipe"><span class="kicker">Supuestos</span><h2 class="section-title">Los supuestos, uno por uno</h2><div class="table-wrap"><table><thead><tr><th>Supuesto</th><th>Estado</th></tr></thead><tbody><tr><td>Resultado binario</td><td>Se cumple: abandona o se queda</td></tr><tr><td>Observaciones independientes</td><td>Razonable: usuarios distintos</td></tr><tr><td>Sin multicolinealidad</td><td>Se cumple tras quitar tres variables, máximo 1,8</td></tr><tr><td>Linealidad en el logit</td><td>Aceptable, aunque no comprobada variable por variable</td></tr></tbody></table></div><p>El último se declara con su matiz en lugar de darlo por bueno: no se comprobó con gráficos de logit parciales para cada variable continua, que sería lo riguroso.</p></section>
+<section class="section-block is-result"><span class="kicker">Resultado</span><h2 class="section-title">El resultado, traducido</h2><p>Sobre 3.575 usuarios de prueba, con el umbral por defecto:</p><div class="table-wrap"><table><thead><tr><th>Métrica</th><th>Valor</th></tr></thead><tbody><tr><td>Exactitud</td><td>0,823</td></tr><tr><td>Precisión</td><td>0,505</td></tr><tr><td><strong>Sensibilidad</strong></td><td><strong>0,082</strong></td></tr><tr><td>F1</td><td>0,141</td></tr></tbody></table></div><p><strong>Se le escapan 582 de los 634 usuarios que abandonan.</strong> Y ese 82,3 % de acierto es casi exactamente lo que se conseguiría contestando siempre &quot;se queda&quot;, que acertaría el 82,26 %.</p><p><strong>Pero el modelo no es inútil, y la distinción es el caso:</strong></p><figure class="fig"><img src="../../projects/curso4/waze/03_figures/06_roc.3ea9193b.png" alt="06_roc" loading="lazy"><figcaption>06_roc.png</figcaption></figure><p>Su <strong>AUC es 0,737</strong>, así que ordena a los usuarios por riesgo bastante mejor que el azar. Lo que está mal no es el modelo, es dónde se pone el corte.</p><figure class="fig is-live"><iframe src="../../projects/curso4/waze/03_figures/05_umbral.df9a0e87.html" loading="lazy" title="05_umbral"></iframe><figcaption>interactiva: pasa el ratón y haz zoom</figcaption></figure><div class="table-wrap"><table><thead><tr><th>Umbral</th><th>Avisa de</th><th>Detecta</th><th>Aciertan</th></tr></thead><tbody><tr><td>0,50</td><td>103</td><td>52 de 634</td><td>50,5 %</td></tr><tr><td>0,30</td><td>725</td><td>279 de 634</td><td>38,5 %</td></tr><tr><td><strong>0,20</strong></td><td>1.262</td><td><strong>395 de 634 (62,3 %)</strong></td><td>31,3 %</td></tr></tbody></table></div></section>
+<section class="section-block is-decision"><span class="kicker">Decisión</span><h2 class="section-title">Qué se decide con esto</h2><ol><li><strong>Bajar el umbral a 0,20</strong>, y medir el coste real de una alarma falsa antes de fijarlo del todo. Se pasa de detectar a 52 usuarios en riesgo a detectar a 395.</li><li><strong>Dirigir la retención al usuario nuevo y poco activo</strong>, que es donde están los dos efectos demostrados.</li><li><strong>No segmentar por conductor profesional.</strong> Su ventaja aparente se explica por los días de actividad, que ya se están midiendo.</li><li><strong>Empezar a registrar por qué se va la gente.</strong> Es la limitación de fondo, y ningún modelo la arregla desde dentro.</li></ol></section>
+<section class="section-block is-warning"><span class="kicker">Límites</span><h2 class="section-title">Limitaciones</h2><ul><li>El pseudo R² es de <strong>0,1348</strong>: el modelo explica una parte pequeña de lo que ocurre.</li><li>El archivo <strong>no contiene ninguna causa de abandono</strong>, solo comportamiento. Con estos datos se detecta a quién se está desenganchando, no por qué.</li><li>Se excluyeron 700 usuarios sin etiqueta tras comprobar que se parecen al resto. Si no hubiera sido así, habría cambiado a quién describe el modelo.</li><li>Los 983 usuarios con cero días conduciendo llevan un ratio de kilómetros fijado a cero en vez de a infinito. Es defendible y conviene saber que se decidió.</li><li>Los datos son sintéticos.</li></ul></section><section class="section-block is-material"><span class="kicker">Archivos</span><h2 class="section-title">Material completo</h2><p>Estos tres proyectos no existían: se construyeron aquí. Los CSV se leen de tu carpeta del Curso 3 sin tocarlos, y todo lo demás es nuevo.</p><h3 class="sub">Informes y notas</h3><ul class="res"><li><a href="../../projects/curso4/waze/04_reports/pace_plan.md" target="_blank" rel="noopener">pace_plan.md</a> <span class="path">04_reports/pace_plan.md</span> <span class="size">4.9 KB</span></li><li><a href="../../projects/curso4/waze/04_reports/executive_summary.md" target="_blank" rel="noopener">executive_summary.md</a> <span class="path">04_reports/executive_summary.md</span> <span class="size">3.8 KB</span></li><li><a href="../../projects/curso4/waze/04_reports/model_results.json" target="_blank" rel="noopener">model_results.json</a> <span class="path">04_reports/model_results.json</span> <span class="size">5.0 KB</span></li></ul><h3 class="sub">Código</h3><ul class="res"><li><a href="../../projects/curso4/waze/02_scripts/waze_logistic.py" target="_blank" rel="noopener">waze_logistic.py</a> <span class="path">02_scripts/waze_logistic.py</span> <span class="size">29.5 KB</span></li><li><a href="../../projects/curso4/waze/waze_curso4.ipynb" target="_blank" rel="noopener">waze_curso4.ipynb</a> <span class="path">waze_curso4.ipynb</span> <span class="size">16.1 KB</span></li></ul></section>
+</main>
+<footer class="footer">
+  Concentra / esta ficha enlaza tus archivos donde ya estaban / 2026-08-20
+</footer>
+<script>
+// Same-frame links replace the current entry instead of pushing a new one, so the
+// browser's back button keeps following the sidebar routes of the shell.
+document.querySelectorAll('a.lead-link').forEach(link => {
+  link.addEventListener('click', event => {
+    event.preventDefault();
+    location.replace(link.getAttribute('href'));
+  });
+});
+</script>
+</body>
+</html>

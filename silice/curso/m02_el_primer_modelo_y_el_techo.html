@@ -1,0 +1,692 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>El primer modelo, y el techo que apareció enseguida · Sílice, módulo 2</title>
+<style>
+/* Sílice: la hoja de estilos del curso.
+ *
+ * Identidad de papel de informe de planta, no de pantalla. El proyecto termina
+ * recomendando no desplegar, y eso es un informe técnico: papel hueso, tinta grafito,
+ * y una retícula de milimetrado muy tenue en la cabecera.
+ *
+ * Dos familias tipográficas y ni una más, las dos del sistema porque el sitio se abre
+ * desde file:// y tiene que funcionar sin internet: serif para la prosa (se lee como
+ * informe) y monoespaciada para todo lo que es dato, código, cifra o etiqueta.
+ *
+ * El acento lo inyecta cada página con --accent: es el del módulo, y marca su posición
+ * en el arco del proyecto. Los diez pasan check_palette.py antes de entrar aquí.
+ */
+
+:root {
+  --paper: #f6f3ec;
+  --bench: #eeeade;
+  --ink: #2a2622;
+  --ink-soft: #57504a;
+  --ink-faint: #8a8177;
+  --rule: #ddd6c6;
+  --rule-soft: #e8e2d4;
+  --grid: rgba(84, 69, 73, .07);
+  --accent: #632727;
+
+  --prose: Georgia, "Iowan Old Style", "Palatino Linotype", Palatino, "Times New Roman", serif;
+  --data: "Cascadia Mono", Consolas, "DejaVu Sans Mono", "Liberation Mono", monospace;
+
+  --measure: 680px;   /* la medida de la prosa, en píxeles y nunca en ch */
+  --wide: 1180px;     /* el borde derecho de los bloques anchos */
+  --margin: 132px;    /* la columna del margen, donde cuelgan los kickers */
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--prose);
+  font-size: 17px;
+  line-height: 1.62;
+  -webkit-text-size-adjust: 100%;
+}
+
+::selection { background: var(--accent); color: var(--paper); }
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+/* --------------------------------------------------------------- cabecera */
+
+.masthead {
+  border-bottom: 1px solid var(--rule);
+  background-color: var(--bench);
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 26px 26px;
+  background-position: -1px -1px;
+}
+
+.masthead-inner {
+  max-width: var(--wide);
+  margin: 0 auto;
+  padding: 2.4rem 2rem 1.6rem;
+}
+
+.eyebrow {
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-bottom: 1rem;
+}
+
+.eyebrow a { color: inherit; text-decoration: none; border-bottom: 1px solid transparent; }
+.eyebrow a:hover { border-bottom-color: var(--accent); color: var(--accent); }
+.eyebrow b { color: var(--accent); font-weight: 400; }
+
+.masthead h1 {
+  margin: 0;
+  font-size: clamp(1.9rem, 4.4vw, 2.9rem);
+  line-height: 1.14;
+  font-weight: 400;
+  letter-spacing: -.012em;
+  max-width: 900px;
+}
+
+.standfirst {
+  margin: .9rem 0 0;
+  max-width: var(--measure);
+  color: var(--ink-soft);
+  font-size: 1.02rem;
+  line-height: 1.55;
+}
+
+/* La cifra del módulo: el número que dejó, en grande, junto al título. Es lo que
+   convierte la cabecera en parte del argumento y no en decoración. */
+.figure-mark {
+  margin-top: 1.6rem;
+  display: flex;
+  align-items: baseline;
+  gap: .8rem;
+  flex-wrap: wrap;
+  border-left: 3px solid var(--accent);
+  padding-left: .9rem;
+}
+
+.figure-value {
+  font-family: var(--data);
+  font-size: clamp(1.5rem, 3.4vw, 2.1rem);
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: -.02em;
+}
+
+.figure-label {
+  font-family: var(--data);
+  font-size: .78rem;
+  letter-spacing: .04em;
+  color: var(--ink-soft);
+}
+
+/* El hilo del proyecto: diez segmentos, uno por módulo, con su cifra debajo. Desde
+   cualquier página se ve el recorrido entero, que es justo lo que a los apuntes
+   sueltos les faltaba. */
+.thread {
+  margin-top: 1.8rem;
+  display: grid;
+  /* One equal column per segment, whatever the temario says. It was pinned to ten and
+     the course grew to fourteen. */
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: 4px;
+}
+
+/* Where part 2 starts: the four modules that were never in the original project. */
+.thread .starts-part { margin-left: 10px; position: relative; }
+.thread .starts-part::after {
+  content: '';
+  position: absolute;
+  left: -7px; top: -3px; bottom: 0;
+  border-left: 1px solid var(--rule);
+}
+
+.thread a, .thread span {
+  display: block;
+  text-decoration: none;
+  color: var(--ink-faint);
+  font-family: var(--data);
+  font-size: .62rem;
+  letter-spacing: .04em;
+  padding-top: .4rem;
+  border-top: 3px solid var(--rule);
+  transition: color .12s, border-color .12s;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.thread a:hover { color: var(--ink); border-top-color: var(--ink-soft); }
+.thread [aria-current="page"] { color: var(--accent); border-top-color: var(--accent); }
+.thread .n { font-weight: 700; }
+.thread .v { color: inherit; opacity: .75; }
+
+/* Las pastillas de composición: de qué está hecho el módulo. */
+.assay {
+  margin-top: 1.6rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.4rem;
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .05em;
+  color: var(--ink-faint);
+}
+
+.assay b { color: var(--ink); font-weight: 700; }
+
+/* ----------------------------------------------------------------- cuerpo */
+
+.container {
+  max-width: var(--wide);
+  margin: 0 auto;
+  padding: 2.6rem 2rem 4rem;
+}
+
+/* Cada sección es una anotación de cuaderno: el kicker cuelga en el margen
+   izquierdo y el contenido corre en la columna principal. En pantalla estrecha el
+   kicker se pone encima. */
+.block {
+  display: grid;
+  grid-template-columns: var(--margin) minmax(0, 1fr);
+  column-gap: 2rem;
+  padding: 2.2rem 0;
+  border-top: 1px solid var(--rule);
+}
+
+.block:first-child { border-top: 0; padding-top: .6rem; }
+
+.kicker {
+  grid-column: 1;
+  font-family: var(--data);
+  font-size: .68rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding-top: .45rem;
+}
+
+.block > :not(.kicker) { grid-column: 2; }
+
+.block-title {
+  margin: 0 0 1.1rem;
+  font-size: 1.42rem;
+  font-weight: 400;
+  line-height: 1.25;
+  letter-spacing: -.008em;
+}
+
+.is-warning .kicker, .is-result .kicker { color: var(--accent); }
+.is-warning .block-title { border-bottom: 2px solid var(--accent); padding-bottom: .4rem; display: inline-block; }
+.is-result { background: var(--bench); margin: 0 -1.2rem; padding: 2.2rem 1.2rem; }
+.is-result .block-title { color: var(--accent); }
+
+/* Prosa: justificada con partición, que sin partición el español justificado abre
+   ríos. Tablas, código y pies de figura se quedan sin justificar. */
+.block p, .block li, .block dd, details > *:not(summary) {
+  max-width: var(--measure);
+  text-align: justify;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+}
+
+.block p { margin: 0 0 1rem; }
+.block p:last-child { margin-bottom: 0; }
+.block ul, .block ol { margin: 0 0 1rem; padding-left: 1.3rem; max-width: var(--measure); }
+.block li { margin-bottom: .5rem; }
+.block li::marker { color: var(--accent); font-family: var(--data); font-size: .85em; }
+
+td, th, figcaption, .assay, .thread a, .res li { text-align: left; hyphens: manual; }
+
+a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+a:hover { text-decoration-thickness: 2px; }
+strong { font-weight: 700; }
+em { font-style: italic; color: var(--ink-soft); }
+
+h3.sub {
+  margin: 1.9rem 0 .7rem;
+  font-size: 1.07rem;
+  font-weight: 700;
+  letter-spacing: -.004em;
+}
+
+h3.sub:first-child { margin-top: 0; }
+
+h4.sub {
+  margin: 1.4rem 0 .5rem;
+  font-family: var(--data);
+  font-size: .82rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  color: var(--ink-soft);
+}
+
+/* ------------------------------------------------------------ código y datos */
+
+code {
+  font-family: var(--data);
+  font-size: .87em;
+  background: var(--bench);
+  padding: .1em .32em;
+  border-radius: 2px;
+}
+
+pre {
+  margin: 0 0 1rem;
+  padding: 1rem 1.1rem;
+  background: var(--bench);
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--accent);
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+pre code { background: none; padding: 0; font-size: .82rem; line-height: 1.62; }
+
+/* La salida es lo que imprime el código, no código para correr: se marca aparte
+   para que nadie confunda entrada con salida. */
+.output {
+  margin: 0 0 1rem;
+  border: 1px dashed var(--rule);
+  background: transparent;
+}
+
+.output-tag {
+  display: block;
+  font-family: var(--data);
+  font-size: .64rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding: .45rem 1.1rem 0;
+}
+
+.output pre {
+  margin: 0;
+  border: 0;
+  background: none;
+  padding: .3rem 1.1rem 1rem;
+}
+
+.output pre code { color: var(--ink-soft); }
+
+/* La anotación línea por línea, para quien no ha programado antes. */
+.annot {
+  margin: 0 0 1.2rem;
+  border: 1px solid var(--rule);
+  border-top: 0;
+  padding: 0 1.1rem .6rem;
+  background: transparent;
+}
+
+.annot-head {
+  font-family: var(--data);
+  font-size: .64rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding: .55rem 0 .5rem;
+  border-bottom: 1px solid var(--rule-soft);
+  margin-bottom: .4rem;
+}
+
+.annot dt { padding: .4rem 0 .1rem; }
+.annot dt code { background: none; padding: 0; color: var(--accent); font-weight: 700; }
+.annot dd {
+  margin: 0 0 .4rem;
+  color: var(--ink-soft);
+  font-size: .94rem;
+  border-bottom: 1px solid var(--rule-soft);
+  padding-bottom: .5rem;
+}
+.annot dd:last-of-type { border-bottom: 0; }
+
+pre:has(+ .annot) { margin-bottom: 0; }
+
+blockquote {
+  margin: 0 0 1rem;
+  padding: .2rem 0 .2rem 1.1rem;
+  border-left: 3px solid var(--rule);
+  color: var(--ink-soft);
+  font-style: italic;
+  max-width: var(--measure);
+}
+
+/* --------------------------------------------------------------- tablas */
+
+.table-wrap { overflow-x: auto; margin: 0 0 1.2rem; }
+
+table {
+  border-collapse: collapse;
+  width: auto;
+  max-width: 100%;
+  font-size: .92rem;
+}
+
+th, td {
+  padding: .5rem .9rem .5rem 0;
+  border-bottom: 1px solid var(--rule-soft);
+  vertical-align: top;
+}
+
+th {
+  font-family: var(--data);
+  font-size: .7rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--ink-faint);
+  border-bottom: 1px solid var(--rule);
+  white-space: nowrap;
+}
+
+/* -------------------------------------------------------------- repaso */
+
+details {
+  border-bottom: 1px solid var(--rule-soft);
+  padding: .2rem 0;
+  max-width: var(--measure);
+}
+
+summary {
+  cursor: pointer;
+  list-style: none;
+  padding: .7rem 0 .7rem 1.5rem;
+  position: relative;
+  font-weight: 700;
+}
+
+summary::-webkit-details-marker { display: none; }
+
+summary::before {
+  content: '+';
+  position: absolute;
+  left: 0;
+  font-family: var(--data);
+  color: var(--accent);
+  font-weight: 700;
+}
+
+details[open] summary::before { content: '\2212'; }
+details[open] summary { color: var(--accent); }
+details > *:not(summary) { color: var(--ink-soft); }
+details > *:last-child { padding-bottom: .8rem; }
+
+/* -------------------------------------------------------------- figuras */
+
+figure.fig {
+  margin: 0 0 1.4rem;
+  max-width: 100%;
+  border: 1px solid var(--rule);
+  background: #fff;
+  padding: .6rem;
+}
+
+figure.fig img { width: 100%; height: auto; display: block; }
+
+figure.fig figcaption {
+  margin-top: .6rem;
+  padding-top: .5rem;
+  border-top: 1px solid var(--rule-soft);
+  font-family: var(--data);
+  font-size: .7rem;
+  letter-spacing: .04em;
+  color: var(--ink-faint);
+}
+
+.gone {
+  font-family: var(--data);
+  font-size: .76rem;
+  color: var(--accent);
+  border: 1px dashed var(--accent);
+  padding: .5rem .8rem;
+}
+
+/* ------------------------------------------------------- pie y navegación */
+
+.pager {
+  max-width: var(--wide);
+  margin: 0 auto;
+  padding: 0 2rem 3rem;
+  display: flex;
+  gap: 1.4rem;
+  justify-content: space-between;
+  font-family: var(--data);
+  font-size: .78rem;
+}
+
+.pager a { max-width: 46%; text-decoration: none; border-bottom: 1px solid var(--rule); padding-bottom: .3rem; }
+.pager a:hover { border-bottom-color: var(--accent); }
+.pager .dir { display: block; font-size: .64rem; letter-spacing: .13em; text-transform: uppercase; color: var(--ink-faint); }
+.pager .next { text-align: right; margin-left: auto; }
+
+.footer {
+  border-top: 1px solid var(--rule);
+  padding: 1.4rem 2rem 2.4rem;
+  font-family: var(--data);
+  font-size: .72rem;
+  letter-spacing: .06em;
+  color: var(--ink-faint);
+}
+
+.footer-inner { max-width: var(--wide); margin: 0 auto; display: flex; gap: 1.4rem; flex-wrap: wrap; }
+
+/* ------------------------------------------------------------- índice */
+
+.toc { list-style: none; margin: 0; padding: 0; max-width: 100%; }
+
+.toc li {
+  border-top: 1px solid var(--rule-soft);
+  max-width: 100%;
+}
+
+.toc li:last-child { border-bottom: 1px solid var(--rule-soft); }
+
+.toc a, .toc .pending {
+  display: grid;
+  grid-template-columns: 3rem minmax(0, 1fr) auto;
+  gap: 1.2rem;
+  align-items: baseline;
+  padding: 1rem .4rem;
+  text-decoration: none;
+  color: inherit;
+}
+
+.toc a:hover { background: var(--bench); }
+.toc .pending { color: var(--ink-faint); }
+.toc .num { font-family: var(--data); font-size: .82rem; font-weight: 700; }
+.toc .name { font-size: 1.05rem; }
+.toc .name small { display: block; font-family: var(--prose); font-size: .86rem; color: var(--ink-soft); margin-top: .2rem; }
+.toc .mark { font-family: var(--data); font-size: .82rem; font-weight: 700; white-space: nowrap; }
+.toc .tag { font-family: var(--data); font-size: .66rem; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-faint); }
+
+/* ---------------------------------------------------------- responsive */
+
+@media (max-width: 900px) {
+  .block { grid-template-columns: minmax(0, 1fr); }
+  .block > :not(.kicker) { grid-column: 1; }
+  .kicker { grid-column: 1; padding-top: 0; margin-bottom: .7rem; }
+  .thread { grid-auto-flow: row; grid-template-columns: repeat(5, 1fr); gap: 6px 4px; }
+  .thread .starts-part { margin-left: 0; }
+  .thread .starts-part::after { display: none; }
+  .toc a, .toc .pending { grid-template-columns: 2.2rem minmax(0, 1fr); }
+  .toc .mark { grid-column: 2; }
+}
+
+@media (max-width: 620px) {
+  body { font-size: 16px; }
+  .masthead-inner, .container, .pager, .footer { padding-left: 1.2rem; padding-right: 1.2rem; }
+  .is-result { margin: 0; padding: 2rem 1rem; }
+  .block p, .block li { text-align: left; }
+}
+
+@media print {
+  .thread, .pager { display: none; }
+  body { font-size: 11pt; }
+  .masthead { background: none; }
+  .block { break-inside: avoid; }
+}
+
+/* -------------------------------------------------- resumen y plegables */
+
+/* El resumen de entrada: la cifra, la trampa y la decision, en cinco vinetas.
+   Se lee en 30 segundos o se sigue leyendo. */
+.is-brief {
+  border-top: 0;
+  padding-top: .4rem;
+}
+
+.is-brief .kicker { color: var(--accent); }
+
+.is-brief ul {
+  list-style: none;
+  padding-left: 0;
+  max-width: var(--measure);
+  border-left: 3px solid var(--accent);
+  padding: .2rem 0 .2rem 1.1rem;
+}
+
+.is-brief li { margin-bottom: .7rem; text-align: left; }
+.is-brief li:last-child { margin-bottom: 0; }
+
+/* Los plegables de contenido denso: el glosario y la anotacion del codigo.
+   Cerrados por defecto, para que la pagina no sea un muro. */
+details.fold {
+  border: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+  background: transparent;
+  margin: 0 0 1.2rem;
+  padding: 0;
+  max-width: 100%;
+}
+
+details.fold > summary {
+  font-family: var(--data);
+  font-size: .68rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  font-weight: 400;
+  color: var(--ink-faint);
+  padding: .55rem .9rem .55rem 2rem;
+}
+
+details.fold > summary::before { left: .9rem; }
+details.fold[open] > summary {
+  color: var(--accent);
+  border-bottom: 1px solid var(--rule-soft);
+  margin-bottom: 0;
+}
+
+details.fold > *:not(summary) { padding: .8rem .9rem; color: inherit; }
+details.fold ul { margin-bottom: 0; }
+details.fold .annot { border: 0; padding: 0; margin: 0; }
+details.fold .annot dd { max-width: var(--measure); }
+
+/* Un bloque de codigo seguido de su plegable van pegados. */
+pre:has(+ details.fold) { margin-bottom: 0; border-bottom: 0; }
+
+:root { --accent: #6e4410; }
+</style>
+</head>
+<body>
+<header class="masthead">
+  <div class="masthead-inner">
+    <div class="eyebrow"><a href="index.html">Sílice</a> / M&oacute;dulo <b>2</b> de 14</div>
+    <h1>El primer modelo, y el techo que apareció enseguida</h1>
+    <p class="standfirst">Un árbol, un bosque y una línea base tonta. Los tres se quedan en el mismo sitio, y ese sitio es la respuesta</p>
+    <div class="figure-mark">
+      <span class="figure-value">R² 0,04</span>
+      <span class="figure-label">el techo con separación temporal</span>
+    </div>
+    <nav class="thread" aria-label="El arco del proyecto"><a href="m01_radiografia_del_dataset.html" title="1. Radiografía del dataset"><span class="n">1</span> <span class="v">737.453</span></a><span aria-current="page" title="2. El primer modelo, y el techo que apareció enseguida"><span class="n">2</span> <span class="v">R² 0,04</span></span><a href="m03_como_aprende_un_modelo.html" title="3. Cómo aprende un modelo por dentro"><span class="n">3</span> <span class="v">R² 0,06</span></a><a href="m04_preprocesar_y_validar.html" title="4. Preprocesar y validar sin hacer trampa"><span class="n">4</span> <span class="v">R² −0,13</span></a><a href="m05_darle_memoria_al_modelo.html" title="5. Darle memoria al modelo"><span class="n">5</span> <span class="v">R² 0,64</span></a><a href="m06_clasificar_fuera_de_spec.html" title="6. Clasificar: dentro o fuera de especificación"><span class="n">6</span> <span class="v">0,62 vs 0,77</span></a><a href="m07_contra_que_se_compara.html" title="7. Contra qué se compara un modelo"><span class="n">7</span> <span class="v">+0,009</span></a><a href="m08_donde_aporta_el_ml.html" title="8. ¿Dónde aporta el ML de verdad?"><span class="n">8</span> <span class="v">0 de 4</span></a><a href="m09_los_tres_estados_de_la_planta.html" title="9. Los tres estados de la planta"><span class="n">9</span> <span class="v">k = 3</span></a><a href="m10_redes_producto_y_cierre.html" title="10. Redes, producto y cierre"><span class="n">10</span> <span class="v">0,76</span></a><a class="starts-part" href="m11_modelos_de_secuencia.html" title="11. Modelos de secuencia: LSTM, GRU y convolución causal"><span class="n">11</span> <span class="v">+0,215</span></a><a href="m12_practica_de_pronostico.html" title="12. La práctica de pronóstico que faltó"><span class="n">12</span> <span class="v">0,52 vs 0,63</span></a><a href="m13_incertidumbre.html" title="13. Incertidumbre: del punto al intervalo"><span class="n">13</span> <span class="v">92,0 %</span></a><a href="m14_lectura_causal.html" title="14. Lectura causal del lazo de control"><span class="n">14</span> <span class="v">+0,16</span></a></nav>
+    <div class="assay"><span><b>6</b> apuntes de origen</span><span><b>7</b> figuras</span><span><b>7</b> scripts</span></div>
+  </div>
+</header>
+<main class="container">
+<section class="block is-brief"><span class="kicker">Resumen</span><h2 class="block-title">En 30 segundos</h2><ul><li><strong>R² 0,04 en prueba.</strong> Un árbol, un árbol podado y un bosque de 100 árboles caen los tres en el mismo sitio.</li><li><strong>El techo lo pone el problema, no el algoritmo.</strong> Cuando tres modelos distintos empatan, deja de ser culpa del modelo.</li><li><strong>El sobreajuste, medido en vivo.</strong> A profundidad 30 el error de entrenamiento baja a 0,061 y el de prueba sube a 1,543. El modelo memoriza.</li><li><strong>La señal está donde decía el módulo 1</strong>: aire de las columnas 3 y 4, más la amina. Las dos columnas de alimentación tienen importancia 0,000.</li><li><strong>Ojo con el baseline de aquí.</strong> Predecir siempre la media es el rival más flojo posible. El módulo 7 pone uno de verdad.</li></ul></section>
+<section class="block "><span class="kicker">Contexto</span><h2 class="block-title">Qué resuelve este módulo</h2><p>Aquí se entrena el primer modelo del proyecto y se aprende a calificarlo. Un árbol de decisión, que es el modelo más fácil de leer que existe: una cadena de preguntas de sí o no.</p><p>También aparece el problema que persigue a todo el machine learning. Si dejas crecer al árbol, memoriza. Acierta el 100 % de lo que ya vio y no sirve para nada nuevo.</p><p>Y sale el resultado que marca el resto del proyecto. Con evaluación temporal honesta, el techo está en R² 0,04. No se mueve por cambiar de algoritmo.</p></section>
+<section class="block is-toy"><span class="kicker">A mano</span><h2 class="block-title">Antes de la teoría: un ejemplo de juguete</h2><p>Seis lotes procesados. De cada uno se sabe el caudal de aire de la columna y la sílice que salió.</p><div class="table-wrap"><table><thead><tr><th>Lote</th><th>Aire (Nm³/h)</th><th>% SiO₂</th></tr></thead><tbody><tr><td>1</td><td>280</td><td>5</td></tr><tr><td>2</td><td>285</td><td>4</td></tr><tr><td>3</td><td>290</td><td>6</td></tr><tr><td>4</td><td>300</td><td>1</td></tr><tr><td>5</td><td>305</td><td>0</td></tr><tr><td>6</td><td>310</td><td>2</td></tr></tbody></table></div><h3 class="sub">Paso 1. El error antes de preguntar nada</h3><p>Sin modelo, la mejor apuesta es la media de todos.</p><pre><code>media = (5 + 4 + 6 + 1 + 0 + 2) / 6 = 18 / 6 = 3</code></pre><p>El error se mide sumando el cuadrado de cada fallo.</p><pre><code>error = (5-3)² + (4-3)² + (6-3)² + (1-3)² + (0-3)² + (2-3)²
+      =   4    +   1    +   9    +   4    +   9    +   1
+      = 28</code></pre><p><strong>28.</strong> Ese es el punto de partida.</p><h3 class="sub">Paso 2. Probar un corte</h3><p>El árbol prueba a partir los lotes en dos grupos. Corte en aire menor que 295.</p><pre><code>izquierda (280, 285, 290) -&gt; 5, 4, 6   media 5   error = 0 + 1 + 1 = 2
+derecha   (300, 305, 310) -&gt; 1, 0, 2   media 1   error = 0 + 1 + 1 = 2
+error después = 2 + 2 = 4</code></pre><p>La ganancia es lo que se ha limpiado.</p><pre><code>ganancia = 28 - 4 = 24</code></pre><h3 class="sub">Paso 3. Probar otro corte, para comparar</h3><p>Corte en aire menor que 305.</p><pre><code>izquierda (280, 285, 290, 300) -&gt; 5, 4, 6, 1   media 4   error = 1 + 0 + 4 + 9 = 14
+derecha   (305, 310)           -&gt; 0, 2         media 1   error = 1 + 1 = 2
+error después = 14 + 2 = 16
+ganancia = 28 - 16 = 12</code></pre><p><strong>24 contra 12.</strong> El primer corte limpia el doble, así que el árbol se queda con ese. Eso es todo lo que hace un árbol al crecer: prueba todos los cortes posibles, calcula la ganancia de cada uno y elige el mayor. Después repite dentro de cada trozo.</p><h3 class="sub">Paso 4. Cómo se califica una predicción</h3><p>Otro ejemplo, más pequeño. Cinco lotes que salieron todos a 2 % de SiO₂, y un modelo que predijo esto:</p><div class="table-wrap"><table><thead><tr><th>Real</th><th>2</th><th>2</th><th>2</th><th>2</th><th>2</th></tr></thead><tbody><tr><td><strong>Predicho</strong></td><td>1</td><td>2</td><td>2</td><td>2</td><td>4</td></tr><tr><td><strong>Fallo</strong></td><td>−1</td><td>0</td><td>0</td><td>0</td><td>+2</td></tr></tbody></table></div><p>Dos formas de resumir esos cinco fallos:</p><pre><code>MAE  = (1 + 0 + 0 + 0 + 2) / 5 = 3 / 5 = 0,6
+MSE  = (1 + 0 + 0 + 0 + 4) / 5 = 5 / 5 = 1,0
+RMSE = raíz de 1,0 = 1,0</code></pre><p><strong>MAE 0,6 y RMSE 1,0 sobre los mismos fallos.</strong> La diferencia es el lote que falló por 2. El MAE lo cuenta una vez. El RMSE lo eleva al cuadrado y le da mucho más peso.</p><h3 class="sub">Paso 5. Qué acaba de pasar</h3><p>Ya están las dos piezas del módulo. El árbol elige sus cortes bajando el error al cuadrado. Y el RMSE castiga los fallos grandes más que los pequeños.</p><p>De ahí sale una regla práctica. <strong>Si el RMSE es mucho mayor que el MAE, hay fallos grandes escondidos.</strong> En el archivo real la diferencia será 1,114 contra 0,845.</p></section>
+<section class="block is-terms"><span class="kicker">Términos</span><h2 class="block-title">Glosario</h2><details class="fold"><summary>13 términos, en palabras simples</summary><ul><li><strong>Árbol de decisión.</strong> Un modelo hecho de preguntas de sí o no encadenadas. Cada respuesta lleva a otra pregunta, hasta dar un número.</li><li><strong>Nodo raíz.</strong> La primera pregunta, arriba del todo.</li><li><strong>Hoja.</strong> Un extremo del árbol. Ahí ya no se pregunta más y se da la respuesta.</li><li><strong>Profundidad.</strong> Cuántas preguntas encadenadas hay como máximo desde la raíz hasta una hoja.</li><li><strong>Hiperparámetro.</strong> Una perilla que tú fijas antes de entrenar y el modelo no aprende. La profundidad máxima es una.</li><li><strong>MAE.</strong> Error absoluto medio. El fallo típico, en las unidades del dato.</li><li><strong>RMSE.</strong> Raíz del error cuadrático medio. Como el MAE, pero castigando más los fallos grandes.</li><li><strong>R².</strong> Qué fracción de la variación del objetivo explica el modelo. Cero significa que no aporta nada sobre predecir la media. Puede salir negativo.</li><li><strong>Línea base.</strong> El rival mínimo que hay que superar. Aquí, predecir siempre la media.</li><li><strong>Sobreajuste.</strong> Que el modelo aprenda las particularidades de tus datos concretos en vez de la regla general. Se reconoce porque acierta mucho más en entrenamiento que en prueba.</li><li><strong>Curva de validación.</strong> El error en entrenamiento y en prueba dibujados contra una perilla. Enseña dónde está el punto dulce.</li><li><strong>Bosque aleatorio.</strong> Muchos árboles entrenados sobre remuestreos distintos. Se promedia entre todos.</li><li><strong>Importancia de variables.</strong> Cuánto contribuyó cada columna a los cortes del modelo. No es una prueba de causa.</li></ul></details></section>
+<section class="block is-method"><span class="kicker">Método</span><h2 class="block-title">Paso a paso</h2><h3 class="sub">Paso 1. Aplicar las decisiones del módulo 1</h3><p>Antes de entrenar hay que dejar los datos como el módulo 1 dijo. Se quitan las 1.171 filas duplicadas. Se conservan el hueco y el tramo congelado. Se conservan las dos columnas de alimentación. Y se excluye <code>% Iron Concentrate</code>, que era fuga.</p><p>Quedan 21 columnas de entrada.</p><h3 class="sub">Paso 2. Partir por tiempo, no al azar</h3><p>El corte va el 1 de agosto. Entrenamiento de marzo a julio, prueba en agosto y septiembre.</p><p>Esto no es un detalle. Una partición aleatoria mete horas contiguas en los dos lados, y las horas contiguas se parecen. El modelo aprobaría copiando de su vecina.</p><h3 class="sub">Paso 3. Entrenar un árbol corto y leerlo</h3><p>Profundidad 3 a propósito. Un árbol de profundidad 3 tiene ocho hojas como mucho, así que se puede dibujar y leer en voz alta.</p><p>Leerlo importa tanto como entrenarlo. Si la primera pregunta del árbol no tiene sentido metalúrgico, hay algo mal en los datos.</p><h3 class="sub">Paso 4. Calificarlo contra una línea base</h3><p>Un R² suelto no dice nada. Hace falta compararlo con el rival mínimo, que es predecir siempre la media del entrenamiento.</p><h3 class="sub">Paso 5. Buscar el punto dulce de la profundidad</h3><p>Se entrena el mismo árbol con profundidades crecientes. Se dibuja el error de entrenamiento y el de prueba en la misma gráfica. Ahí el sobreajuste se ve, en vez de suponerse.</p><h3 class="sub">Paso 6. Probar si muchos árboles arreglan lo que uno no pudo</h3><p>Un bosque aleatorio entrena cien árboles sobre remuestreos distintos y promedia. Si el problema fuera la varianza de un solo árbol, el bosque lo notaría.</p></section>
+<section class="block is-code"><span class="kicker">Código</span><h2 class="block-title">El código, por partes</h2><h3 class="sub">Paso 1. Preparar los datos y partirlos por tiempo</h3><pre><code class="language-python">from prepare_data import get_train_test
+
+X_train, X_test, y_train, y_test, feats = get_train_test()
+print(f&quot;Features: {len(feats)} (excluye objetivo y % Iron Concentrate por fuga)&quot;)
+print(f&quot;Train: {len(X_train):,} filas -&gt; mar a jul&quot;)
+print(f&quot;Test:  {len(X_test):,} filas -&gt; ago a sep&quot;)</code></pre><details class="fold"><summary>línea por línea, 3 entradas</summary><dl class="annot"><dt><code>from prepare_data import get_train_test</code></dt><dd>Trae una función escrita antes en el proyecto, en vez de repetir el código de limpieza en cada script.</dd><dt><code>X_train, X_test, y_train, y_test, feats =</code></dt><dd>Reparte los cinco resultados de la función en cinco nombres de una vez.</dd><dt><code>X</code></dt><dd>Por convención, la tabla de entradas. La <code>y</code> es lo que se quiere predecir.</dd></dl></details><div class="output"><span class="output-tag">sale</span><pre><code>Features usadas: 21 (excluye objetivo y % Iron Concentrate por fuga)
+Train: 563,482 filas (77%)  -&gt; mar a jul
+Test:  172,800 filas (23%)  -&gt; ago a sep</code></pre></div><h3 class="sub">Paso 2. Entrenar el árbol y calificarlo</h3><pre><code class="language-python">from sklearn.tree import DecisionTreeRegressor
+from sklearn.metrics import r2_score, root_mean_squared_error
+
+tree = DecisionTreeRegressor(max_depth=3, random_state=0)
+tree.fit(X_train, y_train)
+print(f&quot;RMSE test: {root_mean_squared_error(y_test, tree.predict(X_test)):.3f}&quot;)
+print(f&quot;R2   test: {r2_score(y_test, tree.predict(X_test)):.3f}&quot;)</code></pre><details class="fold"><summary>línea por línea, 5 entradas</summary><dl class="annot"><dt><code>DecisionTreeRegressor</code></dt><dd>La versión del árbol que predice un número. Hay otra que predice categorías.</dd><dt><code>max_depth=3</code></dt><dd>La perilla: como mucho tres preguntas encadenadas.</dd><dt><code>random_state=0</code></dt><dd>Fija el azar interno, para que el mismo código dé siempre el mismo resultado.</dd><dt><code>.fit(X_train, y_train)</code></dt><dd>Entrenar. Aquí es donde el árbol prueba cortes y se queda con los mejores.</dd><dt><code>.predict(X_test)</code></dt><dd>Pasar por el árbol filas que no vio nunca, y quedarse con lo que dice cada hoja.</dd></dl></details><div class="output"><span class="output-tag">sale</span><pre><code>Arbol de decision (max_depth=3), objetivo = % SiO2 concentrado
+  RMSE train: 1.029  |  RMSE test: 1.114
+  R2   train: 0.160  |  R2   test: 0.038</code></pre></div><p><strong>R² 0,160 en entrenamiento y 0,038 en prueba.</strong> Ya se ve la primera señal de sobreajuste, todavía suave.</p><figure class="fig"><img src="../figuras/fig_m2_arbol.255bb354.png" alt="El árbol entrenado, de profundidad 3. La primera pregunta es por el aire de la columna 3, igual que decía la correlación del módulo 1." loading="lazy"><figcaption>El árbol entrenado, de profundidad 3. La primera pregunta es por el aire de la columna 3, igual que decía la correlación del módulo 1.</figcaption></figure><p>La raíz pregunta si el aire de la columna 3 baja de 295,85 Nm³/h. Coincide con el módulo 1, que había puesto esa columna entre las correlaciones más fuertes. El modelo y la exploración dicen lo mismo, que es lo que se quería comprobar.</p><h3 class="sub">Paso 3. Ver qué puede y qué no puede predecir</h3><pre><code class="language-python">import matplotlib.pyplot as plt
+
+sample = X_test.sample(4000, random_state=0)
+plt.scatter(y_test.loc[sample.index], tree.predict(sample), s=4, alpha=.3)</code></pre><details class="fold"><summary>línea por línea, 3 entradas</summary><dl class="annot"><dt><code>.sample(4000, random_state=0)</code></dt><dd>Coge 4.000 filas al azar. Dibujar 172.800 puntos tapa el patrón y tarda mucho.</dd><dt><code>plt.scatter(x, y)</code></dt><dd>Nube de puntos. En el eje horizontal lo real, en el vertical lo predicho.</dd><dt><code>s=4, alpha=.3</code></dt><dd>Puntos pequeños y semitransparentes, para que se vea dónde se amontonan.</dd></dl></details><div class="output"><span class="output-tag">sale</span><pre><code>Figures written:
+  RMSE test: 1.114 | R2 test: 0.038
+ - fig_m2_arbol.pdf
+ - fig_m2_arbol_pred_vs_real.pdf</code></pre></div><figure class="fig"><img src="../figuras/fig_m2_arbol_pred_vs_real.b2a54b93.png" alt="Predicho contra real. Las bandas horizontales son las ocho hojas: un árbol de profundidad 3 solo puede dar ocho respuestas distintas." loading="lazy"><figcaption>Predicho contra real. Las bandas horizontales son las ocho hojas: un árbol de profundidad 3 solo puede dar ocho respuestas distintas.</figcaption></figure><p>Esa figura enseña una limitación que no se ve en las métricas. El árbol tiene ocho hojas, así que solo puede dar <strong>ocho valores distintos</strong>. El objetivo real va de 0,60 a 5,53 de forma continua.</p><h3 class="sub">Paso 4. Compararlo con el rival mínimo</h3><pre><code class="language-python">baseline = [y_train.mean()] * len(y_test)
+print(f&quot;Modelo   RMSE {root_mean_squared_error(y_test, tree.predict(X_test)):.3f}&quot;)
+print(f&quot;Baseline RMSE {root_mean_squared_error(y_test, baseline):.3f}&quot;)</code></pre><details class="fold"><summary>línea por línea, 1 entrada</summary><dl class="annot"><dt><code>[y_train.mean()] * len(y_test)</code></dt><dd>Una lista con la media repetida tantas veces como filas de prueba. Es el modelo más tonto posible.</dd></dl></details><div class="output"><span class="output-tag">sale</span><pre><code>RMSE=1.114  MAE=0.845  R2=0.038
+Baseline RMSE=1.136  MAE=0.908</code></pre></div><figure class="fig"><img src="../figuras/fig_m2_errores.18678746.png" alt="El reparto de los fallos del árbol en prueba. El MAE resume ese ancho en un número." loading="lazy"><figcaption>El reparto de los fallos del árbol en prueba. El MAE resume ese ancho en un número.</figcaption></figure><figure class="fig"><img src="../figuras/fig_m2_baseline.79c5abf7.png" alt="El árbol contra predecir siempre la media. La diferencia es de 0,022 en RMSE." loading="lazy"><figcaption>El árbol contra predecir siempre la media. La diferencia es de 0,022 en RMSE.</figcaption></figure><p>De 1,136 a 1,114. <strong>El modelo mejora al baseline en 0,022</strong>, que es un 2 %. Y ahí está la comparación de las dos métricas del ejemplo de juguete: RMSE 1,114 contra MAE 0,845. Hay fallos grandes escondidos.</p><h3 class="sub">Paso 5. Ver el sobreajuste en vivo</h3><pre><code class="language-python">for depth in [1, 2, 3, 4, 6, 8, 10, 14, 18, 24, 30]:
+    m = DecisionTreeRegressor(max_depth=depth, random_state=0).fit(X_train, y_train)
+    print(f&quot;{depth:5} | {root_mean_squared_error(y_train, m.predict(X_train)):.3f}&quot;
+          f&quot;      | {root_mean_squared_error(y_test, m.predict(X_test)):.3f}&quot;)</code></pre><details class="fold"><summary>línea por línea, 2 entradas</summary><dl class="annot"><dt><code>for depth in [...]:</code></dt><dd>Repite el bloque una vez por cada profundidad de la lista.</dd><dt><code>.fit(...) encadenado</code></dt><dd><code>DecisionTreeRegressor(...).fit(...)</code> crea y entrena en una sola línea, porque <code>fit</code> devuelve el modelo ya entrenado.</dd></dl></details><div class="output"><span class="output-tag">sale</span><pre><code>depth | rmse_train | rmse_test
+    1 | 1.085      | 1.158
+    2 | 1.050      | 1.111
+    3 | 1.029      | 1.114
+    4 | 1.007      | 1.141
+    6 | 0.950      | 1.174
+    8 | 0.869      | 1.212
+   10 | 0.786      | 1.272
+   14 | 0.591      | 1.447
+   18 | 0.393      | 1.531
+   24 | 0.171      | 1.579
+   30 | 0.061      | 1.543
+Mejor profundidad en test: 2 -&gt; RMSE 1.111</code></pre></div><figure class="fig"><img src="../figuras/fig_m2_sobreajuste.fff6c9d8.png" alt="Las dos curvas. La de entrenamiento baja sin parar. La de prueba toca fondo en profundidad 2 y a partir de ahí sube." loading="lazy"><figcaption>Las dos curvas. La de entrenamiento baja sin parar. La de prueba toca fondo en profundidad 2 y a partir de ahí sube.</figcaption></figure><p>Esta tabla es el sobreajuste entero en once líneas. El error de entrenamiento cae de 1,085 a 0,061, casi cero. El de prueba toca fondo en 1,111 y después empeora hasta 1,579.</p><p><strong>A profundidad 30 el árbol se sabe los datos de memoria y predice peor que uno con dos preguntas.</strong></p><h3 class="sub">Paso 6. Cien árboles en vez de uno</h3><pre><code class="language-python">from sklearn.ensemble import RandomForestRegressor
+
+forest = RandomForestRegressor(n_estimators=100, max_depth=3,
+                               n_jobs=-1, random_state=0).fit(X_train, y_train)
+print(f&quot;Random forest: R2 {r2_score(y_test, forest.predict(X_test)):.3f}&quot;)</code></pre><details class="fold"><summary>línea por línea, 2 entradas</summary><dl class="annot"><dt><code>n_estimators=100</code></dt><dd>Cuántos árboles entrena. Cada uno ve un remuestreo distinto de las filas.</dd><dt><code>n_jobs=-1</code></dt><dd>Usa todos los núcleos del procesador. Con cien árboles se nota.</dd></dl></details><div class="output"><span class="output-tag">sale</span><pre><code>Arbol (prof. 2): RMSE 1.111  R2 0.043
+Random forest  : RMSE 1.112  R2 0.041</code></pre></div><figure class="fig"><img src="../figuras/fig_m2_forest_compare.4a97136d.png" alt="El bosque contra el árbol podado y contra el baseline. Los tres casi se tocan." loading="lazy"><figcaption>El bosque contra el árbol podado y contra el baseline. Los tres casi se tocan.</figcaption></figure></section>
+<section class="block is-result"><span class="kicker">Resultado</span><h2 class="block-title">El resultado, medido</h2><p><strong>Qué esperábamos.</strong> Que el árbol corto fuera flojo y que el bosque de cien árboles lo mejorara de forma clara. Es lo que pasa en casi todos los tutoriales.</p><p><strong>Qué salió.</strong> Los tres modelos empatan.</p><div class="table-wrap"><table><thead><tr><th>Modelo</th><th>RMSE prueba</th><th>R² prueba</th></tr></thead><tbody><tr><td>Predecir la media</td><td>1,136</td><td>0,000</td></tr><tr><td>Árbol, profundidad 3</td><td>1,114</td><td>0,038</td></tr><tr><td>Árbol podado, profundidad 2</td><td>1,111</td><td>0,043</td></tr><tr><td>Bosque de 100 árboles</td><td>1,112</td><td>0,041</td></tr></tbody></table></div><p><strong>Qué significa.</strong> Cuando tres modelos de complejidad muy distinta caen en el mismo sitio, el límite no está en el modelo. Está en el problema. <strong>El techo de este proyecto es R² 0,04</strong>, y no se sube cambiando de algoritmo.</p><p>Los R² de 0,9 que se ven en los tutoriales con este mismo dataset salen de partir al azar. Eso es fuga por vecindad temporal, y el módulo 1 ya explicó por qué.</p><h3 class="sub">Dónde está la poca señal que hay</h3><figure class="fig"><img src="../figuras/fig_m2_importance.6f12aaa9.png" alt="Importancia de las 21 variables en el bosque podado. Tres se llevan el 80 %." loading="lazy"><figcaption>Importancia de las 21 variables en el bosque podado. Tres se llevan el 80 %.</figcaption></figure><div class="table-wrap"><table><thead><tr><th>Variable</th><th>Importancia</th></tr></thead><tbody><tr><td>Aire columna 3</td><td>0,406</td></tr><tr><td>Aire columna 4</td><td>0,219</td></tr><tr><td>Amina</td><td>0,175</td></tr><tr><td>Nivel columna 4</td><td>0,048</td></tr><tr><td>Nivel columna 5</td><td>0,047</td></tr><tr><td>Nivel columna 2</td><td>0,047</td></tr></tbody></table></div><p>Tres variables se llevan el 80 %, y son las mismas que señaló la correlación del módulo 1. La exploración y el modelo coinciden, que es la señal de que ninguno de los dos está inventando.</p><p>Las dos columnas de alimentación quedan en el puesto 15 de 21, con importancia <strong>0,000</strong>. Conservarlas no hizo daño y tampoco aportó nada. La decisión del módulo 1 queda comprobada.</p><h3 class="sub">Lo que este módulo deja abierto</h3><p>El baseline de aquí es predecir siempre la media. Es el rival más flojo que existe, porque ignora que el laboratorio ya midió la hora anterior.</p><p>Superar a ese baseline por un 2 % no dice mucho. <strong>Queda abierta la pregunta de contra qué habría que comparar de verdad.</strong> El módulo 7 la contesta con un número. Y ese número cambia la lectura de todo lo que viene en medio.</p></section>
+<section class="block is-warning"><span class="kicker">Trampas</span><h2 class="block-title">Ojo</h2><ul><li><strong>Tres modelos que empatan no son tres fracasos.</strong> Son una medición del problema. Cambiar de algoritmo cuando pasa esto es perder el tiempo.</li><li><strong>El R² de entrenamiento no sirve para decidir nada.</strong> A profundidad 30 vale casi 1 y el modelo es inútil. Solo cuenta el de prueba.</li><li><strong>La profundidad se elige mirando datos, no por defecto.</strong> Aquí el punto dulce es 2, que es mucho menos de lo que nadie habría puesto a ojo.</li><li><strong>La importancia de variables depende del modelo.</strong> Un bosque profundo reparte la importancia de otra manera. Aquí se usó el podado, que es el que generaliza.</li><li><strong>La importancia no es causa.</strong> Dice de qué se agarró el modelo, no qué mueve el proceso.</li><li><strong>Un árbol solo da tantos valores distintos como hojas tiene.</strong> Con profundidad 3 son ocho, para un objetivo que es continuo.</li><li><strong>Cuidado con el baseline flojo.</strong> Predecir la media es fácil de batir y no demuestra casi nada.</li></ul></section>
+<section class="block is-bridge"><span class="kicker">Analogía</span><h2 class="block-title">Puente metalúrgico</h2><p>Un árbol de decisión es un <strong>árbol de decisión de planta</strong>, del tipo que ya está colgado en la sala de control. Si el pH baja de 9,5, sube la cal. Si la ley de alimentación cae, ajusta la dosificación. Preguntas encadenadas que acaban en una acción.</p><p>El sobreajuste tiene su equivalente exacto en <strong>calibración</strong>. Una curva de calibración ajustada con un polinomio de grado alto pasa por todos los patrones. Y luego le pega un disparate a una muestra nueva. Se ajustó al ruido de los patrones, no a la relación.</p><p>Y el resultado del módulo se lee como una <strong>prueba de flotación de laboratorio</strong>. Si tres esquemas distintos de reactivos dan la misma recuperación, el límite no está en el esquema. Está en la liberación del mineral. Cambiar de reactivo no arregla una molienda insuficiente.</p></section>
+<section class="block is-review"><span class="kicker">Repaso</span><h2 class="block-title">Repaso</h2><details><summary>Tres modelos distintos dan R² alrededor de 0,04. ¿Qué se concluye?</summary><p>Que el límite lo pone el problema, no el modelo. Un árbol de tres preguntas, un árbol podado a dos y un bosque de cien árboles tienen capacidades muy distintas. Si los tres caen en 1,11 de RMSE, la diferencia entre ellos no es lo que está atascando el resultado.</p><p>La conclusión práctica es dejar de probar algoritmos. Lo que hay que atacar es la información disponible: variables nuevas, otro horizonte de predicción, u otra forma de plantear la pregunta. Eso es lo que hacen los módulos siguientes.</p></details><details><summary>El error de entrenamiento a profundidad 30 es 0,061 y el de prueba 1,543. Explica qué pasó.</summary><p>El árbol memorizó. A profundidad 30 puede hacer tantas preguntas encadenadas que acaba aislando grupos diminutos de filas, casi una hoja por caso.</p><p>Sobre los datos que ya vio acierta casi perfecto, y por eso el error de entrenamiento baja a 0,061. Pero lo que aprendió son las particularidades de esas filas concretas, no la regla general. Con horas nuevas falla más que un árbol de dos preguntas. Por eso la única curva que importa es la de prueba.</p></details><details><summary>¿Por qué la partición es por fecha y no al azar?</summary><p>Porque las horas contiguas se parecen mucho entre sí. Con una partición aleatoria, la hora de las 14:00 puede caer en entrenamiento y la de las 15:00 en prueba.</p><p>El modelo entonces no predice: reconoce una situación casi idéntica que ya vio. El R² sube a valores de 0,9 y no significa nada, porque en planta el futuro nunca está en el entrenamiento. La partición temporal reproduce la situación real, donde el modelo tiene que hablar de meses que no existían cuando se entrenó.</p></details><details><summary>Las dos columnas de alimentación salen con importancia 0,000. ¿Fue un error conservarlas?</summary><p>No, fue la forma correcta de decidirlo. En el módulo 1 la correlación de esas columnas con el objetivo era de 0,08 y 0,07 en valor absoluto, así que se sospechaba que aportaban poco.</p><p>Sospechar no es medir. Conservarlas costaba dos columnas de 21 y permitió que el propio modelo las juzgara. El bosque las dejó en el puesto 15 de 21 con importancia cero, lo cual confirma la sospecha con un segundo método independiente. Tirarlas por adelantado habría sido una decisión sin comprobar.</p></details><details><summary>El modelo mejora al baseline en un 2 %. ¿Es un buen resultado?</summary><p>No se puede saber todavía, porque ese baseline es demasiado flojo. Predecir siempre la media ignora una información que la planta ya tiene: el laboratorio midió la hora anterior.</p><p>Un rival honesto tendría que usar esa información. La pregunta correcta no es si el modelo supera a la media, sino si supera a repetir el último análisis. Este módulo la deja abierta a propósito y el módulo 7 la contesta. La respuesta cambia cómo se lee todo el proyecto.</p></details></section>
+</main>
+<nav class="pager"><a class="prev" href="m01_radiografia_del_dataset.html"><span class="dir">Anterior</span>1. Radiografía del dataset</a><a class="next" href="m03_como_aprende_un_modelo.html"><span class="dir">Siguiente</span>3. Cómo aprende un modelo por dentro</a></nav>
+<footer class="footer">
+  <div class="footer-inner">
+    <span>S&iacute;lice / M&oacute;dulo 2</span>
+    <span>generado el 2026-08-20</span>
+    <span>fuente: los 31 apuntes originales, sus scripts y el CSV de la planta</span>
+  </div>
+</footer>
+</body>
+</html>

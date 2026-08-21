@@ -1,0 +1,484 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Automatidata — The Power of Statistics</title>
+<style>
+/* ============================================================================
+   Concentra — design tokens and shared components.
+   Inlined into every generated page by load_style(), so pages stay self-contained
+   and work offline from file:// with no external requests.
+
+   Direction: an assay lab, not a tech dashboard. The palette is taken from ore
+   and lab materials (chalcopyrite brass, malachite, hematite, quartz) on warm
+   graphite rather than the blue-black + neon of a generic dark UI. Type is
+   Bahnschrift, the DIN-descended grotesque that Windows ships and that lives on
+   machinery plates and technical drawings, over Corbel for reading.
+   ========================================================================== */
+
+:root {
+  /* Ground and surfaces: warm graphite, the colour of rock dust, not blue-black */
+  --rock: #1a1714;
+  --bench: #221e19;
+  --core: #2b251f;
+  --seam: #3d352c;
+
+  /* Ore palette. No blue and no purple anywhere: those are the tones that make a
+     page read as generated, and this palette comes from the ores instead. */
+  --brass: #c9a227;      /* chalcopyrite, the primary accent */
+  --malachite: #5d9b7a;  /* verified output, results that came out right */
+  --hematite: #b04a35;   /* iron oxide, pitfalls and warnings */
+
+  /* Text */
+  --quartz: #ece7de;
+  --dust: #9a9186;
+  --shadowed: #6f675c;
+
+  --display: Bahnschrift, 'DIN Alternate', 'Segoe UI Semibold', system-ui, sans-serif;
+  --body: Corbel, Candara, 'Segoe UI', system-ui, sans-serif;
+  --data: Consolas, 'Cascadia Mono', ui-monospace, monospace;
+
+  /* In px, not ch: ch scales with font-size, so a heading ended up wider than a
+     paragraph and the page had four different right edges instead of two. */
+  --measure: 640px;
+  --wide: 900px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--rock);
+  color: var(--quartz);
+  font-family: var(--body);
+  font-size: 16px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection { background: var(--brass); color: var(--rock); }
+
+:focus-visible {
+  outline: 2px solid var(--brass);
+  outline-offset: 3px;
+}
+
+/* --------------------------------------------------------------- the signature
+   A sieve series: ticks that get finer from left to right, coarse feed to fine
+   concentrate. It is the one ornament on the page and appears exactly twice —
+   under the wordmark and under a page title. */
+.mesh {
+  height: 10px;
+  background-image:
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 16px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 9px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 5px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 3px);
+  background-size: 25% 100%;
+  background-position: 0 0, 25% 0, 50% 0, 75% 0;
+  background-repeat: no-repeat;
+  opacity: .8;
+  transform-origin: left center;
+  animation: sieve .55s cubic-bezier(.2, .8, .3, 1) both;
+}
+@keyframes sieve { from { transform: scaleX(0); opacity: 0; } to { transform: scaleX(1); opacity: .8; } }
+@media (prefers-reduced-motion: reduce) {
+  .mesh { animation: none; }
+  * { transition: none !important; }
+}
+
+/* ------------------------------------------------------------------ page head */
+.header {
+  border-bottom: 1px solid var(--seam);
+  padding: 3.2rem 2rem 0;
+  background: linear-gradient(180deg, #221d16 0%, var(--rock) 100%);
+}
+.header-content { max-width: 1080px; margin: 0 auto; }
+
+.eyebrow {
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--brass);
+  margin-bottom: 1rem;
+}
+.eyebrow a { color: inherit; text-decoration: none; border-bottom: 1px solid transparent; }
+.eyebrow a:hover { border-bottom-color: var(--brass); }
+
+.header h1 {
+  font-family: var(--display);
+  font-size: clamp(2rem, 4.5vw, 3.1rem);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -.015em;
+  color: var(--quartz);
+  max-width: 20ch;
+}
+.header .subtitle {
+  color: var(--dust);
+  max-width: var(--measure);
+  margin-top: 1rem;
+  font-size: 1.02rem;
+}
+.header .mesh { margin: 1.8rem 0 0; }
+
+/* An assay line: the real composition of the module, in lab-report shorthand. */
+.assay {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.4rem;
+  font-family: var(--data);
+  font-size: .78rem;
+  color: var(--shadowed);
+  padding: .9rem 0 1.6rem;
+  letter-spacing: .04em;
+}
+.assay b { color: var(--dust); font-weight: 400; }
+
+/* --------------------------------------------------------------------- layout */
+/* The container hugs the widest block, so there is no orphan edge past the content. */
+.container { max-width: var(--wide); margin: 3rem auto 5rem; padding: 0 2rem; }
+
+/* Two deliberate right edges and no more: prose stops at the reading measure, and
+   only the things that genuinely need room (code, output, figures, big tables) run
+   out to the full column. */
+.section-block {
+  border-top: 1px solid var(--seam);
+  padding: 2rem 0 2.4rem;
+}
+.section-block > p,
+.section-block > ul,
+.section-block > ol,
+.section-block h3.sub,
+.section-block h4.sub,
+.section-block blockquote,
+details > *:not(summary) { max-width: var(--measure); }
+.section-block:first-child { border-top: 0; padding-top: .5rem; }
+
+/* The kicker names what kind of content follows: context, method, pitfalls.
+   It replaces decorative icons with something that actually classifies. */
+.kicker {
+  font-family: var(--data);
+  font-size: .68rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  display: block;
+  margin-bottom: .5rem;
+}
+.section-title {
+  font-family: var(--display);
+  font-size: 1.55rem;
+  font-weight: 600;
+  letter-spacing: -.01em;
+  line-height: 1.2;
+  margin-bottom: 1.2rem;
+  color: var(--quartz);
+}
+.is-warning .kicker { color: var(--hematite); }
+.is-warning .section-title { color: #e8c4b8; }
+.is-bridge .kicker, .is-decision .kicker { color: var(--malachite); }
+.is-toy .kicker, .is-result .kicker, .is-question .kicker { color: var(--brass); }
+
+/* ---------------------------------------------------------------------- prose */
+/* Justified with hyphenation. In Spanish, justifying without hyphens opens rivers of
+   white space and reads worse than ragged right; lang="es" is what feeds the
+   dictionary. Tables, code, captions and summaries stay ragged on purpose. */
+.section-block p,
+.section-block li,
+details > *:not(summary) {
+  text-align: justify;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+}
+.section-block p { margin-bottom: 1rem; }
+.section-block p:last-child { margin-bottom: 0; }
+/* Indent with padding, not margin, so the bullet sits inside the measure instead of
+   pushing the list 1.2rem past the right edge of the paragraphs. */
+.section-block ul, .section-block ol { margin: 0 0 1rem; padding-left: 1.2rem; }
+.section-block li { margin-bottom: .55rem; padding-left: .2rem; }
+.section-block li::marker { color: var(--brass); }
+td, th, figcaption, .res li, .assay { text-align: left; hyphens: manual; }
+a { color: var(--brass); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+a:hover { text-decoration-thickness: 2px; }
+strong { color: #fff; font-weight: 700; }
+em { color: var(--dust); font-style: italic; }
+
+h3.sub {
+  font-family: var(--display);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--brass);
+  margin: 2rem 0 .7rem;
+  letter-spacing: -.005em;
+}
+h3.sub:first-child { margin-top: 0; }
+h4.sub {
+  font-family: var(--display);
+  font-size: .98rem;
+  font-weight: 600;
+  color: var(--dust);
+  margin: 1.3rem 0 .5rem;
+}
+
+code {
+  font-family: var(--data);
+  font-size: .9em;
+  background: var(--core);
+  border-radius: 3px;
+  padding: .08rem .32rem;
+  color: var(--brass);
+}
+pre {
+  background: #14110e;
+  border: 1px solid var(--seam);
+  border-left: 2px solid var(--seam);
+  border-radius: 2px;
+  padding: 1.1rem 1.2rem;
+  overflow-x: auto;
+  margin-bottom: 1rem;
+}
+pre code {
+  background: none; padding: 0; color: var(--quartz);
+  font-size: .87rem; line-height: 1.6;
+}
+
+/* What the code prints. Malachite: the material that came out of the process. */
+.output {
+  position: relative;
+  border: 1px solid rgba(93, 155, 122, .32);
+  border-left: 2px solid var(--malachite);
+  border-radius: 2px;
+  background: rgba(93, 155, 122, .06);
+  padding: 1.7rem 1.2rem 1rem;
+  margin-bottom: 1rem;
+  overflow-x: auto;
+}
+.output-tag {
+  position: absolute; top: .5rem; left: 1.2rem;
+  font-family: var(--data); font-size: .64rem;
+  letter-spacing: .18em; text-transform: uppercase; color: var(--malachite);
+}
+.output pre {
+  background: none; border: 0; padding: 0; margin: 0;
+  font-family: var(--data); font-size: .85rem;
+  color: var(--quartz); white-space: pre-wrap;
+}
+
+/* Line by line explanation of a code block, for a reader new to programming.
+   Two columns: the fragment of code, and what it does. */
+.annot {
+  display: grid;
+  grid-template-columns: minmax(9rem, auto) 1fr;
+  gap: .1rem 1.2rem;
+  align-items: baseline;
+  max-width: var(--wide);
+  margin: -.4rem 0 1.4rem;
+  padding: .9rem 1.1rem 1rem;
+  border: 1px solid var(--seam);
+  border-top: 0;
+  border-radius: 0 0 2px 2px;
+  background: rgba(201, 162, 39, .04);
+}
+.annot-head {
+  grid-column: 1 / -1;
+  font-family: var(--data);
+  font-size: .64rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  margin-bottom: .5rem;
+}
+.annot dt { padding: .35rem 0; }
+.annot dt code {
+  background: var(--core);
+  color: var(--brass);
+  font-size: .82rem;
+  white-space: nowrap;
+}
+.annot dd {
+  padding: .35rem 0;
+  margin: 0;
+  color: var(--dust);
+  font-size: .93rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(61, 53, 44, .5);
+}
+.annot dt { border-bottom: 1px solid rgba(61, 53, 44, .5); }
+.annot dt:last-of-type, .annot dd:last-of-type { border-bottom: 0; }
+/* The code block sits directly on top of its annotation, as one unit. */
+pre:has(+ .annot) { margin-bottom: 0; border-radius: 2px 2px 0 0; }
+
+@media (max-width: 640px) {
+  .annot { grid-template-columns: 1fr; gap: 0; }
+  .annot dt { border-bottom: 0; padding-bottom: 0; }
+  .annot dd { padding-top: .15rem; }
+}
+
+blockquote {
+  border-left: 2px solid var(--brass);
+  padding: .3rem 0 .3rem 1.3rem;
+  margin: 0 0 1rem;
+  font-family: var(--display);
+  font-size: 1.2rem;
+  font-weight: 400;
+  line-height: 1.4;
+  color: var(--quartz);
+}
+
+/* Tables read as assay data: mono figures, hairline rules, no zebra fill.
+   They take the width they need instead of being stretched to the full column,
+   which is what left a two-column table floating in empty space. */
+.table-wrap { overflow-x: auto; margin-bottom: 1rem; }
+table { border-collapse: collapse; width: auto; max-width: 100%; font-size: .93rem; }
+th, td {
+  border-bottom: 1px solid var(--seam);
+  padding: .55rem .8rem .55rem 0;
+  text-align: left;
+  vertical-align: top;
+}
+th {
+  font-family: var(--data);
+  font-size: .7rem;
+  font-weight: 400;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  border-bottom-color: var(--brass);
+}
+td:first-child { color: var(--quartz); }
+
+/* Review questions: closed by default, so they work as recall practice. */
+details {
+  border-top: 1px solid var(--seam);
+  padding: .9rem 0;
+}
+details:last-child { border-bottom: 1px solid var(--seam); }
+summary {
+  cursor: pointer;
+  font-family: var(--display);
+  font-size: 1.02rem;
+  font-weight: 600;
+  color: var(--quartz);
+  list-style: none;
+  display: flex;
+  gap: .7rem;
+  align-items: baseline;
+}
+summary::-webkit-details-marker { display: none; }
+summary::before {
+  content: '+';
+  font-family: var(--data);
+  color: var(--brass);
+  font-size: .95rem;
+}
+details[open] summary::before { content: '−'; }
+details[open] summary { color: var(--brass); margin-bottom: .7rem; }
+details > *:not(summary) { color: var(--dust); }
+
+figure.fig {
+  margin: 1.6rem 0;
+  border: 1px solid var(--seam);
+  padding: .7rem;
+  background: var(--bench);
+}
+figure.fig img { width: 100%; height: auto; display: block; }
+/* The interactive twin of a figure. Its aspect matches the still one, 10 by 4.4, so a
+   case sheet keeps the same rhythm whichever kind of figure comes next. */
+figure.fig.is-live iframe {
+  width: 100%;
+  /* Matches INTERACTIVE_HEIGHT in src/make_figures.py. It used to be an aspect ratio, and
+     that made the figure's height depend on the window: the caption and the legend are
+     placed at fractions of the plot area, so on a wide screen they were pushed past the
+     bottom margin, clipping the caption and covering the x-axis title. */
+  height: 520px;
+  border: 0;
+  display: block;
+}
+figure.fig figcaption {
+  font-family: var(--data);
+  font-size: .72rem;
+  color: var(--shadowed);
+  margin-top: .6rem;
+  letter-spacing: .04em;
+}
+
+/* File listings on a case sheet */
+.res { list-style: none; margin-left: 0 !important; }
+.res li {
+  display: flex; align-items: baseline; gap: .8rem; flex-wrap: wrap;
+  padding: .5rem 0; border-bottom: 1px solid var(--seam); margin-bottom: 0;
+}
+.res .path { font-family: var(--data); font-size: .74rem; color: var(--shadowed); }
+.res .size { font-family: var(--data); font-size: .74rem; color: var(--shadowed); margin-left: auto; }
+.res .gone { font-family: var(--data); font-size: .74rem; color: var(--hematite); }
+
+.footer {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 2rem 4rem;
+  color: var(--shadowed);
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .03em;
+}
+
+@media (max-width: 640px) {
+  body { font-size: 15px; }
+  .header { padding: 2rem 1.2rem 0; }
+  .container { padding: 0 1.2rem; margin-top: 2rem; }
+  .footer { padding: 0 1.2rem 3rem; }
+}
+
+@media print {
+  body { background: #fff; color: #16130f; }
+  .header { background: none; border-bottom: 1px solid #bbb; padding-top: 0; }
+  .header h1, .section-title, summary { color: #16130f; }
+  .mesh { animation: none; }
+  .section-block { break-inside: avoid; max-width: none; }
+  pre, .output { background: #f6f4f0; border-color: #ccc; }
+  details:not([open]) > *:not(summary) { display: block; }
+  a { color: #16130f; }
+}
+
+</style>
+</head>
+<body>
+<header class="header">
+  <div class="header-content">
+    <div class="eyebrow">Curso 3 · The Power of Statistics / Caso de estudio</div>
+    <h1>Automatidata</h1>
+    <p class="subtitle">La corazonada de la gerencia era correcta, pero el tamaño del efecto la desinfla: es el caso que enseña que significativo no es lo mismo que importante.</p>
+    <div class="mesh" role="presentation"></div>
+    <div class="assay"><span>22.532 viajes</span><span>2 formas de pago</span><span>Welch + Mann-Whitney</span><span>α = 0,05</span></div>
+  </div>
+</header>
+<main class="container">
+<section class="section-block "><span class="kicker">Encargo</span><h2 class="section-title">El encargo</h2><p>Trabajas como analista para <strong>Automatidata</strong>, una consultora de datos contratada por la Comisión de Taxis y Limusinas de Nueva York (la NYC TLC), el organismo que regula los taxis amarillos de la ciudad.</p><p>La gerencia tiene una corazonada sobre los ingresos. Sospecha que la forma de pago cambia lo que acaba pagando el cliente, y quiere saber si conviene empujar el pago con tarjeta. Antes de montar una campaña, alguien tiene que comprobar si esa corazonada se sostiene con los datos de verdad.</p></section>
+<section class="section-block is-question"><span class="kicker">Pregunta</span><h2 class="section-title">La pregunta</h2><blockquote>¿Los clientes que pagan con <strong>tarjeta de crédito</strong> dejan una tarifa más alta que los que pagan en <strong>efectivo</strong>?</blockquote><p>La tentación es calcular los dos promedios, ver cuál es mayor y dar el asunto por resuelto. Pero un par de dólares de diferencia en una muestra puede ser puro azar de esa muestra. Para afirmar que el patrón es real hace falta una prueba de hipótesis.</p></section>
+<section class="section-block is-toy"><span class="kicker">Hipótesis</span><h2 class="section-title">Las hipótesis</h2><p>Se escriben antes de mirar los resultados, no después:</p><ul><li><strong>Hipótesis nula (H₀).</strong> No existe diferencia entre la tarifa media pagada con tarjeta y la pagada en efectivo. Es la postura por defecto, la de &quot;aquí no pasa nada&quot;.</li><li><strong>Hipótesis alternativa (Hₐ).</strong> Sí existe una diferencia real entre ambas.</li></ul><p>El <strong>nivel de significancia</strong> se fija en <strong>α = 0,05</strong>, el estándar. Es la cantidad de riesgo que aceptamos de gritar &quot;¡hay diferencia!&quot; cuando en realidad no la había.</p></section>
+<section class="section-block is-data"><span class="kicker">Datos</span><h2 class="section-title">Los datos</h2><p>Viajes de taxi amarillo de Nueva York, año 2017. El archivo trae 22.699 viajes y el análisis trabaja con los 22.532 que tienen forma de pago identificada.</p><div class="table-wrap"><table><thead><tr><th>Grupo</th><th>Viajes</th><th>Qué es</th></tr></thead><tbody><tr><td>Tarjeta de crédito</td><td>15.265</td><td><code>payment_type = 1</code></td></tr><tr><td>Efectivo</td><td>7.267</td><td><code>payment_type = 2</code></td></tr></tbody></table></div><p>La variable que se mide es <code>fare_amount</code>, la tarifa del viaje en dólares.</p></section>
+<section class="section-block is-figures"><span class="kicker">Exploración</span><h2 class="section-title">Lo que mostró la exploración</h2><p>Un panel por grupo, para que cada uno se lea con su propia escala, y luego los dos repartos comparados.</p><figure class="fig"><img src="../../figures/automatidata/01_tarjeta.f7a281b0.png" alt="01_tarjeta" loading="lazy"><figcaption>01_tarjeta.png</figcaption></figure><h3 class="sub h3">Panel 1. Los pagos con tarjeta</h3><p>Las columnas cuentan cuántos viajes caen en cada tramo de tarifa, con el eje en escala logarítmica porque las carreras van de unos pocos dólares a cerca de mil.</p><p>El reparto en tres rangos dice que <strong>la mitad de los viajes con tarjeta son carreras cortas</strong> de menos de 10 dólares, un 42 % son medias y un 8 % son largas.</p><p>Hay además una columna aislada a la derecha que no encaja con la forma general: son <strong>514 viajes de exactamente 52,00 dólares</strong>, la tarifa plana del aeropuerto JFK. Un pico así de estrecho en un histograma casi nunca es azar, casi siempre es una regla de negocio escondida en los datos.</p><figure class="fig"><img src="../../figures/automatidata/01_efectivo.5c4014de.png" alt="01_efectivo" loading="lazy"><figcaption>01_efectivo.png</figcaption></figure><h3 class="sub h3">Panel 2. Los pagos en efectivo</h3><p>La misma forma, y ese parecido es la historia del caso. Pero el reparto cambia un poco: <strong>el 57 % de los pagos en efectivo son carreras cortas</strong>, frente al 50 % de los de tarjeta.</p><p>Como en el otro caso, la escala vertical de cada panel es la suya, porque hay 15.265 viajes con tarjeta y 7.267 en efectivo.</p><h3 class="sub h3">Los dos repartos, uno al lado del otro</h3><div class="table-wrap"><table><thead><tr><th>Tramo</th><th>Tarjeta</th><th>Efectivo</th></tr></thead><tbody><tr><td>Carreras cortas (menos de 10 $)</td><td>50,4 %</td><td><strong>57,2 %</strong></td></tr><tr><td>Carreras medias (10 a 30 $)</td><td><strong>41,6 %</strong></td><td>36,5 %</td></tr><tr><td>Carreras largas (más de 30 $)</td><td><strong>8,0 %</strong></td><td>6,3 %</td></tr></tbody></table></div><p>Y aquí aparece, dibujado, el factor de confusión del que habla la sección de limitaciones: <strong>el efectivo se concentra en las carreras cortas y la tarjeta en las largas</strong>. Como las carreras largas cuestan más, parte de la diferencia de tarifa media podría venir de la distancia y no de la forma de pago. Este análisis no puede separar las dos cosas.</p><figure class="fig"><img src="../../figures/automatidata/02_efecto.6f3bc572.png" alt="02_efecto" loading="lazy"><figcaption>02_efecto.png</figcaption></figure><h3 class="sub h3">Cómo se lee esta figura</h3><p>Esta figura no existía en el proyecto original y es la que mejor resume el caso.</p><p>El punto marca la diferencia observada, 1,22 dólares. La barra es el <strong>intervalo de confianza del 95 %</strong>, el rango donde puede estar la diferencia real. La línea vertical es el cero, la posición de &quot;no hay diferencia&quot;.</p><p>Aquí la barra <strong>no toca el cero</strong>, así que la diferencia es real. Pero fíjate en la otra mitad del mensaje: el intervalo entero vive entre 0,87 y 1,56 dólares. La diferencia no solo es real, es <strong>pequeña y está bien acotada</strong>. Esta figura es la que impide vender el hallazgo como algo más grande de lo que es.</p></section>
+<section class="section-block is-recipe"><span class="kicker">Método</span><h2 class="section-title">La prueba, y por qué esta prueba</h2><p>Se comparan las medias de dos grupos independientes, así que toca una <strong>prueba t de dos muestras</strong>. Dentro de esa familia hay que elegir, y la elección se justifica.</p><h3 class="sub h3">Primero se comprueba si las varianzas son iguales</h3><p>La prueba t clásica, la de Student, asume que ambos grupos tienen la misma dispersión. Eso se verifica con el <strong>test de Levene</strong>:</p><div class="output"><span class="output-tag">sale</span><pre>Levene: estadístico = 9.6815     p = 1.86e-03</pre></div><p>Ese <code>p = 0,00186</code> es menor que 0,05, así que las varianzas <strong>no</strong> son iguales. Tiene sentido: ya se veía en los paneles que el grupo de tarjeta llega más lejos hacia las tarifas altas.</p><h3 class="sub h3">Por eso se usa Welch, no Student</h3><p>Como el supuesto de varianzas iguales no se cumple, se usa la <strong>prueba t de Welch</strong> (<code>equal_var=False</code>), que no lo exige. Usar Student aquí habría dado una precisión fingida.</p><p>¿Y la normalidad, con distribuciones tan sesgadas como las del histograma? Entra el <strong>teorema del límite central</strong> del módulo 3: con más de 22.000 viajes, la distribución de las <strong>medias</strong> es aproximadamente normal aunque los viajes individuales no lo sean.</p><h3 class="sub h3">Y luego se comprueba que el resultado no sea un espejismo</h3><p>El análisis no se queda en una sola prueba. Repite el contraste quitando los atípicos por la regla del IQR, y añade <strong>Mann-Whitney U</strong>, que compara rangos en vez de medias y no asume ninguna forma de distribución:</p><div class="table-wrap"><table><thead><tr><th>Validación</th><th>Resultado</th><th>Decisión</th></tr></thead><tbody><tr><td>Welch, datos completos</td><td><code>t = 6,8668</code>, <code>p = 6,80e-12</code></td><td>Rechazar H₀</td></tr><tr><td>Welch, sin atípicos (n₁=13.778 / n₂=6.711)</td><td><code>t = 8,4911</code>, <code>p = 2,26e-17</code></td><td>Rechazar H₀</td></tr><tr><td>Mann-Whitney U</td><td><code>U = 60.832.931,5</code>, <code>p = 5,75e-32</code></td><td>Rechazar H₀</td></tr></tbody></table></div><p>Las tres coinciden. La diferencia no es un artefacto de los valores extremos ni de que la distribución no sea normal.</p></section>
+<section class="section-block is-result"><span class="kicker">Resultado</span><h2 class="section-title">El resultado, traducido</h2><div class="output"><span class="output-tag">sale</span><pre>Welch t = 6.8668          p = 6.80e-12
+IC 95% de la diferencia = [0.87 , 1.56] dólares
+Cohen&#x27;s d = 0.0922</pre></div><p>Qué significa cada línea:</p><ul><li><strong>t = 6,87.</strong> Las medias están separadas por casi siete unidades de error estándar. A partir de 2 ya se considera una separación notable.</li><li><strong>p = 6,80 × 10⁻¹².</strong> La probabilidad de ver una diferencia así de grande **si en realidad no hubiera ninguna**. En decimales es <code>0,0000000000068</code>. A efectos prácticos, cero. <strong>Se rechaza H₀.</strong></li><li><strong>Intervalo de confianza 95 % = [0,87 $ , 1,56 $].</strong> La diferencia real está en algún punto de ese rango. No incluye el cero, que es otra forma de ver el mismo resultado.</li><li><strong>Cohen&#x27;s d = 0,0922.</strong> Y aquí llega la parte interesante.</li></ul><h3 class="sub h3">La lección que hace valioso este caso</h3><p>Un <code>p</code> de doce ceros parece gritar &quot;¡diferencia enorme!&quot;. Pero <strong>Cohen&#x27;s d = 0,0922</strong> es un efecto <strong>chico</strong>: por convención, por debajo de 0,2 se considera casi imperceptible.</p><p>¿Cómo pueden ser ciertas las dos cosas a la vez? Porque el valor p depende del <strong>tamaño de muestra</strong>. Con 22.532 viajes, hasta una diferencia diminuta se vuelve estadísticamente segura. El intervalo de confianza lo confirma: la diferencia real está entre 87 centavos y 1,56 dólares, un rango pequeño y bien acotado, no un salto espectacular.</p><p>Dicho en una frase: <strong>la diferencia es real y consistente, pero modesta</strong>. Confundir &quot;estadísticamente significativo&quot; con &quot;importante&quot; es el error que este caso enseña a no cometer.</p></section>
+<section class="section-block is-decision"><span class="kicker">Decisión</span><h2 class="section-title">Qué se decide con esto</h2><p>Sí conviene incentivar el pago con tarjeta, <strong>pero con expectativas realistas</strong>. El cobro electrónico se asocia con tarifas más altas de forma estadísticamente confiable, y a la vez el efecto ronda 1,22 dólares por viaje. Nadie debería prometer un salto de ingresos por promover tarjetas.</p><p>Traducido a acciones concretas:</p><ol><li><strong>Señalética en el interior de los taxis</strong> invitando a pagar con tarjeta, presentándolo como comodidad y rapidez.</li><li><strong>Presupuestar el impacto con el número real</strong>, no con la impresión que deja el valor p.</li><li><strong>Investigar los factores de confusión</strong> antes de sacar conclusiones causales.</li></ol></section>
+<section class="section-block is-warning"><span class="kicker">Límites</span><h2 class="section-title">Limitaciones</h2><ul><li><strong>Es un estudio observacional, no un experimento.</strong> Nadie asignó al azar quién paga con tarjeta. Se puede afirmar que existe asociación, <strong>no</strong> que pagar con tarjeta <em>cause</em> una tarifa mayor.</li><li><strong>Y hay un factor de confusión evidente</strong>: los viajes largos cuestan más y además se tienden a pagar con tarjeta, porque nadie lleva sesenta dólares en efectivo. La distancia podría explicar la diferencia entera, y este análisis no la controla.</li><li><strong>El tamaño del efecto es pequeño.</strong> Cualquier decisión de negocio debería partir de los 1,22 dólares y del intervalo [0,87, 1,56], no del valor p.</li><li><strong>Los datos son de 2017 y de una sola ciudad.</strong> El reparto entre efectivo y tarjeta ha cambiado mucho desde entonces.</li></ul></section><section class="section-block is-material"><span class="kicker">Archivos</span><h2 class="section-title">Material completo</h2><p>Todo lo anterior sale de estos archivos, que siguen en tu carpeta del curso tal y como estaban.</p><h3 class="sub">Guía extendida</h3><ul class="res"><li><span class="local-ref">automatidata_project_cheatsheet_v2.html</span> <span class="path">05_cheatsheets/automatidata_project_cheatsheet_v2.html</span> <span class="size">32.6 KB</span></li></ul><h3 class="sub">Informes y notas</h3><ul class="res"><li><span class="local-ref">automatidata_ab_test_plan.md</span> <span class="path">04_reports/automatidata_ab_test_plan.md</span> <span class="size">1.9 KB</span></li></ul><h3 class="sub">Código</h3><ul class="res"><li><span class="local-ref">automatidata_ab_test.py</span> <span class="path">02_scripts/automatidata_ab_test.py</span> <span class="size">20.0 KB</span></li></ul><h3 class="sub">Datos</h3><ul class="res"><li><strong>C2_2017_Yellow_Taxi_Trip_Data.csv</strong> <span class="path">01_data/C2_2017_Yellow_Taxi_Trip_Data.csv</span> <span class="size">2.2 MB</span></li></ul><h3 class="sub">Presentación</h3><ul class="res"><li><strong>Activity-Exemplar_-Course-3-Automatidata-Executive-Summary.pptx</strong> <span class="path">Activity-Exemplar_-Course-3-Automatidata-Executive-Summary.pptx</span> <span class="size">5.7 MB</span></li></ul></section>
+</main>
+<footer class="footer">
+  Concentra / esta ficha enlaza tus archivos donde ya estaban / 2026-08-20
+</footer>
+<script>
+// Same-frame links replace the current entry instead of pushing a new one, so the
+// browser's back button keeps following the sidebar routes of the shell.
+document.querySelectorAll('a.lead-link').forEach(link => {
+  link.addEventListener('click', event => {
+    event.preventDefault();
+    location.replace(link.getAttribute('href'));
+  });
+});
+</script>
+</body>
+</html>

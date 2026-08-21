@@ -1,0 +1,495 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI in Advanced Data Analytics — Google Advanced Data Analytics Capstone</title>
+<style>
+/* ============================================================================
+   Concentra — design tokens and shared components.
+   Inlined into every generated page by load_style(), so pages stay self-contained
+   and work offline from file:// with no external requests.
+
+   Direction: an assay lab, not a tech dashboard. The palette is taken from ore
+   and lab materials (chalcopyrite brass, malachite, hematite, quartz) on warm
+   graphite rather than the blue-black + neon of a generic dark UI. Type is
+   Bahnschrift, the DIN-descended grotesque that Windows ships and that lives on
+   machinery plates and technical drawings, over Corbel for reading.
+   ========================================================================== */
+
+:root {
+  /* Ground and surfaces: warm graphite, the colour of rock dust, not blue-black */
+  --rock: #1a1714;
+  --bench: #221e19;
+  --core: #2b251f;
+  --seam: #3d352c;
+
+  /* Ore palette. No blue and no purple anywhere: those are the tones that make a
+     page read as generated, and this palette comes from the ores instead. */
+  --brass: #c9a227;      /* chalcopyrite, the primary accent */
+  --malachite: #5d9b7a;  /* verified output, results that came out right */
+  --hematite: #b04a35;   /* iron oxide, pitfalls and warnings */
+
+  /* Text */
+  --quartz: #ece7de;
+  --dust: #9a9186;
+  --shadowed: #6f675c;
+
+  --display: Bahnschrift, 'DIN Alternate', 'Segoe UI Semibold', system-ui, sans-serif;
+  --body: Corbel, Candara, 'Segoe UI', system-ui, sans-serif;
+  --data: Consolas, 'Cascadia Mono', ui-monospace, monospace;
+
+  /* In px, not ch: ch scales with font-size, so a heading ended up wider than a
+     paragraph and the page had four different right edges instead of two. */
+  --measure: 640px;
+  --wide: 900px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--rock);
+  color: var(--quartz);
+  font-family: var(--body);
+  font-size: 16px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection { background: var(--brass); color: var(--rock); }
+
+:focus-visible {
+  outline: 2px solid var(--brass);
+  outline-offset: 3px;
+}
+
+/* --------------------------------------------------------------- the signature
+   A sieve series: ticks that get finer from left to right, coarse feed to fine
+   concentrate. It is the one ornament on the page and appears exactly twice —
+   under the wordmark and under a page title. */
+.mesh {
+  height: 10px;
+  background-image:
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 16px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 9px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 5px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 3px);
+  background-size: 25% 100%;
+  background-position: 0 0, 25% 0, 50% 0, 75% 0;
+  background-repeat: no-repeat;
+  opacity: .8;
+  transform-origin: left center;
+  animation: sieve .55s cubic-bezier(.2, .8, .3, 1) both;
+}
+@keyframes sieve { from { transform: scaleX(0); opacity: 0; } to { transform: scaleX(1); opacity: .8; } }
+@media (prefers-reduced-motion: reduce) {
+  .mesh { animation: none; }
+  * { transition: none !important; }
+}
+
+/* ------------------------------------------------------------------ page head */
+.header {
+  border-bottom: 1px solid var(--seam);
+  padding: 3.2rem 2rem 0;
+  background: linear-gradient(180deg, #221d16 0%, var(--rock) 100%);
+}
+.header-content { max-width: 1080px; margin: 0 auto; }
+
+.eyebrow {
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--brass);
+  margin-bottom: 1rem;
+}
+.eyebrow a { color: inherit; text-decoration: none; border-bottom: 1px solid transparent; }
+.eyebrow a:hover { border-bottom-color: var(--brass); }
+
+.header h1 {
+  font-family: var(--display);
+  font-size: clamp(2rem, 4.5vw, 3.1rem);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -.015em;
+  color: var(--quartz);
+  max-width: 20ch;
+}
+.header .subtitle {
+  color: var(--dust);
+  max-width: var(--measure);
+  margin-top: 1rem;
+  font-size: 1.02rem;
+}
+.header .mesh { margin: 1.8rem 0 0; }
+
+/* An assay line: the real composition of the module, in lab-report shorthand. */
+.assay {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.4rem;
+  font-family: var(--data);
+  font-size: .78rem;
+  color: var(--shadowed);
+  padding: .9rem 0 1.6rem;
+  letter-spacing: .04em;
+}
+.assay b { color: var(--dust); font-weight: 400; }
+
+/* --------------------------------------------------------------------- layout */
+/* The container hugs the widest block, so there is no orphan edge past the content. */
+.container { max-width: var(--wide); margin: 3rem auto 5rem; padding: 0 2rem; }
+
+/* Two deliberate right edges and no more: prose stops at the reading measure, and
+   only the things that genuinely need room (code, output, figures, big tables) run
+   out to the full column. */
+.section-block {
+  border-top: 1px solid var(--seam);
+  padding: 2rem 0 2.4rem;
+}
+.section-block > p,
+.section-block > ul,
+.section-block > ol,
+.section-block h3.sub,
+.section-block h4.sub,
+.section-block blockquote,
+details > *:not(summary) { max-width: var(--measure); }
+.section-block:first-child { border-top: 0; padding-top: .5rem; }
+
+/* The kicker names what kind of content follows: context, method, pitfalls.
+   It replaces decorative icons with something that actually classifies. */
+.kicker {
+  font-family: var(--data);
+  font-size: .68rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  display: block;
+  margin-bottom: .5rem;
+}
+.section-title {
+  font-family: var(--display);
+  font-size: 1.55rem;
+  font-weight: 600;
+  letter-spacing: -.01em;
+  line-height: 1.2;
+  margin-bottom: 1.2rem;
+  color: var(--quartz);
+}
+.is-warning .kicker { color: var(--hematite); }
+.is-warning .section-title { color: #e8c4b8; }
+.is-bridge .kicker, .is-decision .kicker { color: var(--malachite); }
+.is-toy .kicker, .is-result .kicker, .is-question .kicker { color: var(--brass); }
+
+/* ---------------------------------------------------------------------- prose */
+/* Justified with hyphenation. In Spanish, justifying without hyphens opens rivers of
+   white space and reads worse than ragged right; lang="es" is what feeds the
+   dictionary. Tables, code, captions and summaries stay ragged on purpose. */
+.section-block p,
+.section-block li,
+details > *:not(summary) {
+  text-align: justify;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+}
+.section-block p { margin-bottom: 1rem; }
+.section-block p:last-child { margin-bottom: 0; }
+/* Indent with padding, not margin, so the bullet sits inside the measure instead of
+   pushing the list 1.2rem past the right edge of the paragraphs. */
+.section-block ul, .section-block ol { margin: 0 0 1rem; padding-left: 1.2rem; }
+.section-block li { margin-bottom: .55rem; padding-left: .2rem; }
+.section-block li::marker { color: var(--brass); }
+td, th, figcaption, .res li, .assay { text-align: left; hyphens: manual; }
+a { color: var(--brass); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+a:hover { text-decoration-thickness: 2px; }
+strong { color: #fff; font-weight: 700; }
+em { color: var(--dust); font-style: italic; }
+
+h3.sub {
+  font-family: var(--display);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--brass);
+  margin: 2rem 0 .7rem;
+  letter-spacing: -.005em;
+}
+h3.sub:first-child { margin-top: 0; }
+h4.sub {
+  font-family: var(--display);
+  font-size: .98rem;
+  font-weight: 600;
+  color: var(--dust);
+  margin: 1.3rem 0 .5rem;
+}
+
+code {
+  font-family: var(--data);
+  font-size: .9em;
+  background: var(--core);
+  border-radius: 3px;
+  padding: .08rem .32rem;
+  color: var(--brass);
+}
+pre {
+  background: #14110e;
+  border: 1px solid var(--seam);
+  border-left: 2px solid var(--seam);
+  border-radius: 2px;
+  padding: 1.1rem 1.2rem;
+  overflow-x: auto;
+  margin-bottom: 1rem;
+}
+pre code {
+  background: none; padding: 0; color: var(--quartz);
+  font-size: .87rem; line-height: 1.6;
+}
+
+/* What the code prints. Malachite: the material that came out of the process. */
+.output {
+  position: relative;
+  border: 1px solid rgba(93, 155, 122, .32);
+  border-left: 2px solid var(--malachite);
+  border-radius: 2px;
+  background: rgba(93, 155, 122, .06);
+  padding: 1.7rem 1.2rem 1rem;
+  margin-bottom: 1rem;
+  overflow-x: auto;
+}
+.output-tag {
+  position: absolute; top: .5rem; left: 1.2rem;
+  font-family: var(--data); font-size: .64rem;
+  letter-spacing: .18em; text-transform: uppercase; color: var(--malachite);
+}
+.output pre {
+  background: none; border: 0; padding: 0; margin: 0;
+  font-family: var(--data); font-size: .85rem;
+  color: var(--quartz); white-space: pre-wrap;
+}
+
+/* Line by line explanation of a code block, for a reader new to programming.
+   Two columns: the fragment of code, and what it does. */
+.annot {
+  display: grid;
+  grid-template-columns: minmax(9rem, auto) 1fr;
+  gap: .1rem 1.2rem;
+  align-items: baseline;
+  max-width: var(--wide);
+  margin: -.4rem 0 1.4rem;
+  padding: .9rem 1.1rem 1rem;
+  border: 1px solid var(--seam);
+  border-top: 0;
+  border-radius: 0 0 2px 2px;
+  background: rgba(201, 162, 39, .04);
+}
+.annot-head {
+  grid-column: 1 / -1;
+  font-family: var(--data);
+  font-size: .64rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  margin-bottom: .5rem;
+}
+.annot dt { padding: .35rem 0; }
+.annot dt code {
+  background: var(--core);
+  color: var(--brass);
+  font-size: .82rem;
+  white-space: nowrap;
+}
+.annot dd {
+  padding: .35rem 0;
+  margin: 0;
+  color: var(--dust);
+  font-size: .93rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(61, 53, 44, .5);
+}
+.annot dt { border-bottom: 1px solid rgba(61, 53, 44, .5); }
+.annot dt:last-of-type, .annot dd:last-of-type { border-bottom: 0; }
+/* The code block sits directly on top of its annotation, as one unit. */
+pre:has(+ .annot) { margin-bottom: 0; border-radius: 2px 2px 0 0; }
+
+@media (max-width: 640px) {
+  .annot { grid-template-columns: 1fr; gap: 0; }
+  .annot dt { border-bottom: 0; padding-bottom: 0; }
+  .annot dd { padding-top: .15rem; }
+}
+
+blockquote {
+  border-left: 2px solid var(--brass);
+  padding: .3rem 0 .3rem 1.3rem;
+  margin: 0 0 1rem;
+  font-family: var(--display);
+  font-size: 1.2rem;
+  font-weight: 400;
+  line-height: 1.4;
+  color: var(--quartz);
+}
+
+/* Tables read as assay data: mono figures, hairline rules, no zebra fill.
+   They take the width they need instead of being stretched to the full column,
+   which is what left a two-column table floating in empty space. */
+.table-wrap { overflow-x: auto; margin-bottom: 1rem; }
+table { border-collapse: collapse; width: auto; max-width: 100%; font-size: .93rem; }
+th, td {
+  border-bottom: 1px solid var(--seam);
+  padding: .55rem .8rem .55rem 0;
+  text-align: left;
+  vertical-align: top;
+}
+th {
+  font-family: var(--data);
+  font-size: .7rem;
+  font-weight: 400;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  border-bottom-color: var(--brass);
+}
+td:first-child { color: var(--quartz); }
+
+/* Review questions: closed by default, so they work as recall practice. */
+details {
+  border-top: 1px solid var(--seam);
+  padding: .9rem 0;
+}
+details:last-child { border-bottom: 1px solid var(--seam); }
+summary {
+  cursor: pointer;
+  font-family: var(--display);
+  font-size: 1.02rem;
+  font-weight: 600;
+  color: var(--quartz);
+  list-style: none;
+  display: flex;
+  gap: .7rem;
+  align-items: baseline;
+}
+summary::-webkit-details-marker { display: none; }
+summary::before {
+  content: '+';
+  font-family: var(--data);
+  color: var(--brass);
+  font-size: .95rem;
+}
+details[open] summary::before { content: '−'; }
+details[open] summary { color: var(--brass); margin-bottom: .7rem; }
+details > *:not(summary) { color: var(--dust); }
+
+figure.fig {
+  margin: 1.6rem 0;
+  border: 1px solid var(--seam);
+  padding: .7rem;
+  background: var(--bench);
+}
+figure.fig img { width: 100%; height: auto; display: block; }
+/* The interactive twin of a figure. Its aspect matches the still one, 10 by 4.4, so a
+   case sheet keeps the same rhythm whichever kind of figure comes next. */
+figure.fig.is-live iframe {
+  width: 100%;
+  /* Matches INTERACTIVE_HEIGHT in src/make_figures.py. It used to be an aspect ratio, and
+     that made the figure's height depend on the window: the caption and the legend are
+     placed at fractions of the plot area, so on a wide screen they were pushed past the
+     bottom margin, clipping the caption and covering the x-axis title. */
+  height: 520px;
+  border: 0;
+  display: block;
+}
+figure.fig figcaption {
+  font-family: var(--data);
+  font-size: .72rem;
+  color: var(--shadowed);
+  margin-top: .6rem;
+  letter-spacing: .04em;
+}
+
+/* File listings on a case sheet */
+.res { list-style: none; margin-left: 0 !important; }
+.res li {
+  display: flex; align-items: baseline; gap: .8rem; flex-wrap: wrap;
+  padding: .5rem 0; border-bottom: 1px solid var(--seam); margin-bottom: 0;
+}
+.res .path { font-family: var(--data); font-size: .74rem; color: var(--shadowed); }
+.res .size { font-family: var(--data); font-size: .74rem; color: var(--shadowed); margin-left: auto; }
+.res .gone { font-family: var(--data); font-size: .74rem; color: var(--hematite); }
+
+.footer {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 2rem 4rem;
+  color: var(--shadowed);
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .03em;
+}
+
+@media (max-width: 640px) {
+  body { font-size: 15px; }
+  .header { padding: 2rem 1.2rem 0; }
+  .container { padding: 0 1.2rem; margin-top: 2rem; }
+  .footer { padding: 0 1.2rem 3rem; }
+}
+
+@media print {
+  body { background: #fff; color: #16130f; }
+  .header { background: none; border-bottom: 1px solid #bbb; padding-top: 0; }
+  .header h1, .section-title, summary { color: #16130f; }
+  .mesh { animation: none; }
+  .section-block { break-inside: avoid; max-width: none; }
+  pre, .output { background: #f6f4f0; border-color: #ccc; }
+  details:not([open]) > *:not(summary) { display: block; }
+  a { color: #16130f; }
+}
+
+</style>
+</head>
+<body>
+<header class="header">
+  <div class="header-content">
+    <div class="eyebrow"><a href="https://www.coursera.org/learn/google-advanced-data-analytics-capstone">Google Advanced Data Analytics Capstone</a> / Módulo 2</div>
+    <h1>AI in Advanced Data Analytics</h1>
+    <p class="subtitle">Cinco tareas con su aritmética delante, para decidir cuándo un modelo generativo ahorra tiempo y cuándo lo cuesta. Y una fecha de tu propio archivo que sale como 1 de septiembre o como 9 de enero según qué fechas tenga al lado, sin dar ni un error.</p>
+    <div class="mesh" role="presentation"></div>
+    <div class="assay"><span><b>2 h</b> de curso</span><span><b>7</b> vídeos</span><span><b>4</b> lecturas</span><span><b>1</b> assignment</span></div>
+  </div>
+</header>
+<main class="container">
+<section class="section-block "><span class="kicker">Contexto</span><h2 class="section-title">Qué resuelve este módulo</h2><p>Este es el único bloque del Capstone con contenido nuevo, y va de usar un modelo generativo como herramienta de análisis: limpiar datos, construir fórmulas, afinar preguntas y explicar gráficos.</p><p>El problema no es si ayuda. Ayuda mucho en unas cosas y hace daño en otras, y <strong>la frontera no es de opinión: se calcula</strong>. Este módulo pone esa cuenta delante y después enseña la única defensa que funciona, que es comprobar en vez de confiar.</p></section>
+<section class="section-block is-toy"><span class="kicker">Ejemplo</span><h2 class="section-title">Antes de la teoría: un ejemplo de juguete</h2><p>El modelo tarda <strong>un minuto</strong> en contestar, siempre. La pregunta no es si acierta: es si compensa. Y compensa cuando <strong>comprobar la respuesta cuesta menos que haberla hecho tú</strong>.</p><h3 class="sub h3">Paso 1. La cuenta, con cinco tareas</h3><p>Para cada una, cuánto tardas a mano y cuánto tardas en comprobar lo que te dio:</p><div class="table-wrap"><table><thead><tr><th>Tarea</th><th>A mano</th><th>Comprobar</th><th>Ahorro</th></tr></thead><tbody><tr><td>Escribir el código que parsea unas fechas</td><td>20 min</td><td>2 min</td><td><strong>+17 min</strong></td></tr><tr><td>Explicar un mensaje de error</td><td>10 min</td><td>1 min</td><td><strong>+8 min</strong></td></tr><tr><td>Proponer tres enfoques que no se te ocurrían</td><td>30 min</td><td>5 min</td><td><strong>+24 min</strong></td></tr><tr><td>Calcular la mediana de una columna</td><td>1 min</td><td>1 min</td><td><strong>−1 min</strong></td></tr><tr><td>Decir si una diferencia es significativa</td><td>5 min</td><td>5 min</td><td><strong>−1 min</strong></td></tr></tbody></table></div><p>El ahorro es lo que tardas a mano menos lo que tardas usándolo, que es un minuto de espera más lo que cuesta comprobarlo:</p><pre><code>ahorro = a mano − (1 + comprobar)
+
+fechas:        20 − (1 + 2) = +17
+mediana:        1 − (1 + 1) = −1
+significancia:  5 − (1 + 5) = −1</code></pre><h3 class="sub h3">Paso 2. Mirar por qué las dos últimas salen negativas</h3><p>No es que el modelo sea peor en esas tareas. Es que <strong>comprobarlas es hacerlas</strong>.</p><p>Para saber si la mediana que te dio es correcta, tienes que calcular la mediana. Para saber si esa diferencia es significativa, tienes que hacer la prueba. En cuanto la comprobación es el trabajo entero, el modelo no puede ahorrar nada, solo añadir un minuto.</p><p>Y arriba pasa lo contrario. Comprobar un parser de fechas es <strong>ejecutarlo sobre cinco casos que ya sabes</strong>: dos minutos frente a los veinte de escribirlo. Ahí es donde vive todo el valor.</p><blockquote><strong>Sirve para lo que puedes comprobar barato. No sirve para lo que tendrías que creerte.</strong></blockquote><h3 class="sub h3">Paso 3. ¿Y si no compruebo?</h3><p>Es la tentación obvia, así que también tiene cuenta. Supón que comprobar cuesta <strong>5 minutos</strong> y que un número equivocado dentro de un informe entregado cuesta <strong>240 minutos</strong> entre rehacerlo y la credibilidad perdida.</p><p>No comprobar sale más barato solo si el modelo se equivoca muy pocas veces:</p><pre><code>compensa no comprobar  si   probabilidad de fallo × 240  &lt;  5
+
+                            probabilidad de fallo  &lt;  5 / 240  =  0,0208</code></pre><p><strong>Un 2,08 %.</strong> O sea que para que salga a cuenta no mirar, el modelo tendría que acertar el <strong>97,9 %</strong> de las veces en cifras concretas.</p><p>Ninguno lo hace, y ese es todo el argumento. No hace falta discutir si los modelos alucinan o no: con estos números, <strong>basta con que fallen una de cada cincuenta veces para que no comprobar sea el peor negocio de la tabla</strong>.</p></section>
+<section class="section-block "><span class="kicker">Términos</span><h2 class="section-title">Glosario</h2><ul><li><strong>Modelo generativo.</strong> El que produce texto prediciendo qué palabra viene después. No calcula: <strong>genera algo que se parece a una respuesta</strong>.</li><li><strong>Alucinación.</strong> Una respuesta falsa dicha con la misma seguridad que una verdadera. No es un fallo raro del modelo: es cómo funciona cuando no sabe.</li><li><strong>Instrucción.</strong> Lo que le pides, con su contexto. En inglés, <em>prompt</em>.</li><li><strong>Coste de verificación.</strong> Lo que tardas en comprobar la respuesta. Es la única cifra que decide si la herramienta sirve para esa tarea.</li><li><strong>Caso conocido.</strong> Una entrada cuya respuesta correcta ya sabes, y que por eso sirve para auditar cualquier código que te den.</li><li><strong>Banco de pruebas.</strong> Un puñado de casos conocidos corriendo juntos. Es la forma barata de verificar código generado.</li><li><strong>Inferencia de formato.</strong> Cuando una librería adivina cómo están escritos tus datos en vez de que se lo digas. Es cómoda y es donde se esconden los errores silenciosos.</li></ul></section>
+<section class="section-block is-recipe"><span class="kicker">Método</span><h2 class="section-title">Paso a paso</h2><h3 class="sub h3">Paso 1. Clasificar la tarea antes de pedir nada</h3><div class="table-wrap"><table><thead><tr><th>Tipo de tarea</th><th>¿Sirve?</th><th>Por qué</th></tr></thead><tbody><tr><td>Escribir código repetitivo</td><td><strong>Sí</strong></td><td>Lo compruebas ejecutándolo</td></tr><tr><td>Explicar un error</td><td><strong>Sí</strong></td><td>La explicación se verifica al arreglarlo</td></tr><tr><td>Proponer enfoques</td><td><strong>Sí</strong></td><td>Los evalúas tú, y amplía lo que se te ocurre</td></tr><tr><td>Redactar un borrador</td><td><strong>Sí, revisando</strong></td><td>Los números los pones tú</td></tr><tr><td>Explicar qué se ve en un gráfico</td><td><strong>Con cuidado</strong></td><td>Describe bien; <strong>concluye mal</strong></td></tr><tr><td>Calcular un número</td><td><strong>No</strong></td><td>No calcula, predice texto que parece un número</td></tr><tr><td>Decir si algo es significativo</td><td><strong>No</strong></td><td>Eso sale de tus datos, no de su entrenamiento</td></tr><tr><td>Recordar qué hay en tu archivo</td><td><strong>No</strong></td><td>No lo ha visto, y aun así contestará</td></tr></tbody></table></div><p>La fila de los gráficos merece su matiz, porque es la actividad que el módulo propone. Un modelo describe correctamente <strong>lo que se ve</strong>: dos montañas, una cola larga, un hueco. Y se inventa <strong>por qué</strong>, porque el porqué no está en la imagen. Lo primero ahorra trabajo; lo segundo es exactamente lo que no debe entrar en un informe.</p><h3 class="sub h3">Paso 2. Darle contexto en vez de pedirle que adivine</h3><p>Es la diferencia práctica entre una respuesta útil y una inventada.</p><p><strong>Mal:</strong> «tengo una columna de fechas que no se parsea bien, ¿qué hago?»</p><p><strong>Bien:</strong> pegar cinco valores reales de la columna, el mensaje de error completo y qué versión de pandas usas.</p><p>En el primer caso tiene que imaginarse tus datos, y se los imagina. En el segundo los tiene delante.</p><h3 class="sub h3">Paso 3. Pedir el razonamiento, no solo el resultado</h3><p>Un razonamiento se audita leyendo; un número suelto no se puede auditar de ninguna manera. Si te da los pasos, puedes ver dónde se tuerce sin rehacer la cuenta entera.</p><h3 class="sub h3">Paso 4. Usarlo para afinar la pregunta, que es su mejor uso</h3><p>Este es el uso que el módulo destaca y el que más se desaprovecha. <strong>No para responder: para mejorar la pregunta antes de gastar un día contestándola.</strong></p><p>La técnica es pedirle que la ataque:</p><blockquote><em>«Quiero predecir qué usuario abandona la aplicación con estas columnas. Dime qué preguntas debería hacerme antes de empezar y qué puede salir mal.»</em></blockquote><p>Y funciona porque <strong>una crítica se evalúa sola</strong>. Si te dice que compruebes si las etiquetas faltantes se parecen al resto, o si alguna variable no existiría en el momento de predecir, eso lo puedes mirar en tu archivo en cinco minutos. Si te dice una tontería, se descarta y no ha costado nada.</p><p>Tres preguntas que conviene hacerle siempre antes de un análisis:</p><ol><li><strong>¿Qué variable de esta lista no existiría en el momento de predecir?</strong> Es la pregunta que caza fugas de información, y en el proyecto de Automatidata del Curso 5 el importe total contenía la propina.</li><li><strong>¿Qué explicación alternativa tendría este resultado?</strong> Obliga a nombrar lo que habría que descartar.</li><li><strong>¿Qué haría falta para que esta conclusión fuera falsa?</strong> Convierte una intuición en algo comprobable.</li></ol><p>Fíjate en que ninguna de las tres pide un dato. Piden <strong>enfoques</strong>, que es la fila con más ahorro de la tabla del ejemplo: media hora de pensar contra cinco minutos de descartar.</p><h3 class="sub h3">Paso 5. Comprobar con casos conocidos, que es la técnica del módulo</h3><p>Para código, la verificación barata tiene nombre y es siempre la misma: <strong>un puñado de entradas cuya respuesta ya sabes</strong>.</p><p>No hace falta un marco de pruebas. Cinco casos, la respuesta correcta al lado, y una función que cuenta los fallos. Es lo que convierte «parece que funciona» en «falla en 1 de 3, y es justo la fecha ambigua».</p><h3 class="sub h3">Paso 6. Y lo que no cambia por usar un modelo</h3><p><strong>Sigues firmando tú.</strong> Si el código que te dio tiene una fuga de información, la fuga es tuya. Si el gráfico que sugirió engaña, engaña con tu nombre.</p><p>De ahí sale la única regla que hay que recordar: <strong>si no puedes explicar una línea, no la pones en un entregable.</strong> Los bloques de anotación de estas lecciones existen exactamente para eso.</p><p>Y una que se olvida siempre: <strong>lo que pegas, lo publicas</strong>. Datos de una empresa, un archivo con personas dentro o una clave no se pegan en un servicio externo.</p><h3 class="sub h3">Paso 7. Y a dónde se va desde aquí</h3><p>El módulo cierra recomendando <strong>Google AI Essentials</strong>, que es un curso aparte de Google sobre fundamentos de IA generativa: qué es, cómo se escriben instrucciones útiles y qué consideraciones responsables trae. No forma parte de este certificado, así que aquí solo queda anotado como el siguiente paso que la plataforma propone.</p><p>Y una lectura honesta de esa recomendación: lo que este módulo enseña <strong>ya es la parte que le importa a un analista</strong>, que es la aritmética de cuándo compensa y la costumbre de comprobar. Lo demás es manejo de la herramienta, y eso se aprende usándola.</p></section>
+<section class="section-block is-recipe"><span class="kicker">Código</span><h2 class="section-title">El código, por partes</h2><h3 class="sub h3">Paso 1. La misma fecha, dos respuestas distintas</h3><p>Esto no es un ejemplo inventado: es la ambigüedad que tu propio proyecto del Curso 2 marcó en el archivo de taxis, donde las fechas vienen como <code>MM/DD/YYYY</code>.</p><pre><code class="language-python">import pandas as pd
+
+AMBIGUA = &quot;09/01/2017&quot;
+
+for antes, despues in [(&quot;03/25/2017&quot;, &quot;12/31/2017&quot;), (&quot;25/03/2017&quot;, &quot;31/12/2017&quot;)]:
+    columna = pd.to_datetime(pd.Series([antes, AMBIGUA, despues]))
+    print(f&quot;con {antes} al lado  -&gt;  {AMBIGUA} es {columna[1].date()}&quot;)</code></pre><dl class="annot"><div class="annot-head">línea por línea</div><dt><code>AMBIGUA = &quot;09/01/2017&quot;</code></dt><dd>Una fecha que se puede leer de dos maneras: 1 de septiembre si el mes va primero, 9 de enero si va primero el día. En mayúsculas por convención, porque es una constante que no cambia.</dd><dt><code>[(&quot;03/25/2017&quot;, ...), (&quot;25/03/2017&quot;, ...)]</code></dt><dd>Dos parejas de vecinas. La primera solo tiene sentido con el mes primero, porque no hay mes 25. La segunda solo con el día primero.</dd><dt><code>pd.Series([antes, AMBIGUA, despues])</code></dt><dd>La ambigua va <strong>en medio</strong> a propósito. Si fuera la primera, pandas fijaría el formato con ella y el ejemplo no enseñaría nada.</dd><dt><code>pd.to_datetime(...)</code></dt><dd>Sin decirle el formato. Así es como lo escribiría cualquiera que quiera ir rápido, y es la línea que un modelo te va a dar si no le dices más.</dd><dt><code>columna[1].date()</code></dt><dd>El segundo elemento, que es la ambigua, y solo su fecha sin la hora.</dd></dl><div class="output"><span class="output-tag">sale</span><pre>con 03/25/2017 al lado  -&gt;  09/01/2017 es 2017-09-01
+con 25/03/2017 al lado  -&gt;  09/01/2017 es 2017-01-09</pre></div><p><strong>La misma cadena de texto, dos fechas distintas, y ningún error.</strong> Pandas mira las vecinas, deduce el formato y aplica esa deducción a todas. Cambia las vecinas y cambia la respuesta.</p><p>Un modelo que te escriba <code>pd.to_datetime(columna)</code> no está equivocado: está escribiendo lo razonable sin saber qué hay en tu archivo. <strong>El error lo introduces al aceptarlo sin comprobar.</strong></p><h3 class="sub h3">Paso 2. El banco de pruebas que lo caza</h3><p>Tres casos con su respuesta conocida, y una función que audita cualquier parser.</p><pre><code class="language-python">CASOS = [(&quot;03/25/2017&quot;, &quot;2017-03-25&quot;),
+         (&quot;09/01/2017&quot;, &quot;2017-09-01&quot;),
+         (&quot;12/31/2017&quot;, &quot;2017-12-31&quot;)]
+
+def auditar(parsear, nombre):
+    fallos = [texto for texto, correcta in CASOS
+              if str(parsear(texto).date()) != correcta]
+    print(f&quot;{nombre:24} falla en {len(fallos)} de {len(CASOS)}  {fallos}&quot;)
+
+auditar(lambda t: pd.to_datetime(t, dayfirst=True), &quot;inferido dia-primero&quot;)
+auditar(lambda t: pd.to_datetime(t, format=&quot;%m/%d/%Y&quot;), &quot;formato declarado&quot;)</code></pre><dl class="annot"><div class="annot-head">línea por línea</div><dt><code>CASOS = [(entrada, respuesta), ...]</code></dt><dd>La pieza clave: cada entrada con la respuesta que <strong>ya sabes</strong>. Sin esa segunda columna no hay verificación posible, solo una impresión.</dd><dt><code>def auditar(parsear, nombre):</code></dt><dd>La función recibe <strong>otra función</strong> como argumento. En Python las funciones son valores normales, y eso permite auditar cualquier parser con el mismo banco.</dd><dt><code>[texto for texto, correcta in CASOS if ...]</code></dt><dd>Una lista por comprensión con filtro: recorre las parejas y se queda solo con las entradas cuya respuesta no coincide.</dd><dt><code>str(parsear(texto).date())</code></dt><dd>Convierte a texto para poder compararlo con la respuesta escrita. Comparar objetos de fecha contra cadenas daría siempre falso, sin avisar.</dd><dt><code>lambda t: pd.to_datetime(t, ...)</code></dt><dd>Una función anónima de una línea, para envolver cada variante y pasarla al auditor. Existe solo el tiempo de la llamada.</dd><dt><code>{nombre:24}</code></dt><dd>Reserva 24 espacios para el nombre, así las dos líneas de salida quedan alineadas y se comparan de un vistazo.</dd></dl><div class="output"><span class="output-tag">sale</span><pre>inferido dia-primero     falla en 1 de 3  [&#x27;09/01/2017&#x27;]
+formato declarado        falla en 0 de 3  []</pre></div><p>Tres casos y dos minutos han convertido una duda en un hecho: <strong>el primero falla, y falla justo en la fecha ambigua</strong>, que es la que iba a estropear el análisis sin decir nada.</p><p>Eso es el ahorro de +17 minutos de la tabla del ejemplo, cobrado.</p></section>
+<section class="section-block is-warning"><span class="kicker">Trampas</span><h2 class="section-title">Ojo</h2><ul><li><strong>No calcula.</strong> Predice texto que se parece a una respuesta. Un número que te dé sin ejecutar código es una conjetura con formato de resultado.</li><li><strong>Un error silencioso es peor que un error ruidoso.</strong> La fecha mal parseada no da excepción: da un análisis mal, meses después.</li><li><strong><code>errors=&quot;coerce&quot;</code> no arregla nada</strong>, convierte lo que falla en ausente. Si un modelo te lo propone para quitar un error, te está proponiendo esconder filas.</li><li><strong>Describe bien un gráfico y concluye mal.</strong> El porqué no está en la imagen.</li><li><strong>Si comprobar cuesta lo mismo que hacerlo, no uses la herramienta.</strong> Es la tabla del ejemplo, y no admite excepciones.</li><li><strong>No le preguntes qué hay en tu archivo.</strong> No lo ha visto, y contestará igual.</li><li><strong>Lo que pegas, lo publicas.</strong> Datos ajenos y claves, nunca.</li><li><strong>Firmas tú.</strong> El código generado que acabe en tu informe es tuyo, con sus fugas incluidas.</li></ul></section>
+<section class="section-block is-bridge"><span class="kicker">Analogía</span><h2 class="section-title">Puente metalúrgico</h2><p>Un modelo generativo es <strong>un practicante brillante y con mucha labia en su primera semana</strong>.</p><p>Sabe muchísimo en general, ha leído todos los manuales, y <strong>no conoce tu planta</strong>. Le preguntas cómo ajustar el pH de un circuito y te da una respuesta bien construida, coherente y plausible, sin haber visto nunca tu mineral.</p><p>De ahí sale exactamente el mismo reparto de tareas que la tabla del ejemplo:</p><div class="table-wrap"><table><thead><tr><th>Al practicante</th><th>Al modelo</th></tr></thead><tbody><tr><td>«Prepara el montaje del ensayo», que se comprueba mirándolo</td><td>Escribir código, que se comprueba ejecutándolo</td></tr><tr><td>«Búscame en el manual qué dice de este reactivo»</td><td>Explicar un error o una función</td></tr><tr><td>«¿Qué se te ocurre probar?», que evalúas tú</td><td>Proponer enfoques</td></tr><tr><td><strong>Nunca:</strong> «¿cuál fue la recuperación del turno?»</td><td><strong>Nunca:</strong> un número concreto</td></tr></tbody></table></div><p>Y esa última fila es la que cuesta dinero de verdad. Un practicante que no sabe la recuperación del turno <strong>te dirá que no lo sabe</strong>. El modelo, no: te dará una cifra verosímil, con dos decimales, y con el mismo tono con el que te dio la respuesta buena de antes.</p><p>Ahí está la diferencia entera y por eso hay que comprobar: <strong>no distingue no saber de saber</strong>, así que esa distinción la tienes que poner tú.</p></section>
+<section class="section-block is-review"><span class="kicker">Repaso</span><h2 class="section-title">Repaso</h2><details><summary>¿Por qué usar el modelo para calcular una mediana sale con ahorro negativo?</summary><p>Porque para comprobar que la mediana que te dio es correcta tienes que calcular la mediana, y en cuanto la comprobación es el trabajo entero el modelo no puede ahorrar nada. La cuenta lo deja claro: un minuto de espera más un minuto de comprobación contra el minuto que costaba hacerlo, o sea un minuto de pérdida. Es la misma razón por la que preguntarle si una diferencia es significativa tampoco compensa. Y al revés, escribir un parser de fechas se comprueba en dos minutos ejecutándolo sobre casos conocidos frente a los veinte de escribirlo, y ahí el ahorro son diecisiete minutos reales.</p></details><details><summary>¿Qué probabilidad de acierto haría falta para justificar no comprobar?</summary><p>Un 97,9 %. Sale de comparar los dos costes: comprobar cuesta 5 minutos y un número equivocado dentro de un informe entregado cuesta unos 240 entre rehacerlo y la credibilidad perdida, así que no comprobar solo compensa si la probabilidad de fallo es menor que 5 partido por 240, o sea un 2,08 %. Lo interesante del cálculo es que no hace falta discutir cuánto alucina un modelo: con un coste de error tan asimétrico, basta con que falle una de cada cincuenta veces para que saltarse la comprobación sea la peor opción de la tabla.</p></details><details><summary>La misma fecha sale como 1 de septiembre o como 9 de enero. ¿Qué está pasando y por qué es peligroso?</summary><p>Pandas no sabe si el mes va primero o el día, así que lo deduce mirando el resto de la columna y aplica esa deducción a todos los valores. Con <code>03/25/2017</code> al lado solo cabe el mes primero, porque no hay mes 25, y la ambigua sale 1 de septiembre; con <code>25/03/2017</code> al lado la deducción se invierte y sale 9 de enero. Es peligroso porque <strong>no da ningún error</strong>: el programa sigue, el análisis se hace, y la equivocación aparece meses después o no aparece nunca. El arreglo es declarar el formato en vez de dejar que se adivine.</p></details><details><summary>Un modelo describe correctamente un gráfico. ¿Se puede usar esa descripción en un informe?</summary><p>La descripción sí, con revisión: decir que hay dos montañas separadas por un hueco o que la cola se estira a la derecha es leer la imagen, y eso se comprueba mirándola. La conclusión no. Por qué hay dos montañas no está en la imagen, está en el proceso que generó los datos, y el modelo no lo conoce, así que lo va a inventar con la misma seguridad. En la práctica sirve para acelerar el pie de figura y nunca para escribir la sección de resultados.</p></details><details><summary>¿Por qué un practicante en su primera semana es mejor analogía que una calculadora?</summary><p>Porque una calculadora se equivoca poco y avisa cuando no puede hacer algo, y un modelo hace lo contrario: es tremendamente capaz en general y <strong>no distingue no saber de saber</strong>. Un practicante que no conoce la recuperación del turno te dirá que no la sabe; el modelo te dará una cifra verosímil con dos decimales y el mismo tono seguro que usó en la respuesta buena de antes. Por eso el reparto de tareas es el mismo que con una persona nueva: se le encarga lo que se comprueba mirándolo, y nunca un dato concreto de tu proceso.</p></details></section>
+</main>
+<footer class="footer">
+  Concentra / destilado del temario público del curso / 2026-08-20
+</footer>
+</body>
+</html>

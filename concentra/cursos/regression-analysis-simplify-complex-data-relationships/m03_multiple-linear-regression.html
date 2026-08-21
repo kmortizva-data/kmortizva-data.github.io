@@ -1,0 +1,505 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Multiple linear regression — Regression Analysis: Simplify Complex Data Relationships</title>
+<style>
+/* ============================================================================
+   Concentra — design tokens and shared components.
+   Inlined into every generated page by load_style(), so pages stay self-contained
+   and work offline from file:// with no external requests.
+
+   Direction: an assay lab, not a tech dashboard. The palette is taken from ore
+   and lab materials (chalcopyrite brass, malachite, hematite, quartz) on warm
+   graphite rather than the blue-black + neon of a generic dark UI. Type is
+   Bahnschrift, the DIN-descended grotesque that Windows ships and that lives on
+   machinery plates and technical drawings, over Corbel for reading.
+   ========================================================================== */
+
+:root {
+  /* Ground and surfaces: warm graphite, the colour of rock dust, not blue-black */
+  --rock: #1a1714;
+  --bench: #221e19;
+  --core: #2b251f;
+  --seam: #3d352c;
+
+  /* Ore palette. No blue and no purple anywhere: those are the tones that make a
+     page read as generated, and this palette comes from the ores instead. */
+  --brass: #c9a227;      /* chalcopyrite, the primary accent */
+  --malachite: #5d9b7a;  /* verified output, results that came out right */
+  --hematite: #b04a35;   /* iron oxide, pitfalls and warnings */
+
+  /* Text */
+  --quartz: #ece7de;
+  --dust: #9a9186;
+  --shadowed: #6f675c;
+
+  --display: Bahnschrift, 'DIN Alternate', 'Segoe UI Semibold', system-ui, sans-serif;
+  --body: Corbel, Candara, 'Segoe UI', system-ui, sans-serif;
+  --data: Consolas, 'Cascadia Mono', ui-monospace, monospace;
+
+  /* In px, not ch: ch scales with font-size, so a heading ended up wider than a
+     paragraph and the page had four different right edges instead of two. */
+  --measure: 640px;
+  --wide: 900px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--rock);
+  color: var(--quartz);
+  font-family: var(--body);
+  font-size: 16px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection { background: var(--brass); color: var(--rock); }
+
+:focus-visible {
+  outline: 2px solid var(--brass);
+  outline-offset: 3px;
+}
+
+/* --------------------------------------------------------------- the signature
+   A sieve series: ticks that get finer from left to right, coarse feed to fine
+   concentrate. It is the one ornament on the page and appears exactly twice —
+   under the wordmark and under a page title. */
+.mesh {
+  height: 10px;
+  background-image:
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 16px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 9px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 5px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 3px);
+  background-size: 25% 100%;
+  background-position: 0 0, 25% 0, 50% 0, 75% 0;
+  background-repeat: no-repeat;
+  opacity: .8;
+  transform-origin: left center;
+  animation: sieve .55s cubic-bezier(.2, .8, .3, 1) both;
+}
+@keyframes sieve { from { transform: scaleX(0); opacity: 0; } to { transform: scaleX(1); opacity: .8; } }
+@media (prefers-reduced-motion: reduce) {
+  .mesh { animation: none; }
+  * { transition: none !important; }
+}
+
+/* ------------------------------------------------------------------ page head */
+.header {
+  border-bottom: 1px solid var(--seam);
+  padding: 3.2rem 2rem 0;
+  background: linear-gradient(180deg, #221d16 0%, var(--rock) 100%);
+}
+.header-content { max-width: 1080px; margin: 0 auto; }
+
+.eyebrow {
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--brass);
+  margin-bottom: 1rem;
+}
+.eyebrow a { color: inherit; text-decoration: none; border-bottom: 1px solid transparent; }
+.eyebrow a:hover { border-bottom-color: var(--brass); }
+
+.header h1 {
+  font-family: var(--display);
+  font-size: clamp(2rem, 4.5vw, 3.1rem);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -.015em;
+  color: var(--quartz);
+  max-width: 20ch;
+}
+.header .subtitle {
+  color: var(--dust);
+  max-width: var(--measure);
+  margin-top: 1rem;
+  font-size: 1.02rem;
+}
+.header .mesh { margin: 1.8rem 0 0; }
+
+/* An assay line: the real composition of the module, in lab-report shorthand. */
+.assay {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.4rem;
+  font-family: var(--data);
+  font-size: .78rem;
+  color: var(--shadowed);
+  padding: .9rem 0 1.6rem;
+  letter-spacing: .04em;
+}
+.assay b { color: var(--dust); font-weight: 400; }
+
+/* --------------------------------------------------------------------- layout */
+/* The container hugs the widest block, so there is no orphan edge past the content. */
+.container { max-width: var(--wide); margin: 3rem auto 5rem; padding: 0 2rem; }
+
+/* Two deliberate right edges and no more: prose stops at the reading measure, and
+   only the things that genuinely need room (code, output, figures, big tables) run
+   out to the full column. */
+.section-block {
+  border-top: 1px solid var(--seam);
+  padding: 2rem 0 2.4rem;
+}
+.section-block > p,
+.section-block > ul,
+.section-block > ol,
+.section-block h3.sub,
+.section-block h4.sub,
+.section-block blockquote,
+details > *:not(summary) { max-width: var(--measure); }
+.section-block:first-child { border-top: 0; padding-top: .5rem; }
+
+/* The kicker names what kind of content follows: context, method, pitfalls.
+   It replaces decorative icons with something that actually classifies. */
+.kicker {
+  font-family: var(--data);
+  font-size: .68rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  display: block;
+  margin-bottom: .5rem;
+}
+.section-title {
+  font-family: var(--display);
+  font-size: 1.55rem;
+  font-weight: 600;
+  letter-spacing: -.01em;
+  line-height: 1.2;
+  margin-bottom: 1.2rem;
+  color: var(--quartz);
+}
+.is-warning .kicker { color: var(--hematite); }
+.is-warning .section-title { color: #e8c4b8; }
+.is-bridge .kicker, .is-decision .kicker { color: var(--malachite); }
+.is-toy .kicker, .is-result .kicker, .is-question .kicker { color: var(--brass); }
+
+/* ---------------------------------------------------------------------- prose */
+/* Justified with hyphenation. In Spanish, justifying without hyphens opens rivers of
+   white space and reads worse than ragged right; lang="es" is what feeds the
+   dictionary. Tables, code, captions and summaries stay ragged on purpose. */
+.section-block p,
+.section-block li,
+details > *:not(summary) {
+  text-align: justify;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+}
+.section-block p { margin-bottom: 1rem; }
+.section-block p:last-child { margin-bottom: 0; }
+/* Indent with padding, not margin, so the bullet sits inside the measure instead of
+   pushing the list 1.2rem past the right edge of the paragraphs. */
+.section-block ul, .section-block ol { margin: 0 0 1rem; padding-left: 1.2rem; }
+.section-block li { margin-bottom: .55rem; padding-left: .2rem; }
+.section-block li::marker { color: var(--brass); }
+td, th, figcaption, .res li, .assay { text-align: left; hyphens: manual; }
+a { color: var(--brass); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+a:hover { text-decoration-thickness: 2px; }
+strong { color: #fff; font-weight: 700; }
+em { color: var(--dust); font-style: italic; }
+
+h3.sub {
+  font-family: var(--display);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--brass);
+  margin: 2rem 0 .7rem;
+  letter-spacing: -.005em;
+}
+h3.sub:first-child { margin-top: 0; }
+h4.sub {
+  font-family: var(--display);
+  font-size: .98rem;
+  font-weight: 600;
+  color: var(--dust);
+  margin: 1.3rem 0 .5rem;
+}
+
+code {
+  font-family: var(--data);
+  font-size: .9em;
+  background: var(--core);
+  border-radius: 3px;
+  padding: .08rem .32rem;
+  color: var(--brass);
+}
+pre {
+  background: #14110e;
+  border: 1px solid var(--seam);
+  border-left: 2px solid var(--seam);
+  border-radius: 2px;
+  padding: 1.1rem 1.2rem;
+  overflow-x: auto;
+  margin-bottom: 1rem;
+}
+pre code {
+  background: none; padding: 0; color: var(--quartz);
+  font-size: .87rem; line-height: 1.6;
+}
+
+/* What the code prints. Malachite: the material that came out of the process. */
+.output {
+  position: relative;
+  border: 1px solid rgba(93, 155, 122, .32);
+  border-left: 2px solid var(--malachite);
+  border-radius: 2px;
+  background: rgba(93, 155, 122, .06);
+  padding: 1.7rem 1.2rem 1rem;
+  margin-bottom: 1rem;
+  overflow-x: auto;
+}
+.output-tag {
+  position: absolute; top: .5rem; left: 1.2rem;
+  font-family: var(--data); font-size: .64rem;
+  letter-spacing: .18em; text-transform: uppercase; color: var(--malachite);
+}
+.output pre {
+  background: none; border: 0; padding: 0; margin: 0;
+  font-family: var(--data); font-size: .85rem;
+  color: var(--quartz); white-space: pre-wrap;
+}
+
+/* Line by line explanation of a code block, for a reader new to programming.
+   Two columns: the fragment of code, and what it does. */
+.annot {
+  display: grid;
+  grid-template-columns: minmax(9rem, auto) 1fr;
+  gap: .1rem 1.2rem;
+  align-items: baseline;
+  max-width: var(--wide);
+  margin: -.4rem 0 1.4rem;
+  padding: .9rem 1.1rem 1rem;
+  border: 1px solid var(--seam);
+  border-top: 0;
+  border-radius: 0 0 2px 2px;
+  background: rgba(201, 162, 39, .04);
+}
+.annot-head {
+  grid-column: 1 / -1;
+  font-family: var(--data);
+  font-size: .64rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  margin-bottom: .5rem;
+}
+.annot dt { padding: .35rem 0; }
+.annot dt code {
+  background: var(--core);
+  color: var(--brass);
+  font-size: .82rem;
+  white-space: nowrap;
+}
+.annot dd {
+  padding: .35rem 0;
+  margin: 0;
+  color: var(--dust);
+  font-size: .93rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(61, 53, 44, .5);
+}
+.annot dt { border-bottom: 1px solid rgba(61, 53, 44, .5); }
+.annot dt:last-of-type, .annot dd:last-of-type { border-bottom: 0; }
+/* The code block sits directly on top of its annotation, as one unit. */
+pre:has(+ .annot) { margin-bottom: 0; border-radius: 2px 2px 0 0; }
+
+@media (max-width: 640px) {
+  .annot { grid-template-columns: 1fr; gap: 0; }
+  .annot dt { border-bottom: 0; padding-bottom: 0; }
+  .annot dd { padding-top: .15rem; }
+}
+
+blockquote {
+  border-left: 2px solid var(--brass);
+  padding: .3rem 0 .3rem 1.3rem;
+  margin: 0 0 1rem;
+  font-family: var(--display);
+  font-size: 1.2rem;
+  font-weight: 400;
+  line-height: 1.4;
+  color: var(--quartz);
+}
+
+/* Tables read as assay data: mono figures, hairline rules, no zebra fill.
+   They take the width they need instead of being stretched to the full column,
+   which is what left a two-column table floating in empty space. */
+.table-wrap { overflow-x: auto; margin-bottom: 1rem; }
+table { border-collapse: collapse; width: auto; max-width: 100%; font-size: .93rem; }
+th, td {
+  border-bottom: 1px solid var(--seam);
+  padding: .55rem .8rem .55rem 0;
+  text-align: left;
+  vertical-align: top;
+}
+th {
+  font-family: var(--data);
+  font-size: .7rem;
+  font-weight: 400;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  border-bottom-color: var(--brass);
+}
+td:first-child { color: var(--quartz); }
+
+/* Review questions: closed by default, so they work as recall practice. */
+details {
+  border-top: 1px solid var(--seam);
+  padding: .9rem 0;
+}
+details:last-child { border-bottom: 1px solid var(--seam); }
+summary {
+  cursor: pointer;
+  font-family: var(--display);
+  font-size: 1.02rem;
+  font-weight: 600;
+  color: var(--quartz);
+  list-style: none;
+  display: flex;
+  gap: .7rem;
+  align-items: baseline;
+}
+summary::-webkit-details-marker { display: none; }
+summary::before {
+  content: '+';
+  font-family: var(--data);
+  color: var(--brass);
+  font-size: .95rem;
+}
+details[open] summary::before { content: '−'; }
+details[open] summary { color: var(--brass); margin-bottom: .7rem; }
+details > *:not(summary) { color: var(--dust); }
+
+figure.fig {
+  margin: 1.6rem 0;
+  border: 1px solid var(--seam);
+  padding: .7rem;
+  background: var(--bench);
+}
+figure.fig img { width: 100%; height: auto; display: block; }
+/* The interactive twin of a figure. Its aspect matches the still one, 10 by 4.4, so a
+   case sheet keeps the same rhythm whichever kind of figure comes next. */
+figure.fig.is-live iframe {
+  width: 100%;
+  /* Matches INTERACTIVE_HEIGHT in src/make_figures.py. It used to be an aspect ratio, and
+     that made the figure's height depend on the window: the caption and the legend are
+     placed at fractions of the plot area, so on a wide screen they were pushed past the
+     bottom margin, clipping the caption and covering the x-axis title. */
+  height: 520px;
+  border: 0;
+  display: block;
+}
+figure.fig figcaption {
+  font-family: var(--data);
+  font-size: .72rem;
+  color: var(--shadowed);
+  margin-top: .6rem;
+  letter-spacing: .04em;
+}
+
+/* File listings on a case sheet */
+.res { list-style: none; margin-left: 0 !important; }
+.res li {
+  display: flex; align-items: baseline; gap: .8rem; flex-wrap: wrap;
+  padding: .5rem 0; border-bottom: 1px solid var(--seam); margin-bottom: 0;
+}
+.res .path { font-family: var(--data); font-size: .74rem; color: var(--shadowed); }
+.res .size { font-family: var(--data); font-size: .74rem; color: var(--shadowed); margin-left: auto; }
+.res .gone { font-family: var(--data); font-size: .74rem; color: var(--hematite); }
+
+.footer {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 2rem 4rem;
+  color: var(--shadowed);
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .03em;
+}
+
+@media (max-width: 640px) {
+  body { font-size: 15px; }
+  .header { padding: 2rem 1.2rem 0; }
+  .container { padding: 0 1.2rem; margin-top: 2rem; }
+  .footer { padding: 0 1.2rem 3rem; }
+}
+
+@media print {
+  body { background: #fff; color: #16130f; }
+  .header { background: none; border-bottom: 1px solid #bbb; padding-top: 0; }
+  .header h1, .section-title, summary { color: #16130f; }
+  .mesh { animation: none; }
+  .section-block { break-inside: avoid; max-width: none; }
+  pre, .output { background: #f6f4f0; border-color: #ccc; }
+  details:not([open]) > *:not(summary) { display: block; }
+  a { color: #16130f; }
+}
+
+</style>
+</head>
+<body>
+<header class="header">
+  <div class="header-content">
+    <div class="eyebrow"><a href="https://www.coursera.org/learn/regression-analysis-simplify-complex-data-relationships">Regression Analysis: Simplify Complex Data Relationships</a> / Módulo 3</div>
+    <h1>Multiple linear regression</h1>
+    <p class="subtitle">Qué pasa cuando el resultado depende de varias cosas a la vez. Con cuatro números se ve una relación positiva convertirse en negativa por ignorar una variable, y luego se arregla metiéndola en el modelo. También: variables categóricas, multicolinealidad, sobreajuste y por qué el R² deja de servir.</p>
+    <div class="mesh" role="presentation"></div>
+    <div class="assay"><span><b>4 h</b> de curso</span><span><b>10</b> vídeos</span><span><b>4</b> lecturas</span><span><b>5</b> tareas</span><span><b>3</b> prácticas</span><span><b>2</b> interactivos</span></div>
+  </div>
+</header>
+<main class="container">
+<section class="section-block "><span class="kicker">Contexto</span><h2 class="section-title">Qué resuelve este módulo</h2><p>La recta del módulo 2 supone que la recuperación depende solo de la dosis. En una planta eso es falso: depende también del pH, de la granulometría, del tipo de mineral que entró esa semana y de la temperatura del agua.</p><p>Meter todo eso en el modelo no es un lujo, es una necesidad, y por una razón que este módulo demuestra con cuatro números: <strong>ignorar una variable que importa no te da una respuesta menos precisa, te puede dar la respuesta con el signo cambiado</strong>.</p></section>
+<section class="section-block is-toy"><span class="kicker">Ejemplo</span><h2 class="section-title">Antes de la teoría: un ejemplo de juguete</h2><p>Cuatro pruebas de flotación, dos con mineral fácil y dos con mineral duro. Al mineral duro, como cuesta más, el operador le echa más colector:</p><div class="table-wrap"><table><thead><tr><th>Prueba</th><th>Tipo de mineral</th><th>Dosis (g/t)</th><th>Recuperación (%)</th></tr></thead><tbody><tr><td>1</td><td>Fácil</td><td>10</td><td>80</td></tr><tr><td>2</td><td>Fácil</td><td>20</td><td>84</td></tr><tr><td>3</td><td>Duro</td><td>40</td><td>70</td></tr><tr><td>4</td><td>Duro</td><td>50</td><td>74</td></tr></tbody></table></div><h3 class="sub h3">Paso 1. Mirar solo la dosis, como en el módulo 2</h3><p>Hacemos lo del módulo anterior y calculamos la pendiente ignorando la columna del mineral. La media de la dosis es 30 y la de la recuperación 77:</p><div class="table-wrap"><table><thead><tr><th>Prueba</th><th>Distancia al 30</th><th>Distancia al 77</th><th>Producto</th></tr></thead><tbody><tr><td>1</td><td>−20</td><td>+3</td><td>−60</td></tr><tr><td>2</td><td>−10</td><td>+7</td><td>−70</td></tr><tr><td>3</td><td>+10</td><td>−7</td><td>−70</td></tr><tr><td>4</td><td>+20</td><td>−3</td><td>−60</td></tr></tbody></table></div><pre><code>suma de los productos = −260
+suma de las distancias de la dosis al cuadrado = 400 + 100 + 100 + 400 = 1000
+
+pendiente = −260 / 1000 = −0,26</code></pre><p><strong>Sale negativa.</strong> Leído tal cual: cada gramo por tonelada de colector <strong>baja</strong> la recuperación en 0,26 puntos. Si te fías de ese número, recomiendas bajar la dosis.</p><h3 class="sub h3">Paso 2. Mirar dentro de cada mineral</h3><p>Ahora las mismas cuatro pruebas, pero sin mezclar los dos minerales:</p><pre><code>mineral fácil:  de 10 a 20 g/t,  la recuperación pasa de 80 a 84
+                (84 − 80) / (20 − 10) = 4 / 10 = +0,4
+
+mineral duro:   de 40 a 50 g/t,  la recuperación pasa de 70 a 74
+                (74 − 70) / (50 − 40) = 4 / 10 = +0,4</code></pre><p><strong>Dentro de cada mineral la pendiente es +0,4</strong>, la misma de los módulos anteriores, y es positiva en los dos casos. Más colector siempre mejora la recuperación.</p><figure class="fig"><img src="../../figures/curso4/simpson.56360266.png" alt="simpson" loading="lazy"><figcaption>simpson.png</figcaption></figure><h3 class="sub h3">Paso 3. Por qué la global sale al revés</h3><p>Porque el tipo de mineral hace dos cosas a la vez: <strong>empeora la recuperación</strong> por sí mismo, y <strong>viene acompañado de más dosis</strong>, porque el operador compensa. Al mirar solo la dosis, el castigo del mineral duro se le atribuye a la dosis, que es la única variable que estamos mirando.</p><p>Esto tiene nombre propio, <strong>la paradoja de Simpson</strong>, y no es una rareza de laboratorio: es lo que pasa cada vez que se analiza una planta sin separar por campaña, por turno o por mineral de alimentación.</p><h3 class="sub h3">Paso 4. Meter la variable que faltaba</h3><p>La solución es añadir el tipo de mineral al modelo. Como no es un número, se codifica con un 1 y un 0: <strong>1 si el mineral es duro, 0 si es fácil</strong>. El modelo pasa a tener dos variables:</p><pre><code>recuperación = intercepto + a × dosis + b × (1 si es duro)</code></pre><p>Y con estos datos sale exacto, sin residuos, porque hay cuatro puntos y tres cosas que estimar. Se resuelve mirando cada grupo:</p><pre><code>mineral fácil (duro = 0):  80 = intercepto + a × 10   y la pendiente ya la sabemos: a = 0,4
+                           80 = intercepto + 4        →   intercepto = 76
+
+mineral duro (duro = 1):   70 = 76 + 0,4 × 40 + b
+                           70 = 76 + 16 + b = 92 + b  →   b = −22</code></pre><p><strong>El modelo completo es: recuperación = 76 + 0,4 × dosis − 22 × (duro).</strong></p><h3 class="sub h3">Paso 5. Leer los dos coeficientes</h3><p>Y aquí está la idea central del módulo, que es cómo se lee un coeficiente cuando hay varios:</p><ul><li><strong>+0,4 por gramo por tonelada</strong>, <em>manteniendo constante el tipo de mineral</em>. Es decir, comparando dos pruebas del <strong>mismo</strong> mineral, la que lleva un gramo más de colector recupera 0,4 puntos más.</li><li><strong>−22 puntos por ser mineral duro</strong>, <em>manteniendo constante la dosis</em>. Comparando dos pruebas con la <strong>misma</strong> dosis, la de mineral duro recupera 22 puntos menos.</li></ul><p>Esa coletilla, &quot;manteniendo constante lo demás&quot;, no es un adorno: <strong>es lo que significa el número</strong>. Y es lo que arregla la paradoja del paso 1, porque ahora la dosis ya no carga con la culpa del mineral.</p></section>
+<section class="section-block "><span class="kicker">Términos</span><h2 class="section-title">Glosario</h2><ul><li><strong>Regresión lineal múltiple.</strong> El mismo método del módulo 2 con más de una variable independiente. Ya no es una recta sino un plano, o algo de más dimensiones que nadie dibuja.</li><li><strong>Coeficiente.</strong> El número que multiplica a cada variable. Se lee siempre como &quot;cuánto cambia Y por unidad de esta X, <strong>manteniendo las demás constantes</strong>&quot;.</li><li><strong>Variable de confusión.</strong> Una tercera variable que afecta a X y a Y a la vez, y que distorsiona la relación entre ellas si no se incluye. El tipo de mineral del ejemplo.</li><li><strong>Paradoja de Simpson.</strong> El caso extremo de lo anterior: la relación cambia de signo al separar por grupos.</li><li><strong>Variable ficticia.</strong> La columna de unos y ceros con la que se mete una categoría en el modelo. En inglés, <em>dummy variable</em>.</li><li><strong>Codificación one-hot.</strong> Convertir una categoría de varios niveles en varias columnas de unos y ceros, una por nivel menos uno.</li><li><strong>Categoría de referencia.</strong> El nivel que se queda sin columna y contra el que se comparan todos los demás. En el ejemplo, el mineral fácil.</li><li><strong>Multicolinealidad.</strong> Que dos o más variables independientes digan casi lo mismo. Los coeficientes se vuelven inestables y dejan de poder interpretarse por separado.</li><li><strong>Factor de inflación de la varianza.</strong> El número que mide esa multicolinealidad, uno por variable. En inglés, <em>variance inflation factor</em>, VIF.</li><li><strong>Sobreajuste.</strong> Un modelo que se aprende el ruido de tus datos y falla con datos nuevos. En inglés, <em>overfitting</em>.</li><li><strong>Subajuste.</strong> Lo contrario: un modelo demasiado simple que no captura ni lo que hay. En inglés, <em>underfitting</em>.</li><li><strong>R² ajustado.</strong> El R² con una penalización por cada variable añadida. Es el que se mira cuando hay más de una.</li><li><strong>Regularización.</strong> Familia de métodos que frenan el sobreajuste castigando los coeficientes grandes: Ridge, Lasso y Elastic Net.</li></ul></section>
+<section class="section-block is-recipe"><span class="kicker">Método</span><h2 class="section-title">Paso a paso</h2><h3 class="sub h3">Paso 1. Elegir qué variables entran</h3><p>No entra todo lo que hay. Entra lo que tenga una razón para influir en Y, y muy en particular <strong>cualquier variable que afecte a la vez a Y y a las X que te interesan</strong>, porque esa es exactamente la que produce la paradoja del ejemplo.</p><p>La pregunta útil no es &quot;¿tengo esta columna?&quot; sino &quot;¿esta variable podría estar distorsionando la que quiero medir?&quot;.</p><h3 class="sub h3">Paso 2. Convertir las categorías en números</h3><p>Un modelo no sabe multiplicar por &quot;duro&quot;. Hay que codificar, y la forma correcta es una columna de unos y ceros por cada categoría <strong>menos una</strong>:</p><div class="table-wrap"><table><thead><tr><th>Tipo de mineral</th><th>¿duro?</th><th>¿mixto?</th></tr></thead><tbody><tr><td>Fácil</td><td>0</td><td>0</td></tr><tr><td>Duro</td><td>1</td><td>0</td></tr><tr><td>Mixto</td><td>0</td><td>1</td></tr></tbody></table></div><p>El nivel que se queda sin columna, el fácil, es la <strong>referencia</strong>: el intercepto le corresponde a él, y los demás coeficientes se leen como diferencias contra él.</p><p>¿Por qué una columna menos? Porque la información ya está completa: si no es duro y no es mixto, es fácil por descarte. Poner también la tercera columna crea una redundancia perfecta y el modelo deja de tener solución única.</p><p><strong>Y lo que nunca se hace: codificar como 1, 2, 3.</strong> Eso le dice al modelo que &quot;mixto&quot; es el triple que &quot;fácil&quot; y que la distancia entre fácil y duro es la misma que entre duro y mixto, que son afirmaciones que nadie ha hecho.</p><h3 class="sub h3">Paso 3. Comprobar los supuestos, que ahora son cinco</h3><p>Los cuatro del módulo 2 siguen valiendo igual: linealidad, independencia, normalidad de los residuos y varianza constante. Se añade uno nuevo, propio de tener varias variables:</p><p><strong>Sin multicolinealidad.</strong> Que las variables independientes no se expliquen entre sí. Si metes la dosis en gramos por tonelada y también en kilos por tonelada, el modelo no puede saber a cuál atribuirle el efecto, y reparte al azar entre las dos.</p><p>Se mide con el VIF, uno por variable:</p><pre><code>VIF = 1 / (1 − R² de esa variable explicada por las demás)</code></pre><div class="table-wrap"><table><thead><tr><th>R² de esa variable contra las otras</th><th>VIF</th><th>Lectura</th></tr></thead><tbody><tr><td>0</td><td>1</td><td>Independiente del resto</td></tr><tr><td>0,5</td><td>2</td><td>Tranquilo</td></tr><tr><td>0,8</td><td>5</td><td>Empieza a molestar</td></tr><tr><td>0,9</td><td><strong>10</strong></td><td>Umbral habitual para actuar</td></tr></tbody></table></div><p>El síntoma clásico, antes incluso de calcular nada: <strong>el modelo entero predice muy bien pero ningún coeficiente sale significativo por separado</strong>. Eso es multicolinealidad casi seguro. La solución suele ser quitar una de las variables redundantes o combinarlas en una sola.</p><h3 class="sub h3">Paso 4. Interpretar los coeficientes sin resbalar</h3><p>Tres reglas, y la primera ya salió en el ejemplo:</p><ol><li><strong>&quot;Manteniendo lo demás constante&quot; forma parte del significado</strong>, no es una coletilla opcional.</li><li><strong>Los coeficientes no se comparan entre sí en crudo</strong>, porque cada uno está en sus unidades. Un coeficiente de 0,4 por gramo por tonelada y otro de −22 por tipo de mineral no se pueden ordenar por tamaño sin más.</li><li><strong>Un coeficiente de una variable ficticia es una diferencia contra la referencia</strong>, no un nivel. El −22 no dice que el mineral duro recupere 22; dice que recupera 22 menos que el fácil a igualdad de dosis.</li></ol><h3 class="sub h3">Paso 5. Vigilar el sobreajuste, y dejar de mirar el R²</h3><p>Cada variable que añades sube el R². <strong>Siempre</strong>, incluso si la variable es ruido puro. Es una propiedad matemática, no una señal de que el modelo haya mejorado.</p><p>Por eso, en cuanto hay más de una variable, el número que se mira es el <strong>R² ajustado</strong>, que descuenta una penalización por cada variable:</p><pre><code>R² ajustado = 1 − (1 − R²) × (n − 1) / (n − k − 1)</code></pre><p>donde <code>n</code> son las observaciones y <code>k</code> las variables. Lo importante es cómo se comporta: si la variable nueva aporta, el ajustado sube; <strong>si solo aporta ruido, el ajustado baja aunque el R² haya subido</strong>. En el código de abajo se ve exactamente eso.</p><p>Y el problema de fondo tiene dos caras:</p><div class="table-wrap"><table><thead><tr><th></th><th>Qué pasa</th><th>Cómo se nota</th></tr></thead><tbody><tr><td><strong>Subajuste</strong></td><td>El modelo es demasiado simple para el fenómeno</td><td>Falla igual de mal con tus datos y con datos nuevos</td></tr><tr><td><strong>Sobreajuste</strong></td><td>El modelo se aprendió el ruido de tus datos</td><td>Perfecto con los tuyos, malo con datos nuevos</td></tr></tbody></table></div><p>El sobreajuste es el peligroso porque <strong>se disfraza de éxito</strong>. Un R² de 0,99 con veinte variables y treinta observaciones no es un buen modelo, es un modelo que memorizó.</p><h3 class="sub h3">Paso 6. Las tres herramientas contra el sobreajuste</h3><p>El temario las nombra, y conviene saber para qué sirve cada una aunque el curso no las use a fondo:</p><div class="table-wrap"><table><thead><tr><th>Método</th><th>Qué hace</th><th>Cuándo se usa</th></tr></thead><tbody><tr><td><strong>Ridge</strong></td><td>Encoge todos los coeficientes hacia cero sin llegar a anularlos</td><td>Cuando hay multicolinealidad y quieres conservar todas las variables</td></tr><tr><td><strong>Lasso</strong></td><td>Encoge y además <strong>pone a cero</strong> las que no aportan</td><td>Cuando quieres que el propio método seleccione variables</td></tr><tr><td><strong>Elastic Net</strong></td><td>Una mezcla de los dos, con una perilla que gradúa la proporción</td><td>Muchas variables y correlacionadas entre sí</td></tr></tbody></table></div><p>Los tres son la misma idea: <strong>penalizar los coeficientes grandes</strong> para que el modelo no se retuerza persiguiendo cada punto. Se paga con un poco de sesgo y se compra estabilidad.</p></section>
+<section class="section-block is-recipe"><span class="kicker">Código</span><h2 class="section-title">El código, por partes</h2><h3 class="sub h3">Paso 1. Reproducir la paradoja</h3><p>Primero el error, para verlo con los propios ojos: ajustar la recta ignorando el tipo de mineral.</p><pre><code class="language-python">import numpy as np
+from scipy import stats
+
+dose = np.array([10, 20, 40, 50])
+recovery = np.array([80, 84, 70, 74])
+hard = np.array([0, 0, 1, 1])          # 1 = mineral duro, 0 = mineral facil
+
+blind = stats.linregress(dose, recovery)
+print(f&quot;pendiente ignorando el tipo de mineral = {blind.slope}&quot;)</code></pre><dl class="annot"><div class="annot-head">línea por línea</div><dt><code>hard = np.array([0, 0, 1, 1])</code></dt><dd>La variable ficticia: un 1 donde el mineral es duro y un 0 donde es fácil. Es todo lo que hace falta para meter una categoría de dos niveles en un modelo.</dd><dt><code>blind</code></dt><dd>El nombre dice lo que es: el ajuste ciego, el que no ve el tipo de mineral. Poner nombres que digan algo ahorra la mitad de los comentarios.</dd></dl><div class="output"><span class="output-tag">sale</span><pre>pendiente ignorando el tipo de mineral = -0.26</pre></div><p>El mismo −0,26 del papel, y con el signo equivocado respecto de lo que pasa de verdad.</p><h3 class="sub h3">Paso 2. Ajustar el modelo con las dos variables</h3><p><code>linregress</code> solo admite una variable independiente, así que aquí se acabó. Para varias se monta la <strong>matriz de diseño</strong>: una columna por variable, más una columna de unos para el intercepto.</p><pre><code class="language-python">X = np.column_stack([np.ones(len(dose)), dose, hard])
+coefficients, *_ = np.linalg.lstsq(X, recovery, rcond=None)
+
+print(f&quot;intercepto   = {coefficients[0]:.1f}&quot;)
+print(f&quot;dosis        = {coefficients[1]:+.1f}&quot;)
+print(f&quot;mineral duro = {coefficients[2]:+.1f}&quot;)</code></pre><dl class="annot"><div class="annot-head">línea por línea</div><dt><code>np.column_stack([...])</code></dt><dd>Pega varios vectores como columnas de una tabla. El resultado tiene cuatro filas, una por prueba, y tres columnas.</dd><dt><code>np.ones(len(dose))</code></dt><dd>Una columna de unos. Es el truco estándar para que el intercepto salga como un coeficiente más: al multiplicarlo siempre por 1, actúa como término independiente.</dd><dt><code>np.linalg.lstsq(...)</code></dt><dd>Siglas de <em>least squares</em>. Resuelve exactamente el mismo problema del módulo 2, minimizar la suma de residuos al cuadrado, pero con varias variables a la vez.</dd><dt><code>coefficients, *_</code></dt><dd><code>lstsq</code> devuelve cuatro cosas. El asterisco con guion bajo significa &quot;y todo lo demás, que no me interesa&quot;. Sin él, Python protesta por recibir más valores de los que hay nombres.</dd><dt><code>rcond=None</code></dt><dd>Un ajuste interno de precisión numérica. Si no se pasa, numpy imprime un aviso de que el valor por defecto va a cambiar. Se pone para que el código corra limpio.</dd><dt><code>{coefficients[1]:+.1f}</code></dt><dd>El <code>+</code> en el formato fuerza a imprimir el signo también cuando es positivo. Con coeficientes, ver el signo escrito evita despistes.</dd></dl><div class="output"><span class="output-tag">sale</span><pre>intercepto   = 76.0
+dosis        = +0.4
+mineral duro = -22.0</pre></div><p>Los tres números que despejamos a mano. <strong>La dosis recuperó su signo positivo</strong> en cuanto el modelo pudo atribuirle al mineral lo que era del mineral.</p><h3 class="sub h3">Paso 3. Comprobar que el ajuste es exacto</h3><pre><code class="language-python">predicted = X @ coefficients
+print(f&quot;predichos = {np.round(predicted, 6)}&quot;)
+print(f&quot;R2        = {1 - ((recovery - predicted) ** 2).sum() / ((recovery - recovery.mean()) ** 2).sum():.4f}&quot;)</code></pre><dl class="annot"><div class="annot-head">línea por línea</div><dt><code>X @ coefficients</code></dt><dd>El arroba es la multiplicación de matrices. Multiplica cada fila de la tabla por los coeficientes y los suma, que es justo lo que hace el modelo para predecir.</dd><dt><code>np.round(predicted, 6)</code></dt><dd>Redondea a seis decimales. Hace falta porque el cálculo deja restos minúsculos, del orden de 0,00000000000001, y sin redondear la salida se llena de notación científica que no significa nada.</dd><dt><code>1 - suma_residuos / suma_total</code></dt><dd>El R² del módulo 2, escrito en una línea. Compara el error del modelo contra el error de predecir siempre la media.</dd></dl><div class="output"><span class="output-tag">sale</span><pre>predichos = [80. 84. 70. 74.]
+R2        = 1.0000</pre></div><p><strong>R² de 1, ajuste perfecto</strong>, y eso no es una buena noticia: hay cuatro observaciones y tres cosas que estimar. Con tan pocos datos, un modelo puede pasar exactamente por todos los puntos sin haber aprendido nada. Es sobreajuste de manual, y sirve de aviso.</p><h3 class="sub h3">Paso 4. Ver al R² ajustado hacer su trabajo</h3><p>Un caso con veinte observaciones. Al modelo de tres variables se le añade una cuarta que apenas aporta: el R² sube de 0,800 a 0,805.</p><pre><code class="language-python">n, r2_three, r2_four = 20, 0.800, 0.805
+
+for k, r2 in [(3, r2_three), (4, r2_four)]:
+    adjusted = 1 - (1 - r2) * (n - 1) / (n - k - 1)
+    print(f&quot;{k} variables: R2 = {r2:.3f}   R2 ajustado = {adjusted:.4f}&quot;)</code></pre><dl class="annot"><div class="annot-head">línea por línea</div><dt><code>for k, r2 in [(3, ...), (4, ...)]:</code></dt><dd>Un bucle sobre una lista de parejas. En cada vuelta, <code>k</code> toma el primer valor de la pareja y <code>r2</code> el segundo, así que el mismo cálculo se hace dos veces sin escribirlo dos veces.</dd><dt><code>(n - k - 1)</code></dt><dd>Los grados de libertad que quedan: las observaciones menos las variables menos el intercepto. Cuantas más variables metes, más pequeño es este número y más dura la penalización.</dd></dl><div class="output"><span class="output-tag">sale</span><pre>3 variables: R2 = 0.800   R2 ajustado = 0.7625
+4 variables: R2 = 0.805   R2 ajustado = 0.7530</pre></div><p>Ahí está la lección entera del paso 5: <strong>el R² sube y el ajustado baja</strong>. La variable nueva aportó menos de lo que cuesta, y el R² a secas no tenía forma de decírtelo.</p></section>
+<section class="section-block is-warning"><span class="kicker">Trampas</span><h2 class="section-title">Ojo</h2><ul><li><strong>Ignorar una variable que importa no reduce la precisión, cambia la conclusión.</strong> El ejemplo pasa de −0,26 a +0,4, y con ella la recomendación se invierte.</li><li><strong>Un coeficiente sin &quot;manteniendo lo demás constante&quot; está mal interpretado.</strong> Esa frase es parte de su definición, no un matiz.</li><li><strong>Nunca codifiques categorías como 1, 2, 3.</strong> Eso le impone al modelo un orden y unas distancias que no existen. Una columna de unos y ceros por nivel menos uno.</li><li><strong>El R² siempre sube al añadir variables</strong>, aunque sean ruido. Con más de una variable, el número que se mira es el ajustado.</li><li><strong>Un R² perfecto con pocos datos es sospechoso, no bueno.</strong> Con cuatro puntos y tres parámetros, el ajuste exacto está garantizado y no demuestra nada.</li><li><strong>Variables que dicen lo mismo rompen la interpretación individual.</strong> El modelo puede predecir bien y aun así repartir el efecto al azar entre ellas.</li><li>**Si el modelo es significativo pero ningún coeficiente lo es, sospecha de multicolinealidad.** Es el síntoma más característico.</li><li><strong>Meter variables porque están disponibles es la vía directa al sobreajuste.</strong> Cada variable tiene que tener una razón para estar.</li></ul></section>
+<section class="section-block is-bridge"><span class="kicker">Analogía</span><h2 class="section-title">Puente metalúrgico</h2><p>La recuperación nunca dependió solo del reactivo, y eso lo sabes desde el primer día de planta. Depende del pH, de la granulometría, del tiempo de residencia, de la mineralogía de la alimentación y de la calidad del agua.</p><p>Lo que hace este módulo es poner en números algo que en planta se hace con una regla estricta de trabajo: <strong>una prueba comparativa solo vale si todo lo demás se mantuvo igual</strong>. Si cambias el colector y a la vez entra una campaña de mineral distinto, la prueba no sirve, y nadie discute eso en una sala de reuniones.</p><p>Pues &quot;manteniendo lo demás constante&quot; es exactamente esa regla, escrita como coeficiente. La diferencia es que en el laboratorio la consigues <strong>controlando</strong> las condiciones, y en el modelo la consigues <strong>midiendo</strong> las variables y metiéndolas dentro.</p><div class="table-wrap"><table><thead><tr><th>En planta</th><th>En el modelo</th></tr></thead><tbody><tr><td>Prueba con todo igual salvo una variable</td><td>Coeficiente con las demás constantes</td></tr><tr><td>Cambió el mineral de alimentación a mitad de campaña</td><td>Variable de confusión no incluida</td></tr><tr><td>Comparar dos reactivos probados en campañas distintas</td><td>La paradoja del paso 1</td></tr><tr><td>Dos sensores midiendo casi lo mismo en el mismo punto</td><td>Multicolinealidad</td></tr><tr><td>Ajustar un modelo de planta a una sola campaña buena</td><td>Sobreajuste</td></tr></tbody></table></div><p>Y la fila de la paradoja es la que más caro sale. Comparar el reactivo A, probado en verano con mineral oxidado, contra el reactivo B, probado en invierno con mineral fresco, y concluir cuál es mejor, es exactamente el −0,26 del paso 1: una conclusión con el signo cambiado, respaldada por aritmética impecable.</p></section>
+<section class="section-block is-review"><span class="kicker">Repaso</span><h2 class="section-title">Repaso</h2><details><summary>¿Qué es la paradoja de Simpson y qué la produce?</summary><p>Es que la relación entre dos variables cambie de signo al separar los datos en grupos. En el ejemplo, mirando las cuatro pruebas juntas la dosis parece bajar la recuperación, con una pendiente de −0,26, mientras que dentro de cada tipo de mineral la sube, con una pendiente de +0,4 en los dos. La produce una variable de confusión que afecta a la vez al resultado y a la variable que se está midiendo: aquí el mineral duro recupera menos por sí mismo y además recibe más dosis, así que el castigo del mineral se le atribuye al reactivo. La solución es meter esa variable en el modelo, que es la razón de existir de la regresión múltiple.</p></details><details><summary>¿Cómo se interpreta correctamente un coeficiente de una regresión múltiple?</summary><p>Como el cambio en Y por cada unidad de esa X <strong>manteniendo constantes las demás variables del modelo</strong>. Esa condición forma parte del significado del número, no es un matiz que se pueda omitir al redactar. En el ejemplo, el +0,4 dice que comparando dos pruebas del mismo tipo de mineral, la que lleva un gramo por tonelada más recupera 0,4 puntos más; y el −22 dice que comparando dos pruebas con la misma dosis, la de mineral duro recupera 22 puntos menos que la de mineral fácil, que es la categoría de referencia.</p></details><details><summary>¿Por qué una variable categórica de tres niveles se codifica con dos columnas y no con tres?</summary><p>Porque con dos columnas la información ya está completa: si un caso no es duro y no es mixto, solo puede ser fácil. Añadir la tercera columna crearía una redundancia perfecta entre las columnas y el intercepto, y el sistema dejaría de tener una solución única. El nivel que se queda sin columna es la categoría de referencia: el intercepto le corresponde a él y los demás coeficientes se leen como diferencias respecto de él. Lo que no se debe hacer nunca es codificar los niveles como 1, 2 y 3, porque eso impone un orden y unas distancias iguales entre categorías que nadie ha comprobado.</p></details><details><summary>Añades una variable a un modelo y el R² sube de 0,800 a 0,805. ¿Merece la pena?</summary><p>Casi con seguridad no, y el R² a secas no puede responder porque <strong>siempre</strong> sube al añadir variables, incluso si son ruido puro. Hay que mirar el R² ajustado, que penaliza cada variable nueva: con veinte observaciones, pasar de tres a cuatro variables con esa subida lleva el ajustado de 0,7625 a 0,7530, o sea que baja. La variable aportó menos de lo que cuesta en grados de libertad, y dejarla dentro solo acerca el modelo al sobreajuste.</p></details><details><summary>¿Qué es la multicolinealidad, cómo se detecta y por qué importa?</summary><p>Es que dos o más variables independientes digan casi lo mismo, de forma que el modelo no puede repartir el efecto entre ellas de manera estable. Se detecta con el factor de inflación de la varianza, que se calcula por variable como 1 dividido entre 1 menos el R² de esa variable explicada por las demás, y que suele preocupar a partir de 5 y desde luego a partir de 10. El síntoma sin calcular nada es muy reconocible: el modelo predice bien pero ningún coeficiente sale significativo por separado. Importa porque destruye la interpretación individual de los coeficientes, que es justo lo que se busca en una regresión múltiple, aunque la capacidad de predicción del conjunto pueda seguir siendo buena.</p></details></section>
+</main>
+<footer class="footer">
+  Concentra / destilado del temario público del curso / 2026-08-20
+</footer>
+</body>
+</html>

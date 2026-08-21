@@ -1,0 +1,668 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Modelos de secuencia: LSTM, GRU y convolución causal · Sílice, módulo 11</title>
+<style>
+/* Sílice: la hoja de estilos del curso.
+ *
+ * Identidad de papel de informe de planta, no de pantalla. El proyecto termina
+ * recomendando no desplegar, y eso es un informe técnico: papel hueso, tinta grafito,
+ * y una retícula de milimetrado muy tenue en la cabecera.
+ *
+ * Dos familias tipográficas y ni una más, las dos del sistema porque el sitio se abre
+ * desde file:// y tiene que funcionar sin internet: serif para la prosa (se lee como
+ * informe) y monoespaciada para todo lo que es dato, código, cifra o etiqueta.
+ *
+ * El acento lo inyecta cada página con --accent: es el del módulo, y marca su posición
+ * en el arco del proyecto. Los diez pasan check_palette.py antes de entrar aquí.
+ */
+
+:root {
+  --paper: #f6f3ec;
+  --bench: #eeeade;
+  --ink: #2a2622;
+  --ink-soft: #57504a;
+  --ink-faint: #8a8177;
+  --rule: #ddd6c6;
+  --rule-soft: #e8e2d4;
+  --grid: rgba(84, 69, 73, .07);
+  --accent: #632727;
+
+  --prose: Georgia, "Iowan Old Style", "Palatino Linotype", Palatino, "Times New Roman", serif;
+  --data: "Cascadia Mono", Consolas, "DejaVu Sans Mono", "Liberation Mono", monospace;
+
+  --measure: 680px;   /* la medida de la prosa, en píxeles y nunca en ch */
+  --wide: 1180px;     /* el borde derecho de los bloques anchos */
+  --margin: 132px;    /* la columna del margen, donde cuelgan los kickers */
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--prose);
+  font-size: 17px;
+  line-height: 1.62;
+  -webkit-text-size-adjust: 100%;
+}
+
+::selection { background: var(--accent); color: var(--paper); }
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+/* --------------------------------------------------------------- cabecera */
+
+.masthead {
+  border-bottom: 1px solid var(--rule);
+  background-color: var(--bench);
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 26px 26px;
+  background-position: -1px -1px;
+}
+
+.masthead-inner {
+  max-width: var(--wide);
+  margin: 0 auto;
+  padding: 2.4rem 2rem 1.6rem;
+}
+
+.eyebrow {
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-bottom: 1rem;
+}
+
+.eyebrow a { color: inherit; text-decoration: none; border-bottom: 1px solid transparent; }
+.eyebrow a:hover { border-bottom-color: var(--accent); color: var(--accent); }
+.eyebrow b { color: var(--accent); font-weight: 400; }
+
+.masthead h1 {
+  margin: 0;
+  font-size: clamp(1.9rem, 4.4vw, 2.9rem);
+  line-height: 1.14;
+  font-weight: 400;
+  letter-spacing: -.012em;
+  max-width: 900px;
+}
+
+.standfirst {
+  margin: .9rem 0 0;
+  max-width: var(--measure);
+  color: var(--ink-soft);
+  font-size: 1.02rem;
+  line-height: 1.55;
+}
+
+/* La cifra del módulo: el número que dejó, en grande, junto al título. Es lo que
+   convierte la cabecera en parte del argumento y no en decoración. */
+.figure-mark {
+  margin-top: 1.6rem;
+  display: flex;
+  align-items: baseline;
+  gap: .8rem;
+  flex-wrap: wrap;
+  border-left: 3px solid var(--accent);
+  padding-left: .9rem;
+}
+
+.figure-value {
+  font-family: var(--data);
+  font-size: clamp(1.5rem, 3.4vw, 2.1rem);
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: -.02em;
+}
+
+.figure-label {
+  font-family: var(--data);
+  font-size: .78rem;
+  letter-spacing: .04em;
+  color: var(--ink-soft);
+}
+
+/* El hilo del proyecto: diez segmentos, uno por módulo, con su cifra debajo. Desde
+   cualquier página se ve el recorrido entero, que es justo lo que a los apuntes
+   sueltos les faltaba. */
+.thread {
+  margin-top: 1.8rem;
+  display: grid;
+  /* One equal column per segment, whatever the temario says. It was pinned to ten and
+     the course grew to fourteen. */
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: 4px;
+}
+
+/* Where part 2 starts: the four modules that were never in the original project. */
+.thread .starts-part { margin-left: 10px; position: relative; }
+.thread .starts-part::after {
+  content: '';
+  position: absolute;
+  left: -7px; top: -3px; bottom: 0;
+  border-left: 1px solid var(--rule);
+}
+
+.thread a, .thread span {
+  display: block;
+  text-decoration: none;
+  color: var(--ink-faint);
+  font-family: var(--data);
+  font-size: .62rem;
+  letter-spacing: .04em;
+  padding-top: .4rem;
+  border-top: 3px solid var(--rule);
+  transition: color .12s, border-color .12s;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.thread a:hover { color: var(--ink); border-top-color: var(--ink-soft); }
+.thread [aria-current="page"] { color: var(--accent); border-top-color: var(--accent); }
+.thread .n { font-weight: 700; }
+.thread .v { color: inherit; opacity: .75; }
+
+/* Las pastillas de composición: de qué está hecho el módulo. */
+.assay {
+  margin-top: 1.6rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.4rem;
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .05em;
+  color: var(--ink-faint);
+}
+
+.assay b { color: var(--ink); font-weight: 700; }
+
+/* ----------------------------------------------------------------- cuerpo */
+
+.container {
+  max-width: var(--wide);
+  margin: 0 auto;
+  padding: 2.6rem 2rem 4rem;
+}
+
+/* Cada sección es una anotación de cuaderno: el kicker cuelga en el margen
+   izquierdo y el contenido corre en la columna principal. En pantalla estrecha el
+   kicker se pone encima. */
+.block {
+  display: grid;
+  grid-template-columns: var(--margin) minmax(0, 1fr);
+  column-gap: 2rem;
+  padding: 2.2rem 0;
+  border-top: 1px solid var(--rule);
+}
+
+.block:first-child { border-top: 0; padding-top: .6rem; }
+
+.kicker {
+  grid-column: 1;
+  font-family: var(--data);
+  font-size: .68rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding-top: .45rem;
+}
+
+.block > :not(.kicker) { grid-column: 2; }
+
+.block-title {
+  margin: 0 0 1.1rem;
+  font-size: 1.42rem;
+  font-weight: 400;
+  line-height: 1.25;
+  letter-spacing: -.008em;
+}
+
+.is-warning .kicker, .is-result .kicker { color: var(--accent); }
+.is-warning .block-title { border-bottom: 2px solid var(--accent); padding-bottom: .4rem; display: inline-block; }
+.is-result { background: var(--bench); margin: 0 -1.2rem; padding: 2.2rem 1.2rem; }
+.is-result .block-title { color: var(--accent); }
+
+/* Prosa: justificada con partición, que sin partición el español justificado abre
+   ríos. Tablas, código y pies de figura se quedan sin justificar. */
+.block p, .block li, .block dd, details > *:not(summary) {
+  max-width: var(--measure);
+  text-align: justify;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+}
+
+.block p { margin: 0 0 1rem; }
+.block p:last-child { margin-bottom: 0; }
+.block ul, .block ol { margin: 0 0 1rem; padding-left: 1.3rem; max-width: var(--measure); }
+.block li { margin-bottom: .5rem; }
+.block li::marker { color: var(--accent); font-family: var(--data); font-size: .85em; }
+
+td, th, figcaption, .assay, .thread a, .res li { text-align: left; hyphens: manual; }
+
+a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+a:hover { text-decoration-thickness: 2px; }
+strong { font-weight: 700; }
+em { font-style: italic; color: var(--ink-soft); }
+
+h3.sub {
+  margin: 1.9rem 0 .7rem;
+  font-size: 1.07rem;
+  font-weight: 700;
+  letter-spacing: -.004em;
+}
+
+h3.sub:first-child { margin-top: 0; }
+
+h4.sub {
+  margin: 1.4rem 0 .5rem;
+  font-family: var(--data);
+  font-size: .82rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  color: var(--ink-soft);
+}
+
+/* ------------------------------------------------------------ código y datos */
+
+code {
+  font-family: var(--data);
+  font-size: .87em;
+  background: var(--bench);
+  padding: .1em .32em;
+  border-radius: 2px;
+}
+
+pre {
+  margin: 0 0 1rem;
+  padding: 1rem 1.1rem;
+  background: var(--bench);
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--accent);
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+pre code { background: none; padding: 0; font-size: .82rem; line-height: 1.62; }
+
+/* La salida es lo que imprime el código, no código para correr: se marca aparte
+   para que nadie confunda entrada con salida. */
+.output {
+  margin: 0 0 1rem;
+  border: 1px dashed var(--rule);
+  background: transparent;
+}
+
+.output-tag {
+  display: block;
+  font-family: var(--data);
+  font-size: .64rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding: .45rem 1.1rem 0;
+}
+
+.output pre {
+  margin: 0;
+  border: 0;
+  background: none;
+  padding: .3rem 1.1rem 1rem;
+}
+
+.output pre code { color: var(--ink-soft); }
+
+/* La anotación línea por línea, para quien no ha programado antes. */
+.annot {
+  margin: 0 0 1.2rem;
+  border: 1px solid var(--rule);
+  border-top: 0;
+  padding: 0 1.1rem .6rem;
+  background: transparent;
+}
+
+.annot-head {
+  font-family: var(--data);
+  font-size: .64rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding: .55rem 0 .5rem;
+  border-bottom: 1px solid var(--rule-soft);
+  margin-bottom: .4rem;
+}
+
+.annot dt { padding: .4rem 0 .1rem; }
+.annot dt code { background: none; padding: 0; color: var(--accent); font-weight: 700; }
+.annot dd {
+  margin: 0 0 .4rem;
+  color: var(--ink-soft);
+  font-size: .94rem;
+  border-bottom: 1px solid var(--rule-soft);
+  padding-bottom: .5rem;
+}
+.annot dd:last-of-type { border-bottom: 0; }
+
+pre:has(+ .annot) { margin-bottom: 0; }
+
+blockquote {
+  margin: 0 0 1rem;
+  padding: .2rem 0 .2rem 1.1rem;
+  border-left: 3px solid var(--rule);
+  color: var(--ink-soft);
+  font-style: italic;
+  max-width: var(--measure);
+}
+
+/* --------------------------------------------------------------- tablas */
+
+.table-wrap { overflow-x: auto; margin: 0 0 1.2rem; }
+
+table {
+  border-collapse: collapse;
+  width: auto;
+  max-width: 100%;
+  font-size: .92rem;
+}
+
+th, td {
+  padding: .5rem .9rem .5rem 0;
+  border-bottom: 1px solid var(--rule-soft);
+  vertical-align: top;
+}
+
+th {
+  font-family: var(--data);
+  font-size: .7rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--ink-faint);
+  border-bottom: 1px solid var(--rule);
+  white-space: nowrap;
+}
+
+/* -------------------------------------------------------------- repaso */
+
+details {
+  border-bottom: 1px solid var(--rule-soft);
+  padding: .2rem 0;
+  max-width: var(--measure);
+}
+
+summary {
+  cursor: pointer;
+  list-style: none;
+  padding: .7rem 0 .7rem 1.5rem;
+  position: relative;
+  font-weight: 700;
+}
+
+summary::-webkit-details-marker { display: none; }
+
+summary::before {
+  content: '+';
+  position: absolute;
+  left: 0;
+  font-family: var(--data);
+  color: var(--accent);
+  font-weight: 700;
+}
+
+details[open] summary::before { content: '\2212'; }
+details[open] summary { color: var(--accent); }
+details > *:not(summary) { color: var(--ink-soft); }
+details > *:last-child { padding-bottom: .8rem; }
+
+/* -------------------------------------------------------------- figuras */
+
+figure.fig {
+  margin: 0 0 1.4rem;
+  max-width: 100%;
+  border: 1px solid var(--rule);
+  background: #fff;
+  padding: .6rem;
+}
+
+figure.fig img { width: 100%; height: auto; display: block; }
+
+figure.fig figcaption {
+  margin-top: .6rem;
+  padding-top: .5rem;
+  border-top: 1px solid var(--rule-soft);
+  font-family: var(--data);
+  font-size: .7rem;
+  letter-spacing: .04em;
+  color: var(--ink-faint);
+}
+
+.gone {
+  font-family: var(--data);
+  font-size: .76rem;
+  color: var(--accent);
+  border: 1px dashed var(--accent);
+  padding: .5rem .8rem;
+}
+
+/* ------------------------------------------------------- pie y navegación */
+
+.pager {
+  max-width: var(--wide);
+  margin: 0 auto;
+  padding: 0 2rem 3rem;
+  display: flex;
+  gap: 1.4rem;
+  justify-content: space-between;
+  font-family: var(--data);
+  font-size: .78rem;
+}
+
+.pager a { max-width: 46%; text-decoration: none; border-bottom: 1px solid var(--rule); padding-bottom: .3rem; }
+.pager a:hover { border-bottom-color: var(--accent); }
+.pager .dir { display: block; font-size: .64rem; letter-spacing: .13em; text-transform: uppercase; color: var(--ink-faint); }
+.pager .next { text-align: right; margin-left: auto; }
+
+.footer {
+  border-top: 1px solid var(--rule);
+  padding: 1.4rem 2rem 2.4rem;
+  font-family: var(--data);
+  font-size: .72rem;
+  letter-spacing: .06em;
+  color: var(--ink-faint);
+}
+
+.footer-inner { max-width: var(--wide); margin: 0 auto; display: flex; gap: 1.4rem; flex-wrap: wrap; }
+
+/* ------------------------------------------------------------- índice */
+
+.toc { list-style: none; margin: 0; padding: 0; max-width: 100%; }
+
+.toc li {
+  border-top: 1px solid var(--rule-soft);
+  max-width: 100%;
+}
+
+.toc li:last-child { border-bottom: 1px solid var(--rule-soft); }
+
+.toc a, .toc .pending {
+  display: grid;
+  grid-template-columns: 3rem minmax(0, 1fr) auto;
+  gap: 1.2rem;
+  align-items: baseline;
+  padding: 1rem .4rem;
+  text-decoration: none;
+  color: inherit;
+}
+
+.toc a:hover { background: var(--bench); }
+.toc .pending { color: var(--ink-faint); }
+.toc .num { font-family: var(--data); font-size: .82rem; font-weight: 700; }
+.toc .name { font-size: 1.05rem; }
+.toc .name small { display: block; font-family: var(--prose); font-size: .86rem; color: var(--ink-soft); margin-top: .2rem; }
+.toc .mark { font-family: var(--data); font-size: .82rem; font-weight: 700; white-space: nowrap; }
+.toc .tag { font-family: var(--data); font-size: .66rem; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-faint); }
+
+/* ---------------------------------------------------------- responsive */
+
+@media (max-width: 900px) {
+  .block { grid-template-columns: minmax(0, 1fr); }
+  .block > :not(.kicker) { grid-column: 1; }
+  .kicker { grid-column: 1; padding-top: 0; margin-bottom: .7rem; }
+  .thread { grid-auto-flow: row; grid-template-columns: repeat(5, 1fr); gap: 6px 4px; }
+  .thread .starts-part { margin-left: 0; }
+  .thread .starts-part::after { display: none; }
+  .toc a, .toc .pending { grid-template-columns: 2.2rem minmax(0, 1fr); }
+  .toc .mark { grid-column: 2; }
+}
+
+@media (max-width: 620px) {
+  body { font-size: 16px; }
+  .masthead-inner, .container, .pager, .footer { padding-left: 1.2rem; padding-right: 1.2rem; }
+  .is-result { margin: 0; padding: 2rem 1rem; }
+  .block p, .block li { text-align: left; }
+}
+
+@media print {
+  .thread, .pager { display: none; }
+  body { font-size: 11pt; }
+  .masthead { background: none; }
+  .block { break-inside: avoid; }
+}
+
+/* -------------------------------------------------- resumen y plegables */
+
+/* El resumen de entrada: la cifra, la trampa y la decision, en cinco vinetas.
+   Se lee en 30 segundos o se sigue leyendo. */
+.is-brief {
+  border-top: 0;
+  padding-top: .4rem;
+}
+
+.is-brief .kicker { color: var(--accent); }
+
+.is-brief ul {
+  list-style: none;
+  padding-left: 0;
+  max-width: var(--measure);
+  border-left: 3px solid var(--accent);
+  padding: .2rem 0 .2rem 1.1rem;
+}
+
+.is-brief li { margin-bottom: .7rem; text-align: left; }
+.is-brief li:last-child { margin-bottom: 0; }
+
+/* Los plegables de contenido denso: el glosario y la anotacion del codigo.
+   Cerrados por defecto, para que la pagina no sea un muro. */
+details.fold {
+  border: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+  background: transparent;
+  margin: 0 0 1.2rem;
+  padding: 0;
+  max-width: 100%;
+}
+
+details.fold > summary {
+  font-family: var(--data);
+  font-size: .68rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  font-weight: 400;
+  color: var(--ink-faint);
+  padding: .55rem .9rem .55rem 2rem;
+}
+
+details.fold > summary::before { left: .9rem; }
+details.fold[open] > summary {
+  color: var(--accent);
+  border-bottom: 1px solid var(--rule-soft);
+  margin-bottom: 0;
+}
+
+details.fold > *:not(summary) { padding: .8rem .9rem; color: inherit; }
+details.fold ul { margin-bottom: 0; }
+details.fold .annot { border: 0; padding: 0; margin: 0; }
+details.fold .annot dd { max-width: var(--measure); }
+
+/* Un bloque de codigo seguido de su plegable van pegados. */
+pre:has(+ details.fold) { margin-bottom: 0; border-bottom: 0; }
+
+:root { --accent: #2c4a6d; }
+</style>
+</head>
+<body>
+<header class="masthead">
+  <div class="masthead-inner">
+    <div class="eyebrow"><a href="index.html">Sílice</a> / M&oacute;dulo <b>11</b> de 14</div>
+    <h1>Modelos de secuencia: LSTM, GRU y convolución causal</h1>
+    <p class="standfirst">El hueco que dejó el proyecto. Una red que mira la historia entera en vez de una fila suelta, entrenada en la GPU</p>
+    <div class="figure-mark">
+      <span class="figure-value">+0,215</span>
+      <span class="figure-label">lo que capta un GRU del cambio a 12 h, la señal propia más alta del proyecto</span>
+    </div>
+    <nav class="thread" aria-label="El arco del proyecto"><a href="m01_radiografia_del_dataset.html" title="1. Radiografía del dataset"><span class="n">1</span> <span class="v">737.453</span></a><a href="m02_el_primer_modelo_y_el_techo.html" title="2. El primer modelo, y el techo que apareció enseguida"><span class="n">2</span> <span class="v">R² 0,04</span></a><a href="m03_como_aprende_un_modelo.html" title="3. Cómo aprende un modelo por dentro"><span class="n">3</span> <span class="v">R² 0,06</span></a><a href="m04_preprocesar_y_validar.html" title="4. Preprocesar y validar sin hacer trampa"><span class="n">4</span> <span class="v">R² −0,13</span></a><a href="m05_darle_memoria_al_modelo.html" title="5. Darle memoria al modelo"><span class="n">5</span> <span class="v">R² 0,64</span></a><a href="m06_clasificar_fuera_de_spec.html" title="6. Clasificar: dentro o fuera de especificación"><span class="n">6</span> <span class="v">0,62 vs 0,77</span></a><a href="m07_contra_que_se_compara.html" title="7. Contra qué se compara un modelo"><span class="n">7</span> <span class="v">+0,009</span></a><a href="m08_donde_aporta_el_ml.html" title="8. ¿Dónde aporta el ML de verdad?"><span class="n">8</span> <span class="v">0 de 4</span></a><a href="m09_los_tres_estados_de_la_planta.html" title="9. Los tres estados de la planta"><span class="n">9</span> <span class="v">k = 3</span></a><a href="m10_redes_producto_y_cierre.html" title="10. Redes, producto y cierre"><span class="n">10</span> <span class="v">0,76</span></a><span class="starts-part" aria-current="page" title="11. Modelos de secuencia: LSTM, GRU y convolución causal"><span class="n">11</span> <span class="v">+0,215</span></span><a href="m12_practica_de_pronostico.html" title="12. La práctica de pronóstico que faltó"><span class="n">12</span> <span class="v">0,52 vs 0,63</span></a><a href="m13_incertidumbre.html" title="13. Incertidumbre: del punto al intervalo"><span class="n">13</span> <span class="v">92,0 %</span></a><a href="m14_lectura_causal.html" title="14. Lectura causal del lazo de control"><span class="n">14</span> <span class="v">+0,16</span></a></nav>
+    <div class="assay"><span><b>0</b> apuntes de origen</span><span><b>4</b> figuras</span><span><b>3</b> scripts</span></div>
+  </div>
+</header>
+<main class="container">
+<section class="block is-brief"><span class="kicker">Resumen</span><h2 class="block-title">En 30 segundos</h2><ul><li><strong>+0,215.</strong> Un GRU prediciendo el cambio a 12 horas. Es la señal propia más alta de todo el proyecto, por encima del +0,175 del boosting.</li><li><strong>A una hora siguen sin ganar.</strong> El mejor de los tres se queda en 0,436 contra el 0,632 de la persistencia.</li><li><strong>La convolución causal fracasa</strong>, con −0,849 a una hora y −2,402 a doce. No todo lo moderno funciona.</li><li><strong>El veredicto aguanta.</strong> Ninguna combinación llega a ser desplegable, ni siquiera la mejor.</li><li><strong>Cuidado con el hueco de marzo.</strong> Una ventana de 24 horas puede saltarse trece días si nadie lo comprueba.</li></ul></section>
+<section class="block "><span class="kicker">Contexto</span><h2 class="block-title">Qué resuelve este módulo</h2><p>El proyecto original se quedó en una red neuronal sencilla, y nunca trató sus datos como lo que son: una secuencia.</p><p>Todos los modelos anteriores veían una hora como una fila independiente. El pasado entraba de contrabando, en cuatro columnas de retardo hechas a mano. Un modelo de secuencia lee la ventana entera y puede encontrar patrones que nadie pensó en construir como columna.</p><p>Aquí se prueban los tres candidatos serios, en la GPU, y se vuelve a poner el veredicto a prueba.</p></section>
+<section class="block is-toy"><span class="kicker">A mano</span><h2 class="block-title">Antes de la teoría: un ejemplo de juguete</h2><p>Cuatro horas. En la hora 1 y la hora 2 hay un pico de sílice en la alimentación, y después nada.</p><div class="table-wrap"><table><thead><tr><th>Hora</th><th>1</th><th>2</th><th>3</th><th>4</th></tr></thead><tbody><tr><td><strong>Pico de entrada</strong></td><td>2</td><td>4</td><td>0</td><td>0</td></tr></tbody></table></div><h3 class="sub">Paso 1. Un modelo sin memoria</h3><p>Un modelo que ve una fila a la vez. En la hora 4 su entrada es <code>0</code>.</p><pre><code>hora 4 -&gt; entrada 0 -&gt; el modelo no sabe nada</code></pre><p><strong>Para él, la hora 4 es idéntica a una hora tranquila cualquiera.</strong> El pico de hace dos horas no existe.</p><h3 class="sub">Paso 2. Una celda recurrente, con retención 0,5</h3><p>Una celda recurrente guarda un estado y lo arrastra. La regla es de una sola línea:</p><pre><code>estado nuevo = estado anterior · 0,5 + entrada</code></pre><p>Arrancando en cero:</p><div class="table-wrap"><table><thead><tr><th>Hora</th><th>Entrada</th><th>Cuenta</th><th>Estado</th></tr></thead><tbody><tr><td>1</td><td>2</td><td>0 · 0,5 + 2</td><td><strong>2</strong></td></tr><tr><td>2</td><td>4</td><td>2 · 0,5 + 4</td><td><strong>5</strong></td></tr><tr><td>3</td><td>0</td><td>5 · 0,5 + 0</td><td><strong>2,5</strong></td></tr><tr><td>4</td><td>0</td><td>2,5 · 0,5 + 0</td><td><strong>1,25</strong></td></tr></tbody></table></div><p>En la hora 4 el estado vale 1,25. <strong>El modelo sí sabe que hubo un pico</strong>, aunque su entrada de esa hora sea cero.</p><h3 class="sub">Paso 3. La retención es la perilla</h3><p>Con retención 0,9, la memoria dura mucho:</p><pre><code>hora 1: 2        hora 2: 5,8        hora 3: 5,22        hora 4: 4,698</code></pre><p>Con retención 0,1, se muere enseguida:</p><pre><code>hora 1: 2        hora 2: 4,2        hora 3: 0,42        hora 4: 0,042</code></pre><p><strong>Misma entrada, tres memorias distintas.</strong> Con 0,9 la hora 4 todavía recuerda casi todo. Con 0,1 ya se olvidó.</p><h3 class="sub">Paso 4. Qué añaden GRU y LSTM</h3><p>En el ejemplo la retención es un número fijo que hemos elegido. En un GRU o un LSTM <strong>la retención se aprende, y además depende de la entrada</strong>.</p><p>Eso son las <strong>compuertas</strong>. En cada hora, la celda decide cuánto del pasado conserva y cuánto de lo nuevo incorpora. Puede aferrarse a un pico importante durante horas y olvidar el ruido al instante.</p><h3 class="sub">Paso 5. Qué acaba de pasar</h3><p>Los retardos del módulo 5 eran una versión rígida de esto. <code>sil_lag1</code>, <code>sil_lag2</code> y <code>sil_lag3</code> son tres memorias fijas de una hora, dos y tres.</p><p>Una celda recurrente es la versión flexible: <strong>una memoria de duración variable, aprendida, sobre todas las variables a la vez</strong>. Si hay estructura temporal que los retardos no capturan, aquí tiene que aparecer.</p></section>
+<section class="block is-terms"><span class="kicker">Términos</span><h2 class="block-title">Glosario</h2><details class="fold"><summary>10 términos, en palabras simples</summary><ul><li><strong>Secuencia.</strong> Una serie de observaciones en orden, donde el orden importa.</li><li><strong>Ventana.</strong> Las últimas N horas que el modelo lee de golpe. Aquí, 24.</li><li><strong>Estado oculto.</strong> El resumen del pasado que la celda arrastra de una hora a la siguiente.</li><li><strong>Red recurrente.</strong> La que procesa la secuencia hora a hora, actualizando su estado. En inglés, <em>RNN</em>.</li><li><strong>Compuerta.</strong> La parte de la celda que decide cuánto se recuerda y cuánto se olvida. En inglés, <em>gate</em>.</li><li><strong>LSTM.</strong> Memoria de largo y corto plazo. Tres compuertas y un canal de memoria aparte.</li><li><strong>GRU.</strong> Unidad recurrente con compuertas. Más simple que un LSTM y a menudo igual de buena.</li><li><strong>Gradiente que se desvanece.</strong> El problema que las compuertas resuelven: en una secuencia larga, el gradiente se hace tan pequeño que las primeras horas dejan de enseñar nada.</li><li><strong>Convolución causal.</strong> Un filtro que solo mira hacia atrás en el tiempo, nunca hacia adelante.</li><li><strong>Dilatación.</strong> Separar los puntos que el filtro mira, para alcanzar más historia con las mismas capas.</li></ul></details></section>
+<section class="block is-method"><span class="kicker">Método</span><h2 class="block-title">Paso a paso</h2><h3 class="sub">Paso 1. Poner los datos en una rejilla completa</h3><p>Los módulos anteriores usaban horas ya limpias, sin huecos. Aquí eso no vale.</p><p>Al quitar las horas vacías, las que estaban a los dos lados del hueco de trece días quedan pegadas. Una ventana de 24 horas construida sobre esa rejilla saltaría de marzo a abril sin avisar. La rejilla se deja completa, con los huecos como vacíos.</p><h3 class="sub">Paso 2. Emitir solo ventanas contiguas</h3><p>Una ventana se acepta cuando <strong>sus 24 horas existen de verdad</strong>, y también la hora que hay que predecir. Es una comprobación de tres líneas, y sin ella el modelo aprende de saltos temporales inventados.</p><h3 class="sub">Paso 3. Escalar con las ventanas de entrenamiento</h3><p>Igual que en el módulo 4. La media y la desviación salen solo del entrenamiento.</p><h3 class="sub">Paso 4. Entrenar los tres candidatos</h3><p>GRU y LSTM son recurrentes. La convolución causal es la alternativa: en vez de recorrer la secuencia, aplica filtros que solo miran hacia atrás.</p><h3 class="sub">Paso 5. Preguntar las dos cosas</h3><p>Nivel y cambio, como en el módulo 8. Con el añadido de que aquí el modelo tiene información temporal de verdad.</p></section>
+<section class="block is-code"><span class="kicker">Código</span><h2 class="block-title">El código, por partes</h2><h3 class="sub">Paso 1. Construir ventanas contiguas</h3><pre><code class="language-python">complete = ~np.isnan(values).any(axis=1)
+for end in range(WINDOW - 1, len(frame) - lead):
+    start = end - WINDOW + 1
+    if not complete[start:end + 1].all() or np.isnan(target[end + lead]):
+        continue
+    stacks.append(values[start:end + 1])</code></pre><details class="fold"><summary>línea por línea, 4 entradas</summary><dl class="annot"><dt><code>np.isnan(values).any(axis=1)</code></dt><dd>Marca cada hora que tenga algún dato ausente. La virgulilla invierte, así que <code>complete</code> marca las horas buenas.</dd><dt><code>complete[start:end + 1].all()</code></dt><dd>Exige que las 24 horas de la ventana existan. Es la línea que impide saltar el hueco de marzo.</dd><dt><code>continue</code></dt><dd>Salta a la siguiente vuelta del bucle sin ejecutar el resto.</dd><dt><code>values[start:end + 1]</code></dt><dd>El trozo de tabla que forma la ventana. En Python el final del rango no se incluye, por eso el más uno.</dd></dl></details><div class="output"><span class="output-tag">sale</span><pre><code>Dispositivo: cuda · torch 2.12.0.dev20260408+cu128
+Rejilla horaria completa: 4415 horas · 21 variables
+Ventana de 24 h · corte 2017-08-01</code></pre></div><p>De 4.415 horas de rejilla salen 3.089 ventanas de entrenamiento y 960 de prueba. Las que faltan son las que tocaban el hueco.</p><figure class="fig"><img src="../figuras/fig_m11_ventana.e6a54e2b.png" alt="Izquierda: una ventana real, 24 horas por 22 variables. Derecha: la sílice de esas 24 horas, con lo que hay que predecir en rojo y lo que repite la persistencia en dorado." loading="lazy"><figcaption>Izquierda: una ventana real, 24 horas por 22 variables. Derecha: la sílice de esas 24 horas, con lo que hay que predecir en rojo y lo que repite la persistencia en dorado.</figcaption></figure><h3 class="sub">Paso 2. La celda recurrente, en código</h3><pre><code class="language-python">class Recurrent(nn.Module):
+    def __init__(self, inputs, hidden=64, kind=&quot;gru&quot;):
+        super().__init__()
+        cell = nn.GRU if kind == &quot;gru&quot; else nn.LSTM
+        self.rnn = cell(inputs, hidden, num_layers=1, batch_first=True)
+        self.head = nn.Linear(hidden, 1)
+
+    def forward(self, x):
+        output, _ = self.rnn(x)
+        return self.head(output[:, -1, :]).squeeze(-1)</code></pre><details class="fold"><summary>línea por línea, 6 entradas</summary><dl class="annot"><dt><code>class Recurrent(nn.Module)</code></dt><dd>En PyTorch un modelo es una clase que hereda de <code>nn.Module</code>. Ahí viven sus capas.</dd><dt><code>super().__init__()</code></dt><dd>Llama al constructor de la clase madre. Sin esto PyTorch no registra las capas.</dd><dt><code>nn.GRU(inputs, hidden)</code></dt><dd>La celda recurrente. <code>hidden=64</code> es el tamaño del estado que arrastra.</dd><dt><code>batch_first=True</code></dt><dd>Le dice que los datos llegan como (lote, tiempo, variables). Sin esto espera el tiempo primero.</dd><dt><code>forward(self, x)</code></dt><dd>Lo que ocurre al pasar datos por el modelo. Es el método que PyTorch llama.</dd><dt><code>output[:, -1, :]</code></dt><dd>De toda la secuencia de salida, solo el último instante. Ahí está el resumen de las 24 horas.</dd></dl></details><div class="output"><span class="output-tag">sale</span><pre><code>=== horizonte 1 h · 3089 ventanas de entrenamiento, 960 de prueba
+  persistencia            R2 +0.6323
+  GRU  nivel              R2 +0.1487   aporte -0.4836   (11 s)
+  LSTM nivel              R2 +0.4364   aporte -0.1959   (5 s)
+  CNN  nivel              R2 -0.8487   aporte -1.4810   (4 s)</code></pre></div><figure class="fig"><img src="../figuras/fig_m11_curvas_entrenamiento.dce77518.png" alt="La pérdida de validación durante 30 épocas. El GRU y el LSTM bajan y se estabilizan. La convolución causal se queda arriba." loading="lazy"><figcaption>La pérdida de validación durante 30 épocas. El GRU y el LSTM bajan y se estabilizan. La convolución causal se queda arriba.</figcaption></figure><h3 class="sub">Paso 3. La convolución causal, la alternativa a la recurrencia</h3><pre><code class="language-python">for dilation in (1, 2, 4):
+    layers += [nn.Conv1d(previous, channels, kernel_size=3, dilation=dilation),
+               nn.ReLU()]</code></pre><details class="fold"><summary>línea por línea, 4 entradas</summary><dl class="annot"><dt><code>nn.Conv1d</code></dt><dd>Convolución en una dimensión, que aquí es el tiempo.</dd><dt><code>kernel_size=3</code></dt><dd>Cada filtro mira tres instantes a la vez.</dd><dt><code>dilation=1, 2, 4</code></dt><dd>La separación entre los instantes que mira. Duplicándola, tres capas alcanzan 15 horas atrás con muy pocos parámetros.</dd><dt><code>nn.ReLU()</code></dt><dd>La misma activación del módulo 10: deja pasar lo positivo y corta lo negativo.</dd></dl></details><div class="output"><span class="output-tag">sale</span><pre><code>=== horizonte 12 h · 3067 ventanas de entrenamiento, 960 de prueba
+  persistencia            R2 -0.6187
+  GRU  nivel              R2 -1.0659   aporte -0.4472   (4 s)
+  GRU  cambio             R2 +0.2153   sumado al ultimo valor: -0.2702
+  LSTM nivel              R2 -0.1835   aporte +0.4352   (3 s)
+  LSTM cambio             R2 +0.1963   sumado al ultimo valor: -0.3009
+  CNN  nivel              R2 -2.4020   aporte -1.7833   (3 s)
+  CNN  cambio             R2 -0.1162   sumado al ultimo valor: -0.8068</code></pre></div></section>
+<section class="block is-result"><span class="kicker">Resultado</span><h2 class="block-title">El resultado, medido</h2><p><strong>Qué esperábamos.</strong> Que los modelos de secuencia mejoraran a una hora, porque leen 24 horas enteras en vez de cuatro retardos.</p><p><strong>Qué salió.</strong> Lo contrario a una hora, y algo interesante a doce.</p><h3 class="sub">A una hora, ninguno se acerca</h3><div class="table-wrap"><table><thead><tr><th>Modelo</th><th>R² del nivel</th><th>Aporte sobre la persistencia</th></tr></thead><tbody><tr><td>Persistencia</td><td>0,632</td><td>referencia</td></tr><tr><td>LSTM</td><td>0,436</td><td>−0,196</td></tr><tr><td>GRU</td><td>0,149</td><td>−0,484</td></tr><tr><td>Convolución causal</td><td>−0,849</td><td>−1,481</td></tr></tbody></table></div><figure class="fig"><img src="../figuras/fig_m11_secuencia_vs_persistencia.bf69f776.png" alt="Los tres modelos de secuencia contra la persistencia, a una hora y a doce. A una hora ninguno se acerca." loading="lazy"><figcaption>Los tres modelos de secuencia contra la persistencia, a una hora y a doce. A una hora ninguno se acerca.</figcaption></figure><p><strong>El mejor pierde por dos décimas.</strong> Y eso teniendo acceso a mucha más información que los cuatro retardos del módulo 5, que llegaban a 0,641.</p><p>La explicación es la de siempre, vista desde otro ángulo. A una hora, la respuesta ya está en el último valor. Un modelo con 64 estados ocultos tiene que <strong>aprender a copiar</strong> ese valor, y aprender a copiar con 3.089 ejemplos sale peor que copiar directamente.</p><h3 class="sub">A doce horas aparece la señal</h3><div class="table-wrap"><table><thead><tr><th>Modelo</th><th>R² del cambio</th></tr></thead><tbody><tr><td><strong>GRU</strong></td><td><strong>+0,215</strong></td></tr><tr><td>LSTM</td><td>+0,196</td></tr><tr><td>Boosting, módulo 8</td><td>+0,175</td></tr><tr><td>Convolución causal</td><td>−0,116</td></tr></tbody></table></div><figure class="fig"><img src="../figuras/fig_m11_horizontes_secuencia.2766dee6.png" alt="El R² sobre el cambio a 12 horas. El GRU supera al boosting del módulo 8, y es lo mejor que el proyecto ha conseguido por sí mismo." loading="lazy"><figcaption>El R² sobre el cambio a 12 horas. El GRU supera al boosting del módulo 8, y es lo mejor que el proyecto ha conseguido por sí mismo.</figcaption></figure><p><strong>El GRU llega a +0,215 prediciendo el cambio a 12 horas</strong>, por encima del +0,175 que había conseguido el boosting. Es una mejora real, y viene de tratar la secuencia como secuencia.</p><p>También el LSTM del nivel mejora a la persistencia a 12 horas, −0,184 contra −0,619. Es la única vez en todo el proyecto que un modelo le gana claramente a la persistencia.</p><p><strong>Qué significa.</strong> Que Kevin tenía razón a medias al sospechar del veredicto. Un modelo mejor sí capta más: la señal propia sube de 0,175 a 0,215, un 23 % más.</p><p>Y el veredicto sigue en pie. Sumando ese cambio al último valor conocido, el resultado a 12 horas es −0,270. Eso mejora al −0,330 del boosting y al −0,619 de la persistencia. Y sigue siendo <strong>peor que no tener modelo</strong>.</p><h3 class="sub">La convolución causal, un fracaso que también informa</h3><p>−0,849 a una hora y −2,402 a doce. Es el peor modelo del proyecto entero, por debajo incluso de la red neuronal del módulo 10.</p><p>No hay que disimularlo. Las convoluciones causales funcionan muy bien en series con patrones locales repetidos, como el audio. Aquí la señal útil está casi entera en el último valor, y un filtro que promedia tres instantes con dilatación la reparte en vez de aprovecharla.</p><p><strong>Que una técnica sea moderna no la hace apropiada.</strong></p><h3 class="sub">Lo que este módulo deja abierto</h3><p>El proyecto ha probado árboles, rectas, boosting, redes densas y redes de secuencia. Nunca ha probado lo que un ingeniero de series de tiempo habría hecho primero: comprobar estacionariedad, diferenciar, y correr una línea base clásica.</p><p>El módulo 12 lo hace, con SARIMAX.</p></section>
+<section class="block is-warning"><span class="kicker">Trampas</span><h2 class="block-title">Ojo</h2><ul><li><strong>La rejilla se deja con huecos.</strong> Si se quitan las horas vacías, una ventana de 24 horas puede saltarse trece días sin avisar. La comprobación de contigüidad cuesta tres líneas.</li><li><strong>Más información no es mejor resultado.</strong> Los modelos de secuencia leen 24 horas por 22 variables y pierden contra copiar un número.</li><li><strong>Aprender a copiar es difícil.</strong> Un modelo con 64 estados ocultos necesita muchos ejemplos para reproducir lo que la persistencia hace gratis.</li><li><strong>El escalado se calcula sobre las ventanas de entrenamiento.</strong> Igual que en el módulo 4, con el agravante de que aquí cada dato aparece en 24 ventanas distintas.</li><li><strong>La validación para la parada temprana sale del final del entrenamiento</strong>, no de un trozo al azar. En series de tiempo, un trozo al azar es fuga.</li><li><strong>Un fracaso rotundo también se reporta.</strong> La convolución causal da −2,402 y eso va en la tabla.</li></ul></section>
+<section class="block is-bridge"><span class="kicker">Analogía</span><h2 class="block-title">Puente metalúrgico</h2><p>Un modelo de secuencia es un <strong>operador que lleva el turno entero</strong>, frente a uno que acaba de entrar y solo ve la pantalla actual. El que lleva el turno recuerda el pico de sílice de hace tres horas, y sabe que el circuito todavía lo está digiriendo.</p><p>La compuerta es <strong>el criterio para decidir qué recordar</strong>. Un buen operador olvida el ruido de un sensor y se acuerda durante horas de un cambio de mineral. Un GRU aprende ese criterio de los datos, en vez de que se lo fijen.</p><p>Y el resultado tiene su versión de planta. Por muy bueno que sea el operador, si la pregunta es &quot;cuánta sílice hay ahora mismo&quot; y el laboratorio acaba de reportar hace una hora, <strong>el análisis gana a la experiencia</strong>. La experiencia empieza a valer cuando hay que anticipar doce horas, y eso es exactamente lo que dice el +0,215.</p></section>
+<section class="block is-review"><span class="kicker">Repaso</span><h2 class="block-title">Repaso</h2><details><summary>¿Qué hace un modelo de secuencia que los retardos del módulo 5 no hacían?</summary><p>Los retardos son tres memorias fijas: una hora, dos y tres, y solo del objetivo.</p><p>Una celda recurrente arrastra un estado y lo actualiza en cada hora. Su retención se aprende de los datos, y además puede depender de lo que esté entrando. Todo eso sobre las 22 variables a la vez, no solo sobre la sílice. Es la versión flexible de la misma idea: memoria de duración variable en vez de tres fotos del pasado.</p></details><details><summary>El GRU lee 24 horas por 22 variables y pierde contra repetir un número. ¿Cómo se explica?</summary><p>Porque a una hora vista la respuesta está casi entera en ese número, y el modelo tiene que aprender a copiarlo.</p><p>La persistencia no aprende nada: coge el último valor del laboratorio y lo repite. El GRU tiene 64 estados ocultos y miles de pesos. Con 3.089 ventanas de entrenamiento, tiene que descubrir por sí mismo una sola cosa: lo mejor es reproducir una de sus entradas. Aprender a copiar es un problema fácil de enunciar y difícil de resolver con pocos datos. Por eso el LSTM se queda en 0,436 frente a 0,632.</p></details><details><summary>El GRU del cambio a 12 horas da +0,215. ¿Por qué es el número importante del módulo?</summary><p>Porque es señal que ningún baseline puede tener, y es la más alta que el proyecto ha logrado.</p><p>La persistencia predice cambio cero por definición, así que su R² sobre el cambio es cero. Todo lo que un modelo consiga ahí es mérito propio. El boosting del módulo 8 llegaba a +0,175 y el GRU llega a +0,215, un 23 % más, solo por tratar la secuencia como secuencia. Confirma que había algo que los modelos tabulares no estaban viendo.</p></details><details><summary>Entonces, ¿el veredicto cambia?</summary><p>No, pero se matiza, y las dos partes hay que decirlas.</p><p>La parte que cambia: un modelo mejor sí capta más señal. La parte que no: sumando ese cambio al último valor conocido, el resultado a 12 horas es −0,270. Sigue siendo peor que predecir la media. Un R² negativo no se despliega por muy bien que haya mejorado. La conclusión sigue siendo no desplegar, con una nota nueva: si algún día hay más datos, los modelos de secuencia son por donde habría que empezar.</p></details><details><summary>La convolución causal da −2,402. ¿Se reporta o se descarta?</summary><p>Se reporta, y con la explicación de por qué falló.</p><p>Descartar los resultados malos es cómo se construye un informe que engaña. Las convoluciones causales funcionan cuando la serie tiene patrones locales repetidos, como en audio o en texto. Aquí casi toda la información útil está concentrada en el último valor, y un filtro de tamaño tres con dilatación promedia ese valor con sus vecinos en vez de aislarlo. Es el modelo equivocado para esta señal, y saberlo tiene valor para el siguiente proyecto.</p></details></section>
+</main>
+<nav class="pager"><a class="prev" href="m10_redes_producto_y_cierre.html"><span class="dir">Anterior</span>10. Redes, producto y cierre</a><a class="next" href="m12_practica_de_pronostico.html"><span class="dir">Siguiente</span>12. La práctica de pronóstico que faltó</a></nav>
+<footer class="footer">
+  <div class="footer-inner">
+    <span>S&iacute;lice / M&oacute;dulo 11</span>
+    <span>generado el 2026-08-20</span>
+    <span>fuente: los 31 apuntes originales, sus scripts y el CSV de la planta</span>
+  </div>
+</footer>
+</body>
+</html>

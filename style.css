@@ -1265,3 +1265,38 @@ p, .assay-tagline, .cred-detail, .streams dd { text-wrap: pretty; }
    beside it, which is what buys the 960px the justification needed. */
 .about-body { max-width: var(--measure-wide); }
 .about-body p { max-width: var(--measure-wide); }
+
+/* --- the open action on an index row -------------------------------------- */
+
+/* The whole row is one anchor and anchors cannot nest, so the open button is a sibling
+   link laid over the row's right edge. On narrow screens it drops into the flow under
+   the row text instead of floating over the thumbnail. */
+.index-row { position: relative; }
+
+.index-open {
+  font-family: var(--mono);
+  font-size: 0.8125rem;
+  color: var(--ink);
+  text-decoration: none;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  padding: 0.45rem 0.95rem;
+  transition: border-color 0.25s ease, background 0.25s ease;
+}
+.index-open:hover, .index-open:focus-visible {
+  border-color: var(--hi);
+  background: var(--surface);
+}
+
+@media (min-width: 60rem) {
+  .index-open {
+    position: absolute;
+    right: 0.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+}
+
+@media (max-width: 59.99rem) {
+  .index-open { display: inline-block; margin: 0 0 1.1rem 0.5rem; }
+}

@@ -19,7 +19,9 @@ from __future__ import annotations
 
 import html
 import json
+import re
 import shutil
+from urllib.parse import unquote
 import sys
 from pathlib import Path
 
@@ -176,6 +178,18 @@ def fill_counts(text: str, count: int, lang: str) -> str:
     return text.replace("{n}", word).replace("{N}", word[0].upper() + word[1:])
 
 
+def open_href(project: dict, depth: int) -> str:
+    """Resolve a project's open destination for a page `depth` folders down.
+
+    External URLs pass through; site-relative ones get the same ../ prefix every other
+    internal link uses, so the button works from the root and from /es/ alike.
+    """
+    href = project.get("open_href", "")
+    if href.startswith(("http://", "https://")):
+        return href
+    return rel(depth) + href
+
+
 def work_index(data: dict, lang: str, ui: dict, depth: int) -> str:
     """The projects as an index with a preview panel, instead of four tall cards.
 
@@ -203,7 +217,10 @@ def work_index(data: dict, lang: str, ui: dict, depth: int) -> str:
             f'<span class="index-say">{esc(p["tagline"])}</span>'
             f'<span class="index-assay">{esc(p["mark"])}</span>'
             f'<span class="index-area">{esc(p["area"])}</span>'
-            f'</a></li>')
+            f'</a>'
+            + (f'<a class="index-open" href="{esc(open_href(project, depth))}">'
+               f'{esc(p["open_label"])} ↗</a>' if project.get("open_href") else "")
+            + '</li>')
 
     # The panel holds every screenshot stacked. The first is marked visible at build time,
     # so with no JavaScript the panel shows a real image rather than an empty box.
@@ -388,6 +405,13 @@ def project_page(project: dict, data: dict, lang: str) -> str:
 
     paragraphs = "".join(f"<p>{esc(par)}</p>" for par in p["body"])
 
+    # The open action leads the links, unless it IS the repo (Froth), where one link is
+    # honest and two would be the same door twice.
+    open_link = ""
+    if project.get("open_href") and project["open_href"] != project["repo"]:
+        open_link = (f'<a class="cta" href="{esc(open_href(project, depth))}">'
+                     f'{esc(p["open_label"])}</a>')
+
     body = f"""<article class="wrap section">
   <a class="back" href="{home_href(lang, depth)}#work">{esc(ui["back"])}</a>
   <p class="eyebrow">{esc(p["status"])}</p>
@@ -408,7 +432,7 @@ def project_page(project: dict, data: dict, lang: str) -> str:
   <p class="eyebrow stack-label">{esc(ui["stack"])}</p>
   <ul class="stack">{stack_of(project)}</ul>
 
-  <p class="assay-links"><a href="{esc(project["repo"])}">{esc(ui["view_repo"])}</a></p>
+  <p class="assay-links">{open_link}<a href="{esc(project["repo"])}">{esc(ui["view_repo"])}</a></p>
 </article>"""
 
     return shell(title=f"{p['name']} - {data['author']}", desc=p["tagline"], lang=lang,
@@ -442,6 +466,99 @@ def main() -> int:
 
     shutil.copy2(TEMPLATES / "style.css", ROOT / "style.css")
     shutil.copy2(TEMPLATES / "theme.js", ROOT / "theme.js")
+
+    # The two static projects are published INSIDE this site, so a recruiter can open
+    # them instead of reading about them. Mirrored on every build (the lesson from the
+    # Notes PDFs: a copy that is not part of the build goes stale until somebody
+    # remembers). The folder names preserve each build's relative geometry, measured
+    # before writing this: Silice pages reference ../figuras/ and Concentra pages
+    # reference ../../figures/, so pages and figures must keep their relative depth.
+    EMBEDDED = [
+        ("Exc-1-Learn Machine Learning/2_Curso/out",     "silice/curso"),
+        ("Exc-1-Learn Machine Learning/2_Curso/figuras", "silice/figuras"),
+        ("Concentra/out",     "concentra/cursos"),
+        ("Concentra/figures", "concentra/figures"),
+    ]
+    neutralised = 0
+    for source_rel, target_rel in EMBEDDED:
+        source = ROOT.parent / source_rel
+        if not source.exists():
+            print(f"  ! embedded source missing, not copied: {source_rel}")
+            continue
+        shutil.copytree(source, ROOT / target_rel, dirs_exist_ok=True)
+
+        # The Concentra case pages link to files on Kevin's machine (scripts, cheatsheets
+        # under 03_Data Analysis Coursera). Published, every one would 404 and the paths
+        # would leak his local folder layout. Any link that climbs out of the site root
+        # becomes plain text: the reference stays readable, the dead door is gone.
+        for page in (ROOT / target_rel).rglob("*.html"):
+            html = page.read_text(encoding="utf-8")
+
+            def _neutralise(match: "re.Match") -> str:
+                nonlocal neutralised
+                href = unquote(match.group("href"))
+                if href.startswith(("http://", "https://", "mailto:", "#")):
+                    return match.group(0)
+                resolved = (page.parent / href.split("#")[0]).resolve()
+                if ROOT.resolve() in resolved.parents or resolved == ROOT.resolve():
+                    return match.group(0)
+                neutralised += 1
+                return f'<span class="local-ref">{match.group("text")}</span>'
+
+            rewritten = re.sub(
+                r'<a\s[^>]*href="(?P<href>[^"]+)"[^>]*>(?P<text>.*?)</a>',
+                _neutralise, html, flags=re.S)
+            if rewritten != html:
+                page.write_text(rewritten, encoding="utf-8", newline="\n")
+    if neutralised:
+        print(f"  {neutralised} enlaces locales neutralizados en los sitios embebidos")
+
+    # Concentra's case pages also reference sibling material that lives NEXT to out/
+    # rather than inside it: figures, scripts and notebooks under projects/curso5. The
+    # whole folder is 36 MB with __pycache__ in it, so instead of mirroring it, exactly
+    # the files the published pages reference are copied, resolved the same way the link
+    # checker resolves them. A reference that cannot be satisfied from the source either
+    # becomes plain text (href) or stays red in the gate (src), never a silent 404.
+    concentra_src = ROOT.parent / "Concentra"
+    croot = (ROOT / "concentra").resolve()
+    demand_copied = 0
+    # Ran to a fixpoint, because a copied page can itself reference more files: the
+    # interactive Plotly figures are HTML pages that each want a plotly.min.js beside
+    # them, and one pass only discovers them after copying their referrer.
+    passes = 0
+    while True:
+      passes += 1
+      copied_this_pass = 0
+      for page in (ROOT / "concentra").rglob("*.html"):
+          html_text = page.read_text(encoding="utf-8")
+          dead_hrefs = []
+          for kind, target in re.findall(r'(src|href)="([^"#][^"]*)"', html_text):
+              if target.startswith(("http://", "https://", "mailto:", "data:")):
+                  continue
+              resolved = (page.parent / unquote(target).split("#")[0]).resolve()
+              if croot not in resolved.parents or resolved.exists():
+                  continue
+              rel_parts = resolved.relative_to(croot).parts
+              mapped = ("out",) + rel_parts[1:] if rel_parts[0] == "cursos" else rel_parts
+              candidate = concentra_src.joinpath(*mapped)
+              if candidate.is_file():
+                  resolved.parent.mkdir(parents=True, exist_ok=True)
+                  shutil.copy2(candidate, resolved)
+                  demand_copied += 1
+                  copied_this_pass += 1
+              elif kind == "href":
+                  dead_hrefs.append(target)
+          if dead_hrefs:
+              for target in dead_hrefs:
+                  html_text = re.sub(
+                      r'<a\s[^>]*href="' + re.escape(target) + r'"[^>]*>(.*?)</a>',
+                      r'<span class="local-ref">\1</span>', html_text, flags=re.S)
+                  neutralised += 1
+              page.write_text(html_text, encoding="utf-8", newline="\n")
+      if copied_this_pass == 0 or passes >= 6:
+          break
+    if demand_copied:
+        print(f"  {demand_copied} archivos de material copiados bajo demanda (Concentra)")
 
     # GitHub Pages runs Jekyll unless told otherwise, and Jekyll silently drops
     # folders whose names start with an underscore. Nothing here does today, but

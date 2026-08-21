@@ -1,0 +1,671 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>La práctica de pronóstico que faltó · Sílice, módulo 12</title>
+<style>
+/* Sílice: la hoja de estilos del curso.
+ *
+ * Identidad de papel de informe de planta, no de pantalla. El proyecto termina
+ * recomendando no desplegar, y eso es un informe técnico: papel hueso, tinta grafito,
+ * y una retícula de milimetrado muy tenue en la cabecera.
+ *
+ * Dos familias tipográficas y ni una más, las dos del sistema porque el sitio se abre
+ * desde file:// y tiene que funcionar sin internet: serif para la prosa (se lee como
+ * informe) y monoespaciada para todo lo que es dato, código, cifra o etiqueta.
+ *
+ * El acento lo inyecta cada página con --accent: es el del módulo, y marca su posición
+ * en el arco del proyecto. Los diez pasan check_palette.py antes de entrar aquí.
+ */
+
+:root {
+  --paper: #f6f3ec;
+  --bench: #eeeade;
+  --ink: #2a2622;
+  --ink-soft: #57504a;
+  --ink-faint: #8a8177;
+  --rule: #ddd6c6;
+  --rule-soft: #e8e2d4;
+  --grid: rgba(84, 69, 73, .07);
+  --accent: #632727;
+
+  --prose: Georgia, "Iowan Old Style", "Palatino Linotype", Palatino, "Times New Roman", serif;
+  --data: "Cascadia Mono", Consolas, "DejaVu Sans Mono", "Liberation Mono", monospace;
+
+  --measure: 680px;   /* la medida de la prosa, en píxeles y nunca en ch */
+  --wide: 1180px;     /* el borde derecho de los bloques anchos */
+  --margin: 132px;    /* la columna del margen, donde cuelgan los kickers */
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--prose);
+  font-size: 17px;
+  line-height: 1.62;
+  -webkit-text-size-adjust: 100%;
+}
+
+::selection { background: var(--accent); color: var(--paper); }
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+/* --------------------------------------------------------------- cabecera */
+
+.masthead {
+  border-bottom: 1px solid var(--rule);
+  background-color: var(--bench);
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 26px 26px;
+  background-position: -1px -1px;
+}
+
+.masthead-inner {
+  max-width: var(--wide);
+  margin: 0 auto;
+  padding: 2.4rem 2rem 1.6rem;
+}
+
+.eyebrow {
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-bottom: 1rem;
+}
+
+.eyebrow a { color: inherit; text-decoration: none; border-bottom: 1px solid transparent; }
+.eyebrow a:hover { border-bottom-color: var(--accent); color: var(--accent); }
+.eyebrow b { color: var(--accent); font-weight: 400; }
+
+.masthead h1 {
+  margin: 0;
+  font-size: clamp(1.9rem, 4.4vw, 2.9rem);
+  line-height: 1.14;
+  font-weight: 400;
+  letter-spacing: -.012em;
+  max-width: 900px;
+}
+
+.standfirst {
+  margin: .9rem 0 0;
+  max-width: var(--measure);
+  color: var(--ink-soft);
+  font-size: 1.02rem;
+  line-height: 1.55;
+}
+
+/* La cifra del módulo: el número que dejó, en grande, junto al título. Es lo que
+   convierte la cabecera en parte del argumento y no en decoración. */
+.figure-mark {
+  margin-top: 1.6rem;
+  display: flex;
+  align-items: baseline;
+  gap: .8rem;
+  flex-wrap: wrap;
+  border-left: 3px solid var(--accent);
+  padding-left: .9rem;
+}
+
+.figure-value {
+  font-family: var(--data);
+  font-size: clamp(1.5rem, 3.4vw, 2.1rem);
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: -.02em;
+}
+
+.figure-label {
+  font-family: var(--data);
+  font-size: .78rem;
+  letter-spacing: .04em;
+  color: var(--ink-soft);
+}
+
+/* El hilo del proyecto: diez segmentos, uno por módulo, con su cifra debajo. Desde
+   cualquier página se ve el recorrido entero, que es justo lo que a los apuntes
+   sueltos les faltaba. */
+.thread {
+  margin-top: 1.8rem;
+  display: grid;
+  /* One equal column per segment, whatever the temario says. It was pinned to ten and
+     the course grew to fourteen. */
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: 4px;
+}
+
+/* Where part 2 starts: the four modules that were never in the original project. */
+.thread .starts-part { margin-left: 10px; position: relative; }
+.thread .starts-part::after {
+  content: '';
+  position: absolute;
+  left: -7px; top: -3px; bottom: 0;
+  border-left: 1px solid var(--rule);
+}
+
+.thread a, .thread span {
+  display: block;
+  text-decoration: none;
+  color: var(--ink-faint);
+  font-family: var(--data);
+  font-size: .62rem;
+  letter-spacing: .04em;
+  padding-top: .4rem;
+  border-top: 3px solid var(--rule);
+  transition: color .12s, border-color .12s;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.thread a:hover { color: var(--ink); border-top-color: var(--ink-soft); }
+.thread [aria-current="page"] { color: var(--accent); border-top-color: var(--accent); }
+.thread .n { font-weight: 700; }
+.thread .v { color: inherit; opacity: .75; }
+
+/* Las pastillas de composición: de qué está hecho el módulo. */
+.assay {
+  margin-top: 1.6rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.4rem;
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .05em;
+  color: var(--ink-faint);
+}
+
+.assay b { color: var(--ink); font-weight: 700; }
+
+/* ----------------------------------------------------------------- cuerpo */
+
+.container {
+  max-width: var(--wide);
+  margin: 0 auto;
+  padding: 2.6rem 2rem 4rem;
+}
+
+/* Cada sección es una anotación de cuaderno: el kicker cuelga en el margen
+   izquierdo y el contenido corre en la columna principal. En pantalla estrecha el
+   kicker se pone encima. */
+.block {
+  display: grid;
+  grid-template-columns: var(--margin) minmax(0, 1fr);
+  column-gap: 2rem;
+  padding: 2.2rem 0;
+  border-top: 1px solid var(--rule);
+}
+
+.block:first-child { border-top: 0; padding-top: .6rem; }
+
+.kicker {
+  grid-column: 1;
+  font-family: var(--data);
+  font-size: .68rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding-top: .45rem;
+}
+
+.block > :not(.kicker) { grid-column: 2; }
+
+.block-title {
+  margin: 0 0 1.1rem;
+  font-size: 1.42rem;
+  font-weight: 400;
+  line-height: 1.25;
+  letter-spacing: -.008em;
+}
+
+.is-warning .kicker, .is-result .kicker { color: var(--accent); }
+.is-warning .block-title { border-bottom: 2px solid var(--accent); padding-bottom: .4rem; display: inline-block; }
+.is-result { background: var(--bench); margin: 0 -1.2rem; padding: 2.2rem 1.2rem; }
+.is-result .block-title { color: var(--accent); }
+
+/* Prosa: justificada con partición, que sin partición el español justificado abre
+   ríos. Tablas, código y pies de figura se quedan sin justificar. */
+.block p, .block li, .block dd, details > *:not(summary) {
+  max-width: var(--measure);
+  text-align: justify;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+}
+
+.block p { margin: 0 0 1rem; }
+.block p:last-child { margin-bottom: 0; }
+.block ul, .block ol { margin: 0 0 1rem; padding-left: 1.3rem; max-width: var(--measure); }
+.block li { margin-bottom: .5rem; }
+.block li::marker { color: var(--accent); font-family: var(--data); font-size: .85em; }
+
+td, th, figcaption, .assay, .thread a, .res li { text-align: left; hyphens: manual; }
+
+a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+a:hover { text-decoration-thickness: 2px; }
+strong { font-weight: 700; }
+em { font-style: italic; color: var(--ink-soft); }
+
+h3.sub {
+  margin: 1.9rem 0 .7rem;
+  font-size: 1.07rem;
+  font-weight: 700;
+  letter-spacing: -.004em;
+}
+
+h3.sub:first-child { margin-top: 0; }
+
+h4.sub {
+  margin: 1.4rem 0 .5rem;
+  font-family: var(--data);
+  font-size: .82rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  color: var(--ink-soft);
+}
+
+/* ------------------------------------------------------------ código y datos */
+
+code {
+  font-family: var(--data);
+  font-size: .87em;
+  background: var(--bench);
+  padding: .1em .32em;
+  border-radius: 2px;
+}
+
+pre {
+  margin: 0 0 1rem;
+  padding: 1rem 1.1rem;
+  background: var(--bench);
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--accent);
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+pre code { background: none; padding: 0; font-size: .82rem; line-height: 1.62; }
+
+/* La salida es lo que imprime el código, no código para correr: se marca aparte
+   para que nadie confunda entrada con salida. */
+.output {
+  margin: 0 0 1rem;
+  border: 1px dashed var(--rule);
+  background: transparent;
+}
+
+.output-tag {
+  display: block;
+  font-family: var(--data);
+  font-size: .64rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding: .45rem 1.1rem 0;
+}
+
+.output pre {
+  margin: 0;
+  border: 0;
+  background: none;
+  padding: .3rem 1.1rem 1rem;
+}
+
+.output pre code { color: var(--ink-soft); }
+
+/* La anotación línea por línea, para quien no ha programado antes. */
+.annot {
+  margin: 0 0 1.2rem;
+  border: 1px solid var(--rule);
+  border-top: 0;
+  padding: 0 1.1rem .6rem;
+  background: transparent;
+}
+
+.annot-head {
+  font-family: var(--data);
+  font-size: .64rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding: .55rem 0 .5rem;
+  border-bottom: 1px solid var(--rule-soft);
+  margin-bottom: .4rem;
+}
+
+.annot dt { padding: .4rem 0 .1rem; }
+.annot dt code { background: none; padding: 0; color: var(--accent); font-weight: 700; }
+.annot dd {
+  margin: 0 0 .4rem;
+  color: var(--ink-soft);
+  font-size: .94rem;
+  border-bottom: 1px solid var(--rule-soft);
+  padding-bottom: .5rem;
+}
+.annot dd:last-of-type { border-bottom: 0; }
+
+pre:has(+ .annot) { margin-bottom: 0; }
+
+blockquote {
+  margin: 0 0 1rem;
+  padding: .2rem 0 .2rem 1.1rem;
+  border-left: 3px solid var(--rule);
+  color: var(--ink-soft);
+  font-style: italic;
+  max-width: var(--measure);
+}
+
+/* --------------------------------------------------------------- tablas */
+
+.table-wrap { overflow-x: auto; margin: 0 0 1.2rem; }
+
+table {
+  border-collapse: collapse;
+  width: auto;
+  max-width: 100%;
+  font-size: .92rem;
+}
+
+th, td {
+  padding: .5rem .9rem .5rem 0;
+  border-bottom: 1px solid var(--rule-soft);
+  vertical-align: top;
+}
+
+th {
+  font-family: var(--data);
+  font-size: .7rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--ink-faint);
+  border-bottom: 1px solid var(--rule);
+  white-space: nowrap;
+}
+
+/* -------------------------------------------------------------- repaso */
+
+details {
+  border-bottom: 1px solid var(--rule-soft);
+  padding: .2rem 0;
+  max-width: var(--measure);
+}
+
+summary {
+  cursor: pointer;
+  list-style: none;
+  padding: .7rem 0 .7rem 1.5rem;
+  position: relative;
+  font-weight: 700;
+}
+
+summary::-webkit-details-marker { display: none; }
+
+summary::before {
+  content: '+';
+  position: absolute;
+  left: 0;
+  font-family: var(--data);
+  color: var(--accent);
+  font-weight: 700;
+}
+
+details[open] summary::before { content: '\2212'; }
+details[open] summary { color: var(--accent); }
+details > *:not(summary) { color: var(--ink-soft); }
+details > *:last-child { padding-bottom: .8rem; }
+
+/* -------------------------------------------------------------- figuras */
+
+figure.fig {
+  margin: 0 0 1.4rem;
+  max-width: 100%;
+  border: 1px solid var(--rule);
+  background: #fff;
+  padding: .6rem;
+}
+
+figure.fig img { width: 100%; height: auto; display: block; }
+
+figure.fig figcaption {
+  margin-top: .6rem;
+  padding-top: .5rem;
+  border-top: 1px solid var(--rule-soft);
+  font-family: var(--data);
+  font-size: .7rem;
+  letter-spacing: .04em;
+  color: var(--ink-faint);
+}
+
+.gone {
+  font-family: var(--data);
+  font-size: .76rem;
+  color: var(--accent);
+  border: 1px dashed var(--accent);
+  padding: .5rem .8rem;
+}
+
+/* ------------------------------------------------------- pie y navegación */
+
+.pager {
+  max-width: var(--wide);
+  margin: 0 auto;
+  padding: 0 2rem 3rem;
+  display: flex;
+  gap: 1.4rem;
+  justify-content: space-between;
+  font-family: var(--data);
+  font-size: .78rem;
+}
+
+.pager a { max-width: 46%; text-decoration: none; border-bottom: 1px solid var(--rule); padding-bottom: .3rem; }
+.pager a:hover { border-bottom-color: var(--accent); }
+.pager .dir { display: block; font-size: .64rem; letter-spacing: .13em; text-transform: uppercase; color: var(--ink-faint); }
+.pager .next { text-align: right; margin-left: auto; }
+
+.footer {
+  border-top: 1px solid var(--rule);
+  padding: 1.4rem 2rem 2.4rem;
+  font-family: var(--data);
+  font-size: .72rem;
+  letter-spacing: .06em;
+  color: var(--ink-faint);
+}
+
+.footer-inner { max-width: var(--wide); margin: 0 auto; display: flex; gap: 1.4rem; flex-wrap: wrap; }
+
+/* ------------------------------------------------------------- índice */
+
+.toc { list-style: none; margin: 0; padding: 0; max-width: 100%; }
+
+.toc li {
+  border-top: 1px solid var(--rule-soft);
+  max-width: 100%;
+}
+
+.toc li:last-child { border-bottom: 1px solid var(--rule-soft); }
+
+.toc a, .toc .pending {
+  display: grid;
+  grid-template-columns: 3rem minmax(0, 1fr) auto;
+  gap: 1.2rem;
+  align-items: baseline;
+  padding: 1rem .4rem;
+  text-decoration: none;
+  color: inherit;
+}
+
+.toc a:hover { background: var(--bench); }
+.toc .pending { color: var(--ink-faint); }
+.toc .num { font-family: var(--data); font-size: .82rem; font-weight: 700; }
+.toc .name { font-size: 1.05rem; }
+.toc .name small { display: block; font-family: var(--prose); font-size: .86rem; color: var(--ink-soft); margin-top: .2rem; }
+.toc .mark { font-family: var(--data); font-size: .82rem; font-weight: 700; white-space: nowrap; }
+.toc .tag { font-family: var(--data); font-size: .66rem; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-faint); }
+
+/* ---------------------------------------------------------- responsive */
+
+@media (max-width: 900px) {
+  .block { grid-template-columns: minmax(0, 1fr); }
+  .block > :not(.kicker) { grid-column: 1; }
+  .kicker { grid-column: 1; padding-top: 0; margin-bottom: .7rem; }
+  .thread { grid-auto-flow: row; grid-template-columns: repeat(5, 1fr); gap: 6px 4px; }
+  .thread .starts-part { margin-left: 0; }
+  .thread .starts-part::after { display: none; }
+  .toc a, .toc .pending { grid-template-columns: 2.2rem minmax(0, 1fr); }
+  .toc .mark { grid-column: 2; }
+}
+
+@media (max-width: 620px) {
+  body { font-size: 16px; }
+  .masthead-inner, .container, .pager, .footer { padding-left: 1.2rem; padding-right: 1.2rem; }
+  .is-result { margin: 0; padding: 2rem 1rem; }
+  .block p, .block li { text-align: left; }
+}
+
+@media print {
+  .thread, .pager { display: none; }
+  body { font-size: 11pt; }
+  .masthead { background: none; }
+  .block { break-inside: avoid; }
+}
+
+/* -------------------------------------------------- resumen y plegables */
+
+/* El resumen de entrada: la cifra, la trampa y la decision, en cinco vinetas.
+   Se lee en 30 segundos o se sigue leyendo. */
+.is-brief {
+  border-top: 0;
+  padding-top: .4rem;
+}
+
+.is-brief .kicker { color: var(--accent); }
+
+.is-brief ul {
+  list-style: none;
+  padding-left: 0;
+  max-width: var(--measure);
+  border-left: 3px solid var(--accent);
+  padding: .2rem 0 .2rem 1.1rem;
+}
+
+.is-brief li { margin-bottom: .7rem; text-align: left; }
+.is-brief li:last-child { margin-bottom: 0; }
+
+/* Los plegables de contenido denso: el glosario y la anotacion del codigo.
+   Cerrados por defecto, para que la pagina no sea un muro. */
+details.fold {
+  border: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+  background: transparent;
+  margin: 0 0 1.2rem;
+  padding: 0;
+  max-width: 100%;
+}
+
+details.fold > summary {
+  font-family: var(--data);
+  font-size: .68rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  font-weight: 400;
+  color: var(--ink-faint);
+  padding: .55rem .9rem .55rem 2rem;
+}
+
+details.fold > summary::before { left: .9rem; }
+details.fold[open] > summary {
+  color: var(--accent);
+  border-bottom: 1px solid var(--rule-soft);
+  margin-bottom: 0;
+}
+
+details.fold > *:not(summary) { padding: .8rem .9rem; color: inherit; }
+details.fold ul { margin-bottom: 0; }
+details.fold .annot { border: 0; padding: 0; margin: 0; }
+details.fold .annot dd { max-width: var(--measure); }
+
+/* Un bloque de codigo seguido de su plegable van pegados. */
+pre:has(+ details.fold) { margin-bottom: 0; border-bottom: 0; }
+
+:root { --accent: #28546d; }
+</style>
+</head>
+<body>
+<header class="masthead">
+  <div class="masthead-inner">
+    <div class="eyebrow"><a href="index.html">Sílice</a> / M&oacute;dulo <b>12</b> de 14</div>
+    <h1>La práctica de pronóstico que faltó</h1>
+    <p class="standfirst">Estacionariedad, diferenciación y una línea base clásica que el proyecto nunca llegó a correr</p>
+    <div class="figure-mark">
+      <span class="figure-value">0,52 vs 0,63</span>
+      <span class="figure-label">SARIMAX contra la persistencia a una hora. La línea base clásica también pierde</span>
+    </div>
+    <nav class="thread" aria-label="El arco del proyecto"><a href="m01_radiografia_del_dataset.html" title="1. Radiografía del dataset"><span class="n">1</span> <span class="v">737.453</span></a><a href="m02_el_primer_modelo_y_el_techo.html" title="2. El primer modelo, y el techo que apareció enseguida"><span class="n">2</span> <span class="v">R² 0,04</span></a><a href="m03_como_aprende_un_modelo.html" title="3. Cómo aprende un modelo por dentro"><span class="n">3</span> <span class="v">R² 0,06</span></a><a href="m04_preprocesar_y_validar.html" title="4. Preprocesar y validar sin hacer trampa"><span class="n">4</span> <span class="v">R² −0,13</span></a><a href="m05_darle_memoria_al_modelo.html" title="5. Darle memoria al modelo"><span class="n">5</span> <span class="v">R² 0,64</span></a><a href="m06_clasificar_fuera_de_spec.html" title="6. Clasificar: dentro o fuera de especificación"><span class="n">6</span> <span class="v">0,62 vs 0,77</span></a><a href="m07_contra_que_se_compara.html" title="7. Contra qué se compara un modelo"><span class="n">7</span> <span class="v">+0,009</span></a><a href="m08_donde_aporta_el_ml.html" title="8. ¿Dónde aporta el ML de verdad?"><span class="n">8</span> <span class="v">0 de 4</span></a><a href="m09_los_tres_estados_de_la_planta.html" title="9. Los tres estados de la planta"><span class="n">9</span> <span class="v">k = 3</span></a><a href="m10_redes_producto_y_cierre.html" title="10. Redes, producto y cierre"><span class="n">10</span> <span class="v">0,76</span></a><a class="starts-part" href="m11_modelos_de_secuencia.html" title="11. Modelos de secuencia: LSTM, GRU y convolución causal"><span class="n">11</span> <span class="v">+0,215</span></a><span aria-current="page" title="12. La práctica de pronóstico que faltó"><span class="n">12</span> <span class="v">0,52 vs 0,63</span></span><a href="m13_incertidumbre.html" title="13. Incertidumbre: del punto al intervalo"><span class="n">13</span> <span class="v">92,0 %</span></a><a href="m14_lectura_causal.html" title="14. Lectura causal del lazo de control"><span class="n">14</span> <span class="v">+0,16</span></a></nav>
+    <div class="assay"><span><b>0</b> apuntes de origen</span><span><b>4</b> figuras</span><span><b>2</b> scripts</span></div>
+  </div>
+</header>
+<main class="container">
+<section class="block is-brief"><span class="kicker">Resumen</span><h2 class="block-title">En 30 segundos</h2><ul><li><strong>0,52 vs 0,63.</strong> SARIMAX contra la persistencia a una hora. La línea base clásica también pierde.</li><li><strong>La serie ya era estacionaria.</strong> Dickey-Fuller da p de 1,1 por 10 elevado a −12, así que no hacía falta diferenciar. Nadie lo había comprobado.</li><li><strong>La PACF corta en el retardo 2.</strong> De ahí sale el orden del modelo, con datos y no por defecto.</li><li><strong>SARIMAX gana solo a 12 horas</strong>, con −0,224 contra −0,613. Gana en territorio negativo, que no sirve.</li><li><strong>Recursivo le gana a directo en horizonte largo</strong>, −0,359 contra −0,798. Y es contraintuitivo.</li></ul></section>
+<section class="block "><span class="kicker">Contexto</span><h2 class="block-title">Qué resuelve este módulo</h2><p>El proyecto aplicó nueve módulos de machine learning a una serie de tiempo sin correr nunca los controles que un ingeniero de pronóstico corre primero.</p><p>Nadie comprobó si la serie era estacionaria. Nadie miró su autocorrelación. Y sobre todo, nadie puso en la tabla la línea base clásica, que es SARIMAX. Sin ella, la frase &quot;el machine learning no aporta&quot; estaba comparándose contra un competidor menos.</p><p>Este módulo pone esos controles y ese competidor.</p></section>
+<section class="block is-toy"><span class="kicker">A mano</span><h2 class="block-title">Antes de la teoría: un ejemplo de juguete</h2><p>Dos series de seis horas. Las dos suben, pero por motivos distintos.</p><div class="table-wrap"><table><thead><tr><th>Hora</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th></tr></thead><tbody><tr><td><strong>Serie A</strong></td><td>2</td><td>4</td><td>2</td><td>4</td><td>2</td><td>4</td></tr><tr><td><strong>Serie B</strong></td><td>2</td><td>4</td><td>6</td><td>8</td><td>10</td><td>12</td></tr></tbody></table></div><h3 class="sub">Paso 1. La media de cada mitad</h3><p>Se parten en dos mitades y se calcula la media de cada una.</p><pre><code>Serie A: primera mitad (2, 4, 2) -&gt; 8/3 = 2,67    segunda (4, 2, 4) -&gt; 10/3 = 3,33
+Serie B: primera mitad (2, 4, 6) -&gt; 12/3 = 4      segunda (8, 10, 12) -&gt; 30/3 = 10</code></pre><p><strong>En A las dos medias casi coinciden. En B se duplican y media.</strong> Esa es la diferencia entre una serie que vuelve a su sitio y una que se va.</p><h3 class="sub">Paso 2. Qué significa ser estacionaria</h3><p>Una serie es <strong>estacionaria</strong> cuando su media y su dispersión no cambian con el tiempo. La A lo es: oscila alrededor de 3 y vuelve siempre. La B no: cada hora está más arriba que la anterior.</p><p>Esto no es un tecnicismo. <strong>Casi todos los modelos clásicos de pronóstico suponen estacionariedad</strong>, y aplicarlos a una serie que se va da resultados sin sentido.</p><h3 class="sub">Paso 3. Diferenciar, que es la cura</h3><p>Diferenciar es quedarse con el cambio en vez del nivel.</p><pre><code>Serie B:           2   4   6   8  10  12
+cambio de B:           2   2   2   2   2</code></pre><p><strong>El cambio de B es constante.</strong> Una serie que se iba se ha convertido en una que no se mueve. Eso es la <code>d</code> del ARIMA: cuántas veces hay que diferenciar.</p><h3 class="sub">Paso 4. Cómo se elige el orden</h3><p>Dos herramientas, y se leen al revés una de otra.</p><p>La <strong>ACF</strong> mide cuánto se parece la serie a sí misma desplazada. La <strong>PACF</strong> hace lo mismo quitando el efecto de los retardos intermedios.</p><pre><code>si la PACF corta de golpe en el retardo p  -&gt;  hay un AR(p)
+si la ACF corta de golpe en el retardo q   -&gt;  hay un MA(q)</code></pre><h3 class="sub">Paso 5. Qué acaba de pasar</h3><p>Tres decisiones que en este proyecto se habían saltado: comprobar si hay que diferenciar, mirar la autocorrelación, y elegir el orden con esa información en vez de por defecto.</p><p>Y una cuarta que aparece luego: <strong>cómo pronosticar varias horas por delante</strong>. Hay dos formas y dan resultados distintos.</p></section>
+<section class="block is-terms"><span class="kicker">Términos</span><h2 class="block-title">Glosario</h2><details class="fold"><summary>12 términos, en palabras simples</summary><ul><li><strong>Estacionariedad.</strong> Que la media y la dispersión de la serie no cambien con el tiempo.</li><li><strong>Dickey-Fuller aumentado.</strong> La prueba estándar de estacionariedad. Un valor p pequeño dice que la serie sí es estacionaria.</li><li><strong>Diferenciar.</strong> Quedarse con el cambio entre valores consecutivos, en vez del nivel.</li><li><strong>ACF.</strong> Autocorrelación. Cuánto se parece la serie a sí misma desplazada N horas.</li><li><strong>PACF.</strong> Autocorrelación parcial. Lo mismo, quitando el efecto de los retardos intermedios.</li><li><strong>AR(p).</strong> Parte autorregresiva: el valor de ahora depende de los p valores anteriores.</li><li><strong>MA(q).</strong> Parte de media móvil: el valor de ahora depende de los q errores anteriores.</li><li><strong>ARIMA(p, d, q).</strong> La combinación, con <code>d</code> diferenciaciones.</li><li><strong>SARIMAX.</strong> ARIMA con estacionalidad y con variables externas. La línea base clásica.</li><li><strong>Descomposición estacional.</strong> Partir la serie en tendencia, ciclo y resto.</li><li><strong>Multi-paso directo.</strong> Entrenar un modelo por horizonte, que salta la distancia entera.</li><li><strong>Multi-paso recursivo.</strong> Entrenar un modelo de un paso y aplicarlo varias veces, alimentándolo con sus propias predicciones.</li></ul></details></section>
+<section class="block is-method"><span class="kicker">Método</span><h2 class="block-title">Paso a paso</h2><h3 class="sub">Paso 1. Preguntar si hay que diferenciar</h3><p>Dickey-Fuller sobre el nivel y sobre el cambio. Si el nivel ya es estacionario, diferenciar sobra y además tira información.</p><h3 class="sub">Paso 2. Mirar la autocorrelación</h3><p>ACF y PACF hasta 36 horas, para ver hasta dónde llega la memoria de la serie y dónde corta.</p><h3 class="sub">Paso 3. Elegir el orden con esos gráficos</h3><p>El orden no se pone por defecto ni se busca a ciegas. Sale de dónde cortan las dos funciones.</p><h3 class="sub">Paso 4. Ajustar una vez y aplicar hacia adelante</h3><p>El modelo se ajusta con los meses de entrenamiento. Después se aplica al periodo de prueba sin reajustar, alimentándolo con las observaciones nuevas según llegan. Es lo que haría una planta.</p><h3 class="sub">Paso 5. Comparar las dos formas de mirar lejos</h3><p>Directo entrena un modelo por horizonte. Recursivo entrena uno de un paso y lo encadena. La diferencia importa y casi nadie la mide.</p></section>
+<section class="block is-code"><span class="kicker">Código</span><h2 class="block-title">El código, por partes</h2><h3 class="sub">Paso 1. La prueba de estacionariedad</h3><pre><code class="language-python">from statsmodels.tsa.stattools import adfuller
+
+estadistico, pvalor, *_ = adfuller(series.dropna(), autolag=&quot;AIC&quot;)
+print(f&quot;estadistico {estadistico:.2f}  p {pvalor:.2e}&quot;)</code></pre><details class="fold"><summary>línea por línea, 4 entradas</summary><dl class="annot"><dt><code>adfuller(...)</code></dt><dd>La prueba de Dickey-Fuller aumentada. La hipótesis nula es que la serie NO es estacionaria.</dd><dt><code>autolag=&quot;AIC&quot;</code></dt><dd>Deja que la prueba elija cuántos retardos usar, con un criterio de información.</dd><dt><code>estadistico, pvalor, *_</code></dt><dd>La función devuelve muchos valores. El asterisco recoge todos los demás y los descarta.</dd><dt><code>p menor que 0,05</code></dt><dd>Se rechaza la nula, así que la serie sí es estacionaria.</dd></dl></details><div class="output"><span class="output-tag">sale</span><pre><code>1. ESTACIONARIEDAD (Dickey-Fuller aumentado)
+  nivel                          estadistico    -8.13  p 1.10e-12  -&gt; estacionaria
+  cambio (primera diferencia)    estadistico   -17.12  p 7.22e-30  -&gt; estacionaria</code></pre></div><p><strong>El nivel ya es estacionario.</strong> No hace falta diferenciar, así que la <code>d</code> del ARIMA vale cero.</p><figure class="fig"><img src="../figuras/fig_m12_estacionariedad.f6c4ca62.png" alt="Arriba, la sílice hora a hora con su media móvil de siete días. Abajo, la dispersión móvil. Ninguna de las dos se dispara, que es lo que confirma la prueba." loading="lazy"><figcaption>Arriba, la sílice hora a hora con su media móvil de siete días. Abajo, la dispersión móvil. Ninguna de las dos se dispara, que es lo que confirma la prueba.</figcaption></figure><h3 class="sub">Paso 2. ACF y PACF, para elegir el orden</h3><pre><code class="language-python">from statsmodels.tsa.stattools import acf, pacf
+
+print(&quot;ACF: &quot;, acf(series.dropna(), nlags=36)[[1, 2, 3, 6, 12, 24]])
+print(&quot;PACF:&quot;, pacf(series.dropna(), nlags=36)[[1, 2, 3, 6, 12, 24]])</code></pre><details class="fold"><summary>línea por línea, 2 entradas</summary><dl class="annot"><dt><code>nlags=36</code></dt><dd>Calcula hasta 36 horas de retardo, que es un día y medio.</dd><dt><code>[[1, 2, 3, 6, 12, 24]]</code></dt><dd>Selecciona varios elementos por su posición de una vez. Los dobles corchetes son la lista de posiciones.</dd></dl></details><div class="output"><span class="output-tag">sale</span><pre><code>2. AUTOCORRELACION
+  retardo:            1      2      3      6     12     24
+  ACF:            0.774  0.673  0.591  0.377  0.211  0.198
+  PACF:           0.775  0.184  0.060  0.026  0.017  0.055</code></pre></div><figure class="fig"><img src="../figuras/fig_m12_acf_pacf.2424e17e.png" alt="Izquierda la ACF, que decae despacio. Derecha la PACF, que cae de 0,775 a 0,184 y luego a 0,060. Las líneas rojas son el límite de significancia." loading="lazy"><figcaption>Izquierda la ACF, que decae despacio. Derecha la PACF, que cae de 0,775 a 0,184 y luego a 0,060. Las líneas rojas son el límite de significancia.</figcaption></figure><p>La ACF decae despacio y la <strong>PACF corta de golpe después del retardo 2</strong>. Ese es el perfil de un proceso autorregresivo de orden 2. De ahí sale ARIMA(2, 0, 1).</p><h3 class="sub">Paso 3. Un ciclo diario que casi no existe</h3><figure class="fig"><img src="../figuras/fig_m12_descomposicion.bb27d4de.png" alt="Quince días de junio partidos en observado, tendencia, ciclo de 24 horas y resto. El ciclo es diminuto comparado con lo demás." loading="lazy"><figcaption>Quince días de junio partidos en observado, tendencia, ciclo de 24 horas y resto. El ciclo es diminuto comparado con lo demás.</figcaption></figure><p>La descomposición separa un ciclo de 24 horas, y su amplitud es pequeña frente a la variación total. <strong>No hay turno ni ritmo diario que gobierne la sílice</strong>, lo cual descarta una hipótesis razonable antes de perder tiempo con ella.</p><h3 class="sub">Paso 4. SARIMAX contra la persistencia</h3><pre><code class="language-python">from statsmodels.tsa.statespace.sarimax import SARIMAX
+
+ajustado = SARIMAX(train, order=(2, 0, 1), trend=&quot;c&quot;).fit(disp=False)
+aplicado = ajustado.apply(series, refit=False)
+prediccion = aplicado.get_prediction(dynamic=False).predicted_mean.shift(lead - 1)</code></pre><details class="fold"><summary>línea por línea, 4 entradas</summary><dl class="annot"><dt><code>SARIMAX(train, order=(2, 0, 1))</code></dt><dd>Dos términos autorregresivos, cero diferenciaciones y uno de media móvil.</dd><dt><code>trend=&quot;c&quot;</code></dt><dd>Añade una constante, porque la serie oscila alrededor de 2,33 y no de cero.</dd><dt><code>.apply(series, refit=False)</code></dt><dd>Extiende el modelo ya ajustado sobre toda la serie SIN reajustar. Los parámetros nunca ven el periodo de prueba.</dd><dt><code>.get_prediction(dynamic=False)</code></dt><dd>Predice cada instante usando las observaciones reales anteriores, que es como operaría en planta.</dd></dl></details><div class="output"><span class="output-tag">sale</span><pre><code>3. SARIMAX(2, 0, 1) CONTRA PERSISTENCIA
+ lead_h persistencia sarimax  horas
+      1      +0.6323 +0.5199    959
+      3      +0.2712 +0.0620    957
+      6      -0.1453 -0.3081    954
+     12      -0.6129 -0.2244    948</code></pre></div><figure class="fig"><img src="../figuras/fig_m12_sarimax_vs_base.e36bb1ea.png" alt="SARIMAX contra la persistencia en los cuatro horizontes. Gana en uno, y solo en territorio negativo." loading="lazy"><figcaption>SARIMAX contra la persistencia en los cuatro horizontes. Gana en uno, y solo en territorio negativo.</figcaption></figure><h3 class="sub">Paso 5. Directo contra recursivo</h3><pre><code class="language-python">directo = modelo().fit(train[features], serie.shift(-lead)[train.index])
+
+un_paso = modelo().fit(train[features], serie.shift(-1)[train.index])
+actual = test[features].copy()
+for _ in range(lead):
+    prediccion = un_paso.predict(actual)
+    actual[&quot;sil_lag1&quot;] = prediccion</code></pre><details class="fold"><summary>línea por línea, 3 entradas</summary><dl class="annot"><dt><code>serie.shift(-lead)</code></dt><dd>El objetivo desplazado el horizonte entero. El modelo directo aprende a saltar de una vez.</dd><dt><code>for _ in range(lead)</code></dt><dd>El guion bajo como nombre significa que la variable del bucle no se usa. Solo interesa repetir.</dd><dt><code>actual[&quot;sil_lag1&quot;] = prediccion</code></dt><dd>Aquí está la clave del recursivo: su propia predicción se convierte en la memoria de la vuelta siguiente.</dd></dl></details><div class="output"><span class="output-tag">sale</span><pre><code>4. MULTI-PASO: DIRECTO CONTRA RECURSIVO
+   3 h   directo +0.1562   recursivo +0.1442
+   6 h   directo -0.2197   recursivo -0.1149
+  12 h   directo -0.7983   recursivo -0.3590</code></pre></div></section>
+<section class="block is-result"><span class="kicker">Resultado</span><h2 class="block-title">El resultado, medido</h2><p><strong>Qué esperábamos.</strong> Que SARIMAX quedara cerca de la persistencia a una hora, porque un AR(2) con autocorrelación de 0,774 debería reproducirla casi.</p><p><strong>Qué salió.</strong> Pierde en tres horizontes de cuatro.</p><div class="table-wrap"><table><thead><tr><th>Horizonte</th><th>Persistencia</th><th>SARIMAX(2, 0, 1)</th><th>Diferencia</th></tr></thead><tbody><tr><td>1 hora</td><td><strong>0,632</strong></td><td>0,520</td><td>−0,112</td></tr><tr><td>3 horas</td><td><strong>0,271</strong></td><td>0,062</td><td>−0,209</td></tr><tr><td>6 horas</td><td><strong>−0,145</strong></td><td>−0,308</td><td>−0,163</td></tr><tr><td>12 horas</td><td>−0,613</td><td><strong>−0,224</strong></td><td><strong>+0,389</strong></td></tr></tbody></table></div><p><strong>Qué significa.</strong> La línea base clásica no rescata el proyecto. A una hora pierde por once centésimas, y a tres horas pierde por veintiuna.</p><p>El único horizonte donde gana es 12 horas, y ahí gana <strong>por debajo de cero</strong>. Un R² de −0,224 sigue siendo peor que decir la media, así que ganar esa comparación no da un modelo desplegable.</p><h3 class="sub">Por qué SARIMAX pierde ante algo tan simple</h3><p>La respuesta está en la PACF. El retardo 1 vale 0,775 y el retardo 2 apenas 0,184.</p><p>Casi toda la información está en el valor anterior, que es exactamente lo que la persistencia usa y nada más. SARIMAX añade un segundo término autorregresivo y uno de media móvil, y esos términos suavizan la predicción. <strong>Suavizar ayuda cuando hay ruido y estorba cuando la señal es el último valor.</strong></p><h3 class="sub">El hallazgo contraintuitivo del multi-paso</h3><div class="table-wrap"><table><thead><tr><th>Horizonte</th><th>Directo</th><th>Recursivo</th></tr></thead><tbody><tr><td>3 horas</td><td><strong>+0,156</strong></td><td>+0,144</td></tr><tr><td>6 horas</td><td>−0,220</td><td><strong>−0,115</strong></td></tr><tr><td>12 horas</td><td>−0,798</td><td><strong>−0,359</strong></td></tr></tbody></table></div><p>Lo que se enseña normalmente es que el recursivo acumula errores y por eso el directo aguanta mejor a horizonte largo. <strong>Aquí pasa lo contrario, y por partida doble a 12 horas.</strong></p><p>La explicación conecta con el módulo 8. El modelo directo a 12 horas extrapola con convicción y se va lejos, igual que el −0,851 de aquel módulo. El recursivo, al realimentarse con sus propias predicciones, se va apagando hacia el promedio. <strong>Su cobardía lo salva.</strong></p><p>Es un buen recordatorio de que las reglas generales de los libros son puntos de partida, no resultados.</p><h3 class="sub">Lo que este módulo deja abierto</h3><p>Ya se ha probado todo lo que predice un número:</p><ul><li>árboles, bosques y boosting,</li><li>rectas y regularización,</li><li>redes densas y redes de secuencia,</li><li>modelos clásicos de pronóstico.</li></ul><p>Todos pierden contra repetir el último análisis, o ganan en negativo.</p><p>Queda una pregunta distinta. En vez de dar un número, dar un <strong>intervalo</strong> con cobertura garantizada. Puede que un modelo que sabe cuándo no sabe sí sea desplegable. El módulo 13 lo mide.</p></section>
+<section class="block is-warning"><span class="kicker">Trampas</span><h2 class="block-title">Ojo</h2><ul><li><strong>Comprobar la estacionariedad antes de diferenciar.</strong> Aquí la serie ya lo era, y diferenciar por costumbre habría tirado información.</li><li><strong>El orden sale de la ACF y la PACF</strong>, no de probar valores al azar ni de dejar el que viene por defecto.</li><li><strong>Un modelo clásico no es automáticamente un baseline débil.</strong> Aquí SARIMAX pierde, y eso hay que medirlo, no suponerlo en ninguna de las dos direcciones.</li><li><strong>Ganar en territorio negativo no es ganar.</strong> SARIMAX supera a la persistencia a 12 horas y sigue siendo peor que la media.</li><li><strong>El modelo se ajusta una vez, con el entrenamiento.</strong> Reajustarlo con datos de prueba mete información del futuro en los parámetros.</li><li><strong>Directo y recursivo pueden ordenarse al revés de lo que dice el manual.</strong> Aquí el recursivo gana a horizonte largo porque se apaga hacia el promedio.</li></ul></section>
+<section class="block is-bridge"><span class="kicker">Analogía</span><h2 class="block-title">Puente metalúrgico</h2><p>La estacionariedad es la pregunta de si un circuito está <strong>en régimen o en transitorio</strong>. Un circuito en régimen oscila alrededor de una ley y vuelve. Uno en transitorio, después de un cambio de mineral, se desplaza y no vuelve. Casi todo el control estadístico de proceso supone régimen, igual que ARIMA supone estacionariedad.</p><p>La ACF es la <strong>curva de tiempo de residencia</strong>. Dice cuánto tiempo tarda el circuito en olvidar lo que le entró. Aquí, 0,774 a una hora y 0,211 a doce: la planta se acuerda de una hora atrás y casi nada de medio día.</p><p>Y el resultado del multi-paso tiene una lectura de operación muy directa. <strong>Un modelo que extrapola con convicción es peligroso, y uno que se vuelve prudente cuando pierde información es seguro.</strong> Es la diferencia entre un operador que sigue empujando una consigna sin datos frescos y uno que vuelve a valores conservadores mientras espera el análisis.</p></section>
+<section class="block is-review"><span class="kicker">Repaso</span><h2 class="block-title">Repaso</h2><details><summary>La serie es estacionaria. ¿Por qué importa antes de modelar?</summary><p>Porque decide si hay que diferenciar, y diferenciar cuando no hace falta tira información.</p><p>Los modelos clásicos de pronóstico suponen que la media y la dispersión de la serie no cambian con el tiempo. Si la serie se va, hay que quedarse con el cambio en vez del nivel. Aquí Dickey-Fuller da un p de 1,1 por 10 elevado a −12 sobre el nivel, así que la serie ya oscila alrededor de un valor estable y la <code>d</code> del ARIMA vale cero. Es una comprobación de dos líneas que el proyecto nunca hizo.</p></details><details><summary>La PACF cae de 0,775 a 0,184. ¿Qué se decide con eso?</summary><p>El orden autorregresivo del modelo. Una PACF que corta de golpe después del retardo p indica un proceso AR(p).</p><p>Aquí el primer retardo vale 0,775 y el segundo 0,184, y a partir del tercero los valores caen dentro del ruido. Eso apunta a AR(2), y de ahí sale el ARIMA(2, 0, 1) que se ajusta. La ventaja de elegirlo así es que la decisión queda justificada por los datos y se puede defender, en vez de salir de una búsqueda automática sobre decenas de combinaciones.</p></details><details><summary>SARIMAX pierde contra repetir el último valor. ¿Cómo se explica eso?</summary><p>Con la misma PACF. Casi toda la información está en el retardo 1, con 0,775, y el resto aporta poco.</p><p>La persistencia usa ese retardo y nada más. SARIMAX añade un segundo término autorregresivo y uno de media móvil, que suavizan la predicción combinando varios valores pasados. Suavizar es lo correcto cuando el ruido domina, y es un estorbo cuando la señal está concentrada en el último dato. El resultado es 0,520 contra 0,632 a una hora.</p></details><details><summary>SARIMAX gana a 12 horas. ¿Se puede usar eso?</summary><p>No, y la razón es importante para no engañarse con una tabla.</p><p>A 12 horas SARIMAX da −0,224 y la persistencia −0,613, así que la diferencia es de casi cuatro décimas a favor del modelo. Pero los dos están por debajo de cero, y cero es predecir siempre la media. Un modelo por debajo de la media no se despliega, por mucho que gane a otro todavía peor. Es la misma trampa que el módulo 8 señala cuando la persistencia se vuelve negativa.</p></details><details><summary>El recursivo le gana al directo a 12 horas. ¿No debería ser al revés?</summary><p>Suele serlo, y aquí no lo es por una razón concreta.</p><p>La regla del manual dice que el recursivo acumula sus propios errores al realimentarse, así que se degrada más rápido. Lo que ocurre en estos datos es que al realimentarse con predicciones cada vez más suaves, la memoria del modelo se aplana y sus salidas se acercan al promedio. Eso lo protege. El directo, en cambio, aprende a saltar 12 horas de una vez y lo hace con convicción, extrapolando lejos en la dirección equivocada. Da −0,798 frente a −0,359. Cuando la información se agota, apagarse hacia el promedio es mejor estrategia que apostar.</p></details></section>
+</main>
+<nav class="pager"><a class="prev" href="m11_modelos_de_secuencia.html"><span class="dir">Anterior</span>11. Modelos de secuencia: LSTM, GRU y convolución causal</a><a class="next" href="m13_incertidumbre.html"><span class="dir">Siguiente</span>13. Incertidumbre: del punto al intervalo</a></nav>
+<footer class="footer">
+  <div class="footer-inner">
+    <span>S&iacute;lice / M&oacute;dulo 12</span>
+    <span>generado el 2026-08-20</span>
+    <span>fuente: los 31 apuntes originales, sus scripts y el CSV de la planta</span>
+  </div>
+</footer>
+</body>
+</html>

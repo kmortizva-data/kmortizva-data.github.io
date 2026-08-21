@@ -1,0 +1,497 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Put your Advanced Data Analytics Certificate to work — Google Advanced Data Analytics Capstone</title>
+<style>
+/* ============================================================================
+   Concentra — design tokens and shared components.
+   Inlined into every generated page by load_style(), so pages stay self-contained
+   and work offline from file:// with no external requests.
+
+   Direction: an assay lab, not a tech dashboard. The palette is taken from ore
+   and lab materials (chalcopyrite brass, malachite, hematite, quartz) on warm
+   graphite rather than the blue-black + neon of a generic dark UI. Type is
+   Bahnschrift, the DIN-descended grotesque that Windows ships and that lives on
+   machinery plates and technical drawings, over Corbel for reading.
+   ========================================================================== */
+
+:root {
+  /* Ground and surfaces: warm graphite, the colour of rock dust, not blue-black */
+  --rock: #1a1714;
+  --bench: #221e19;
+  --core: #2b251f;
+  --seam: #3d352c;
+
+  /* Ore palette. No blue and no purple anywhere: those are the tones that make a
+     page read as generated, and this palette comes from the ores instead. */
+  --brass: #c9a227;      /* chalcopyrite, the primary accent */
+  --malachite: #5d9b7a;  /* verified output, results that came out right */
+  --hematite: #b04a35;   /* iron oxide, pitfalls and warnings */
+
+  /* Text */
+  --quartz: #ece7de;
+  --dust: #9a9186;
+  --shadowed: #6f675c;
+
+  --display: Bahnschrift, 'DIN Alternate', 'Segoe UI Semibold', system-ui, sans-serif;
+  --body: Corbel, Candara, 'Segoe UI', system-ui, sans-serif;
+  --data: Consolas, 'Cascadia Mono', ui-monospace, monospace;
+
+  /* In px, not ch: ch scales with font-size, so a heading ended up wider than a
+     paragraph and the page had four different right edges instead of two. */
+  --measure: 640px;
+  --wide: 900px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--rock);
+  color: var(--quartz);
+  font-family: var(--body);
+  font-size: 16px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection { background: var(--brass); color: var(--rock); }
+
+:focus-visible {
+  outline: 2px solid var(--brass);
+  outline-offset: 3px;
+}
+
+/* --------------------------------------------------------------- the signature
+   A sieve series: ticks that get finer from left to right, coarse feed to fine
+   concentrate. It is the one ornament on the page and appears exactly twice —
+   under the wordmark and under a page title. */
+.mesh {
+  height: 10px;
+  background-image:
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 16px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 9px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 5px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 3px);
+  background-size: 25% 100%;
+  background-position: 0 0, 25% 0, 50% 0, 75% 0;
+  background-repeat: no-repeat;
+  opacity: .8;
+  transform-origin: left center;
+  animation: sieve .55s cubic-bezier(.2, .8, .3, 1) both;
+}
+@keyframes sieve { from { transform: scaleX(0); opacity: 0; } to { transform: scaleX(1); opacity: .8; } }
+@media (prefers-reduced-motion: reduce) {
+  .mesh { animation: none; }
+  * { transition: none !important; }
+}
+
+/* ------------------------------------------------------------------ page head */
+.header {
+  border-bottom: 1px solid var(--seam);
+  padding: 3.2rem 2rem 0;
+  background: linear-gradient(180deg, #221d16 0%, var(--rock) 100%);
+}
+.header-content { max-width: 1080px; margin: 0 auto; }
+
+.eyebrow {
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--brass);
+  margin-bottom: 1rem;
+}
+.eyebrow a { color: inherit; text-decoration: none; border-bottom: 1px solid transparent; }
+.eyebrow a:hover { border-bottom-color: var(--brass); }
+
+.header h1 {
+  font-family: var(--display);
+  font-size: clamp(2rem, 4.5vw, 3.1rem);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -.015em;
+  color: var(--quartz);
+  max-width: 20ch;
+}
+.header .subtitle {
+  color: var(--dust);
+  max-width: var(--measure);
+  margin-top: 1rem;
+  font-size: 1.02rem;
+}
+.header .mesh { margin: 1.8rem 0 0; }
+
+/* An assay line: the real composition of the module, in lab-report shorthand. */
+.assay {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.4rem;
+  font-family: var(--data);
+  font-size: .78rem;
+  color: var(--shadowed);
+  padding: .9rem 0 1.6rem;
+  letter-spacing: .04em;
+}
+.assay b { color: var(--dust); font-weight: 400; }
+
+/* --------------------------------------------------------------------- layout */
+/* The container hugs the widest block, so there is no orphan edge past the content. */
+.container { max-width: var(--wide); margin: 3rem auto 5rem; padding: 0 2rem; }
+
+/* Two deliberate right edges and no more: prose stops at the reading measure, and
+   only the things that genuinely need room (code, output, figures, big tables) run
+   out to the full column. */
+.section-block {
+  border-top: 1px solid var(--seam);
+  padding: 2rem 0 2.4rem;
+}
+.section-block > p,
+.section-block > ul,
+.section-block > ol,
+.section-block h3.sub,
+.section-block h4.sub,
+.section-block blockquote,
+details > *:not(summary) { max-width: var(--measure); }
+.section-block:first-child { border-top: 0; padding-top: .5rem; }
+
+/* The kicker names what kind of content follows: context, method, pitfalls.
+   It replaces decorative icons with something that actually classifies. */
+.kicker {
+  font-family: var(--data);
+  font-size: .68rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  display: block;
+  margin-bottom: .5rem;
+}
+.section-title {
+  font-family: var(--display);
+  font-size: 1.55rem;
+  font-weight: 600;
+  letter-spacing: -.01em;
+  line-height: 1.2;
+  margin-bottom: 1.2rem;
+  color: var(--quartz);
+}
+.is-warning .kicker { color: var(--hematite); }
+.is-warning .section-title { color: #e8c4b8; }
+.is-bridge .kicker, .is-decision .kicker { color: var(--malachite); }
+.is-toy .kicker, .is-result .kicker, .is-question .kicker { color: var(--brass); }
+
+/* ---------------------------------------------------------------------- prose */
+/* Justified with hyphenation. In Spanish, justifying without hyphens opens rivers of
+   white space and reads worse than ragged right; lang="es" is what feeds the
+   dictionary. Tables, code, captions and summaries stay ragged on purpose. */
+.section-block p,
+.section-block li,
+details > *:not(summary) {
+  text-align: justify;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+}
+.section-block p { margin-bottom: 1rem; }
+.section-block p:last-child { margin-bottom: 0; }
+/* Indent with padding, not margin, so the bullet sits inside the measure instead of
+   pushing the list 1.2rem past the right edge of the paragraphs. */
+.section-block ul, .section-block ol { margin: 0 0 1rem; padding-left: 1.2rem; }
+.section-block li { margin-bottom: .55rem; padding-left: .2rem; }
+.section-block li::marker { color: var(--brass); }
+td, th, figcaption, .res li, .assay { text-align: left; hyphens: manual; }
+a { color: var(--brass); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+a:hover { text-decoration-thickness: 2px; }
+strong { color: #fff; font-weight: 700; }
+em { color: var(--dust); font-style: italic; }
+
+h3.sub {
+  font-family: var(--display);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--brass);
+  margin: 2rem 0 .7rem;
+  letter-spacing: -.005em;
+}
+h3.sub:first-child { margin-top: 0; }
+h4.sub {
+  font-family: var(--display);
+  font-size: .98rem;
+  font-weight: 600;
+  color: var(--dust);
+  margin: 1.3rem 0 .5rem;
+}
+
+code {
+  font-family: var(--data);
+  font-size: .9em;
+  background: var(--core);
+  border-radius: 3px;
+  padding: .08rem .32rem;
+  color: var(--brass);
+}
+pre {
+  background: #14110e;
+  border: 1px solid var(--seam);
+  border-left: 2px solid var(--seam);
+  border-radius: 2px;
+  padding: 1.1rem 1.2rem;
+  overflow-x: auto;
+  margin-bottom: 1rem;
+}
+pre code {
+  background: none; padding: 0; color: var(--quartz);
+  font-size: .87rem; line-height: 1.6;
+}
+
+/* What the code prints. Malachite: the material that came out of the process. */
+.output {
+  position: relative;
+  border: 1px solid rgba(93, 155, 122, .32);
+  border-left: 2px solid var(--malachite);
+  border-radius: 2px;
+  background: rgba(93, 155, 122, .06);
+  padding: 1.7rem 1.2rem 1rem;
+  margin-bottom: 1rem;
+  overflow-x: auto;
+}
+.output-tag {
+  position: absolute; top: .5rem; left: 1.2rem;
+  font-family: var(--data); font-size: .64rem;
+  letter-spacing: .18em; text-transform: uppercase; color: var(--malachite);
+}
+.output pre {
+  background: none; border: 0; padding: 0; margin: 0;
+  font-family: var(--data); font-size: .85rem;
+  color: var(--quartz); white-space: pre-wrap;
+}
+
+/* Line by line explanation of a code block, for a reader new to programming.
+   Two columns: the fragment of code, and what it does. */
+.annot {
+  display: grid;
+  grid-template-columns: minmax(9rem, auto) 1fr;
+  gap: .1rem 1.2rem;
+  align-items: baseline;
+  max-width: var(--wide);
+  margin: -.4rem 0 1.4rem;
+  padding: .9rem 1.1rem 1rem;
+  border: 1px solid var(--seam);
+  border-top: 0;
+  border-radius: 0 0 2px 2px;
+  background: rgba(201, 162, 39, .04);
+}
+.annot-head {
+  grid-column: 1 / -1;
+  font-family: var(--data);
+  font-size: .64rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  margin-bottom: .5rem;
+}
+.annot dt { padding: .35rem 0; }
+.annot dt code {
+  background: var(--core);
+  color: var(--brass);
+  font-size: .82rem;
+  white-space: nowrap;
+}
+.annot dd {
+  padding: .35rem 0;
+  margin: 0;
+  color: var(--dust);
+  font-size: .93rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(61, 53, 44, .5);
+}
+.annot dt { border-bottom: 1px solid rgba(61, 53, 44, .5); }
+.annot dt:last-of-type, .annot dd:last-of-type { border-bottom: 0; }
+/* The code block sits directly on top of its annotation, as one unit. */
+pre:has(+ .annot) { margin-bottom: 0; border-radius: 2px 2px 0 0; }
+
+@media (max-width: 640px) {
+  .annot { grid-template-columns: 1fr; gap: 0; }
+  .annot dt { border-bottom: 0; padding-bottom: 0; }
+  .annot dd { padding-top: .15rem; }
+}
+
+blockquote {
+  border-left: 2px solid var(--brass);
+  padding: .3rem 0 .3rem 1.3rem;
+  margin: 0 0 1rem;
+  font-family: var(--display);
+  font-size: 1.2rem;
+  font-weight: 400;
+  line-height: 1.4;
+  color: var(--quartz);
+}
+
+/* Tables read as assay data: mono figures, hairline rules, no zebra fill.
+   They take the width they need instead of being stretched to the full column,
+   which is what left a two-column table floating in empty space. */
+.table-wrap { overflow-x: auto; margin-bottom: 1rem; }
+table { border-collapse: collapse; width: auto; max-width: 100%; font-size: .93rem; }
+th, td {
+  border-bottom: 1px solid var(--seam);
+  padding: .55rem .8rem .55rem 0;
+  text-align: left;
+  vertical-align: top;
+}
+th {
+  font-family: var(--data);
+  font-size: .7rem;
+  font-weight: 400;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  border-bottom-color: var(--brass);
+}
+td:first-child { color: var(--quartz); }
+
+/* Review questions: closed by default, so they work as recall practice. */
+details {
+  border-top: 1px solid var(--seam);
+  padding: .9rem 0;
+}
+details:last-child { border-bottom: 1px solid var(--seam); }
+summary {
+  cursor: pointer;
+  font-family: var(--display);
+  font-size: 1.02rem;
+  font-weight: 600;
+  color: var(--quartz);
+  list-style: none;
+  display: flex;
+  gap: .7rem;
+  align-items: baseline;
+}
+summary::-webkit-details-marker { display: none; }
+summary::before {
+  content: '+';
+  font-family: var(--data);
+  color: var(--brass);
+  font-size: .95rem;
+}
+details[open] summary::before { content: '−'; }
+details[open] summary { color: var(--brass); margin-bottom: .7rem; }
+details > *:not(summary) { color: var(--dust); }
+
+figure.fig {
+  margin: 1.6rem 0;
+  border: 1px solid var(--seam);
+  padding: .7rem;
+  background: var(--bench);
+}
+figure.fig img { width: 100%; height: auto; display: block; }
+/* The interactive twin of a figure. Its aspect matches the still one, 10 by 4.4, so a
+   case sheet keeps the same rhythm whichever kind of figure comes next. */
+figure.fig.is-live iframe {
+  width: 100%;
+  /* Matches INTERACTIVE_HEIGHT in src/make_figures.py. It used to be an aspect ratio, and
+     that made the figure's height depend on the window: the caption and the legend are
+     placed at fractions of the plot area, so on a wide screen they were pushed past the
+     bottom margin, clipping the caption and covering the x-axis title. */
+  height: 520px;
+  border: 0;
+  display: block;
+}
+figure.fig figcaption {
+  font-family: var(--data);
+  font-size: .72rem;
+  color: var(--shadowed);
+  margin-top: .6rem;
+  letter-spacing: .04em;
+}
+
+/* File listings on a case sheet */
+.res { list-style: none; margin-left: 0 !important; }
+.res li {
+  display: flex; align-items: baseline; gap: .8rem; flex-wrap: wrap;
+  padding: .5rem 0; border-bottom: 1px solid var(--seam); margin-bottom: 0;
+}
+.res .path { font-family: var(--data); font-size: .74rem; color: var(--shadowed); }
+.res .size { font-family: var(--data); font-size: .74rem; color: var(--shadowed); margin-left: auto; }
+.res .gone { font-family: var(--data); font-size: .74rem; color: var(--hematite); }
+
+.footer {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 2rem 4rem;
+  color: var(--shadowed);
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .03em;
+}
+
+@media (max-width: 640px) {
+  body { font-size: 15px; }
+  .header { padding: 2rem 1.2rem 0; }
+  .container { padding: 0 1.2rem; margin-top: 2rem; }
+  .footer { padding: 0 1.2rem 3rem; }
+}
+
+@media print {
+  body { background: #fff; color: #16130f; }
+  .header { background: none; border-bottom: 1px solid #bbb; padding-top: 0; }
+  .header h1, .section-title, summary { color: #16130f; }
+  .mesh { animation: none; }
+  .section-block { break-inside: avoid; max-width: none; }
+  pre, .output { background: #f6f4f0; border-color: #ccc; }
+  details:not([open]) > *:not(summary) { display: block; }
+  a { color: #16130f; }
+}
+
+</style>
+</head>
+<body>
+<header class="header">
+  <div class="header-content">
+    <div class="eyebrow"><a href="https://www.coursera.org/learn/google-advanced-data-analytics-capstone">Google Advanced Data Analytics Capstone</a> / Módulo 3</div>
+    <h1>Put your Advanced Data Analytics Certificate to work</h1>
+    <p class="subtitle">El cierre del certificado, y la cuenta que solo se puede hacer teniendo los cuatro cursos delante. De las tres cadenas de análisis sobre los mismos archivos, solo una es comparable, y en esa el curso más avanzado ganó 0,0011 de AUC.</p>
+    <div class="mesh" role="presentation"></div>
+    <div class="assay"><span><b>29 min</b> de curso</span><span><b>2</b> vídeos</span><span><b>4</b> lecturas</span><span><b>1</b> plugin</span></div>
+  </div>
+</header>
+<main class="container">
+<section class="section-block "><span class="kicker">Contexto</span><h2 class="section-title">Qué resuelve este módulo</h2><p>Media hora de curso para cerrar el certificado: enseñar el trabajo, reclamar la insignia y saber a qué se puede optar. Es el bloque más corto de todo el programa.</p><p>Y es el sitio donde toca hacer la única pregunta que ningún curso suelto puede contestar: <strong>después de cuatro cursos analizando los mismos tres archivos, ¿qué añadió cada uno?</strong></p></section>
+<section class="section-block "><span class="kicker">Nota</span><h2 class="section-title">Lo que ya sabes hacer</h2><p>La biblioteca tiene ahora <strong>doce análisis sobre tres archivos</strong>. Puestos en una tabla, se leen de dos maneras y solo una de ellas enseña algo.</p><div class="table-wrap"><table><thead><tr><th>Caso</th><th>Curso 2</th><th>Curso 3</th><th>Curso 4</th><th>Curso 5</th></tr></thead><tbody><tr><td><strong>Waze</strong></td><td>461 conducen lo imposible</td><td>sin diferencia por dispositivo</td><td>acierta 82 %, detecta 8 %</td><td>los árboles no ganan</td></tr><tr><td><strong>TikTok</strong></td><td>se ve 101 veces más</td><td>efecto medio, d 0,544</td><td>el umbral no decide nada</td><td>una pregunta empata con 300 árboles</td></tr><tr><td><strong>Automatidata</strong></td><td>29,5 % del día en 4 horas</td><td>1,22 $ de diferencia</td><td>la fuga vale 0,21 de R²</td><td>no hay señal</td></tr></tbody></table></div><p><strong>En columnas es un temario.</strong> Cada curso hizo lo suyo y lo hizo bien.</p><p><strong>En filas es otra cosa</strong>, y esa es la que vale para un portafolio.</p><h3 class="sub h3">La cadena de Waze, que es la única comparable</h3><p>Comparar dos cursos solo es legítimo si midieron <strong>sobre las mismas filas</strong>. Eso se comprueba, no se supone, y al comprobarlo pasa esto:</p><div class="table-wrap"><table><thead><tr><th>Cadena</th><th>¿Comparable?</th><th>Por qué</th></tr></thead><tbody><tr><td><strong>Waze</strong></td><td><strong>Sí</strong></td><td>3.575 filas de prueba en los dos cursos, las mismas</td></tr><tr><td>TikTok</td><td>No</td><td>600 filas contra 3.817: cambió la pregunta</td></tr><tr><td>Automatidata</td><td>No</td><td>5.634 contra 3.041: cambió la pregunta y el tipo de modelo</td></tr></tbody></table></div><p>Así que <strong>de tres cadenas, dos no se pueden comparar</strong>. No por descuido: porque el Curso 5 cambió de objetivo en dos de los tres escenarios, y comparar un modelo que predice la tarifa con otro que predice la propina no significa nada.</p><p>Y en la que sí:</p><pre><code>Curso 4, regresión logística     AUC 0,7368
+Curso 5, con todo el arsenal     AUC 0,7379
+                                 ------------
+un curso entero de técnica nueva      +0,0011</code></pre><p><strong>Once diezmilésimas.</strong> Y no por poco margen de mejora: el Curso 5 probó cuatro familias de modelo, ajustó 88 combinaciones de perillas y añadió una segmentación no supervisada, y el mejor resultado lo dio <strong>la regresión logística</strong>, que ya estaba en el Curso 4.</p><h3 class="sub h3">Lo que eso significa, y lo que no</h3><p><strong>No significa que los cursos no sirvieran.</strong> Significa tres cosas concretas:</p><ol><li><strong>El techo lo pone el dato, no la herramienta.</strong> En Waze el archivo no dice por qué se fue nadie, así que ningún modelo puede pasar de ahí.</li><li><strong>Saber que has llegado al techo vale tanto como subir.</strong> El Curso 5 no mejoró el resultado: <strong>demostró que no se podía mejorar</strong>, y eso evita gastar seis meses.</li><li><strong>El hallazgo más útil de los cuatro cursos lo dio el más simple.</strong> Los 461 usuarios que conducen más de mil kilómetros en un día los encontró el Curso 2 mirando un histograma, y ni el análisis del Curso 3 ni los modelos del 4 y el 5 los habían marcado.</li></ol><p>Ese es el arco del certificado entero, y es lo que un portafolio tiene que contar: <strong>no la técnica más avanzada que sabes usar, sino que sabes cuándo deja de aportar.</strong></p></section>
+<section class="section-block "><span class="kicker">Términos</span><h2 class="section-title">Glosario</h2><ul><li><strong>Insignia del certificado.</strong> La credencial verificable que se reclama al terminar y que se enlaza desde un perfil profesional.</li><li><strong>Comparabilidad.</strong> Que dos resultados se puedan poner uno al lado del otro. Exige la misma pregunta, los mismos datos y la misma partición.</li><li><strong>Techo del dato.</strong> El límite de acierto que impone la información disponible, por encima del cual ningún modelo puede subir.</li><li><strong>Resultado negativo.</strong> Un análisis que demuestra que algo no se puede o no ocurre. Es un entregable, no un fracaso.</li><li><strong>Portafolio.</strong> La selección de trabajo que enseñas. Doce análisis no son un portafolio; tres bien contados sí.</li></ul></section>
+<section class="section-block is-recipe"><span class="kicker">Método</span><h2 class="section-title">Paso a paso</h2><h3 class="sub h3">Paso 1. Enseñar el trabajo, que no es publicarlo todo</h3><p>Un portafolio es una <strong>selección</strong>, y la selección es lo que se juzga. Doce análisis publicados sin orden dicen menos que tres elegidos.</p><p>El criterio para elegir: quédate con los que tengan <strong>una pregunta, una decisión y un límite</strong>. Y de los tuyos, los que mejor cumplen eso no son los más técnicos:</p><div class="table-wrap"><table><thead><tr><th>Proyecto</th><th>Por qué entra</th></tr></thead><tbody><tr><td>Waze del Curso 2</td><td>Encontró lo que cuatro cursos no vieron, mirando un histograma</td></tr><tr><td>TikTok del Curso 5</td><td>Demuestra que sabes desconfiar de un 99,6 %</td></tr><tr><td>Automatidata del Curso 5</td><td>Entrega un «no se puede» con pruebas, que casi nadie sabe hacer</td></tr></tbody></table></div><p>Fíjate en que <strong>ninguno de los tres se eligió por el modelo</strong>. Se eligieron por lo que demuestran sobre cómo trabajas.</p><h3 class="sub h3">Paso 2. La insignia y el perfil</h3><p>Al terminar se reclama la credencial y se enlaza. Es administrativo y se hace en diez minutos, y conviene no confundirlo con lo anterior: <strong>la insignia dice que hiciste el curso; el portafolio dice qué sabes hacer</strong>. Quien contrata mira lo segundo.</p><h3 class="sub h3">Paso 3. Explorar las oportunidades profesionales, dicho con realismo</h3><p>El certificado abre la puerta a puestos de analista de datos y analista junior de datos, y el módulo dedica un vídeo a recorrer esas oportunidades. Conviene añadirle una parte que el curso no dice: <strong>un certificado no compite con experiencia, la acompaña</strong>.</p><p>Y explorar oportunidades no es leer ofertas: es decidir <strong>a cuáles vale la pena presentarse</strong>, que con un horizonte de meses y no de días se parece más a elegir objetivos que a buscar volumen.</p><p>Lo que tú tienes y un recién titulado no es el certificado: es <strong>haber operado procesos reales</strong>. Eso es lo que hace que preguntes de dónde salió un dato antes de modelarlo, y es literalmente lo que produjo el mejor hallazgo de esta biblioteca.</p><h3 class="sub h3">Paso 4. Los recursos que quedan, y el que importa</h3><p>El curso deja una lista de recursos para graduados y un glosario de todo el certificado. Son útiles como referencia.</p><p>Y hay uno que no está en esa lista y vale más: <strong>esta biblioteca</strong>. Veintidós lecciones y doce análisis escritos por ti, con los números guardados y las trampas anotadas. Un glosario ajeno se consulta; un apunte propio con tus tropiezos dentro se recuerda.</p></section>
+<section class="section-block is-recipe"><span class="kicker">Código</span><h2 class="section-title">El código, por partes</h2><h3 class="sub h3">Paso 1. Comprobar si dos cursos se pueden comparar</h3><p>Antes de cualquier síntesis, la pregunta mecánica: <strong>¿midieron sobre las mismas filas?</strong></p><pre><code class="language-python">import json
+from pathlib import Path
+
+def leer(curso, caso):
+    ruta = Path(f&quot;projects/{curso}/{caso}/04_reports/model_results.json&quot;)
+    return json.loads(ruta.read_text(encoding=&quot;utf-8&quot;)) if ruta.exists() else None
+
+def mejor_auc(datos):
+    bloque = datos.get(&quot;test&quot;) or datos.get(&quot;metrics_050&quot;) or {}
+    aucs = [v[&quot;auc&quot;] for v in bloque.values() if isinstance(v, dict) and &quot;auc&quot; in v]
+    return max(aucs + [bloque[&quot;auc&quot;]]) if &quot;auc&quot; in bloque else (max(aucs) if aucs else None)
+
+for caso in (&quot;waze&quot;, &quot;tiktok&quot;, &quot;automatidata&quot;):
+    antes, despues = leer(&quot;curso4&quot;, caso), leer(&quot;curso5&quot;, caso)
+    prueba_antes = antes[&quot;split&quot;][&quot;test_rows&quot;]
+    prueba_despues = despues[&quot;split&quot;][&quot;test_rows&quot;]
+    if prueba_antes != prueba_despues:
+        print(f&quot;{caso:14} NO comparable: {prueba_antes} filas contra {prueba_despues}&quot;)
+    else:
+        ganancia = mejor_auc(despues) - mejor_auc(antes)
+        print(f&quot;{caso:14} comparable sobre {prueba_antes} filas   &quot;
+              f&quot;el Curso 5 ganó {ganancia:+.4f} de AUC&quot;)</code></pre><dl class="annot"><div class="annot-head">línea por línea</div><dt><code>datos.get(&quot;test&quot;) or datos.get(&quot;metrics_050&quot;) or {}</code></dt><dd>Tres alternativas encadenadas con <code>or</code>: coge la primera que no esté vacía. Los cursos guardaron sus métricas bajo nombres distintos, y esto lo absorbe sin un <code>if</code> por curso.</dd><dt><code>isinstance(v, dict) and &quot;auc&quot; in v</code></dt><dd>Filtra los valores que son diccionarios con AUC dentro, saltándose los que son números sueltos. Sin la primera comprobación, buscar una clave dentro de un número da error.</dd><dt><code>aucs + [bloque[&quot;auc&quot;]]</code></dt><dd>Junta las dos formas en que puede estar guardado: uno por modelo, o uno solo suelto arriba. Sumar listas las concatena.</dd><dt><code>antes[&quot;split&quot;][&quot;test_rows&quot;]</code></dt><dd>El número de filas del conjunto de prueba. <strong>Es la comprobación que decide todo</strong>: si no coinciden, los dos números miden cosas distintas y compararlos es inventarse una mejora.</dd><dt><code>{ganancia:+.4f}</code></dt><dd>El <code>+</code> fuerza el signo también cuando es positivo, que aquí es justo lo que hay que ver.</dd></dl><div class="output"><span class="output-tag">sale</span><pre>waze           comparable sobre 3575 filas   el Curso 5 ganó +0.0011 de AUC
+tiktok         NO comparable: 600 filas contra 3817
+automatidata   NO comparable: 5634 filas contra 3041</pre></div><p>Tres líneas de salida y el certificado entero resumido.</p><p><strong>Dos de tres cadenas no se pueden comparar</strong>, y decirlo es más honesto que poner los seis números en una tabla y dejar que el lector saque conclusiones que no se sostienen.</p><p>Y en la que sí: <strong>+0,0011</strong>.</p></section>
+<section class="section-block is-warning"><span class="kicker">Trampas</span><h2 class="section-title">Ojo</h2><ul><li>**Comparar dos resultados sin comprobar que miden lo mismo es la trampa más fácil de cometer y la más difícil de detectar leyendo.** Se comprueba con una línea de código.</li><li><strong>Un portafolio no es todo tu trabajo.</strong> Doce análisis publicados sin criterio dicen menos que tres elegidos.</li><li><strong>La insignia no es el portafolio.</strong> Una dice que asististe; el otro, qué sabes hacer.</li><li><strong>No elijas los proyectos por el modelo.</strong> Los tuyos que mejor te representan son los que entregan un «no se puede» con pruebas.</li><li><strong>Llegar al techo del dato es un resultado.</strong> El Curso 5 no mejoró Waze: demostró que no se podía, y eso ahorra meses.</li><li><strong>Y no te enamores de la herramienta más nueva.</strong> En la única cadena comparable, la regresión del curso anterior ganó.</li></ul></section>
+<section class="section-block is-bridge"><span class="kicker">Analogía</span><h2 class="section-title">Puente metalúrgico</h2><p>Esto ya lo has vivido, y tiene nombre: <strong>la curva de aprendizaje de una planta</strong>.</p><p>El primer año se sube recuperación a paletadas. Ajustas la molienda, corriges la dosificación y ganas tres puntos. El segundo año, con un modelo de control avanzado y una campaña de pruebas seria, ganas medio punto. El tercero, con lo mejor que hay en el mercado, ganas una décima y hay que discutir si es real.</p><p><strong>No es que las herramientas empeoren. Es que lo fácil ya se lo llevó el primer año</strong>, y lo que queda está limitado por el mineral, no por el circuito.</p><div class="table-wrap"><table><thead><tr><th>En la planta</th><th>En estos cuatro cursos</th></tr></thead><tbody><tr><td>Los tres puntos del primer año</td><td>Los 461 conductores imposibles, vistos en un histograma</td></tr><tr><td>El medio punto del control avanzado</td><td>La regresión del Curso 4, AUC 0,7368</td></tr><tr><td>La décima discutible</td><td>Los árboles del Curso 5, +0,0011</td></tr><tr><td>El techo del mineral</td><td>El archivo no dice por qué se fue nadie</td></tr></tbody></table></div><p>Y la conclusión práctica es la misma en los dos sitios, y es la que separa a un ingeniero con criterio de uno con catálogo: <strong>saber que has llegado al techo del mineral vale más que otra campaña de pruebas</strong>, porque la campaña cuesta seis meses y el techo no se mueve.</p><p>Un modelo más complicado sobre un dato que no contiene la respuesta es exactamente eso: una campaña cara para confirmar lo que ya se sabía.</p></section>
+<section class="section-block is-review"><span class="kicker">Repaso</span><h2 class="section-title">Repaso</h2><details><summary>¿Por qué de las tres cadenas de análisis solo una se puede comparar entre cursos?</summary><p>Porque comparar exige que los dos resultados midan lo mismo sobre las mismas filas, y en dos de los tres escenarios el Curso 5 cambió la pregunta. En TikTok pasó de predecir si la cuenta estaba verificada a si el vídeo era una reclamación, y en Automatidata de estimar la tarifa a predecir la propina, así que sus conjuntos de prueba tienen 600 contra 3.817 filas y 5.634 contra 3.041. Solo Waze mantuvo el objetivo y la partición, con las mismas 3.575 filas en los dos cursos, y ahí la comparación significa algo. Lo bueno es que esa comprobación no depende del criterio de nadie: es comparar dos números y se hace en una línea.</p></details><details><summary>Un curso entero de aprendizaje automático ganó 0,0011 de AUC. ¿Fue inútil?</summary><p>No, y confundir esas dos cosas es el error que el módulo quiere evitar. El Curso 5 probó cuatro familias de modelo, ajustó 88 combinaciones de perillas y añadió una segmentación, y el mejor resultado lo dio la regresión que ya existía. Eso no dice que las herramientas nuevas no sirvan: dice que <strong>en este archivo el techo lo pone el dato</strong>, porque no contiene ninguna variable que explique por qué se fue nadie. Y demostrar que se ha llegado al techo es un entregable, porque evita que alguien gaste seis meses intentando subir.</p></details><details><summary>¿Por qué el mejor hallazgo de cuatro cursos lo dio el más simple?</summary><p>Porque miraba otra cosa. El Curso 2 no modelaba nada: dibujaba distribuciones, y al dibujar los kilómetros por día conducido aparecieron 461 usuarios por encima de los mil kilómetros diarios, que es físicamente imposible. Los cursos siguientes trabajaron sobre esa misma columna sin verlo, porque un modelo no mira el reparto de sus variables, las usa. Es la lección que atraviesa la biblioteca entera: <strong>lo imposible no lo encuentra ninguna regla estadística</strong>, lo encuentra alguien mirando el dibujo con conocimiento del dominio.</p></details><details><summary>¿Qué proyectos elegirías para un portafolio y por qué no son los más técnicos?</summary><p>Los tres que demuestran cómo trabajas, no qué sabes ejecutar: el Waze del Curso 2, porque encontró lo que cuatro cursos no vieron; el TikTok del Curso 5, porque enseña a desconfiar de un 99,6 % y a fijar un control antes de mirar el resultado; y el Automatidata del Curso 5, porque entrega un «no se puede» con pruebas. Un bosque aleatorio bien ajustado lo enseña cualquiera; saber que una señal enorme era un artefacto de cómo se generó el archivo, no.</p></details><details><summary>¿Qué diferencia hay entre la insignia del certificado y el portafolio?</summary><p>La insignia acredita que completaste el programa, y eso lo puede decir cualquiera que lo complete. El portafolio muestra qué haces con ello, y ahí es donde se distingue una persona de otra. Se reclama la insignia porque cuesta diez minutos y se enlaza desde el perfil, pero la conversación que consigue una entrevista sale del portafolio: de una pregunta que alguien tenía, un número que se puede defender y un límite escrito antes de que te lo encuentren.</p></details></section>
+</main>
+<footer class="footer">
+  Concentra / destilado del temario público del curso / 2026-08-20
+</footer>
+</body>
+</html>

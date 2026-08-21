@@ -1,0 +1,664 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Clasificar: dentro o fuera de especificación · Sílice, módulo 6</title>
+<style>
+/* Sílice: la hoja de estilos del curso.
+ *
+ * Identidad de papel de informe de planta, no de pantalla. El proyecto termina
+ * recomendando no desplegar, y eso es un informe técnico: papel hueso, tinta grafito,
+ * y una retícula de milimetrado muy tenue en la cabecera.
+ *
+ * Dos familias tipográficas y ni una más, las dos del sistema porque el sitio se abre
+ * desde file:// y tiene que funcionar sin internet: serif para la prosa (se lee como
+ * informe) y monoespaciada para todo lo que es dato, código, cifra o etiqueta.
+ *
+ * El acento lo inyecta cada página con --accent: es el del módulo, y marca su posición
+ * en el arco del proyecto. Los diez pasan check_palette.py antes de entrar aquí.
+ */
+
+:root {
+  --paper: #f6f3ec;
+  --bench: #eeeade;
+  --ink: #2a2622;
+  --ink-soft: #57504a;
+  --ink-faint: #8a8177;
+  --rule: #ddd6c6;
+  --rule-soft: #e8e2d4;
+  --grid: rgba(84, 69, 73, .07);
+  --accent: #632727;
+
+  --prose: Georgia, "Iowan Old Style", "Palatino Linotype", Palatino, "Times New Roman", serif;
+  --data: "Cascadia Mono", Consolas, "DejaVu Sans Mono", "Liberation Mono", monospace;
+
+  --measure: 680px;   /* la medida de la prosa, en píxeles y nunca en ch */
+  --wide: 1180px;     /* el borde derecho de los bloques anchos */
+  --margin: 132px;    /* la columna del margen, donde cuelgan los kickers */
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--prose);
+  font-size: 17px;
+  line-height: 1.62;
+  -webkit-text-size-adjust: 100%;
+}
+
+::selection { background: var(--accent); color: var(--paper); }
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+/* --------------------------------------------------------------- cabecera */
+
+.masthead {
+  border-bottom: 1px solid var(--rule);
+  background-color: var(--bench);
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 26px 26px;
+  background-position: -1px -1px;
+}
+
+.masthead-inner {
+  max-width: var(--wide);
+  margin: 0 auto;
+  padding: 2.4rem 2rem 1.6rem;
+}
+
+.eyebrow {
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-bottom: 1rem;
+}
+
+.eyebrow a { color: inherit; text-decoration: none; border-bottom: 1px solid transparent; }
+.eyebrow a:hover { border-bottom-color: var(--accent); color: var(--accent); }
+.eyebrow b { color: var(--accent); font-weight: 400; }
+
+.masthead h1 {
+  margin: 0;
+  font-size: clamp(1.9rem, 4.4vw, 2.9rem);
+  line-height: 1.14;
+  font-weight: 400;
+  letter-spacing: -.012em;
+  max-width: 900px;
+}
+
+.standfirst {
+  margin: .9rem 0 0;
+  max-width: var(--measure);
+  color: var(--ink-soft);
+  font-size: 1.02rem;
+  line-height: 1.55;
+}
+
+/* La cifra del módulo: el número que dejó, en grande, junto al título. Es lo que
+   convierte la cabecera en parte del argumento y no en decoración. */
+.figure-mark {
+  margin-top: 1.6rem;
+  display: flex;
+  align-items: baseline;
+  gap: .8rem;
+  flex-wrap: wrap;
+  border-left: 3px solid var(--accent);
+  padding-left: .9rem;
+}
+
+.figure-value {
+  font-family: var(--data);
+  font-size: clamp(1.5rem, 3.4vw, 2.1rem);
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: -.02em;
+}
+
+.figure-label {
+  font-family: var(--data);
+  font-size: .78rem;
+  letter-spacing: .04em;
+  color: var(--ink-soft);
+}
+
+/* El hilo del proyecto: diez segmentos, uno por módulo, con su cifra debajo. Desde
+   cualquier página se ve el recorrido entero, que es justo lo que a los apuntes
+   sueltos les faltaba. */
+.thread {
+  margin-top: 1.8rem;
+  display: grid;
+  /* One equal column per segment, whatever the temario says. It was pinned to ten and
+     the course grew to fourteen. */
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: 4px;
+}
+
+/* Where part 2 starts: the four modules that were never in the original project. */
+.thread .starts-part { margin-left: 10px; position: relative; }
+.thread .starts-part::after {
+  content: '';
+  position: absolute;
+  left: -7px; top: -3px; bottom: 0;
+  border-left: 1px solid var(--rule);
+}
+
+.thread a, .thread span {
+  display: block;
+  text-decoration: none;
+  color: var(--ink-faint);
+  font-family: var(--data);
+  font-size: .62rem;
+  letter-spacing: .04em;
+  padding-top: .4rem;
+  border-top: 3px solid var(--rule);
+  transition: color .12s, border-color .12s;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.thread a:hover { color: var(--ink); border-top-color: var(--ink-soft); }
+.thread [aria-current="page"] { color: var(--accent); border-top-color: var(--accent); }
+.thread .n { font-weight: 700; }
+.thread .v { color: inherit; opacity: .75; }
+
+/* Las pastillas de composición: de qué está hecho el módulo. */
+.assay {
+  margin-top: 1.6rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.4rem;
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .05em;
+  color: var(--ink-faint);
+}
+
+.assay b { color: var(--ink); font-weight: 700; }
+
+/* ----------------------------------------------------------------- cuerpo */
+
+.container {
+  max-width: var(--wide);
+  margin: 0 auto;
+  padding: 2.6rem 2rem 4rem;
+}
+
+/* Cada sección es una anotación de cuaderno: el kicker cuelga en el margen
+   izquierdo y el contenido corre en la columna principal. En pantalla estrecha el
+   kicker se pone encima. */
+.block {
+  display: grid;
+  grid-template-columns: var(--margin) minmax(0, 1fr);
+  column-gap: 2rem;
+  padding: 2.2rem 0;
+  border-top: 1px solid var(--rule);
+}
+
+.block:first-child { border-top: 0; padding-top: .6rem; }
+
+.kicker {
+  grid-column: 1;
+  font-family: var(--data);
+  font-size: .68rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding-top: .45rem;
+}
+
+.block > :not(.kicker) { grid-column: 2; }
+
+.block-title {
+  margin: 0 0 1.1rem;
+  font-size: 1.42rem;
+  font-weight: 400;
+  line-height: 1.25;
+  letter-spacing: -.008em;
+}
+
+.is-warning .kicker, .is-result .kicker { color: var(--accent); }
+.is-warning .block-title { border-bottom: 2px solid var(--accent); padding-bottom: .4rem; display: inline-block; }
+.is-result { background: var(--bench); margin: 0 -1.2rem; padding: 2.2rem 1.2rem; }
+.is-result .block-title { color: var(--accent); }
+
+/* Prosa: justificada con partición, que sin partición el español justificado abre
+   ríos. Tablas, código y pies de figura se quedan sin justificar. */
+.block p, .block li, .block dd, details > *:not(summary) {
+  max-width: var(--measure);
+  text-align: justify;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+}
+
+.block p { margin: 0 0 1rem; }
+.block p:last-child { margin-bottom: 0; }
+.block ul, .block ol { margin: 0 0 1rem; padding-left: 1.3rem; max-width: var(--measure); }
+.block li { margin-bottom: .5rem; }
+.block li::marker { color: var(--accent); font-family: var(--data); font-size: .85em; }
+
+td, th, figcaption, .assay, .thread a, .res li { text-align: left; hyphens: manual; }
+
+a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+a:hover { text-decoration-thickness: 2px; }
+strong { font-weight: 700; }
+em { font-style: italic; color: var(--ink-soft); }
+
+h3.sub {
+  margin: 1.9rem 0 .7rem;
+  font-size: 1.07rem;
+  font-weight: 700;
+  letter-spacing: -.004em;
+}
+
+h3.sub:first-child { margin-top: 0; }
+
+h4.sub {
+  margin: 1.4rem 0 .5rem;
+  font-family: var(--data);
+  font-size: .82rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  color: var(--ink-soft);
+}
+
+/* ------------------------------------------------------------ código y datos */
+
+code {
+  font-family: var(--data);
+  font-size: .87em;
+  background: var(--bench);
+  padding: .1em .32em;
+  border-radius: 2px;
+}
+
+pre {
+  margin: 0 0 1rem;
+  padding: 1rem 1.1rem;
+  background: var(--bench);
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--accent);
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+pre code { background: none; padding: 0; font-size: .82rem; line-height: 1.62; }
+
+/* La salida es lo que imprime el código, no código para correr: se marca aparte
+   para que nadie confunda entrada con salida. */
+.output {
+  margin: 0 0 1rem;
+  border: 1px dashed var(--rule);
+  background: transparent;
+}
+
+.output-tag {
+  display: block;
+  font-family: var(--data);
+  font-size: .64rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding: .45rem 1.1rem 0;
+}
+
+.output pre {
+  margin: 0;
+  border: 0;
+  background: none;
+  padding: .3rem 1.1rem 1rem;
+}
+
+.output pre code { color: var(--ink-soft); }
+
+/* La anotación línea por línea, para quien no ha programado antes. */
+.annot {
+  margin: 0 0 1.2rem;
+  border: 1px solid var(--rule);
+  border-top: 0;
+  padding: 0 1.1rem .6rem;
+  background: transparent;
+}
+
+.annot-head {
+  font-family: var(--data);
+  font-size: .64rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding: .55rem 0 .5rem;
+  border-bottom: 1px solid var(--rule-soft);
+  margin-bottom: .4rem;
+}
+
+.annot dt { padding: .4rem 0 .1rem; }
+.annot dt code { background: none; padding: 0; color: var(--accent); font-weight: 700; }
+.annot dd {
+  margin: 0 0 .4rem;
+  color: var(--ink-soft);
+  font-size: .94rem;
+  border-bottom: 1px solid var(--rule-soft);
+  padding-bottom: .5rem;
+}
+.annot dd:last-of-type { border-bottom: 0; }
+
+pre:has(+ .annot) { margin-bottom: 0; }
+
+blockquote {
+  margin: 0 0 1rem;
+  padding: .2rem 0 .2rem 1.1rem;
+  border-left: 3px solid var(--rule);
+  color: var(--ink-soft);
+  font-style: italic;
+  max-width: var(--measure);
+}
+
+/* --------------------------------------------------------------- tablas */
+
+.table-wrap { overflow-x: auto; margin: 0 0 1.2rem; }
+
+table {
+  border-collapse: collapse;
+  width: auto;
+  max-width: 100%;
+  font-size: .92rem;
+}
+
+th, td {
+  padding: .5rem .9rem .5rem 0;
+  border-bottom: 1px solid var(--rule-soft);
+  vertical-align: top;
+}
+
+th {
+  font-family: var(--data);
+  font-size: .7rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--ink-faint);
+  border-bottom: 1px solid var(--rule);
+  white-space: nowrap;
+}
+
+/* -------------------------------------------------------------- repaso */
+
+details {
+  border-bottom: 1px solid var(--rule-soft);
+  padding: .2rem 0;
+  max-width: var(--measure);
+}
+
+summary {
+  cursor: pointer;
+  list-style: none;
+  padding: .7rem 0 .7rem 1.5rem;
+  position: relative;
+  font-weight: 700;
+}
+
+summary::-webkit-details-marker { display: none; }
+
+summary::before {
+  content: '+';
+  position: absolute;
+  left: 0;
+  font-family: var(--data);
+  color: var(--accent);
+  font-weight: 700;
+}
+
+details[open] summary::before { content: '\2212'; }
+details[open] summary { color: var(--accent); }
+details > *:not(summary) { color: var(--ink-soft); }
+details > *:last-child { padding-bottom: .8rem; }
+
+/* -------------------------------------------------------------- figuras */
+
+figure.fig {
+  margin: 0 0 1.4rem;
+  max-width: 100%;
+  border: 1px solid var(--rule);
+  background: #fff;
+  padding: .6rem;
+}
+
+figure.fig img { width: 100%; height: auto; display: block; }
+
+figure.fig figcaption {
+  margin-top: .6rem;
+  padding-top: .5rem;
+  border-top: 1px solid var(--rule-soft);
+  font-family: var(--data);
+  font-size: .7rem;
+  letter-spacing: .04em;
+  color: var(--ink-faint);
+}
+
+.gone {
+  font-family: var(--data);
+  font-size: .76rem;
+  color: var(--accent);
+  border: 1px dashed var(--accent);
+  padding: .5rem .8rem;
+}
+
+/* ------------------------------------------------------- pie y navegación */
+
+.pager {
+  max-width: var(--wide);
+  margin: 0 auto;
+  padding: 0 2rem 3rem;
+  display: flex;
+  gap: 1.4rem;
+  justify-content: space-between;
+  font-family: var(--data);
+  font-size: .78rem;
+}
+
+.pager a { max-width: 46%; text-decoration: none; border-bottom: 1px solid var(--rule); padding-bottom: .3rem; }
+.pager a:hover { border-bottom-color: var(--accent); }
+.pager .dir { display: block; font-size: .64rem; letter-spacing: .13em; text-transform: uppercase; color: var(--ink-faint); }
+.pager .next { text-align: right; margin-left: auto; }
+
+.footer {
+  border-top: 1px solid var(--rule);
+  padding: 1.4rem 2rem 2.4rem;
+  font-family: var(--data);
+  font-size: .72rem;
+  letter-spacing: .06em;
+  color: var(--ink-faint);
+}
+
+.footer-inner { max-width: var(--wide); margin: 0 auto; display: flex; gap: 1.4rem; flex-wrap: wrap; }
+
+/* ------------------------------------------------------------- índice */
+
+.toc { list-style: none; margin: 0; padding: 0; max-width: 100%; }
+
+.toc li {
+  border-top: 1px solid var(--rule-soft);
+  max-width: 100%;
+}
+
+.toc li:last-child { border-bottom: 1px solid var(--rule-soft); }
+
+.toc a, .toc .pending {
+  display: grid;
+  grid-template-columns: 3rem minmax(0, 1fr) auto;
+  gap: 1.2rem;
+  align-items: baseline;
+  padding: 1rem .4rem;
+  text-decoration: none;
+  color: inherit;
+}
+
+.toc a:hover { background: var(--bench); }
+.toc .pending { color: var(--ink-faint); }
+.toc .num { font-family: var(--data); font-size: .82rem; font-weight: 700; }
+.toc .name { font-size: 1.05rem; }
+.toc .name small { display: block; font-family: var(--prose); font-size: .86rem; color: var(--ink-soft); margin-top: .2rem; }
+.toc .mark { font-family: var(--data); font-size: .82rem; font-weight: 700; white-space: nowrap; }
+.toc .tag { font-family: var(--data); font-size: .66rem; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-faint); }
+
+/* ---------------------------------------------------------- responsive */
+
+@media (max-width: 900px) {
+  .block { grid-template-columns: minmax(0, 1fr); }
+  .block > :not(.kicker) { grid-column: 1; }
+  .kicker { grid-column: 1; padding-top: 0; margin-bottom: .7rem; }
+  .thread { grid-auto-flow: row; grid-template-columns: repeat(5, 1fr); gap: 6px 4px; }
+  .thread .starts-part { margin-left: 0; }
+  .thread .starts-part::after { display: none; }
+  .toc a, .toc .pending { grid-template-columns: 2.2rem minmax(0, 1fr); }
+  .toc .mark { grid-column: 2; }
+}
+
+@media (max-width: 620px) {
+  body { font-size: 16px; }
+  .masthead-inner, .container, .pager, .footer { padding-left: 1.2rem; padding-right: 1.2rem; }
+  .is-result { margin: 0; padding: 2rem 1rem; }
+  .block p, .block li { text-align: left; }
+}
+
+@media print {
+  .thread, .pager { display: none; }
+  body { font-size: 11pt; }
+  .masthead { background: none; }
+  .block { break-inside: avoid; }
+}
+
+/* -------------------------------------------------- resumen y plegables */
+
+/* El resumen de entrada: la cifra, la trampa y la decision, en cinco vinetas.
+   Se lee en 30 segundos o se sigue leyendo. */
+.is-brief {
+  border-top: 0;
+  padding-top: .4rem;
+}
+
+.is-brief .kicker { color: var(--accent); }
+
+.is-brief ul {
+  list-style: none;
+  padding-left: 0;
+  max-width: var(--measure);
+  border-left: 3px solid var(--accent);
+  padding: .2rem 0 .2rem 1.1rem;
+}
+
+.is-brief li { margin-bottom: .7rem; text-align: left; }
+.is-brief li:last-child { margin-bottom: 0; }
+
+/* Los plegables de contenido denso: el glosario y la anotacion del codigo.
+   Cerrados por defecto, para que la pagina no sea un muro. */
+details.fold {
+  border: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+  background: transparent;
+  margin: 0 0 1.2rem;
+  padding: 0;
+  max-width: 100%;
+}
+
+details.fold > summary {
+  font-family: var(--data);
+  font-size: .68rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  font-weight: 400;
+  color: var(--ink-faint);
+  padding: .55rem .9rem .55rem 2rem;
+}
+
+details.fold > summary::before { left: .9rem; }
+details.fold[open] > summary {
+  color: var(--accent);
+  border-bottom: 1px solid var(--rule-soft);
+  margin-bottom: 0;
+}
+
+details.fold > *:not(summary) { padding: .8rem .9rem; color: inherit; }
+details.fold ul { margin-bottom: 0; }
+details.fold .annot { border: 0; padding: 0; margin: 0; }
+details.fold .annot dd { max-width: var(--measure); }
+
+/* Un bloque de codigo seguido de su plegable van pegados. */
+pre:has(+ details.fold) { margin-bottom: 0; border-bottom: 0; }
+
+:root { --accent: #672620; }
+</style>
+</head>
+<body>
+<header class="masthead">
+  <div class="masthead-inner">
+    <div class="eyebrow"><a href="index.html">Sílice</a> / M&oacute;dulo <b>6</b> de 14</div>
+    <h1>Clasificar: dentro o fuera de especificación</h1>
+    <p class="standfirst">La otra mitad del aprendizaje supervisado. El clasificador parecía ganar, hasta que se le puso enfrente el baseline correcto</p>
+    <div class="figure-mark">
+      <span class="figure-value">0,62 vs 0,77</span>
+      <span class="figure-label">lo que atrapa el clasificador, contra lo que atrapa la persistencia</span>
+    </div>
+    <nav class="thread" aria-label="El arco del proyecto"><a href="m01_radiografia_del_dataset.html" title="1. Radiografía del dataset"><span class="n">1</span> <span class="v">737.453</span></a><a href="m02_el_primer_modelo_y_el_techo.html" title="2. El primer modelo, y el techo que apareció enseguida"><span class="n">2</span> <span class="v">R² 0,04</span></a><a href="m03_como_aprende_un_modelo.html" title="3. Cómo aprende un modelo por dentro"><span class="n">3</span> <span class="v">R² 0,06</span></a><a href="m04_preprocesar_y_validar.html" title="4. Preprocesar y validar sin hacer trampa"><span class="n">4</span> <span class="v">R² −0,13</span></a><a href="m05_darle_memoria_al_modelo.html" title="5. Darle memoria al modelo"><span class="n">5</span> <span class="v">R² 0,64</span></a><span aria-current="page" title="6. Clasificar: dentro o fuera de especificación"><span class="n">6</span> <span class="v">0,62 vs 0,77</span></span><a href="m07_contra_que_se_compara.html" title="7. Contra qué se compara un modelo"><span class="n">7</span> <span class="v">+0,009</span></a><a href="m08_donde_aporta_el_ml.html" title="8. ¿Dónde aporta el ML de verdad?"><span class="n">8</span> <span class="v">0 de 4</span></a><a href="m09_los_tres_estados_de_la_planta.html" title="9. Los tres estados de la planta"><span class="n">9</span> <span class="v">k = 3</span></a><a href="m10_redes_producto_y_cierre.html" title="10. Redes, producto y cierre"><span class="n">10</span> <span class="v">0,76</span></a><a class="starts-part" href="m11_modelos_de_secuencia.html" title="11. Modelos de secuencia: LSTM, GRU y convolución causal"><span class="n">11</span> <span class="v">+0,215</span></a><a href="m12_practica_de_pronostico.html" title="12. La práctica de pronóstico que faltó"><span class="n">12</span> <span class="v">0,52 vs 0,63</span></a><a href="m13_incertidumbre.html" title="13. Incertidumbre: del punto al intervalo"><span class="n">13</span> <span class="v">92,0 %</span></a><a href="m14_lectura_causal.html" title="14. Lectura causal del lazo de control"><span class="n">14</span> <span class="v">+0,16</span></a></nav>
+    <div class="assay"><span><b>2</b> apuntes de origen</span><span><b>2</b> figuras</span><span><b>3</b> scripts</span></div>
+  </div>
+</header>
+<main class="container">
+<section class="block is-brief"><span class="kicker">Resumen</span><h2 class="block-title">En 30 segundos</h2><ul><li><strong>0,62 vs 0,77.</strong> El clasificador atrapa el 62 % de las horas fuera de especificación. Repetir el último análisis atrapa el 77 %.</li><li><strong>El 81 % de acierto es una trampa.</strong> Un modelo que diga &quot;todo en spec&quot; acierta 81 veces de cada 100 y no atrapa ni un problema.</li><li><strong>Precisión y exhaustividad se mueven en sentidos contrarios.</strong> El umbral decide cuál sacrificas, y es decisión de ingeniería, no del modelo.</li><li><strong>La matriz de confusión es el reporte, no el acierto.</strong> 113 atrapados, 26 falsas alarmas, 69 escapados.</li><li><strong>Aquí el proyecto se equivocó de rival.</strong> El apunte original comparó contra &quot;siempre en spec&quot;. Contra la persistencia, el clasificador pierde.</li></ul></section>
+<section class="block "><span class="kicker">Contexto</span><h2 class="block-title">Qué resuelve este módulo</h2><p>Hasta aquí el proyecto ha predicho un número. Una planta rara vez quiere un número. Quiere un aviso: este lote va a salir fuera de especificación.</p><p>Eso es clasificación, la otra mitad del aprendizaje supervisado. Cambia el objetivo, cambian las métricas, y aparece una trampa que se lleva por delante a mucha gente: <strong>el acierto</strong>.</p><p>Y aparece la lección más cara del proyecto por segunda vez. El baseline correcto no es el que resulta cómodo.</p></section>
+<section class="block is-toy"><span class="kicker">A mano</span><h2 class="block-title">Antes de la teoría: un ejemplo de juguete</h2><p>Cien lotes de un turno. Veinte salieron fuera de especificación.</p><h3 class="sub">Paso 1. El modelo que no hace nada</h3><p>Un modelo que dice &quot;todos en spec&quot;, siempre.</p><pre><code>acierta:  los 80 lotes que sí estaban en spec
+falla:    los 20 que no
+acierto = 80 / 100 = 0,80</code></pre><p><strong>80 % de acierto sin atrapar ni un solo problema.</strong> Ese es el número que hay que desconfiar.</p><h3 class="sub">Paso 2. Un clasificador prudente</h3><p>Ahora un modelo que avisa 15 veces. De esas 15 alarmas, 12 eran problemas reales y 3 eran falsas.</p><div class="table-wrap"><table><thead><tr><th></th><th>Dijo &quot;en spec&quot;</th><th>Dijo &quot;FUERA&quot;</th></tr></thead><tbody><tr><td><strong>Estaba en spec</strong></td><td>77</td><td>3</td></tr><tr><td><strong>Estaba FUERA</strong></td><td>8</td><td>12</td></tr></tbody></table></div><p>Tres números salen de ahí:</p><pre><code>acierto      = (77 + 12) / 100 = 89 / 100 = 0,89
+precisión    = 12 / (12 + 3)   = 12 / 15  = 0,80
+exhaustividad = 12 / (12 + 8)  = 12 / 20  = 0,60</code></pre><p><strong>Precisión</strong> contesta: de las veces que di la alarma, cuántas eran de verdad. <strong>Exhaustividad</strong> contesta: de los problemas que hubo, cuántos atrapé.</p><h3 class="sub">Paso 3. Bajar el umbral para atrapar más</h3><p>El mismo modelo, avisando en cuanto sospecha. Ahora da 30 alarmas: 18 reales y 12 falsas.</p><div class="table-wrap"><table><thead><tr><th></th><th>Dijo &quot;en spec&quot;</th><th>Dijo &quot;FUERA&quot;</th></tr></thead><tbody><tr><td><strong>Estaba en spec</strong></td><td>68</td><td>12</td></tr><tr><td><strong>Estaba FUERA</strong></td><td>2</td><td>18</td></tr></tbody></table></div><pre><code>acierto      = (68 + 18) / 100 = 86 / 100 = 0,86
+precisión    = 18 / (18 + 12)  = 18 / 30  = 0,60
+exhaustividad = 18 / (18 + 2)  = 18 / 20  = 0,90</code></pre><h3 class="sub">Paso 4. Comparar los dos umbrales</h3><div class="table-wrap"><table><thead><tr><th>Umbral</th><th>Acierto</th><th>Precisión</th><th>Exhaustividad</th><th>Se escapan</th></tr></thead><tbody><tr><td>Prudente</td><td>0,89</td><td>0,80</td><td>0,60</td><td>8</td></tr><tr><td>Sensible</td><td>0,86</td><td>0,60</td><td>0,90</td><td>2</td></tr></tbody></table></div><p><strong>El umbral sensible atrapa 6 problemas más y tiene menos acierto.</strong> Precisión y exhaustividad se intercambiaron casi exactamente, de 0,80 y 0,60 a 0,60 y 0,90.</p><h3 class="sub">Paso 5. Qué acaba de pasar</h3><p>Ninguno de los dos umbrales es el correcto por sí mismo. Depende de qué cuesta más.</p><p>Si mandar un lote fuera de especificación cuesta un reproceso caro, se escogen los 2 escapados. Si cada falsa alarma para la planta media hora, se escogen las 3 falsas. <strong>Esa elección es del metalurgista, no del modelo.</strong></p><p>Y el paso 1 deja el aviso de siempre. Un acierto de 0,80 puede significar cero problemas atrapados.</p></section>
+<section class="block is-terms"><span class="kicker">Términos</span><h2 class="block-title">Glosario</h2><details class="fold"><summary>13 términos, en palabras simples</summary><ul><li><strong>Clasificación.</strong> Predecir a qué categoría pertenece algo, en vez de predecir un número.</li><li><strong>Umbral de especificación.</strong> El valor a partir del cual el concentrado no cumple. Aquí, 3,5 % de SiO₂.</li><li><strong>Clase positiva.</strong> La que interesa detectar. Aquí, el lote fuera de especificación.</li><li><strong>Desbalance de clases.</strong> Que una categoría sea mucho más frecuente que la otra. Aquí, 81 contra 19.</li><li><strong>Matriz de confusión.</strong> La tabla de cuatro casillas con aciertos y errores de cada tipo.</li><li><strong>Verdadero positivo.</strong> Problema real que el modelo atrapó.</li><li><strong>Falso positivo.</strong> Alarma que no era nada. Falsa alarma.</li><li><strong>Falso negativo.</strong> Problema que se escapó.</li><li><strong>Acierto.</strong> Fracción de casos clasificados bien. Con clases desbalanceadas, engaña.</li><li><strong>Precisión.</strong> De las alarmas dadas, cuántas eran reales.</li><li><strong>Exhaustividad.</strong> De los problemas reales, cuántos se atraparon. En inglés, <em>recall</em>.</li><li><strong>F1.</strong> El promedio armónico de precisión y exhaustividad. Resume las dos en un número.</li><li><strong>Umbral de decisión.</strong> La probabilidad a partir de la cual el modelo da la alarma. Por defecto 0,5, y casi nunca es la mejor.</li></ul></details></section>
+<section class="block is-method"><span class="kicker">Método</span><h2 class="block-title">Paso a paso</h2><h3 class="sub">Paso 1. Convertir el número en categoría</h3><p>El objetivo pasa de ser la sílice a ser una respuesta de sí o no: por encima de 3,5 % es fuera de especificación.</p><p>El umbral no se inventa. 3,5 deja el 18 % de las horas fuera, que es un desbalance realista y cae cerca del percentil 82 de la distribución del módulo 1.</p><h3 class="sub">Paso 2. Usar las mismas variables del módulo 5</h3><p>Las columnas de proceso más las cuatro de memoria. Cambia el objetivo y la métrica, no los datos.</p><h3 class="sub">Paso 3. Medir con la matriz, no con el acierto</h3><p>Un solo número no puede describir dos tipos de error distintos. La matriz de confusión los separa.</p><h3 class="sub">Paso 4. Elegir el umbral como decisión de ingeniería</h3><p>El modelo entrega una probabilidad. Convertirla en alarma es una decisión aparte, y depende del coste relativo de cada error.</p><h3 class="sub">Paso 5. Buscar el rival correcto</h3><p>Antes de celebrar cualquier métrica hay que preguntarse contra qué se compara. &quot;Siempre en spec&quot; es un rival que no atrapa nada, así que superarlo demuestra poco.</p><p>El rival honesto es el mismo que en regresión: <strong>repetir el último análisis del laboratorio</strong>. Si la hora anterior estaba fuera de especificación, avisa.</p></section>
+<section class="block is-code"><span class="kicker">Código</span><h2 class="block-title">El código, por partes</h2><h3 class="sub">Paso 1. Construir la categoría y ver el desbalance</h3><pre><code class="language-python">THRESHOLD = 3.5
+y = (data[TARGET] &gt; THRESHOLD).astype(int)
+print(f&quot;Horas fuera de spec -&gt; train {y[is_train].mean():.1%}  test {y[~is_train].mean():.1%}&quot;)</code></pre><details class="fold"><summary>línea por línea, 3 entradas</summary><dl class="annot"><dt><code>data[TARGET] &gt; THRESHOLD</code></dt><dd>Compara toda la columna con el número y devuelve verdadero o falso por fila.</dd><dt><code>.astype(int)</code></dt><dd>Convierte verdadero en 1 y falso en 0, que es lo que espera el clasificador.</dd><dt><code>{...:.1%}</code></dt><dd>Formatea como porcentaje con un decimal. El 0.19 se imprime como 19.0%.</dd></dl></details><div class="output"><span class="output-tag">sale</span><pre><code>Umbral fuera-de-spec: 3.5 % SiO2
+Horas fuera de spec -&gt; train 17.2%  test 19.0%</code></pre></div><figure class="fig"><img src="../figuras/fig_m6_desbalance.98fa3dbe.png" alt="Izquierda: el reparto real de las horas, 81 contra 19. Derecha: la trampa del acierto, con el baseline que acierta 0,81 sin atrapar nada." loading="lazy"><figcaption>Izquierda: el reparto real de las horas, 81 contra 19. Derecha: la trampa del acierto, con el baseline que acierta 0,81 sin atrapar nada.</figcaption></figure><h3 class="sub">Paso 2. Entrenar el clasificador y sacar la matriz</h3><pre><code class="language-python">from sklearn.ensemble import HistGradientBoostingClassifier
+from sklearn.metrics import confusion_matrix, precision_score, recall_score
+
+clf = HistGradientBoostingClassifier(random_state=0).fit(X_train, y_train)
+print(confusion_matrix(y_test, clf.predict(X_test)))</code></pre><details class="fold"><summary>línea por línea, 3 entradas</summary><dl class="annot"><dt><code>HistGradientBoostingClassifier</code></dt><dd>El mismo boosting del módulo 5, en su versión para categorías.</dd><dt><code>confusion_matrix(real, predicho)</code></dt><dd>Devuelve las cuatro casillas en el orden [[TN, FP], [FN, TP]].</dd><dt><code>precision_score, recall_score</code></dt><dd>Calculan las dos métricas a partir de esas casillas.</dd></dl></details><div class="output"><span class="output-tag">sale</span><pre><code>Accuracy del baseline tonto (siempre &#x27;en spec&#x27;): 0.810
+Accuracy del modelo                            : 0.901
+
+Matriz de confusion [[TN, FP], [FN, TP]]:
+[[752  26]
+ [ 69 113]]
+Precision: 0.813
+Recall   : 0.621
+F1       : 0.704</code></pre></div><figure class="fig"><img src="../figuras/fig_m6_confusion.07de84a3.png" alt="Izquierda: la matriz de confusión completa. Derecha: cómo se mueven precisión y exhaustividad al cambiar el umbral de decisión." loading="lazy"><figcaption>Izquierda: la matriz de confusión completa. Derecha: cómo se mueven precisión y exhaustividad al cambiar el umbral de decisión.</figcaption></figure><p>Leído en palabras: hubo 182 horas fuera de especificación. El modelo atrapó <strong>113</strong>, dejó escapar <strong>69</strong> y dio <strong>26 falsas alarmas</strong>.</p><h3 class="sub">Paso 3. Poner el rival correcto enfrente</h3><pre><code class="language-python">alarma_persistencia = (test[&quot;sil_lag1&quot;] &gt; THRESHOLD).astype(int)
+print(confusion_matrix(y_test, alarma_persistencia))</code></pre><details class="fold"><summary>línea por línea, 1 entrada</summary><dl class="annot"><dt><code>test[&quot;sil_lag1&quot;] &gt; THRESHOLD</code></dt><dd>La regla entera del rival: si la hora anterior estaba fuera, avisa. Sin modelo y sin entrenar.</dd></dl></details><div class="output"><span class="output-tag">sale</span><pre><code>  aviso               acierto  precisión   atrapa  falsas  se escapan
+  siempre en spec       0.810          -        0       0         182
+  persistencia          0.912      0.769      140      42          42
+  clasificador          0.901      0.813      113      26          69</code></pre></div></section>
+<section class="block is-result"><span class="kicker">Resultado</span><h2 class="block-title">El resultado, medido</h2><p><strong>Qué esperábamos.</strong> Que el clasificador ganara con claridad, porque el acierto sube de 0,810 a 0,901 y atrapa 113 problemas donde el baseline atrapaba cero.</p><p><strong>Qué salió.</strong> Contra el rival correcto, el clasificador pierde.</p><div class="table-wrap"><table><thead><tr><th>Aviso</th><th>Acierto</th><th>Precisión</th><th>Atrapa</th><th>Falsas alarmas</th><th>Se escapan</th></tr></thead><tbody><tr><td>Siempre en spec</td><td>0,810</td><td>sin alarmas</td><td>0 de 182</td><td>0</td><td>182</td></tr><tr><td><strong>Repetir el último análisis</strong></td><td><strong>0,912</strong></td><td>0,769</td><td><strong>140</strong></td><td>42</td><td>42</td></tr><tr><td>Clasificador entrenado</td><td>0,901</td><td>0,813</td><td>113</td><td>26</td><td>69</td></tr></tbody></table></div><p><strong>Qué significa.</strong> La persistencia atrapa <strong>27 problemas más</strong> y da <strong>16 falsas alarmas más</strong>. Y tiene mejor acierto, 0,912 contra 0,901.</p><p>Para decidir cuál conviene hace falta el coste de cada error. En una planta, mandar concentrado fuera de especificación suele costar bastante más que una comprobación de más. Con ese criterio, la regla sin modelo también gana aquí.</p><h3 class="sub">La corrección que el proyecto no había hecho</h3><p>Este es el mismo error de baseline que el módulo 7 corrige para la regresión, y que en su día nadie aplicó a la clasificación.</p><p>El apunte original comparó el clasificador contra &quot;siempre en spec&quot; y lo dio por bueno. Ese rival no atrapa nada, así que superarlo es inevitable. Medido contra la persistencia, la ventaja desaparece.</p><p>La lección no es que la clasificación esté mal planteada. Es que <strong>un baseline cómodo convierte cualquier modelo en un éxito</strong>, y hay que elegirlo antes de ver el resultado.</p><h3 class="sub">Lo que este módulo deja abierto</h3><p>El clasificador tiene una virtud que la tabla sí recoge: da menos falsas alarmas, 26 contra 42. Si el coste de parar la planta fuera muy alto, esa diferencia podría inclinar la balanza.</p><p>Falta saber de dónde saca el modelo sus avisos. Si se apoya casi entero en la sílice de la hora anterior, entonces está imitando a la persistencia con pasos de más. El módulo 7 lo mide con importancia por permutación y con SHAP.</p></section>
+<section class="block is-warning"><span class="kicker">Trampas</span><h2 class="block-title">Ojo</h2><ul><li><strong>El acierto con clases desbalanceadas no significa nada.</strong> Aquí 0,810 se consigue sin atrapar un solo problema.</li><li><strong>Precisión y exhaustividad no suben juntas.</strong> Bajar el umbral atrapa más y ensucia con falsas alarmas. Es un intercambio, no una mejora.</li><li><strong>El umbral por defecto es 0,5 y casi nunca es el correcto.</strong> Sale de una convención, no del coste de los errores de tu proceso.</li><li><strong>Elegir el umbral es decisión del proceso.</strong> El modelo entrega probabilidades. Quién paga el reproceso decide dónde cortar.</li><li><strong>Un baseline que no atrapa nada no es un baseline.</strong> Es un espantapájaros.</li><li><strong>La matriz de confusión se reporta entera.</strong> Un F1 suelto esconde si el problema son las falsas alarmas o los escapados.</li></ul></section>
+<section class="block is-bridge"><span class="kicker">Analogía</span><h2 class="block-title">Puente metalúrgico</h2><p>Esto es exactamente un <strong>sistema de alarma de ley en la sala de control</strong>, y las dos métricas tienen nombre de planta.</p><p>La exhaustividad es <strong>cuántos lotes malos se te escapan al puerto</strong>. La precisión es <strong>cuántas veces paras la planta para nada</strong>. Ningún metalurgista necesita que le expliquen la diferencia, ni el intercambio entre las dos.</p><p>El umbral es <strong>dónde pones la consigna de la alarma</strong>. Ponerla muy ajustada dispara todo el turno y el operador acaba ignorándola, que es el peor resultado posible. Ponerla holgada deja pasar lotes malos.</p><p>Y la trampa del acierto es la <strong>carta de control que casi siempre dice que todo está bien</strong>. Una planta que cumple especificación el 81 % del tiempo hace que &quot;no pasa nada&quot; sea una predicción muy buena y completamente inútil. El valor está en las excepciones, no en la media.</p></section>
+<section class="block is-review"><span class="kicker">Repaso</span><h2 class="block-title">Repaso</h2><details><summary>Un modelo acierta el 81 % de las veces. ¿Es bueno?</summary><p>No se puede saber sin conocer el reparto de clases. Aquí el 81 % de las horas están en especificación, así que un modelo que diga siempre &quot;en spec&quot; acierta exactamente ese 81 % sin atrapar un solo problema.</p><p>Con clases desbalanceadas, el acierto mide sobre todo la clase mayoritaria. Hay que pedir la matriz de confusión entera, o al menos precisión y exhaustividad sobre la clase que importa. En este proyecto el modelo llega a 0,901 de acierto, y el número informativo es otro: atrapa 113 de 182 problemas.</p></details><details><summary>Explica precisión y exhaustividad como se lo dirías a un jefe de planta.</summary><p>Son las dos formas de equivocarse con una alarma, y no se pueden mejorar las dos a la vez.</p><p>La exhaustividad es cuántos lotes malos atrapas de todos los que hubo. Si es 0,62, se te escapan casi cuatro de cada diez. La precisión es cuántas de tus alarmas eran de verdad. Si es 0,81, una de cada cinco veces paras a comprobar para nada.</p><p>Bajar el umbral atrapa más lotes malos y multiplica las paradas inútiles. Subirlo hace lo contrario. Dónde poner ese umbral depende de qué cuesta más en tu planta.</p></details><details><summary>El clasificador atrapa 113 problemas y el baseline atrapa 0. ¿Por qué no es una victoria?</summary><p>Porque ese baseline es un espantapájaros. &quot;Siempre en spec&quot; no atrapa nada por construcción, así que superarlo no demuestra habilidad.</p><p>El rival honesto usa la información que la planta ya tiene: el último análisis del laboratorio. Con esa regla, sin entrenar nada, se atrapan 140 problemas de 182 y el acierto es 0,912, mejor que el 0,901 del modelo. La comparación correcta cambia el veredicto por completo. Es el mismo error que el módulo 7 destapa para la regresión, aplicado aquí.</p></details><details><summary>La persistencia atrapa 140 y el modelo 113, pero el modelo da 26 falsas alarmas contra 42. ¿Cuál eliges?</summary><p>Depende del coste de cada error, y esa es la respuesta correcta en una entrevista.</p><p>Si una falsa alarma cuesta media hora de planta parada, las 16 falsas alarmas de más de la persistencia cuestan ocho horas. Si un lote fuera de especificación cuesta un reproceso completo, los 27 problemas de más que atrapa la persistencia valen mucho más que eso. En metalurgia lo segundo suele pesar más, así que la regla sin modelo gana. Lo que no se puede es decidirlo mirando solo el acierto.</p></details><details><summary>¿Qué habría que comprobar antes de descartar el clasificador del todo?</summary><p>De dónde saca sus decisiones. Si su variable dominante es la sílice de la hora anterior, entonces está reproduciendo la persistencia con pasos de más, y no hay nada que rescatar.</p><p>Si en cambio se apoya también en variables de proceso, podría estar detectando algo que la persistencia no ve, aunque hoy lo haga peor en conjunto. Esa comprobación se hace con importancia por permutación y con SHAP, y es justo lo que mide el módulo 7.</p></details></section>
+</main>
+<nav class="pager"><a class="prev" href="m05_darle_memoria_al_modelo.html"><span class="dir">Anterior</span>5. Darle memoria al modelo</a><a class="next" href="m07_contra_que_se_compara.html"><span class="dir">Siguiente</span>7. Contra qué se compara un modelo</a></nav>
+<footer class="footer">
+  <div class="footer-inner">
+    <span>S&iacute;lice / M&oacute;dulo 6</span>
+    <span>generado el 2026-08-20</span>
+    <span>fuente: los 31 apuntes originales, sus scripts y el CSV de la planta</span>
+  </div>
+</footer>
+</body>
+</html>

@@ -1,0 +1,495 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sampling — The Power of Statistics</title>
+<style>
+/* ============================================================================
+   Concentra — design tokens and shared components.
+   Inlined into every generated page by load_style(), so pages stay self-contained
+   and work offline from file:// with no external requests.
+
+   Direction: an assay lab, not a tech dashboard. The palette is taken from ore
+   and lab materials (chalcopyrite brass, malachite, hematite, quartz) on warm
+   graphite rather than the blue-black + neon of a generic dark UI. Type is
+   Bahnschrift, the DIN-descended grotesque that Windows ships and that lives on
+   machinery plates and technical drawings, over Corbel for reading.
+   ========================================================================== */
+
+:root {
+  /* Ground and surfaces: warm graphite, the colour of rock dust, not blue-black */
+  --rock: #1a1714;
+  --bench: #221e19;
+  --core: #2b251f;
+  --seam: #3d352c;
+
+  /* Ore palette. No blue and no purple anywhere: those are the tones that make a
+     page read as generated, and this palette comes from the ores instead. */
+  --brass: #c9a227;      /* chalcopyrite, the primary accent */
+  --malachite: #5d9b7a;  /* verified output, results that came out right */
+  --hematite: #b04a35;   /* iron oxide, pitfalls and warnings */
+
+  /* Text */
+  --quartz: #ece7de;
+  --dust: #9a9186;
+  --shadowed: #6f675c;
+
+  --display: Bahnschrift, 'DIN Alternate', 'Segoe UI Semibold', system-ui, sans-serif;
+  --body: Corbel, Candara, 'Segoe UI', system-ui, sans-serif;
+  --data: Consolas, 'Cascadia Mono', ui-monospace, monospace;
+
+  /* In px, not ch: ch scales with font-size, so a heading ended up wider than a
+     paragraph and the page had four different right edges instead of two. */
+  --measure: 640px;
+  --wide: 900px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--rock);
+  color: var(--quartz);
+  font-family: var(--body);
+  font-size: 16px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection { background: var(--brass); color: var(--rock); }
+
+:focus-visible {
+  outline: 2px solid var(--brass);
+  outline-offset: 3px;
+}
+
+/* --------------------------------------------------------------- the signature
+   A sieve series: ticks that get finer from left to right, coarse feed to fine
+   concentrate. It is the one ornament on the page and appears exactly twice —
+   under the wordmark and under a page title. */
+.mesh {
+  height: 10px;
+  background-image:
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 16px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 9px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 5px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 3px);
+  background-size: 25% 100%;
+  background-position: 0 0, 25% 0, 50% 0, 75% 0;
+  background-repeat: no-repeat;
+  opacity: .8;
+  transform-origin: left center;
+  animation: sieve .55s cubic-bezier(.2, .8, .3, 1) both;
+}
+@keyframes sieve { from { transform: scaleX(0); opacity: 0; } to { transform: scaleX(1); opacity: .8; } }
+@media (prefers-reduced-motion: reduce) {
+  .mesh { animation: none; }
+  * { transition: none !important; }
+}
+
+/* ------------------------------------------------------------------ page head */
+.header {
+  border-bottom: 1px solid var(--seam);
+  padding: 3.2rem 2rem 0;
+  background: linear-gradient(180deg, #221d16 0%, var(--rock) 100%);
+}
+.header-content { max-width: 1080px; margin: 0 auto; }
+
+.eyebrow {
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--brass);
+  margin-bottom: 1rem;
+}
+.eyebrow a { color: inherit; text-decoration: none; border-bottom: 1px solid transparent; }
+.eyebrow a:hover { border-bottom-color: var(--brass); }
+
+.header h1 {
+  font-family: var(--display);
+  font-size: clamp(2rem, 4.5vw, 3.1rem);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -.015em;
+  color: var(--quartz);
+  max-width: 20ch;
+}
+.header .subtitle {
+  color: var(--dust);
+  max-width: var(--measure);
+  margin-top: 1rem;
+  font-size: 1.02rem;
+}
+.header .mesh { margin: 1.8rem 0 0; }
+
+/* An assay line: the real composition of the module, in lab-report shorthand. */
+.assay {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.4rem;
+  font-family: var(--data);
+  font-size: .78rem;
+  color: var(--shadowed);
+  padding: .9rem 0 1.6rem;
+  letter-spacing: .04em;
+}
+.assay b { color: var(--dust); font-weight: 400; }
+
+/* --------------------------------------------------------------------- layout */
+/* The container hugs the widest block, so there is no orphan edge past the content. */
+.container { max-width: var(--wide); margin: 3rem auto 5rem; padding: 0 2rem; }
+
+/* Two deliberate right edges and no more: prose stops at the reading measure, and
+   only the things that genuinely need room (code, output, figures, big tables) run
+   out to the full column. */
+.section-block {
+  border-top: 1px solid var(--seam);
+  padding: 2rem 0 2.4rem;
+}
+.section-block > p,
+.section-block > ul,
+.section-block > ol,
+.section-block h3.sub,
+.section-block h4.sub,
+.section-block blockquote,
+details > *:not(summary) { max-width: var(--measure); }
+.section-block:first-child { border-top: 0; padding-top: .5rem; }
+
+/* The kicker names what kind of content follows: context, method, pitfalls.
+   It replaces decorative icons with something that actually classifies. */
+.kicker {
+  font-family: var(--data);
+  font-size: .68rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  display: block;
+  margin-bottom: .5rem;
+}
+.section-title {
+  font-family: var(--display);
+  font-size: 1.55rem;
+  font-weight: 600;
+  letter-spacing: -.01em;
+  line-height: 1.2;
+  margin-bottom: 1.2rem;
+  color: var(--quartz);
+}
+.is-warning .kicker { color: var(--hematite); }
+.is-warning .section-title { color: #e8c4b8; }
+.is-bridge .kicker, .is-decision .kicker { color: var(--malachite); }
+.is-toy .kicker, .is-result .kicker, .is-question .kicker { color: var(--brass); }
+
+/* ---------------------------------------------------------------------- prose */
+/* Justified with hyphenation. In Spanish, justifying without hyphens opens rivers of
+   white space and reads worse than ragged right; lang="es" is what feeds the
+   dictionary. Tables, code, captions and summaries stay ragged on purpose. */
+.section-block p,
+.section-block li,
+details > *:not(summary) {
+  text-align: justify;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+}
+.section-block p { margin-bottom: 1rem; }
+.section-block p:last-child { margin-bottom: 0; }
+/* Indent with padding, not margin, so the bullet sits inside the measure instead of
+   pushing the list 1.2rem past the right edge of the paragraphs. */
+.section-block ul, .section-block ol { margin: 0 0 1rem; padding-left: 1.2rem; }
+.section-block li { margin-bottom: .55rem; padding-left: .2rem; }
+.section-block li::marker { color: var(--brass); }
+td, th, figcaption, .res li, .assay { text-align: left; hyphens: manual; }
+a { color: var(--brass); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+a:hover { text-decoration-thickness: 2px; }
+strong { color: #fff; font-weight: 700; }
+em { color: var(--dust); font-style: italic; }
+
+h3.sub {
+  font-family: var(--display);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--brass);
+  margin: 2rem 0 .7rem;
+  letter-spacing: -.005em;
+}
+h3.sub:first-child { margin-top: 0; }
+h4.sub {
+  font-family: var(--display);
+  font-size: .98rem;
+  font-weight: 600;
+  color: var(--dust);
+  margin: 1.3rem 0 .5rem;
+}
+
+code {
+  font-family: var(--data);
+  font-size: .9em;
+  background: var(--core);
+  border-radius: 3px;
+  padding: .08rem .32rem;
+  color: var(--brass);
+}
+pre {
+  background: #14110e;
+  border: 1px solid var(--seam);
+  border-left: 2px solid var(--seam);
+  border-radius: 2px;
+  padding: 1.1rem 1.2rem;
+  overflow-x: auto;
+  margin-bottom: 1rem;
+}
+pre code {
+  background: none; padding: 0; color: var(--quartz);
+  font-size: .87rem; line-height: 1.6;
+}
+
+/* What the code prints. Malachite: the material that came out of the process. */
+.output {
+  position: relative;
+  border: 1px solid rgba(93, 155, 122, .32);
+  border-left: 2px solid var(--malachite);
+  border-radius: 2px;
+  background: rgba(93, 155, 122, .06);
+  padding: 1.7rem 1.2rem 1rem;
+  margin-bottom: 1rem;
+  overflow-x: auto;
+}
+.output-tag {
+  position: absolute; top: .5rem; left: 1.2rem;
+  font-family: var(--data); font-size: .64rem;
+  letter-spacing: .18em; text-transform: uppercase; color: var(--malachite);
+}
+.output pre {
+  background: none; border: 0; padding: 0; margin: 0;
+  font-family: var(--data); font-size: .85rem;
+  color: var(--quartz); white-space: pre-wrap;
+}
+
+/* Line by line explanation of a code block, for a reader new to programming.
+   Two columns: the fragment of code, and what it does. */
+.annot {
+  display: grid;
+  grid-template-columns: minmax(9rem, auto) 1fr;
+  gap: .1rem 1.2rem;
+  align-items: baseline;
+  max-width: var(--wide);
+  margin: -.4rem 0 1.4rem;
+  padding: .9rem 1.1rem 1rem;
+  border: 1px solid var(--seam);
+  border-top: 0;
+  border-radius: 0 0 2px 2px;
+  background: rgba(201, 162, 39, .04);
+}
+.annot-head {
+  grid-column: 1 / -1;
+  font-family: var(--data);
+  font-size: .64rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  margin-bottom: .5rem;
+}
+.annot dt { padding: .35rem 0; }
+.annot dt code {
+  background: var(--core);
+  color: var(--brass);
+  font-size: .82rem;
+  white-space: nowrap;
+}
+.annot dd {
+  padding: .35rem 0;
+  margin: 0;
+  color: var(--dust);
+  font-size: .93rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(61, 53, 44, .5);
+}
+.annot dt { border-bottom: 1px solid rgba(61, 53, 44, .5); }
+.annot dt:last-of-type, .annot dd:last-of-type { border-bottom: 0; }
+/* The code block sits directly on top of its annotation, as one unit. */
+pre:has(+ .annot) { margin-bottom: 0; border-radius: 2px 2px 0 0; }
+
+@media (max-width: 640px) {
+  .annot { grid-template-columns: 1fr; gap: 0; }
+  .annot dt { border-bottom: 0; padding-bottom: 0; }
+  .annot dd { padding-top: .15rem; }
+}
+
+blockquote {
+  border-left: 2px solid var(--brass);
+  padding: .3rem 0 .3rem 1.3rem;
+  margin: 0 0 1rem;
+  font-family: var(--display);
+  font-size: 1.2rem;
+  font-weight: 400;
+  line-height: 1.4;
+  color: var(--quartz);
+}
+
+/* Tables read as assay data: mono figures, hairline rules, no zebra fill.
+   They take the width they need instead of being stretched to the full column,
+   which is what left a two-column table floating in empty space. */
+.table-wrap { overflow-x: auto; margin-bottom: 1rem; }
+table { border-collapse: collapse; width: auto; max-width: 100%; font-size: .93rem; }
+th, td {
+  border-bottom: 1px solid var(--seam);
+  padding: .55rem .8rem .55rem 0;
+  text-align: left;
+  vertical-align: top;
+}
+th {
+  font-family: var(--data);
+  font-size: .7rem;
+  font-weight: 400;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  border-bottom-color: var(--brass);
+}
+td:first-child { color: var(--quartz); }
+
+/* Review questions: closed by default, so they work as recall practice. */
+details {
+  border-top: 1px solid var(--seam);
+  padding: .9rem 0;
+}
+details:last-child { border-bottom: 1px solid var(--seam); }
+summary {
+  cursor: pointer;
+  font-family: var(--display);
+  font-size: 1.02rem;
+  font-weight: 600;
+  color: var(--quartz);
+  list-style: none;
+  display: flex;
+  gap: .7rem;
+  align-items: baseline;
+}
+summary::-webkit-details-marker { display: none; }
+summary::before {
+  content: '+';
+  font-family: var(--data);
+  color: var(--brass);
+  font-size: .95rem;
+}
+details[open] summary::before { content: '−'; }
+details[open] summary { color: var(--brass); margin-bottom: .7rem; }
+details > *:not(summary) { color: var(--dust); }
+
+figure.fig {
+  margin: 1.6rem 0;
+  border: 1px solid var(--seam);
+  padding: .7rem;
+  background: var(--bench);
+}
+figure.fig img { width: 100%; height: auto; display: block; }
+/* The interactive twin of a figure. Its aspect matches the still one, 10 by 4.4, so a
+   case sheet keeps the same rhythm whichever kind of figure comes next. */
+figure.fig.is-live iframe {
+  width: 100%;
+  /* Matches INTERACTIVE_HEIGHT in src/make_figures.py. It used to be an aspect ratio, and
+     that made the figure's height depend on the window: the caption and the legend are
+     placed at fractions of the plot area, so on a wide screen they were pushed past the
+     bottom margin, clipping the caption and covering the x-axis title. */
+  height: 520px;
+  border: 0;
+  display: block;
+}
+figure.fig figcaption {
+  font-family: var(--data);
+  font-size: .72rem;
+  color: var(--shadowed);
+  margin-top: .6rem;
+  letter-spacing: .04em;
+}
+
+/* File listings on a case sheet */
+.res { list-style: none; margin-left: 0 !important; }
+.res li {
+  display: flex; align-items: baseline; gap: .8rem; flex-wrap: wrap;
+  padding: .5rem 0; border-bottom: 1px solid var(--seam); margin-bottom: 0;
+}
+.res .path { font-family: var(--data); font-size: .74rem; color: var(--shadowed); }
+.res .size { font-family: var(--data); font-size: .74rem; color: var(--shadowed); margin-left: auto; }
+.res .gone { font-family: var(--data); font-size: .74rem; color: var(--hematite); }
+
+.footer {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 2rem 4rem;
+  color: var(--shadowed);
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .03em;
+}
+
+@media (max-width: 640px) {
+  body { font-size: 15px; }
+  .header { padding: 2rem 1.2rem 0; }
+  .container { padding: 0 1.2rem; margin-top: 2rem; }
+  .footer { padding: 0 1.2rem 3rem; }
+}
+
+@media print {
+  body { background: #fff; color: #16130f; }
+  .header { background: none; border-bottom: 1px solid #bbb; padding-top: 0; }
+  .header h1, .section-title, summary { color: #16130f; }
+  .mesh { animation: none; }
+  .section-block { break-inside: avoid; max-width: none; }
+  pre, .output { background: #f6f4f0; border-color: #ccc; }
+  details:not([open]) > *:not(summary) { display: block; }
+  a { color: #16130f; }
+}
+
+</style>
+</head>
+<body>
+<header class="header">
+  <div class="header-content">
+    <div class="eyebrow"><a href="https://www.coursera.org/learn/the-power-of-statistics">The Power of Statistics</a> / Módulo 3</div>
+    <h1>Sampling</h1>
+    <p class="subtitle">El módulo bisagra del curso. Con seis sondajes y todas sus parejas posibles se ve nacer el teorema del límite central sin una sola fórmula, y por qué la única forma de arreglar una muestra sesgada no es agrandarla.</p>
+    <div class="mesh" role="presentation"></div>
+    <div class="assay"><span><b>5 h</b> de curso</span><span><b>11</b> vídeos</span><span><b>7</b> lecturas</span><span><b>4</b> tareas</span><span><b>3</b> prácticas</span><span><b>2</b> interactivos</span></div>
+  </div>
+</header>
+<main class="container">
+<section class="section-block "><span class="kicker">Contexto</span><h2 class="section-title">Qué resuelve este módulo</h2><p>Aquí se conecta la probabilidad del módulo 2 con la inferencia real de los módulos 4 y 5. La pregunta de fondo es la que sostiene toda la estadística aplicada: <strong>¿cómo puede una muestra pequeña hablar en nombre de una población enorme?</strong></p><p>Hay dos respuestas y las dos importan. Una es matemática, el <strong>teorema del límite central</strong>, que explica por qué los promedios se comportan de forma predecible aunque los datos no. La otra no se arregla con matemáticas: <strong>cómo elegiste la muestra</strong>. Si el método de selección está sesgado, ningún cálculo posterior lo salva.</p></section>
+<section class="section-block is-toy"><span class="kicker">Ejemplo</span><h2 class="section-title">Antes de la teoría: un ejemplo de juguete</h2><p>Un yacimiento diminuto con <strong>seis sondajes</strong>, y sus leyes de cobre en porcentaje:</p><pre><code>1   2   3   4   5   6</code></pre><p>Fíjate en la forma de esta población: <strong>es plana</strong>. Cada valor aparece exactamente una vez. No hay campana, no hay centro destacado, no se parece en nada a una distribución normal.</p><p>La media de la población es fácil:</p><pre><code>(1 + 2 + 3 + 4 + 5 + 6) / 6 = 21 / 6 = 3.5</code></pre><h3 class="sub h3">Paso 1. Ahora saca muestras de dos sondajes, todas las posibles</h3><p>Vamos a tomar muestras de tamaño 2, devolviendo el sondaje cada vez. Eso da 6 × 6 = <strong>36 parejas posibles</strong>. Para cada una calculamos su media. Por ejemplo, la pareja (1, 6) tiene media 3,5; la pareja (2, 2) tiene media 2.</p><p>Cuenta cuántas parejas dan cada media y sale esto:</p><div class="table-wrap"><table><thead><tr><th>Media de la pareja</th><th>Cuántas parejas</th><th></th></tr></thead><tbody><tr><td>1,0</td><td>1</td><td>▇</td></tr><tr><td>1,5</td><td>2</td><td>▇▇</td></tr><tr><td>2,0</td><td>3</td><td>▇▇▇</td></tr><tr><td>2,5</td><td>4</td><td>▇▇▇▇</td></tr><tr><td>3,0</td><td>5</td><td>▇▇▇▇▇</td></tr><tr><td><strong>3,5</strong></td><td><strong>6</strong></td><td>▇▇▇▇▇▇</td></tr><tr><td>4,0</td><td>5</td><td>▇▇▇▇▇</td></tr><tr><td>4,5</td><td>4</td><td>▇▇▇▇</td></tr><tr><td>5,0</td><td>3</td><td>▇▇▇</td></tr><tr><td>5,5</td><td>2</td><td>▇▇</td></tr><tr><td>6,0</td><td>1</td><td>▇</td></tr></tbody></table></div><h3 class="sub h3">Paso 2. Mira lo que acaba de pasar</h3><p>La población era <strong>plana</strong>. Las medias de las muestras forman <strong>un pico</strong>.</p><p>Sin haber hecho nada más que promediar de dos en dos, apareció una forma con centro y con colas. Eso es el teorema del límite central, y ya lo has visto ocurrir con aritmética de primaria. Con muestras de 5 o de 30 en vez de 2, ese pico se parecería cada vez más a la campana normal.</p><p>¿Por qué pasa? Porque para que la media salga 1,0 tienen que coincidir dos extremos (1 y 1), y solo hay una forma de conseguirlo. Para que salga 3,5 hay seis combinaciones distintas (1 y 6, 2 y 5, 3 y 4, y sus inversas). <strong>Los valores extremos se cancelan entre sí y los centrales se acumulan.</strong></p><h3 class="sub h3">Paso 3. Dos cosas más que salen de la misma tabla</h3><p><strong>La media de las medias es exactamente la media de la población.</strong> Si promedias las 36 medias, sale 3,5. Ni más ni menos. La media muestral no está sesgada: acierta en promedio.</p><p><strong>Pero las medias se dispersan menos que los datos.</strong> La población se estira de 1 a 6, mientras que las medias se amontonan alrededor de 3,5. Poniendo números a esa dispersión:</p><pre><code>desviación de la población  = 1.7078
+desviación de las medias    = 1.2076</code></pre><p>Y ahora la parte bonita. Esa segunda cifra no hace falta calcularla contando las 36 parejas, porque hay una fórmula que la da directamente:</p><pre><code>1.7078 / √2 = 1.7078 / 1.4142 = 1.2076</code></pre><p><strong>Coincide exactamente.</strong> Esa fórmula, la desviación de la población dividida entre la raíz del tamaño de muestra, se llama <strong>error estándar</strong>, y es la pieza sobre la que se construye el módulo 4 entero.</p><h3 class="sub h3">Paso 4. Por qué muestrear más deja de compensar</h3><p>Como la fórmula divide entre la <strong>raíz</strong> de n, y no entre n, el beneficio se agota:</p><div class="table-wrap"><table><thead><tr><th>Tamaño de muestra</th><th>Error estándar</th></tr></thead><tbody><tr><td>2</td><td>1,208</td></tr><tr><td>8</td><td>0,604</td></tr><tr><td>32</td><td>0,302</td></tr><tr><td>128</td><td>0,151</td></tr></tbody></table></div><p>Para reducir el error a la mitad hay que <strong>cuadruplicar</strong> la muestra. Pasar de 2 a 8 vale mucho la pena; pasar de 32 a 128 cuesta cuatro veces más y solo mejora otro tanto. En una campaña de perforación eso es la diferencia entre un presupuesto sensato y uno absurdo.</p></section>
+<section class="section-block "><span class="kicker">Términos</span><h2 class="section-title">Glosario</h2><ul><li><strong>Población.</strong> El conjunto completo que te interesa. Nuestros seis sondajes, o los millones de usuarios de una app.</li><li><strong>Muestra.</strong> El subconjunto que realmente mides.</li><li><strong>Parámetro.</strong> Un número que describe a la población, como su media real. Casi nunca se conoce.</li><li><strong>Estadístico.</strong> El mismo número calculado sobre la muestra. Es la estimación que sí tienes.</li><li><strong>Muestreo probabilístico.</strong> Cada elemento tiene una probabilidad conocida y no nula de ser elegido. Es lo que permite generalizar con rigor.</li><li><strong>Muestreo no probabilístico.</strong> La selección no sigue un azar controlado, como encuestar a quien pasa por delante. Más barato y no generaliza igual.</li><li><strong>Muestreo aleatorio simple.</strong> Todos tienen la misma probabilidad, sin más estructura.</li><li><strong>Muestreo estratificado.</strong> Se divide la población en subgrupos y se muestrea dentro de cada uno, garantizando que ninguno se quede fuera.</li><li><strong>Muestreo por conglomerados.</strong> Se eligen al azar grupos enteros y se muestrea todo lo que hay dentro de los elegidos.</li><li><strong>Sesgo de muestreo.</strong> Cuando el método favorece sistemáticamente a cierto tipo de elemento. No se corrige con más datos, solo con mejor método.</li><li><strong>Distribución muestral.</strong> La distribución que forman los estadísticos al repetir el muestreo muchas veces. Nuestra tabla de 36 medias es exactamente eso.</li><li><strong>Teorema del límite central.</strong> La distribución muestral de la media se acerca a una normal según crece el tamaño de muestra, <strong>sin importar la forma de la población</strong>.</li><li><strong>Error estándar.</strong> La desviación estándar de la distribución muestral. Se calcula como la desviación de la población dividida entre la raíz del tamaño de muestra.</li></ul></section>
+<section class="section-block is-recipe"><span class="kicker">Método</span><h2 class="section-title">Paso a paso</h2><h3 class="sub h3">Paso 1. El proceso de muestreo tiene cinco etapas, y van en orden</h3><p>Antes de los detalles, la secuencia completa. Cada etapa se apoya en la anterior, y saltarse una no da error: da un resultado que responde a otra pregunta.</p><div class="table-wrap"><table><thead><tr><th>Etapa</th><th>Qué se decide</th><th>Dónde se explica</th></tr></thead><tbody><tr><td>1. <strong>Identificar la población objetivo</strong></td><td>De quién quieres hablar al final</td><td>Aquí abajo</td></tr><tr><td>2. <strong>Definir el marco muestral</strong></td><td>De dónde puedes sacar de verdad</td><td>Paso 3</td></tr><tr><td>3. <strong>Elegir el método</strong></td><td>Cómo se seleccionan los individuos</td><td>Paso 2</td></tr><tr><td>4. <strong>Determinar el tamaño</strong></td><td>Cuántos hacen falta</td><td>Paso 5</td></tr><tr><td>5. <strong>Extraer la muestra y comprobarla</strong></td><td>Que salió lo que se pedía</td><td>Aquí abajo</td></tr></tbody></table></div><p><strong>La primera etapa es la que más se da por sabida y la que más se equivoca.</strong> &quot;El yacimiento&quot; no es una población: hay que decir si son todos los bloques del modelo, solo los de la zona de óxidos, o solo los que van a entrar a planta este año. De esa frase depende todo lo demás, y si cambia a mitad del análisis, el muestreo deja de valer.</p><p><strong>Y la quinta no es un trámite.</strong> Extraída la muestra, se comprueba que se parece a lo que se pedía: que los estratos salieron en la proporción prevista, que no falta una zona entera, que el tamaño final es el que se calculó y no el que quedó después de descartar. Es la práctica de <strong>validar</strong> del curso anterior, aplicada al muestreo.</p><h3 class="sub h3">Paso 2. Elige el método antes de tocar un solo dato</h3><div class="table-wrap"><table><thead><tr><th>Método</th><th>Cuándo tiene sentido</th></tr></thead><tbody><tr><td>Aleatorio simple</td><td>Población homogénea y con lista completa disponible</td></tr><tr><td>Estratificado</td><td>Hay subgrupos que no puedes permitirte perder, por zona o por tipo</td></tr><tr><td>Por conglomerados</td><td>La población está dispersa y visitar cada punto es caro</td></tr><tr><td>No probabilístico</td><td>Exploración rápida, sabiendo que no vas a poder generalizar</td></tr></tbody></table></div><h3 class="sub h3">Paso 3. Pregúntate quién NO está en tu muestra</h3><p>Esta es la pregunta que salva análisis. Una encuesta por internet excluye a quien no tiene internet. Una encuesta de satisfacción respondida voluntariamente excluye a quien estaba tan descontento que ni contestó. Un muestreo de superficie excluye la roca fresca de profundidad.</p><p>Y lo importante: <strong>eso no se arregla muestreando más</strong>. Un millón de encuestas online sigue sin incluir a quien no tiene internet.</p><h3 class="sub h3">Paso 4. Apóyate en el teorema del límite central para el resto</h3><p>Ya viste que funciona. La consecuencia práctica es enorme: <strong>no necesitas saber qué forma tiene tu variable</strong> para hacer inferencia sobre su media. Puede estar sesgada, puede tener dos picos, da igual; con muestra suficiente, la distribución de las medias se comporta como una normal y puedes usar las fórmulas que la asumen.</p><p>La regla práctica es n ≥ 30, con un matiz: poblaciones muy sesgadas necesitan más.</p><h3 class="sub h3">Paso 5. Calcula el error estándar para saber cuánto vale tu estimación</h3><p>Es la traducción de &quot;¿qué tan firme es este promedio?&quot; a un número. Y recuerda la lección del paso 4 del ejemplo: para mejorarlo a la mitad hay que cuadruplicar el esfuerzo.</p></section>
+<section class="section-block is-recipe"><span class="kicker">Código</span><h2 class="section-title">El código, por partes</h2><h3 class="sub h3">Paso 1. Fabricar una población deliberadamente fea</h3><p>En el ejemplo de juguete la población era plana, que ya era bastante poco normal. Ahora al caso extremo: muchos valores pequeños y una cola larga hacia arriba, que es como se comportan los ingresos, los tiempos de espera o las visualizaciones de un vídeo.</p><pre><code class="language-python">import numpy as np
+
+rng = np.random.default_rng(42)
+population = rng.exponential(scale=1000, size=100_000)
+
+print(f&quot;media de la poblacion   = {population.mean():.1f}&quot;)
+print(f&quot;mediana de la poblacion = {np.median(population):.1f}&quot;)</code></pre><dl class="annot"><div class="annot-head">línea por línea</div><dt><code>np.random.default_rng(42)</code></dt><dd>Crea un <strong>generador de números al azar</strong>. El nombre <code>rng</code> viene de <em>random number generator</em> y es la convención.</dd><dt><code>42</code></dt><dd>Es la <strong>semilla</strong>. Fijarla hace que el azar sea siempre el mismo: si corres esto mañana salen los mismos números. Sin semilla, cada ejecución da resultados distintos y tu análisis deja de ser reproducible. El 42 no tiene nada de especial, es una broma vieja de programadores.</dd><dt><code>rng.exponential(...)</code></dt><dd>Fabrica números siguiendo una distribución exponencial, que es de las más sesgadas que hay. Los estamos inventando a propósito para poner a prueba el teorema.</dd><dt><code>scale=1000</code></dt><dd>El promedio de esa distribución. Sale una población que ronda los 1.000.</dd><dt><code>size=100_000</code></dt><dd>Cuántos valores fabricar: cien mil.</dd><dt><code>100_000</code></dt><dd>Python permite meter guiones bajos dentro de los números para leerlos mejor. <code>100_000</code> y <code>100000</code> son exactamente lo mismo, pero el primero se lee de un vistazo.</dd></dl><div class="output"><span class="output-tag">sale</span><pre>media de la poblacion   = 1003.5
+mediana de la poblacion = 694.7</pre></div><p>Media y mediana separadas por 300 unidades. Esta población no tiene nada de campana, que es justo lo que queremos para la prueba.</p><h3 class="sub h3">Paso 2. Sacar mil muestras y compararlas con la fórmula</h3><p>Aquí está la línea más densa del curso, así que la desmontamos entera.</p><pre><code class="language-python">means = [rng.choice(population, size=30, replace=False).mean() for _ in range(1000)]</code></pre><dl class="annot"><div class="annot-head">línea por línea</div><dt><code>[ ... for ... ]</code></dt><dd>Se llama <strong>comprensión de lista</strong>. Es la forma corta de escribir &quot;haz esto muchas veces y guarda cada resultado en una lista&quot;. Se lee de derecha a izquierda: primero el <code>for</code>, luego lo de delante.</dd><dt><code>range(1000)</code></dt><dd>Genera los números del 0 al 999, o sea mil repeticiones.</dd><dt><code>for _ in range(1000)</code></dt><dd>El guion bajo es un nombre de variable que significa <strong>&quot;no me importa el valor&quot;</strong>. Aquí solo queremos repetir mil veces, no usar el número de vuelta.</dd><dt><code>rng.choice(population, ...)</code></dt><dd>Elige valores al azar de la población. Es sacar una muestra, literalmente.</dd><dt><code>size=30</code></dt><dd>Cada muestra tiene 30 elementos, que es la regla práctica del teorema.</dd><dt><code>replace=False</code></dt><dd>Sin reposición: dentro de una misma muestra no repite el mismo elemento dos veces.</dd><dt><code>.mean()</code></dt><dd>A cada muestra recién sacada se le calcula la media al vuelo. Lo que se guarda en la lista no son los datos, son las mil medias.</dd><dt><code>means =</code></dt><dd>El resultado es una lista de mil números, y esa lista <strong>es</strong> la distribución muestral de la que habla el teorema.</dd></dl><p>Y ahora se comparan con lo que predice la fórmula:</p><pre><code class="language-python">print(f&quot;media de las medias  = {np.mean(means):.1f}&quot;)
+print(f&quot;desviacion observada = {np.std(means):.1f}&quot;)
+print(f&quot;formula sigma/raiz(n)= {population.std() / np.sqrt(30):.1f}&quot;)</code></pre><dl class="annot"><div class="annot-head">línea por línea</div><dt><code>np.mean(means)</code></dt><dd>La media de las mil medias. Debería parecerse a la media real de la población.</dd><dt><code>np.std(means)</code></dt><dd>Cuánto se dispersan esas mil medias entre sí. Esto es el error estándar, medido a la brava.</dd><dt><code>population.std() / np.sqrt(30)</code></dt><dd>El mismo error estándar, pero calculado con la fórmula: desviación de la población dividida entre la raíz de 30.</dd><dt><code>np.sqrt(30)</code></dt><dd>Raíz cuadrada. El nombre viene de <em>square root</em>.</dd></dl><div class="output"><span class="output-tag">sale</span><pre>media de las medias  = 994.4
+desviacion observada = 189.5
+formula sigma/raiz(n)= 183.5</pre></div><p>Dos cosas a la vez. La media de las medias (994,4) queda muy cerca de la real (1003,5), como debe ser. Y la dispersión medida a la brava (189,5) casi coincide con la que predice la fórmula (183,5), <strong>pese a que la población no tiene nada de normal</strong>. No son idénticas porque son mil muestras y no infinitas, pero la diferencia es de un 3 %.</p><h3 class="sub h3">Paso 3. Construir un yacimiento de mentira con tres zonas</h3><p>Para ver el muestreo estratificado hace falta una población con estructura.</p><pre><code class="language-python">import pandas as pd
+
+df = pd.DataFrame({
+    &quot;zona&quot;: [&quot;norte&quot;] * 600 + [&quot;sur&quot;] * 300 + [&quot;este&quot;] * 100,
+    &quot;ley&quot;: rng.normal(2.4, 0.3, 1000),
+})</code></pre><dl class="annot"><div class="annot-head">línea por línea</div><dt><code>pd.DataFrame({...})</code></dt><dd>Crea una tabla. Lo que va dentro, entre llaves, es un <strong>diccionario</strong>: pares de nombre y contenido separados por dos puntos.</dd><dt><code>&quot;zona&quot;: [...]</code></dt><dd>El nombre de la columna a la izquierda, y sus valores a la derecha. Aquí se crean dos columnas, <code>zona</code> y <code>ley</code>.</dd><dt><code>[&quot;norte&quot;] * 600</code></dt><dd>Multiplicar una lista por un número la <strong>repite</strong>. Esto produce una lista con la palabra norte seiscientas veces. Es un atajo muy usado para fabricar datos de prueba.</dd><dt><code>+</code></dt><dd>Sumar listas las <strong>pega una detrás de otra</strong>. Así quedan 600 más 300 más 100, o sea mil filas.</dd><dt><code>rng.normal(2.4, 0.3, 1000)</code></dt><dd>Mil leyes al azar siguiendo una campana centrada en 2,4 con desviación 0,3. Los tres números van en orden: centro, dispersión y cuántos.</dd></dl><h3 class="sub h3">Paso 4. Muestrear respetando las zonas, y compararlo con no hacerlo</h3><pre><code class="language-python">sample = df.groupby(&quot;zona&quot;, group_keys=False).sample(frac=0.10, random_state=42)
+print(sample[&quot;zona&quot;].value_counts().sort_index())</code></pre><dl class="annot"><div class="annot-head">línea por línea</div><dt><code>.groupby(&quot;zona&quot;)</code></dt><dd>Parte la tabla en montones, uno por cada valor distinto de esa columna. Aquí quedan tres montones.</dd><dt><code>.sample(frac=0.10)</code></dt><dd>De <strong>cada montón</strong> por separado coge una fracción. <code>frac=0.10</code> es el 10 %.</dd><dt><code>random_state=42</code></dt><dd>La semilla otra vez, ahora en pandas. Mismo propósito: que el resultado sea reproducible.</dd><dt><code>group_keys=False</code></dt><dd>Un ajuste para que el resultado salga como una tabla normal y no con un índice raro por grupos.</dd><dt><code>sample[&quot;zona&quot;]</code></dt><dd>Los corchetes con un texto dentro seleccionan <strong>una columna</strong> de la tabla.</dd><dt><code>.value_counts()</code></dt><dd>Cuenta cuántas veces aparece cada valor. Es la forma más rápida de ver el reparto de una columna.</dd><dt><code>.sort_index()</code></dt><dd>Ordena el resultado alfabéticamente, para que la salida salga siempre igual y se pueda comparar.</dd></dl><div class="output"><span class="output-tag">sale</span><pre>zona
+este      10
+norte     60
+sur       30</pre></div><p>Exactamente el 10 % de cada zona. Ahora lo mismo pero cogiendo 100 al azar sin mirar de qué zona son:</p><pre><code class="language-python">print(df.sample(n=100, random_state=42)[&quot;zona&quot;].value_counts().sort_index())</code></pre><dl class="annot"><div class="annot-head">línea por línea</div><dt><code>df.sample(n=100)</code></dt><dd>Sin <code>groupby</code> delante, coge 100 filas de toda la tabla sin distinguir zonas.</dd><dt><code>n=100</code></dt><dd>Un número exacto de filas, en vez de una fracción. Las dos formas conviven.</dd></dl><div class="output"><span class="output-tag">sale</span><pre>zona
+este       9
+norte     61
+sur       30</pre></div><p>Se parece, y con mil elementos casi siempre se parecerá. El estratificado gana cuando un estrato es pequeño: si el este tuviera 10 elementos en vez de 100, el aleatorio simple podría no coger ninguno y perderías esa zona entera del análisis.</p></section>
+<section class="section-block is-warning"><span class="kicker">Trampas</span><h2 class="section-title">Ojo</h2><ul><li><strong>Más muestra no arregla el sesgo.</strong> Es la trampa que más caro sale. Si el método de selección excluye a un grupo, agrandar la muestra solo produce más datos del mismo grupo equivocado.</li><li><strong>El teorema habla de la media, no de los datos.</strong> Los datos individuales siguen tan sesgados como siempre. Lo que se vuelve normal es la distribución de las medias repetidas, que es otra cosa.</li><li><strong>La regla n ≥ 30 es una guía, no una ley.</strong> Poblaciones muy sesgadas o con valores extremos necesitan más para que la aproximación sea razonable.</li><li><strong>El error estándar y la desviación estándar no son lo mismo.</strong> Uno habla de cuánto varían los datos, el otro de cuánto variaría tu promedio. Confundirlos produce intervalos de confianza absurdamente anchos en el módulo 4.</li><li><strong>Muestrear por conveniencia es tentador y casi siempre sesgado.</strong> Coger el material que está más a mano, o encuestar a quien responde primero, favorece a quien está más disponible, que rara vez representa al conjunto.</li><li><strong>Cuadruplicar la muestra solo reduce el error a la mitad.</strong> Hay un punto donde seguir muestreando ya no compensa lo que cuesta, y conviene saber calcularlo antes de presentar el presupuesto.</li></ul></section>
+<section class="section-block is-bridge"><span class="kicker">Analogía</span><h2 class="section-title">Puente metalúrgico</h2><p>Este módulo entero es <strong>la teoría del muestreo minero</strong>, y hasta los nombres coinciden.</p><div class="table-wrap"><table><thead><tr><th>En estadística</th><th>En el yacimiento</th></tr></thead><tbody><tr><td>Muestreo aleatorio simple</td><td>Alícuotas al azar de un flujo homogéneo</td></tr><tr><td>Muestreo estratificado</td><td>Muestrear por dominio geológico o por litología, para no promediar zonas que son químicamente distintas</td></tr><tr><td>Muestreo por conglomerados</td><td>Elegir algunas bancadas al azar y muestrear todo dentro, cuando visitar cada punto del rajo sale carísimo</td></tr><tr><td>Sesgo de muestreo</td><td>Una sonda que solo alcanza la zona oxidada superficial, o un cortador de flujo mal ubicado que siempre agarra la fracción gruesa</td></tr></tbody></table></div><p>Y ese último caso es el que más duele, porque <strong>perforar el doble no lo arregla</strong>. Si el cortador está mal puesto, mil muestras mal tomadas son mil muestras malas. Hay que mover el cortador. Es exactamente la trampa de la sección anterior, dicha en lenguaje de planta.</p><p>El teorema del límite central, por su parte, es la justificación matemática de algo que haces sin pensarlo: <strong>compositar</strong>. Una muestra individual de sondaje es errática y poco fiable, pero el compósito de varias se comporta de forma predecible y permite ponerle un intervalo de confianza a la ley media. Eso es lo que hace posible declarar reservas bajo JORC o NI 43-101, y es literalmente la tabla de 36 medias del ejemplo de juguete, aplicada a un yacimiento de verdad.</p></section>
+<section class="section-block is-review"><span class="kicker">Repaso</span><h2 class="section-title">Repaso</h2><details><summary>¿Qué dice exactamente el teorema del límite central?</summary><p>Que la distribución de las medias de muchas muestras se aproxima a una normal a medida que crece el tamaño de cada muestra, sin importar qué forma tenga la población original. No dice que los datos individuales se vuelvan normales: dice que sus promedios sí. En el ejemplo de juguete se ve en una sola pasada, porque una población perfectamente plana produce, al promediar de dos en dos, un reparto con pico central y colas.</p></details><details><summary>¿Por qué es tan importante que la población no tenga que ser normal?</summary><p>Porque casi ninguna variable real lo es. Los ingresos, los tiempos de espera, las visualizaciones de un vídeo o las leyes de un yacimiento están sesgados. Si la inferencia exigiera normalidad de los datos, no se podría aplicar casi nunca. Como el teorema traslada la exigencia a la distribución de las medias, que sí se normaliza, las fórmulas basadas en la campana funcionan sobre datos que no tienen nada de campana.</p></details><details><summary>Una empresa encuesta solo a quien responde su email de satisfacción. ¿Basta con enviar más emails?</summary><p>No. El problema no está en el tamaño sino en el método: quien responde voluntariamente no representa a toda la base de clientes, porque suelen contestar los muy satisfechos y los muy molestos, mientras la mayoría indiferente queda fuera. Enviar más correos produce más respuestas del mismo tipo sesgado. La corrección pasa por un método probabilístico, como seleccionar al azar a quién contactar y hacer seguimiento activo para subir la tasa de respuesta.</p></details><details><summary>¿Por qué cuadruplicar la muestra no reduce el error a la cuarta parte?</summary><p>Porque el error estándar divide entre la raíz del tamaño de muestra, y la raíz crece más despacio que el número. Multiplicar n por cuatro multiplica su raíz por dos, así que el error se reduce a la mitad, no a la cuarta parte. La consecuencia práctica es que a partir de cierto tamaño cada dato nuevo aporta cada vez menos precisión, y en una campaña de perforación eso determina cuándo dejar de perforar.</p></details><details><summary>¿Cuál es la diferencia entre desviación estándar y error estándar?</summary><p>La desviación estándar describe cuánto varían los datos individuales alrededor de su media. El error estándar describe cuánto variaría la media misma si repitieras el muestreo. En el ejemplo de juguete, la población se dispersaba 1,7078 mientras que las medias de las parejas solo 1,2076, y esa segunda cifra sale de dividir la primera entre la raíz de 2. Todo el módulo 4 se construye sobre el error estándar, nunca sobre la desviación estándar.</p></details></section>
+</main>
+<footer class="footer">
+  Concentra / destilado del temario público del curso / 2026-08-20
+</footer>
+</body>
+</html>

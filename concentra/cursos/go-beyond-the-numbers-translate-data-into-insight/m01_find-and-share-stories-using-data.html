@@ -1,0 +1,492 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Find and share stories using data — Go Beyond the Numbers: Translate Data into Insights</title>
+<style>
+/* ============================================================================
+   Concentra — design tokens and shared components.
+   Inlined into every generated page by load_style(), so pages stay self-contained
+   and work offline from file:// with no external requests.
+
+   Direction: an assay lab, not a tech dashboard. The palette is taken from ore
+   and lab materials (chalcopyrite brass, malachite, hematite, quartz) on warm
+   graphite rather than the blue-black + neon of a generic dark UI. Type is
+   Bahnschrift, the DIN-descended grotesque that Windows ships and that lives on
+   machinery plates and technical drawings, over Corbel for reading.
+   ========================================================================== */
+
+:root {
+  /* Ground and surfaces: warm graphite, the colour of rock dust, not blue-black */
+  --rock: #1a1714;
+  --bench: #221e19;
+  --core: #2b251f;
+  --seam: #3d352c;
+
+  /* Ore palette. No blue and no purple anywhere: those are the tones that make a
+     page read as generated, and this palette comes from the ores instead. */
+  --brass: #c9a227;      /* chalcopyrite, the primary accent */
+  --malachite: #5d9b7a;  /* verified output, results that came out right */
+  --hematite: #b04a35;   /* iron oxide, pitfalls and warnings */
+
+  /* Text */
+  --quartz: #ece7de;
+  --dust: #9a9186;
+  --shadowed: #6f675c;
+
+  --display: Bahnschrift, 'DIN Alternate', 'Segoe UI Semibold', system-ui, sans-serif;
+  --body: Corbel, Candara, 'Segoe UI', system-ui, sans-serif;
+  --data: Consolas, 'Cascadia Mono', ui-monospace, monospace;
+
+  /* In px, not ch: ch scales with font-size, so a heading ended up wider than a
+     paragraph and the page had four different right edges instead of two. */
+  --measure: 640px;
+  --wide: 900px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--rock);
+  color: var(--quartz);
+  font-family: var(--body);
+  font-size: 16px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection { background: var(--brass); color: var(--rock); }
+
+:focus-visible {
+  outline: 2px solid var(--brass);
+  outline-offset: 3px;
+}
+
+/* --------------------------------------------------------------- the signature
+   A sieve series: ticks that get finer from left to right, coarse feed to fine
+   concentrate. It is the one ornament on the page and appears exactly twice —
+   under the wordmark and under a page title. */
+.mesh {
+  height: 10px;
+  background-image:
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 16px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 9px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 5px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 3px);
+  background-size: 25% 100%;
+  background-position: 0 0, 25% 0, 50% 0, 75% 0;
+  background-repeat: no-repeat;
+  opacity: .8;
+  transform-origin: left center;
+  animation: sieve .55s cubic-bezier(.2, .8, .3, 1) both;
+}
+@keyframes sieve { from { transform: scaleX(0); opacity: 0; } to { transform: scaleX(1); opacity: .8; } }
+@media (prefers-reduced-motion: reduce) {
+  .mesh { animation: none; }
+  * { transition: none !important; }
+}
+
+/* ------------------------------------------------------------------ page head */
+.header {
+  border-bottom: 1px solid var(--seam);
+  padding: 3.2rem 2rem 0;
+  background: linear-gradient(180deg, #221d16 0%, var(--rock) 100%);
+}
+.header-content { max-width: 1080px; margin: 0 auto; }
+
+.eyebrow {
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--brass);
+  margin-bottom: 1rem;
+}
+.eyebrow a { color: inherit; text-decoration: none; border-bottom: 1px solid transparent; }
+.eyebrow a:hover { border-bottom-color: var(--brass); }
+
+.header h1 {
+  font-family: var(--display);
+  font-size: clamp(2rem, 4.5vw, 3.1rem);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -.015em;
+  color: var(--quartz);
+  max-width: 20ch;
+}
+.header .subtitle {
+  color: var(--dust);
+  max-width: var(--measure);
+  margin-top: 1rem;
+  font-size: 1.02rem;
+}
+.header .mesh { margin: 1.8rem 0 0; }
+
+/* An assay line: the real composition of the module, in lab-report shorthand. */
+.assay {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.4rem;
+  font-family: var(--data);
+  font-size: .78rem;
+  color: var(--shadowed);
+  padding: .9rem 0 1.6rem;
+  letter-spacing: .04em;
+}
+.assay b { color: var(--dust); font-weight: 400; }
+
+/* --------------------------------------------------------------------- layout */
+/* The container hugs the widest block, so there is no orphan edge past the content. */
+.container { max-width: var(--wide); margin: 3rem auto 5rem; padding: 0 2rem; }
+
+/* Two deliberate right edges and no more: prose stops at the reading measure, and
+   only the things that genuinely need room (code, output, figures, big tables) run
+   out to the full column. */
+.section-block {
+  border-top: 1px solid var(--seam);
+  padding: 2rem 0 2.4rem;
+}
+.section-block > p,
+.section-block > ul,
+.section-block > ol,
+.section-block h3.sub,
+.section-block h4.sub,
+.section-block blockquote,
+details > *:not(summary) { max-width: var(--measure); }
+.section-block:first-child { border-top: 0; padding-top: .5rem; }
+
+/* The kicker names what kind of content follows: context, method, pitfalls.
+   It replaces decorative icons with something that actually classifies. */
+.kicker {
+  font-family: var(--data);
+  font-size: .68rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  display: block;
+  margin-bottom: .5rem;
+}
+.section-title {
+  font-family: var(--display);
+  font-size: 1.55rem;
+  font-weight: 600;
+  letter-spacing: -.01em;
+  line-height: 1.2;
+  margin-bottom: 1.2rem;
+  color: var(--quartz);
+}
+.is-warning .kicker { color: var(--hematite); }
+.is-warning .section-title { color: #e8c4b8; }
+.is-bridge .kicker, .is-decision .kicker { color: var(--malachite); }
+.is-toy .kicker, .is-result .kicker, .is-question .kicker { color: var(--brass); }
+
+/* ---------------------------------------------------------------------- prose */
+/* Justified with hyphenation. In Spanish, justifying without hyphens opens rivers of
+   white space and reads worse than ragged right; lang="es" is what feeds the
+   dictionary. Tables, code, captions and summaries stay ragged on purpose. */
+.section-block p,
+.section-block li,
+details > *:not(summary) {
+  text-align: justify;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+}
+.section-block p { margin-bottom: 1rem; }
+.section-block p:last-child { margin-bottom: 0; }
+/* Indent with padding, not margin, so the bullet sits inside the measure instead of
+   pushing the list 1.2rem past the right edge of the paragraphs. */
+.section-block ul, .section-block ol { margin: 0 0 1rem; padding-left: 1.2rem; }
+.section-block li { margin-bottom: .55rem; padding-left: .2rem; }
+.section-block li::marker { color: var(--brass); }
+td, th, figcaption, .res li, .assay { text-align: left; hyphens: manual; }
+a { color: var(--brass); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+a:hover { text-decoration-thickness: 2px; }
+strong { color: #fff; font-weight: 700; }
+em { color: var(--dust); font-style: italic; }
+
+h3.sub {
+  font-family: var(--display);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--brass);
+  margin: 2rem 0 .7rem;
+  letter-spacing: -.005em;
+}
+h3.sub:first-child { margin-top: 0; }
+h4.sub {
+  font-family: var(--display);
+  font-size: .98rem;
+  font-weight: 600;
+  color: var(--dust);
+  margin: 1.3rem 0 .5rem;
+}
+
+code {
+  font-family: var(--data);
+  font-size: .9em;
+  background: var(--core);
+  border-radius: 3px;
+  padding: .08rem .32rem;
+  color: var(--brass);
+}
+pre {
+  background: #14110e;
+  border: 1px solid var(--seam);
+  border-left: 2px solid var(--seam);
+  border-radius: 2px;
+  padding: 1.1rem 1.2rem;
+  overflow-x: auto;
+  margin-bottom: 1rem;
+}
+pre code {
+  background: none; padding: 0; color: var(--quartz);
+  font-size: .87rem; line-height: 1.6;
+}
+
+/* What the code prints. Malachite: the material that came out of the process. */
+.output {
+  position: relative;
+  border: 1px solid rgba(93, 155, 122, .32);
+  border-left: 2px solid var(--malachite);
+  border-radius: 2px;
+  background: rgba(93, 155, 122, .06);
+  padding: 1.7rem 1.2rem 1rem;
+  margin-bottom: 1rem;
+  overflow-x: auto;
+}
+.output-tag {
+  position: absolute; top: .5rem; left: 1.2rem;
+  font-family: var(--data); font-size: .64rem;
+  letter-spacing: .18em; text-transform: uppercase; color: var(--malachite);
+}
+.output pre {
+  background: none; border: 0; padding: 0; margin: 0;
+  font-family: var(--data); font-size: .85rem;
+  color: var(--quartz); white-space: pre-wrap;
+}
+
+/* Line by line explanation of a code block, for a reader new to programming.
+   Two columns: the fragment of code, and what it does. */
+.annot {
+  display: grid;
+  grid-template-columns: minmax(9rem, auto) 1fr;
+  gap: .1rem 1.2rem;
+  align-items: baseline;
+  max-width: var(--wide);
+  margin: -.4rem 0 1.4rem;
+  padding: .9rem 1.1rem 1rem;
+  border: 1px solid var(--seam);
+  border-top: 0;
+  border-radius: 0 0 2px 2px;
+  background: rgba(201, 162, 39, .04);
+}
+.annot-head {
+  grid-column: 1 / -1;
+  font-family: var(--data);
+  font-size: .64rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  margin-bottom: .5rem;
+}
+.annot dt { padding: .35rem 0; }
+.annot dt code {
+  background: var(--core);
+  color: var(--brass);
+  font-size: .82rem;
+  white-space: nowrap;
+}
+.annot dd {
+  padding: .35rem 0;
+  margin: 0;
+  color: var(--dust);
+  font-size: .93rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(61, 53, 44, .5);
+}
+.annot dt { border-bottom: 1px solid rgba(61, 53, 44, .5); }
+.annot dt:last-of-type, .annot dd:last-of-type { border-bottom: 0; }
+/* The code block sits directly on top of its annotation, as one unit. */
+pre:has(+ .annot) { margin-bottom: 0; border-radius: 2px 2px 0 0; }
+
+@media (max-width: 640px) {
+  .annot { grid-template-columns: 1fr; gap: 0; }
+  .annot dt { border-bottom: 0; padding-bottom: 0; }
+  .annot dd { padding-top: .15rem; }
+}
+
+blockquote {
+  border-left: 2px solid var(--brass);
+  padding: .3rem 0 .3rem 1.3rem;
+  margin: 0 0 1rem;
+  font-family: var(--display);
+  font-size: 1.2rem;
+  font-weight: 400;
+  line-height: 1.4;
+  color: var(--quartz);
+}
+
+/* Tables read as assay data: mono figures, hairline rules, no zebra fill.
+   They take the width they need instead of being stretched to the full column,
+   which is what left a two-column table floating in empty space. */
+.table-wrap { overflow-x: auto; margin-bottom: 1rem; }
+table { border-collapse: collapse; width: auto; max-width: 100%; font-size: .93rem; }
+th, td {
+  border-bottom: 1px solid var(--seam);
+  padding: .55rem .8rem .55rem 0;
+  text-align: left;
+  vertical-align: top;
+}
+th {
+  font-family: var(--data);
+  font-size: .7rem;
+  font-weight: 400;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  border-bottom-color: var(--brass);
+}
+td:first-child { color: var(--quartz); }
+
+/* Review questions: closed by default, so they work as recall practice. */
+details {
+  border-top: 1px solid var(--seam);
+  padding: .9rem 0;
+}
+details:last-child { border-bottom: 1px solid var(--seam); }
+summary {
+  cursor: pointer;
+  font-family: var(--display);
+  font-size: 1.02rem;
+  font-weight: 600;
+  color: var(--quartz);
+  list-style: none;
+  display: flex;
+  gap: .7rem;
+  align-items: baseline;
+}
+summary::-webkit-details-marker { display: none; }
+summary::before {
+  content: '+';
+  font-family: var(--data);
+  color: var(--brass);
+  font-size: .95rem;
+}
+details[open] summary::before { content: '−'; }
+details[open] summary { color: var(--brass); margin-bottom: .7rem; }
+details > *:not(summary) { color: var(--dust); }
+
+figure.fig {
+  margin: 1.6rem 0;
+  border: 1px solid var(--seam);
+  padding: .7rem;
+  background: var(--bench);
+}
+figure.fig img { width: 100%; height: auto; display: block; }
+/* The interactive twin of a figure. Its aspect matches the still one, 10 by 4.4, so a
+   case sheet keeps the same rhythm whichever kind of figure comes next. */
+figure.fig.is-live iframe {
+  width: 100%;
+  /* Matches INTERACTIVE_HEIGHT in src/make_figures.py. It used to be an aspect ratio, and
+     that made the figure's height depend on the window: the caption and the legend are
+     placed at fractions of the plot area, so on a wide screen they were pushed past the
+     bottom margin, clipping the caption and covering the x-axis title. */
+  height: 520px;
+  border: 0;
+  display: block;
+}
+figure.fig figcaption {
+  font-family: var(--data);
+  font-size: .72rem;
+  color: var(--shadowed);
+  margin-top: .6rem;
+  letter-spacing: .04em;
+}
+
+/* File listings on a case sheet */
+.res { list-style: none; margin-left: 0 !important; }
+.res li {
+  display: flex; align-items: baseline; gap: .8rem; flex-wrap: wrap;
+  padding: .5rem 0; border-bottom: 1px solid var(--seam); margin-bottom: 0;
+}
+.res .path { font-family: var(--data); font-size: .74rem; color: var(--shadowed); }
+.res .size { font-family: var(--data); font-size: .74rem; color: var(--shadowed); margin-left: auto; }
+.res .gone { font-family: var(--data); font-size: .74rem; color: var(--hematite); }
+
+.footer {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 2rem 4rem;
+  color: var(--shadowed);
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .03em;
+}
+
+@media (max-width: 640px) {
+  body { font-size: 15px; }
+  .header { padding: 2rem 1.2rem 0; }
+  .container { padding: 0 1.2rem; margin-top: 2rem; }
+  .footer { padding: 0 1.2rem 3rem; }
+}
+
+@media print {
+  body { background: #fff; color: #16130f; }
+  .header { background: none; border-bottom: 1px solid #bbb; padding-top: 0; }
+  .header h1, .section-title, summary { color: #16130f; }
+  .mesh { animation: none; }
+  .section-block { break-inside: avoid; max-width: none; }
+  pre, .output { background: #f6f4f0; border-color: #ccc; }
+  details:not([open]) > *:not(summary) { display: block; }
+  a { color: #16130f; }
+}
+
+</style>
+</head>
+<body>
+<header class="header">
+  <div class="header-content">
+    <div class="eyebrow"><a href="https://www.coursera.org/learn/go-beyond-the-numbers-translate-data-into-insight">Go Beyond the Numbers: Translate Data into Insights</a> / Módulo 1</div>
+    <h1>Find and share stories using data</h1>
+    <p class="subtitle">Un número no es una historia. Se demuestra con seis mediciones que, ordenadas de dos maneras distintas, dan exactamente la misma media, la misma mediana y la misma desviación, y cuentan dos cosas opuestas. Aquí entran las seis prácticas del análisis exploratorio y cómo encajan con PACE.</p>
+    <div class="mesh" role="presentation"></div>
+    <div class="assay"><span><b>3 h</b> de curso</span><span><b>8</b> vídeos</span><span><b>5</b> lecturas</span><span><b>3</b> tareas</span><span><b>2</b> interactivos</span></div>
+  </div>
+</header>
+<main class="container">
+<section class="section-block "><span class="kicker">Contexto</span><h2 class="section-title">Qué resuelve este módulo</h2><p>Te dan un archivo y te piden &quot;un análisis&quot;. La tentación es calcular el promedio de la columna que importa, ponerlo en una diapositiva y pasar a lo siguiente.</p><p>Este módulo existe para enseñar que <strong>ese promedio puede ser cierto y no significar nada</strong>. El resumen de un conjunto de datos es una compresión, y como toda compresión, tira información. A veces tira precisamente la que hacía falta.</p><p>Lo que se aprende aquí es un procedimiento para encontrar lo que el resumen esconde, y un marco para saber en qué punto del proyecto estás mientras lo haces.</p></section>
+<section class="section-block is-toy"><span class="kicker">Ejemplo</span><h2 class="section-title">Antes de la teoría: un ejemplo de juguete</h2><p>Dos circuitos de flotación, seis meses cada uno, recuperación en porcentaje:</p><pre><code>mes           1     2     3     4     5     6
+circuito A   88    87    86    85    84    83
+circuito B   85    88    83    87    84    86</code></pre><p>Míralos un momento antes de seguir.</p><h3 class="sub h3">Paso 1. Los resúmenes de siempre</h3><pre><code>circuito A:  suma = 88+87+86+85+84+83 = 513     media = 513 / 6 = 85,5
+circuito B:  suma = 85+88+83+87+84+86 = 513     media = 513 / 6 = 85,5</code></pre><p>La media es la misma. Y no es casualidad ni suerte: <strong>son los mismos seis números en otro orden</strong>. Así que también coinciden la mediana (85,5), la desviación (1,8708), el mínimo (83) y el máximo (88). Todos los resúmenes que se calculan sin mirar el orden son idénticos por construcción.</p><h3 class="sub h3">Paso 2. Lo que pasa al ordenar por fecha</h3><p>El circuito A baja <strong>exactamente un punto cada mes</strong>, sin una sola excepción:</p><pre><code>88 → 87 → 86 → 85 → 84 → 83        diferencias: −1, −1, −1, −1, −1</code></pre><p>El circuito B sube y baja sin dirección:</p><pre><code>85 → 88 → 83 → 87 → 84 → 86        diferencias: +3, −5, +4, −3, +2</code></pre><p>Ponerle número a esa diferencia: la pendiente del circuito A es de <strong>−1,0000 puntos por mes</strong> y la del B, de <strong>−0,0857</strong>, prácticamente plana.</p><h3 class="sub h3">Paso 3. Qué acaba de pasar</h3><p>Los dos circuitos tienen el mismo promedio y <strong>no tienen el mismo problema</strong>. En el A hay algo que se está degradando de forma constante y va a seguir bajando el mes que viene. En el B hay variabilidad, que es otra conversación y otra acción.</p><p>Un informe que diga &quot;los dos circuitos recuperan un 85,5 % de media&quot; es <strong>verdadero y gravemente incompleto</strong>. Esa es toda la tesis del módulo:</p><blockquote>El resumen es el final del análisis, no el principio. Y no reemplaza a mirar el dato.</blockquote></section>
+<section class="section-block "><span class="kicker">Términos</span><h2 class="section-title">Glosario</h2><ul><li><strong>Análisis exploratorio de datos.</strong> El proceso de examinar un conjunto de datos para entender qué contiene antes de sacarle conclusiones. En inglés, *exploratory data analysis*, y de ahí las siglas EDA que salen por todas partes.</li><li><strong>Las seis prácticas.</strong> Descubrir, estructurar, limpiar, unir, validar y presentar. Son los seis tipos de trabajo del EDA, y <strong>no son un orden</strong>: se salta de una a otra.</li><li><strong>Descubrir.</strong> Conocer forma, tamaño y contenido del conjunto de datos.</li><li><strong>Estructurar.</strong> Reorganizar el dato crudo: ordenar, agrupar, separar columnas, pivotar.</li><li><strong>Limpiar.</strong> Tratar lo que falta, lo repetido, lo extremo y lo mal tipado.</li><li><strong>Unir.</strong> Traer datos de otra fuente para completar el cuadro.</li><li><strong>Validar.</strong> Comprobar que lo que acabas de hacer no rompió nada.</li><li><strong>Presentar.</strong> Entregar el hallazgo a alguien que va a decidir con él.</li><li><strong>PACE.</strong> El marco de trabajo del certificado: <strong>P</strong>lan, <strong>A</strong>nalyze, <strong>C</strong>onstruct, <strong>E</strong>xecute. Dice en qué fase del proyecto estás; el EDA dice qué haces con los datos.</li><li><strong>Parte interesada.</strong> Quien va a usar tu resultado para decidir algo. En inglés, <em>stakeholder</em>. Si no sabes quién es, no sabes qué análisis hacer.</li><li><strong>Relato con datos.</strong> Contar lo que muestran los datos con estructura de historia: contexto, conflicto y resolución. En inglés, <em>data storytelling</em>.</li></ul></section>
+<section class="section-block is-recipe"><span class="kicker">Método</span><h2 class="section-title">Paso a paso</h2><h3 class="sub h3">Paso 1. Saber quién va a decidir algo con esto</h3><p>Antes de abrir el archivo. Un mismo conjunto de datos da análisis distintos según quién pregunte: al jefe de planta le interesa qué perilla mover mañana, al director financiero cuánto cuesta, y al de calidad si el lote pasa.</p><p><strong>Si no puedes nombrar a la persona que va a decidir, no empieces.</strong> Es el error más caro y el más frecuente, porque no produce ningún síntoma hasta que entregas.</p><h3 class="sub h3">Paso 2. Las seis prácticas, y por qué no son una lista</h3><p>Se dibujan en fila y se usan en desorden. Limpiar te descubre algo que te obliga a volver a descubrir; unir otra fuente te obliga a volver a limpiar.</p><div class="table-wrap"><table><thead><tr><th>Práctica</th><th>Qué haces</th><th>Qué te suele revelar</th></tr></thead><tbody><tr><td><strong>Descubrir</strong></td><td>Mirar forma, tipos y primeras filas</td><td>Que hay menos datos útiles de los que creías</td></tr><tr><td><strong>Estructurar</strong></td><td>Ordenar, agrupar, pivotar</td><td>La tendencia que el promedio escondía</td></tr><tr><td><strong>Limpiar</strong></td><td>Ausentes, duplicados, atípicos</td><td>Que el 5 % de las filas no debería estar</td></tr><tr><td><strong>Unir</strong></td><td>Traer otra fuente</td><td>Que las dos fuentes no coinciden en las claves</td></tr><tr><td><strong>Validar</strong></td><td>Comprobar lo que acabas de hacer</td><td>Que una transformación borró filas sin avisar</td></tr><tr><td><strong>Presentar</strong></td><td>Entregarlo</td><td>Que la pregunta real era otra</td></tr></tbody></table></div><p><strong>Validar es la que más se salta</strong>, y es la que atrapa los errores propios. Después de cada transformación: ¿siguen siendo las mismas filas? ¿los totales cuadran? ¿algo se volvió nulo?</p><h3 class="sub h3">Paso 3. Encajar el EDA dentro de PACE</h3><p>Las dos cosas conviven, y confundirlas es normal al principio. <strong>PACE dice en qué fase del proyecto estás. El EDA dice qué le estás haciendo a los datos.</strong></p><div class="table-wrap"><table><thead><tr><th>Fase de PACE</th><th>Qué pasa ahí</th><th>Prácticas del EDA que dominan</th></tr></thead><tbody><tr><td><strong>Plan</strong></td><td>Definir la pregunta y a quién le importa</td><td>Ninguna todavía: aquí se habla con gente</td></tr><tr><td><strong>Analyze</strong></td><td>Conocer y preparar los datos</td><td>Descubrir, estructurar, limpiar, unir</td></tr><tr><td><strong>Construct</strong></td><td>Modelar o contrastar</td><td>Validar, sin parar</td></tr><tr><td><strong>Execute</strong></td><td>Entregar y recomendar</td><td>Presentar</td></tr></tbody></table></div><p>El grueso del EDA vive en <strong>Analyze</strong>, y ahí es donde se va la mayor parte del tiempo real de un proyecto. No es tiempo perdido: es el tiempo que evita rehacerlo todo.</p><h3 class="sub h3">Paso 4. Convertir el hallazgo en una historia</h3><p>Un hallazgo suelto no mueve a nadie. La estructura que funciona tiene tres partes:</p><ol><li><strong>Contexto.</strong> Qué se esperaba. <em>&quot;Los dos circuitos recuperan un 85,5 % de media.&quot;</em></li><li><strong>Conflicto.</strong> Qué rompe esa expectativa. *&quot;Pero el circuito A lleva seis meses bajando un punto cada mes.&quot;*</li><li><strong>Resolución.</strong> Qué hacer. <em>&quot;Si sigue, en enero está en 78. Hay que revisarlo antes.&quot;</em></li></ol><p>Fíjate en que el número del contexto es el mismo que daba el informe incompleto. <strong>La historia no cambia el dato, cambia lo que se ve de él.</strong></p><h3 class="sub h3">Paso 5. Elegir el gráfico según la fase</h3><p>El módulo 4 entra en detalle, pero conviene saber desde ya que un gráfico para uno mismo y un gráfico para presentar no son el mismo gráfico:</p><div class="table-wrap"><table><thead><tr><th>Fase</th><th>Para quién</th><th>Cómo es</th></tr></thead><tbody><tr><td>Analyze</td><td>Para ti</td><td>Feo, rápido, muchos. Sirve para ver</td></tr><tr><td>Execute</td><td>Para quien decide</td><td>Uno solo, limpio, con el hallazgo escrito encima</td></tr></tbody></table></div><p>Y el caso de Deloitte que presenta el curso va justo de eso: de una consultora que trabaja para clientes que no van a leer el análisis, solo la conclusión. El detalle está en la plataforma; lo que hay que retener es que <strong>el trabajo no termina cuando el hallazgo existe, termina cuando alguien lo entiende</strong>.</p></section>
+<section class="section-block is-recipe"><span class="kicker">Código</span><h2 class="section-title">El código, por partes</h2><h3 class="sub h3">Paso 1. Comprobar que los resúmenes no distinguen los dos circuitos</h3><p>Los mismos seis números del ejemplo, en las dos ordenaciones.</p><pre><code class="language-python">import numpy as np
+import pandas as pd
+from scipy import stats
+
+month = np.arange(1, 7)
+falling = np.array([88, 87, 86, 85, 84, 83])
+shuffled = np.array([85, 88, 83, 87, 84, 86])
+
+plant = pd.DataFrame({&quot;month&quot;: month, &quot;circuit_a&quot;: falling, &quot;circuit_b&quot;: shuffled})
+print(plant.describe().loc[[&quot;count&quot;, &quot;mean&quot;, &quot;50%&quot;, &quot;std&quot;, &quot;min&quot;, &quot;max&quot;]].round(4))</code></pre><dl class="annot"><div class="annot-head">línea por línea</div><dt><code>import pandas as pd</code></dt><dd>La librería de tablas. El apodo <code>pd</code> es la convención universal, igual que <code>np</code> para numpy.</dd><dt><code>np.arange(1, 7)</code></dt><dd>Los enteros del 1 al 6. El segundo número <strong>no se incluye</strong>, que es la fuente de errores más común de Python al empezar.</dd><dt><code>pd.DataFrame({...})</code></dt><dd>Construye una tabla desde un diccionario: cada clave es el nombre de una columna y cada valor, sus datos. Es la forma más directa de crear datos a mano.</dd><dt><code>plant.describe()</code></dt><dd>El resumen de todas las columnas numéricas de golpe: conteo, media, desviación, mínimo, cuartiles y máximo. Es una de las cinco líneas del ritual del módulo siguiente.</dd><dt><code>.loc[[...]]</code></dt><dd>Selecciona filas por su nombre. Los corchetes dobles son una lista de nombres, así que devuelve varias filas y no una.</dd><dt><code>&quot;50%&quot;</code></dt><dd>Así se llama la mediana dentro de <code>describe()</code>: el percentil 50.</dd><dt><code>.round(4)</code></dt><dd>Cuatro decimales, suficientes para ver que las desviaciones coinciden hasta el último dígito.</dd></dl><div class="output"><span class="output-tag">sale</span><pre>        month  circuit_a  circuit_b
+count  6.0000     6.0000     6.0000
+mean   3.5000    85.5000    85.5000
+50%    3.5000    85.5000    85.5000
+std    1.8708     1.8708     1.8708
+min    1.0000    83.0000    83.0000
+max    6.0000    88.0000    88.0000</pre></div><p><strong>Las dos columnas son idénticas en las seis filas.</strong> Ningún resumen de esta tabla distingue un circuito que se degrada de otro que solo tiene ruido.</p><h3 class="sub h3">Paso 2. Estructurar por fecha, que es lo que revela la historia</h3><pre><code class="language-python">for name in [&quot;circuit_a&quot;, &quot;circuit_b&quot;]:
+    fit = stats.linregress(plant.month, plant[name])
+    print(f&quot;{name}: pendiente {fit.slope:+.4f} puntos por mes   R2 {fit.rvalue ** 2:.4f}&quot;)</code></pre><dl class="annot"><div class="annot-head">línea por línea</div><dt><code>for name in [...]</code></dt><dd>Un bucle sobre una lista de nombres de columna, para no escribir el mismo cálculo dos veces.</dd><dt><code>plant[name]</code></dt><dd>Coge una columna por su nombre. Con una variable dentro de los corchetes se puede recorrer varias columnas en un bucle.</dd><dt><code>stats.linregress(x, y)</code></dt><dd>Ajusta la recta que mejor pasa por los puntos. Aquí la x es el mes, así que la pendiente es <strong>cuánto cambia la recuperación por cada mes que pasa</strong>.</dd><dt><code>{fit.slope:+.4f}</code></dt><dd>El <code>+</code> fuerza a escribir el signo también cuando es positivo. Con una pendiente, ver el signo escrito evita leerla al revés.</dd><dt><code>fit.rvalue ** 2</code></dt><dd>El R2. Aquí interesa como medida de cuán limpia es la tendencia: un 1 significa que los seis puntos caen exactamente sobre la recta.</dd></dl><div class="output"><span class="output-tag">sale</span><pre>circuit_a: pendiente -1.0000 puntos por mes   R2 1.0000
+circuit_b: pendiente -0.0857 puntos por mes   R2 0.0073</pre></div><p>Ahí está la historia que el resumen no tenía. El circuito A pierde <strong>un punto exacto cada mes</strong>, con un R2 de 1: los seis puntos están sobre la recta, no cerca de ella. El B no va a ninguna parte.</p><p>Y fíjate en lo barato que fue: una columna de fechas y una recta. <strong>La información estaba en el orden, y ningún promedio mira el orden.</strong></p></section>
+<section class="section-block is-warning"><span class="kicker">Trampas</span><h2 class="section-title">Ojo</h2><ul><li><strong>Un promedio puede ser cierto y esconder lo único que importaba.</strong> Es el mensaje del módulo, y el ejemplo lo demuestra con los mismos seis números.</li><li><strong>Media, mediana y desviación no ven el orden.</strong> Si el dato tiene fecha, ordenar por ella es obligatorio antes de resumir.</li><li><strong>Las seis prácticas no son una secuencia.</strong> Se vuelve atrás constantemente, y quien las hace en fila una sola vez normalmente no ha limpiado del todo.</li><li><strong>Validar no es opcional.</strong> Es la práctica que atrapa tus propios errores, y la primera que se cae cuando hay prisa.</li><li><strong>Sin parte interesada no hay análisis.</strong> Si no puedes nombrar a quien va a decidir, lo que estás haciendo es entretenimiento.</li><li><strong>PACE y las seis prácticas no compiten.</strong> Una dice en qué fase estás, la otra qué haces con los datos.</li><li><strong>Un hallazgo sin contexto no se entiende y sin acción no sirve.</strong> Contexto, conflicto y resolución, en ese orden.</li></ul></section>
+<section class="section-block is-bridge"><span class="kicker">Analogía</span><h2 class="section-title">Puente metalúrgico</h2><p>Esto es la <strong>bitácora de turno</strong> contra el <strong>informe mensual</strong>, y ya sabes cuál de los dos te avisa a tiempo.</p><p>El informe mensual dice que la planta recuperó un 85,5 %. La bitácora, leída por fechas, enseña que se lleva seis turnos bajando. Y en planta esa diferencia tiene consecuencias inmediatas: una recuperación que cae un punto al mes de forma constante <strong>no es variabilidad, es algo que se está gastando</strong>. Un revestimiento, la calibración de una bomba dosificadora, la granulometría del molino que se abre poco a poco.</p><div class="table-wrap"><table><thead><tr><th>En el curso</th><th>En planta</th></tr></thead><tbody><tr><td>El promedio del conjunto</td><td>El número del informe mensual</td></tr><tr><td>Estructurar por fecha</td><td>Leer la bitácora en orden</td></tr><tr><td>Una pendiente constante</td><td>Un desgaste, no un ruido</td></tr><tr><td>Variabilidad sin dirección</td><td>Un circuito inestable, otro problema distinto</td></tr><tr><td>La parte interesada</td><td>Quién va a mover la perilla mañana</td></tr></tbody></table></div><p>Y el aviso de las seis prácticas también lo reconoces: <strong>nadie hace un balance metalúrgico de una sola pasada</strong>. Cuadras, encuentras que un flujo no cierra, vuelves a medir, corriges y vuelves a cuadrar. Eso es exactamente el ir y venir entre descubrir, limpiar y validar.</p></section>
+<section class="section-block is-review"><span class="kicker">Repaso</span><h2 class="section-title">Repaso</h2><details><summary>Dos series de datos tienen la misma media, la misma mediana y la misma desviación. ¿Pueden contar historias distintas?</summary><p>Sí, y es lo normal cuando el dato tiene un orden. En el ejemplo del módulo los dos circuitos son literalmente los mismos seis números en distinta secuencia, así que todos los resúmenes que no miran el orden coinciden por construcción: media 85,5, mediana 85,5, desviación 1,8708. Al ordenarlos por fecha, uno baja exactamente un punto al mes con un R2 de 1 y el otro está plano, con una pendiente de −0,0857. La media era cierta en los dos casos y en uno de ellos escondía lo único que había que reportar.</p></details><details><summary>¿Cuáles son las seis prácticas del análisis exploratorio y por qué no son una lista de pasos?</summary><p>Descubrir, estructurar, limpiar, unir, validar y presentar. No son una secuencia porque cada una puede devolverte a otra: limpiar revela algo que obliga a volver a descubrir, unir una segunda fuente obliga a limpiar otra vez, y validar existe precisamente para mandarte atrás cuando algo no cuadra. Quien las recorre una sola vez en fila casi siempre se ha dejado algo sin limpiar.</p></details><details><summary>¿En qué se diferencian PACE y las seis prácticas del EDA?</summary><p>Responden a preguntas distintas y por eso conviven. PACE dice en qué fase del proyecto estás: planificar, analizar, construir o ejecutar. Las seis prácticas dicen qué le estás haciendo a los datos en ese momento. La mayor parte del EDA cae dentro de la fase Analyze, la validación acompaña a Construct, y presentar es lo propio de Execute. Confundirlas es frecuente al principio; el atajo para no hacerlo es que PACE habla del proyecto y el EDA habla de los datos.</p></details><details><summary>¿Por qué el módulo insiste en identificar a la parte interesada antes de abrir el archivo?</summary><p>Porque el mismo conjunto de datos admite análisis distintos según quién vaya a decidir con él, y elegir mal no produce ningún error visible: produce un análisis correcto que no le sirve a nadie. Al jefe de planta le interesa qué cambiar mañana, al financiero cuánto cuesta y al de calidad si el lote pasa especificación. Si no se puede nombrar a la persona que va a tomar la decisión, todavía falta la conversación de la fase Plan.</p></details><details><summary>¿Qué estructura tiene una historia con datos y por qué no basta con dar el hallazgo?</summary><p>Contexto, conflicto y resolución. El contexto es lo que se esperaba, el conflicto es el dato que rompe esa expectativa, y la resolución es qué hacer al respecto. No basta con el hallazgo suelto porque quien escucha necesita saber contra qué compararlo y qué se espera de él: &quot;el circuito A baja un punto al mes&quot; solo significa algo después de &quot;los dos promedian 85,5&quot; y antes de &quot;si sigue así, en enero está en 78&quot;. El dato no cambia; cambia lo que se ve de él.</p></details></section>
+</main>
+<footer class="footer">
+  Concentra / destilado del temario público del curso / 2026-08-20
+</footer>
+</body>
+</html>

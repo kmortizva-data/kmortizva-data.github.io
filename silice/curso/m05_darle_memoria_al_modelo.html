@@ -1,0 +1,656 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Darle memoria al modelo · Sílice, módulo 5</title>
+<style>
+/* Sílice: la hoja de estilos del curso.
+ *
+ * Identidad de papel de informe de planta, no de pantalla. El proyecto termina
+ * recomendando no desplegar, y eso es un informe técnico: papel hueso, tinta grafito,
+ * y una retícula de milimetrado muy tenue en la cabecera.
+ *
+ * Dos familias tipográficas y ni una más, las dos del sistema porque el sitio se abre
+ * desde file:// y tiene que funcionar sin internet: serif para la prosa (se lee como
+ * informe) y monoespaciada para todo lo que es dato, código, cifra o etiqueta.
+ *
+ * El acento lo inyecta cada página con --accent: es el del módulo, y marca su posición
+ * en el arco del proyecto. Los diez pasan check_palette.py antes de entrar aquí.
+ */
+
+:root {
+  --paper: #f6f3ec;
+  --bench: #eeeade;
+  --ink: #2a2622;
+  --ink-soft: #57504a;
+  --ink-faint: #8a8177;
+  --rule: #ddd6c6;
+  --rule-soft: #e8e2d4;
+  --grid: rgba(84, 69, 73, .07);
+  --accent: #632727;
+
+  --prose: Georgia, "Iowan Old Style", "Palatino Linotype", Palatino, "Times New Roman", serif;
+  --data: "Cascadia Mono", Consolas, "DejaVu Sans Mono", "Liberation Mono", monospace;
+
+  --measure: 680px;   /* la medida de la prosa, en píxeles y nunca en ch */
+  --wide: 1180px;     /* el borde derecho de los bloques anchos */
+  --margin: 132px;    /* la columna del margen, donde cuelgan los kickers */
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--prose);
+  font-size: 17px;
+  line-height: 1.62;
+  -webkit-text-size-adjust: 100%;
+}
+
+::selection { background: var(--accent); color: var(--paper); }
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+/* --------------------------------------------------------------- cabecera */
+
+.masthead {
+  border-bottom: 1px solid var(--rule);
+  background-color: var(--bench);
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 26px 26px;
+  background-position: -1px -1px;
+}
+
+.masthead-inner {
+  max-width: var(--wide);
+  margin: 0 auto;
+  padding: 2.4rem 2rem 1.6rem;
+}
+
+.eyebrow {
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-bottom: 1rem;
+}
+
+.eyebrow a { color: inherit; text-decoration: none; border-bottom: 1px solid transparent; }
+.eyebrow a:hover { border-bottom-color: var(--accent); color: var(--accent); }
+.eyebrow b { color: var(--accent); font-weight: 400; }
+
+.masthead h1 {
+  margin: 0;
+  font-size: clamp(1.9rem, 4.4vw, 2.9rem);
+  line-height: 1.14;
+  font-weight: 400;
+  letter-spacing: -.012em;
+  max-width: 900px;
+}
+
+.standfirst {
+  margin: .9rem 0 0;
+  max-width: var(--measure);
+  color: var(--ink-soft);
+  font-size: 1.02rem;
+  line-height: 1.55;
+}
+
+/* La cifra del módulo: el número que dejó, en grande, junto al título. Es lo que
+   convierte la cabecera en parte del argumento y no en decoración. */
+.figure-mark {
+  margin-top: 1.6rem;
+  display: flex;
+  align-items: baseline;
+  gap: .8rem;
+  flex-wrap: wrap;
+  border-left: 3px solid var(--accent);
+  padding-left: .9rem;
+}
+
+.figure-value {
+  font-family: var(--data);
+  font-size: clamp(1.5rem, 3.4vw, 2.1rem);
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: -.02em;
+}
+
+.figure-label {
+  font-family: var(--data);
+  font-size: .78rem;
+  letter-spacing: .04em;
+  color: var(--ink-soft);
+}
+
+/* El hilo del proyecto: diez segmentos, uno por módulo, con su cifra debajo. Desde
+   cualquier página se ve el recorrido entero, que es justo lo que a los apuntes
+   sueltos les faltaba. */
+.thread {
+  margin-top: 1.8rem;
+  display: grid;
+  /* One equal column per segment, whatever the temario says. It was pinned to ten and
+     the course grew to fourteen. */
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: 4px;
+}
+
+/* Where part 2 starts: the four modules that were never in the original project. */
+.thread .starts-part { margin-left: 10px; position: relative; }
+.thread .starts-part::after {
+  content: '';
+  position: absolute;
+  left: -7px; top: -3px; bottom: 0;
+  border-left: 1px solid var(--rule);
+}
+
+.thread a, .thread span {
+  display: block;
+  text-decoration: none;
+  color: var(--ink-faint);
+  font-family: var(--data);
+  font-size: .62rem;
+  letter-spacing: .04em;
+  padding-top: .4rem;
+  border-top: 3px solid var(--rule);
+  transition: color .12s, border-color .12s;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.thread a:hover { color: var(--ink); border-top-color: var(--ink-soft); }
+.thread [aria-current="page"] { color: var(--accent); border-top-color: var(--accent); }
+.thread .n { font-weight: 700; }
+.thread .v { color: inherit; opacity: .75; }
+
+/* Las pastillas de composición: de qué está hecho el módulo. */
+.assay {
+  margin-top: 1.6rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.4rem;
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .05em;
+  color: var(--ink-faint);
+}
+
+.assay b { color: var(--ink); font-weight: 700; }
+
+/* ----------------------------------------------------------------- cuerpo */
+
+.container {
+  max-width: var(--wide);
+  margin: 0 auto;
+  padding: 2.6rem 2rem 4rem;
+}
+
+/* Cada sección es una anotación de cuaderno: el kicker cuelga en el margen
+   izquierdo y el contenido corre en la columna principal. En pantalla estrecha el
+   kicker se pone encima. */
+.block {
+  display: grid;
+  grid-template-columns: var(--margin) minmax(0, 1fr);
+  column-gap: 2rem;
+  padding: 2.2rem 0;
+  border-top: 1px solid var(--rule);
+}
+
+.block:first-child { border-top: 0; padding-top: .6rem; }
+
+.kicker {
+  grid-column: 1;
+  font-family: var(--data);
+  font-size: .68rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding-top: .45rem;
+}
+
+.block > :not(.kicker) { grid-column: 2; }
+
+.block-title {
+  margin: 0 0 1.1rem;
+  font-size: 1.42rem;
+  font-weight: 400;
+  line-height: 1.25;
+  letter-spacing: -.008em;
+}
+
+.is-warning .kicker, .is-result .kicker { color: var(--accent); }
+.is-warning .block-title { border-bottom: 2px solid var(--accent); padding-bottom: .4rem; display: inline-block; }
+.is-result { background: var(--bench); margin: 0 -1.2rem; padding: 2.2rem 1.2rem; }
+.is-result .block-title { color: var(--accent); }
+
+/* Prosa: justificada con partición, que sin partición el español justificado abre
+   ríos. Tablas, código y pies de figura se quedan sin justificar. */
+.block p, .block li, .block dd, details > *:not(summary) {
+  max-width: var(--measure);
+  text-align: justify;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+}
+
+.block p { margin: 0 0 1rem; }
+.block p:last-child { margin-bottom: 0; }
+.block ul, .block ol { margin: 0 0 1rem; padding-left: 1.3rem; max-width: var(--measure); }
+.block li { margin-bottom: .5rem; }
+.block li::marker { color: var(--accent); font-family: var(--data); font-size: .85em; }
+
+td, th, figcaption, .assay, .thread a, .res li { text-align: left; hyphens: manual; }
+
+a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+a:hover { text-decoration-thickness: 2px; }
+strong { font-weight: 700; }
+em { font-style: italic; color: var(--ink-soft); }
+
+h3.sub {
+  margin: 1.9rem 0 .7rem;
+  font-size: 1.07rem;
+  font-weight: 700;
+  letter-spacing: -.004em;
+}
+
+h3.sub:first-child { margin-top: 0; }
+
+h4.sub {
+  margin: 1.4rem 0 .5rem;
+  font-family: var(--data);
+  font-size: .82rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  color: var(--ink-soft);
+}
+
+/* ------------------------------------------------------------ código y datos */
+
+code {
+  font-family: var(--data);
+  font-size: .87em;
+  background: var(--bench);
+  padding: .1em .32em;
+  border-radius: 2px;
+}
+
+pre {
+  margin: 0 0 1rem;
+  padding: 1rem 1.1rem;
+  background: var(--bench);
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--accent);
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+pre code { background: none; padding: 0; font-size: .82rem; line-height: 1.62; }
+
+/* La salida es lo que imprime el código, no código para correr: se marca aparte
+   para que nadie confunda entrada con salida. */
+.output {
+  margin: 0 0 1rem;
+  border: 1px dashed var(--rule);
+  background: transparent;
+}
+
+.output-tag {
+  display: block;
+  font-family: var(--data);
+  font-size: .64rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding: .45rem 1.1rem 0;
+}
+
+.output pre {
+  margin: 0;
+  border: 0;
+  background: none;
+  padding: .3rem 1.1rem 1rem;
+}
+
+.output pre code { color: var(--ink-soft); }
+
+/* La anotación línea por línea, para quien no ha programado antes. */
+.annot {
+  margin: 0 0 1.2rem;
+  border: 1px solid var(--rule);
+  border-top: 0;
+  padding: 0 1.1rem .6rem;
+  background: transparent;
+}
+
+.annot-head {
+  font-family: var(--data);
+  font-size: .64rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding: .55rem 0 .5rem;
+  border-bottom: 1px solid var(--rule-soft);
+  margin-bottom: .4rem;
+}
+
+.annot dt { padding: .4rem 0 .1rem; }
+.annot dt code { background: none; padding: 0; color: var(--accent); font-weight: 700; }
+.annot dd {
+  margin: 0 0 .4rem;
+  color: var(--ink-soft);
+  font-size: .94rem;
+  border-bottom: 1px solid var(--rule-soft);
+  padding-bottom: .5rem;
+}
+.annot dd:last-of-type { border-bottom: 0; }
+
+pre:has(+ .annot) { margin-bottom: 0; }
+
+blockquote {
+  margin: 0 0 1rem;
+  padding: .2rem 0 .2rem 1.1rem;
+  border-left: 3px solid var(--rule);
+  color: var(--ink-soft);
+  font-style: italic;
+  max-width: var(--measure);
+}
+
+/* --------------------------------------------------------------- tablas */
+
+.table-wrap { overflow-x: auto; margin: 0 0 1.2rem; }
+
+table {
+  border-collapse: collapse;
+  width: auto;
+  max-width: 100%;
+  font-size: .92rem;
+}
+
+th, td {
+  padding: .5rem .9rem .5rem 0;
+  border-bottom: 1px solid var(--rule-soft);
+  vertical-align: top;
+}
+
+th {
+  font-family: var(--data);
+  font-size: .7rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--ink-faint);
+  border-bottom: 1px solid var(--rule);
+  white-space: nowrap;
+}
+
+/* -------------------------------------------------------------- repaso */
+
+details {
+  border-bottom: 1px solid var(--rule-soft);
+  padding: .2rem 0;
+  max-width: var(--measure);
+}
+
+summary {
+  cursor: pointer;
+  list-style: none;
+  padding: .7rem 0 .7rem 1.5rem;
+  position: relative;
+  font-weight: 700;
+}
+
+summary::-webkit-details-marker { display: none; }
+
+summary::before {
+  content: '+';
+  position: absolute;
+  left: 0;
+  font-family: var(--data);
+  color: var(--accent);
+  font-weight: 700;
+}
+
+details[open] summary::before { content: '\2212'; }
+details[open] summary { color: var(--accent); }
+details > *:not(summary) { color: var(--ink-soft); }
+details > *:last-child { padding-bottom: .8rem; }
+
+/* -------------------------------------------------------------- figuras */
+
+figure.fig {
+  margin: 0 0 1.4rem;
+  max-width: 100%;
+  border: 1px solid var(--rule);
+  background: #fff;
+  padding: .6rem;
+}
+
+figure.fig img { width: 100%; height: auto; display: block; }
+
+figure.fig figcaption {
+  margin-top: .6rem;
+  padding-top: .5rem;
+  border-top: 1px solid var(--rule-soft);
+  font-family: var(--data);
+  font-size: .7rem;
+  letter-spacing: .04em;
+  color: var(--ink-faint);
+}
+
+.gone {
+  font-family: var(--data);
+  font-size: .76rem;
+  color: var(--accent);
+  border: 1px dashed var(--accent);
+  padding: .5rem .8rem;
+}
+
+/* ------------------------------------------------------- pie y navegación */
+
+.pager {
+  max-width: var(--wide);
+  margin: 0 auto;
+  padding: 0 2rem 3rem;
+  display: flex;
+  gap: 1.4rem;
+  justify-content: space-between;
+  font-family: var(--data);
+  font-size: .78rem;
+}
+
+.pager a { max-width: 46%; text-decoration: none; border-bottom: 1px solid var(--rule); padding-bottom: .3rem; }
+.pager a:hover { border-bottom-color: var(--accent); }
+.pager .dir { display: block; font-size: .64rem; letter-spacing: .13em; text-transform: uppercase; color: var(--ink-faint); }
+.pager .next { text-align: right; margin-left: auto; }
+
+.footer {
+  border-top: 1px solid var(--rule);
+  padding: 1.4rem 2rem 2.4rem;
+  font-family: var(--data);
+  font-size: .72rem;
+  letter-spacing: .06em;
+  color: var(--ink-faint);
+}
+
+.footer-inner { max-width: var(--wide); margin: 0 auto; display: flex; gap: 1.4rem; flex-wrap: wrap; }
+
+/* ------------------------------------------------------------- índice */
+
+.toc { list-style: none; margin: 0; padding: 0; max-width: 100%; }
+
+.toc li {
+  border-top: 1px solid var(--rule-soft);
+  max-width: 100%;
+}
+
+.toc li:last-child { border-bottom: 1px solid var(--rule-soft); }
+
+.toc a, .toc .pending {
+  display: grid;
+  grid-template-columns: 3rem minmax(0, 1fr) auto;
+  gap: 1.2rem;
+  align-items: baseline;
+  padding: 1rem .4rem;
+  text-decoration: none;
+  color: inherit;
+}
+
+.toc a:hover { background: var(--bench); }
+.toc .pending { color: var(--ink-faint); }
+.toc .num { font-family: var(--data); font-size: .82rem; font-weight: 700; }
+.toc .name { font-size: 1.05rem; }
+.toc .name small { display: block; font-family: var(--prose); font-size: .86rem; color: var(--ink-soft); margin-top: .2rem; }
+.toc .mark { font-family: var(--data); font-size: .82rem; font-weight: 700; white-space: nowrap; }
+.toc .tag { font-family: var(--data); font-size: .66rem; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-faint); }
+
+/* ---------------------------------------------------------- responsive */
+
+@media (max-width: 900px) {
+  .block { grid-template-columns: minmax(0, 1fr); }
+  .block > :not(.kicker) { grid-column: 1; }
+  .kicker { grid-column: 1; padding-top: 0; margin-bottom: .7rem; }
+  .thread { grid-auto-flow: row; grid-template-columns: repeat(5, 1fr); gap: 6px 4px; }
+  .thread .starts-part { margin-left: 0; }
+  .thread .starts-part::after { display: none; }
+  .toc a, .toc .pending { grid-template-columns: 2.2rem minmax(0, 1fr); }
+  .toc .mark { grid-column: 2; }
+}
+
+@media (max-width: 620px) {
+  body { font-size: 16px; }
+  .masthead-inner, .container, .pager, .footer { padding-left: 1.2rem; padding-right: 1.2rem; }
+  .is-result { margin: 0; padding: 2rem 1rem; }
+  .block p, .block li { text-align: left; }
+}
+
+@media print {
+  .thread, .pager { display: none; }
+  body { font-size: 11pt; }
+  .masthead { background: none; }
+  .block { break-inside: avoid; }
+}
+
+/* -------------------------------------------------- resumen y plegables */
+
+/* El resumen de entrada: la cifra, la trampa y la decision, en cinco vinetas.
+   Se lee en 30 segundos o se sigue leyendo. */
+.is-brief {
+  border-top: 0;
+  padding-top: .4rem;
+}
+
+.is-brief .kicker { color: var(--accent); }
+
+.is-brief ul {
+  list-style: none;
+  padding-left: 0;
+  max-width: var(--measure);
+  border-left: 3px solid var(--accent);
+  padding: .2rem 0 .2rem 1.1rem;
+}
+
+.is-brief li { margin-bottom: .7rem; text-align: left; }
+.is-brief li:last-child { margin-bottom: 0; }
+
+/* Los plegables de contenido denso: el glosario y la anotacion del codigo.
+   Cerrados por defecto, para que la pagina no sea un muro. */
+details.fold {
+  border: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+  background: transparent;
+  margin: 0 0 1.2rem;
+  padding: 0;
+  max-width: 100%;
+}
+
+details.fold > summary {
+  font-family: var(--data);
+  font-size: .68rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  font-weight: 400;
+  color: var(--ink-faint);
+  padding: .55rem .9rem .55rem 2rem;
+}
+
+details.fold > summary::before { left: .9rem; }
+details.fold[open] > summary {
+  color: var(--accent);
+  border-bottom: 1px solid var(--rule-soft);
+  margin-bottom: 0;
+}
+
+details.fold > *:not(summary) { padding: .8rem .9rem; color: inherit; }
+details.fold ul { margin-bottom: 0; }
+details.fold .annot { border: 0; padding: 0; margin: 0; }
+details.fold .annot dd { max-width: var(--measure); }
+
+/* Un bloque de codigo seguido de su plegable van pegados. */
+pre:has(+ details.fold) { margin-bottom: 0; border-bottom: 0; }
+
+:root { --accent: #6a281b; }
+</style>
+</head>
+<body>
+<header class="masthead">
+  <div class="masthead-inner">
+    <div class="eyebrow"><a href="index.html">Sílice</a> / M&oacute;dulo <b>5</b> de 14</div>
+    <h1>Darle memoria al modelo</h1>
+    <p class="standfirst">Retardos, promedios móviles y gradient boosting. El salto más grande del proyecto, y la pregunta que deja abierta</p>
+    <div class="figure-mark">
+      <span class="figure-value">R² 0,64</span>
+      <span class="figure-label">memoria horaria más boosting</span>
+    </div>
+    <nav class="thread" aria-label="El arco del proyecto"><a href="m01_radiografia_del_dataset.html" title="1. Radiografía del dataset"><span class="n">1</span> <span class="v">737.453</span></a><a href="m02_el_primer_modelo_y_el_techo.html" title="2. El primer modelo, y el techo que apareció enseguida"><span class="n">2</span> <span class="v">R² 0,04</span></a><a href="m03_como_aprende_un_modelo.html" title="3. Cómo aprende un modelo por dentro"><span class="n">3</span> <span class="v">R² 0,06</span></a><a href="m04_preprocesar_y_validar.html" title="4. Preprocesar y validar sin hacer trampa"><span class="n">4</span> <span class="v">R² −0,13</span></a><span aria-current="page" title="5. Darle memoria al modelo"><span class="n">5</span> <span class="v">R² 0,64</span></span><a href="m06_clasificar_fuera_de_spec.html" title="6. Clasificar: dentro o fuera de especificación"><span class="n">6</span> <span class="v">0,62 vs 0,77</span></a><a href="m07_contra_que_se_compara.html" title="7. Contra qué se compara un modelo"><span class="n">7</span> <span class="v">+0,009</span></a><a href="m08_donde_aporta_el_ml.html" title="8. ¿Dónde aporta el ML de verdad?"><span class="n">8</span> <span class="v">0 de 4</span></a><a href="m09_los_tres_estados_de_la_planta.html" title="9. Los tres estados de la planta"><span class="n">9</span> <span class="v">k = 3</span></a><a href="m10_redes_producto_y_cierre.html" title="10. Redes, producto y cierre"><span class="n">10</span> <span class="v">0,76</span></a><a class="starts-part" href="m11_modelos_de_secuencia.html" title="11. Modelos de secuencia: LSTM, GRU y convolución causal"><span class="n">11</span> <span class="v">+0,215</span></a><a href="m12_practica_de_pronostico.html" title="12. La práctica de pronóstico que faltó"><span class="n">12</span> <span class="v">0,52 vs 0,63</span></a><a href="m13_incertidumbre.html" title="13. Incertidumbre: del punto al intervalo"><span class="n">13</span> <span class="v">92,0 %</span></a><a href="m14_lectura_causal.html" title="14. Lectura causal del lazo de control"><span class="n">14</span> <span class="v">+0,16</span></a></nav>
+    <div class="assay"><span><b>2</b> apuntes de origen</span><span><b>2</b> figuras</span><span><b>3</b> scripts</span></div>
+  </div>
+</header>
+<main class="container">
+<section class="block is-brief"><span class="kicker">Resumen</span><h2 class="block-title">En 30 segundos</h2><ul><li><strong>R² 0,64.</strong> El mejor número del proyecto, después de meses atascado en 0,04.</li><li><strong>No lo consiguió un modelo mejor, lo consiguieron variables mejores.</strong> Con las mismas columnas de proceso el R² es 0,119. Añadiendo memoria del pasado sube a 0,492.</li><li><strong>El boosting remata</strong>, de 0,492 a 0,641, entrenando árboles en cadena.</li><li><strong>La variable que más pesa es la sílice de la hora anterior.</strong> Y es legal: el laboratorio ya la reportó.</li><li><strong>Ahí queda una pregunta incómoda.</strong> Si esa columna hace casi todo el trabajo, falta saber qué puntúa ella sola. El módulo 7 lo mide.</li></ul></section>
+<section class="block "><span class="kicker">Contexto</span><h2 class="block-title">Qué resuelve este módulo</h2><p>Los cuatro módulos anteriores probaron algoritmos cada vez más capaces contra el mismo techo de R² 0,04. Ninguno lo movió.</p><p>Este módulo cambia de estrategia. En vez de buscar un modelo mejor, construye <strong>variables</strong> mejores. La idea es que el proceso tiene inercia, y ninguna columna del archivo la estaba capturando.</p><p>El salto es grande y merece celebrarse con cuidado, porque el módulo 7 va a mirar ese número desde otro ángulo.</p></section>
+<section class="block is-toy"><span class="kicker">A mano</span><h2 class="block-title">Antes de la teoría: un ejemplo de juguete</h2><p>Seis horas seguidas de una planta que va derivando hacia arriba.</p><div class="table-wrap"><table><thead><tr><th>Hora</th><th>% SiO₂</th></tr></thead><tbody><tr><td>1</td><td>1</td></tr><tr><td>2</td><td>2</td></tr><tr><td>3</td><td>3</td></tr><tr><td>4</td><td>4</td></tr><tr><td>5</td><td>5</td></tr><tr><td>6</td><td>6</td></tr></tbody></table></div><p>Se van a predecir las horas 2 a 6, porque la hora 1 no tiene pasado.</p><h3 class="sub">Paso 1. Predecir siempre la media</h3><p>La media de las seis horas es 3,5.</p><pre><code>media = (1 + 2 + 3 + 4 + 5 + 6) / 6 = 21 / 6 = 3,5</code></pre><p>Los fallos sobre las horas 2 a 6:</p><pre><code>real:      2      3      4      5      6
+predicho: 3,5    3,5    3,5    3,5    3,5
+fallo:   −1,5   −0,5   +0,5   +1,5   +2,5</code></pre><pre><code>error cuadrático medio = (2,25 + 0,25 + 0,25 + 2,25 + 6,25) / 5 = 11,25 / 5 = 2,25
+RMSE = raíz de 2,25 = 1,5</code></pre><h3 class="sub">Paso 2. Predecir lo mismo que la hora anterior</h3><p>Sin modelo, sin entrenar nada. La predicción de cada hora es el valor de la hora de antes.</p><pre><code>real:      2      3      4      5      6
+predicho:  1      2      3      4      5
+fallo:    +1     +1     +1     +1     +1</code></pre><pre><code>error cuadrático medio = (1 + 1 + 1 + 1 + 1) / 5 = 5 / 5 = 1
+RMSE = raíz de 1 = 1</code></pre><p><strong>RMSE 1,5 contra 1,0.</strong> Repetir la hora anterior es un tercio mejor que la media, y no requiere ningún modelo.</p><h3 class="sub">Paso 3. Por qué eso es legal</h3><p>La pregunta obvia es si esto no será fuga. No lo es, y la razón está en el módulo 1.</p><p>Para predecir la sílice de la hora 6, el instante de predicción es el comienzo de la hora 6. En ese momento el laboratorio <strong>ya reportó</strong> la hora 5. El dato existe, está a la izquierda de la línea.</p><p>No existe todavía la sílice de la hora 6. Ese es justo el valor a predecir.</p><h3 class="sub">Paso 4. Convertirlo en columna</h3><p>En vez de usar la hora anterior como predicción, se puede meter como <strong>columna de entrada</strong> y dejar que el modelo la combine con el resto.</p><div class="table-wrap"><table><thead><tr><th>Hora</th><th>pH</th><th>Aire</th><th><strong>SiO₂ hora anterior</strong></th><th>SiO₂ (objetivo)</th></tr></thead><tbody><tr><td>2</td><td>9,5</td><td>300</td><td><strong>1</strong></td><td>2</td></tr><tr><td>3</td><td>9,6</td><td>305</td><td><strong>2</strong></td><td>3</td></tr><tr><td>4</td><td>9,4</td><td>298</td><td><strong>3</strong></td><td>4</td></tr></tbody></table></div><p>Esa columna nueva se llama <strong>retardo</strong>, o <em>lag</em>. El modelo ya no parte de cero: arranca sabiendo dónde estaba el proceso hace una hora.</p><h3 class="sub">Paso 5. Qué acaba de pasar, y qué queda pendiente</h3><p>Se acaba de crear información sin añadir ni un sensor. Estaba en el archivo, en la columna del objetivo, y nadie la había puesto donde el modelo pudiera verla.</p><p>Pero el paso 2 deja una espina. <strong>Repetir la hora anterior ya daba RMSE 1,0 sin modelo alguno.</strong> Cuando el modelo con retardos dé un número bueno, habrá que preguntarse cuánto de ese número es mérito suyo y cuánto es de la columna del retardo. Este módulo no lo contesta. El módulo 7 sí.</p></section>
+<section class="block is-terms"><span class="kicker">Términos</span><h2 class="block-title">Glosario</h2><details class="fold"><summary>9 términos, en palabras simples</summary><ul><li><strong>Retardo.</strong> Una columna con el valor de una variable en un instante anterior. En inglés, <em>lag</em>.</li><li><strong>Promedio móvil.</strong> El promedio de las últimas horas, recalculado en cada fila. Suaviza el ruido y capta la tendencia.</li><li><strong>Ingeniería de variables.</strong> Construir columnas nuevas a partir de las que hay. En inglés, <em>feature engineering</em>.</li><li><strong>Remuestreo horario.</strong> Agrupar las 180 filas de cada hora en una sola, con el promedio. Pone los datos al ritmo del laboratorio.</li><li><strong>Inercia del proceso.</strong> Que el estado de ahora dependa del estado de hace un rato. Una celda de flotación no cambia de golpe.</li><li><strong>Boosting.</strong> Entrenar árboles en cadena, cada uno dedicado a corregir el error del anterior. En inglés, <em>refuerzo</em>.</li><li><strong>Ronda.</strong> Cada árbol añadido a la cadena del boosting.</li><li><strong>Parada temprana.</strong> Dejar de añadir árboles cuando el error de validación deja de bajar. En inglés, <em>early stopping</em>.</li><li><strong>Persistencia.</strong> Predecir que el próximo valor será igual al último medido. El baseline que aparece en el paso 2.</li></ul></details></section>
+<section class="block is-method"><span class="kicker">Método</span><h2 class="block-title">Paso a paso</h2><h3 class="sub">Paso 1. Poner los datos al ritmo del laboratorio</h3><p>Las 737.453 filas van a 20 segundos, y el objetivo se mide unas 14 veces por hora. Modelar a 20 segundos añade ruido sin añadir información.</p><p>Se agrupa por hora con el promedio. Quedan <strong>4.091 horas</strong> utilizables.</p><h3 class="sub">Paso 2. Construir la memoria</h3><p>Cuatro columnas nuevas, todas del pasado del objetivo:</p><ul><li>la sílice de hace una hora,</li><li>la de hace dos,</li><li>la de hace tres,</li><li>el promedio de las tres anteriores.</li></ul><p>Todas cumplen la regla del módulo 1. Ya existen en el instante de predecir.</p><h3 class="sub">Paso 3. Medir el aporte por separado</h3><p>Primero un modelo con las columnas de proceso solas. Después el mismo modelo con proceso más memoria. La diferencia entre los dos es el aporte de la memoria, aislado.</p><h3 class="sub">Paso 4. Cambiar de modelo, ahora que sí hay señal</h3><p>Con señal real, un modelo más capaz sí puede aprovecharla. El boosting entrena árboles en cadena: el primero predice, el segundo corrige lo que falló el primero, y así sucesivamente.</p><h3 class="sub">Paso 5. Vigilar cuándo parar</h3><p>Añadir rondas mejora hasta cierto punto y después empeora. Es el sobreajuste del módulo 2, con otra perilla.</p></section>
+<section class="block is-code"><span class="kicker">Código</span><h2 class="block-title">El código, por partes</h2><h3 class="sub">Paso 1. Agrupar por hora y crear los retardos</h3><pre><code class="language-python">h = df.set_index(&quot;date&quot;).sort_index().resample(&quot;h&quot;).mean()
+h[&quot;sil_lag1&quot;] = h[TARGET].shift(1)
+h[&quot;sil_lag2&quot;] = h[TARGET].shift(2)
+h[&quot;sil_roll3&quot;] = h[TARGET].shift(1).rolling(3).mean()
+print(&quot;Filas horarias usables:&quot;, len(h.dropna()))</code></pre><details class="fold"><summary>línea por línea, 5 entradas</summary><dl class="annot"><dt><code>.set_index(&quot;date&quot;)</code></dt><dd>Pone la fecha como índice, para poder agrupar por tiempo.</dd><dt><code>.resample(&quot;h&quot;).mean()</code></dt><dd>Agrupa en tramos de una hora y promedia. Las horas del hueco quedan vacías.</dd><dt><code>.shift(1)</code></dt><dd>Desplaza la columna una fila hacia abajo. La fila de la hora 6 recibe el valor de la hora 5.</dd><dt><code>.shift(1).rolling(3).mean()</code></dt><dd>Primero desplaza y después promedia tres. El orden importa: promediar sin desplazar incluiría la hora actual, y eso sí sería fuga.</dd><dt><code>.dropna()</code></dt><dd>Quita las filas sin valor, que aquí son las primeras horas y las del hueco.</dd></dl></details><div class="output"><span class="output-tag">sale</span><pre><code>Filas horarias usables: 4091
+Solo base            : R2 +0.119  RMSE 1.065
+Base + memoria (lags): R2 +0.492  RMSE 0.809</code></pre></div><p><strong>De 0,119 a 0,492 con las mismas columnas de proceso.</strong> Cuatro columnas construidas, ni un sensor nuevo.</p><figure class="fig"><img src="../figuras/fig_m5_memoria.81c3ae9d.png" alt="El mismo modelo con y sin memoria. A la derecha, predicho contra real: con memoria los puntos por fin siguen la diagonal." loading="lazy"><figcaption>El mismo modelo con y sin memoria. A la derecha, predicho contra real: con memoria los puntos por fin siguen la diagonal.</figcaption></figure><h3 class="sub">Paso 2. Cambiar el bosque por boosting</h3><pre><code class="language-python">from sklearn.ensemble import HistGradientBoostingRegressor
+
+modelo = HistGradientBoostingRegressor(early_stopping=True, validation_fraction=0.15,
+                                       n_iter_no_change=15, random_state=0)
+modelo.fit(train[base + mem], train[TARGET])</code></pre><details class="fold"><summary>línea por línea, 4 entradas</summary><dl class="annot"><dt><code>HistGradientBoostingRegressor</code></dt><dd>Boosting rápido, que agrupa los valores en cajas antes de buscar cortes.</dd><dt><code>early_stopping=True</code></dt><dd>Deja de añadir árboles solo, cuando dejan de ayudar.</dd><dt><code>validation_fraction=0.15</code></dt><dd>Aparta un 15 % del entrenamiento para vigilar cuándo parar. No toca el test.</dd><dt><code>n_iter_no_change=15</code></dt><dd>Aguanta 15 rondas sin mejora antes de parar, por si la mejora vuelve.</dd></dl></details><div class="output"><span class="output-tag">sale</span><pre><code>R2 forest 0.492 | R2 boosting 0.641
+R2 por rondas: [0.118, 0.295, 0.411, 0.558, 0.637, 0.622, 0.602, 0.574, 0.55]</code></pre></div><figure class="fig"><img src="../figuras/fig_m5_boosting.699f74de.png" alt="Izquierda: el R² según cuántas rondas se añaden. Sube, hace cima y baja. Derecha: bosque contra boosting sobre las mismas variables." loading="lazy"><figcaption>Izquierda: el R² según cuántas rondas se añaden. Sube, hace cima y baja. Derecha: bosque contra boosting sobre las mismas variables.</figcaption></figure><p>La lista de rondas es el sobreajuste otra vez. Sube hasta <strong>0,637</strong> y después baja hasta 0,55. Añadir árboles sin control empeora, igual que profundizar sin control en el módulo 2.</p></section>
+<section class="block is-result"><span class="kicker">Resultado</span><h2 class="block-title">El resultado, medido</h2><p><strong>Qué esperábamos.</strong> Que las variables con memoria ayudaran algo, quizá subiendo el R² de 0,04 a 0,15 o 0,20.</p><p><strong>Qué salió.</strong> Mucho más que eso.</p><div class="table-wrap"><table><thead><tr><th>Modelo</th><th>R² prueba</th></tr></thead><tbody><tr><td>Todo lo del módulo 2, a 20 segundos</td><td>0,04</td></tr><tr><td>Bosque horario, solo columnas de proceso</td><td>0,119</td></tr><tr><td>Bosque horario, proceso más memoria</td><td>0,492</td></tr><tr><td><strong>Boosting, proceso más memoria</strong></td><td><strong>0,641</strong></td></tr></tbody></table></div><p><strong>Qué significa.</strong> Que el techo del módulo 2 no era del problema entero. Era del problema <strong>tal como estaba planteado</strong>, sin memoria y a 20 segundos.</p><p>Y el orden de los factores importa. El salto grande, de 0,119 a 0,492, lo dieron <strong>las variables</strong>. El salto de 0,492 a 0,641 lo dio el <strong>modelo</strong>. Las variables aportaron el doble que el algoritmo.</p><p>Esa es la lección más transferible del módulo. Cuando un proyecto se atasca, la ingeniería de variables suele rendir más que probar modelos nuevos.</p><h3 class="sub">La espina del ejemplo de juguete</h3><p>En el paso 2 del ejemplo, repetir la hora anterior daba RMSE 1,0 contra 1,5 de la media. Sin modelo.</p><p>En el archivo real esa misma columna, <code>sil_lag1</code>, correlaciona <strong>+0,816</strong> con el objetivo. Es con diferencia la columna más fuerte de todo el proyecto, y no es un sensor: es el propio objetivo desplazado una hora.</p><p>Así que el 0,641 abre una pregunta que este módulo deja <strong>deliberadamente sin contestar</strong>: qué puntúa esa columna ella sola, sin modelo. El módulo 7 lo mide, y la respuesta cambia cómo hay que leer este 0,641.</p><h3 class="sub">Lo que este módulo deja abierto</h3><p>Hay un segundo asunto pendiente. Todo esto se ha medido a un horizonte de una hora, que es el más fácil.</p><p>Una planta que necesita reaccionar quiere saberlo con más antelación. El módulo 8 repite la medición a 1, 3, 6 y 12 horas.</p></section>
+<section class="block is-warning"><span class="kicker">Trampas</span><h2 class="block-title">Ojo</h2><ul><li><strong>El orden de <code>shift</code> y <code>rolling</code> no es indiferente.</strong> Promediar las tres últimas horas incluyendo la actual es fuga. Primero se desplaza y después se promedia.</li><li><strong>Un retardo del objetivo es legal, pero solo si respeta el instante de predicción.</strong> Con horizonte de una hora, el retardo de una hora vale. Con horizonte de tres, ya no.</li><li><strong>Remuestrear a la cadencia del objetivo quita ruido.</strong> Modelar a 20 segundos un objetivo que se mide 14 veces por hora es pedirle al modelo que explique variación que no existe.</li><li><strong>El boosting también sobreajusta.</strong> Aquí cima en 0,637 y cae a 0,55 con más rondas. La parada temprana no es un adorno.</li><li><strong>Un salto grande de R² pide comprobar el baseline, no celebrar.</strong> Si la variable nueva es el propio objetivo desplazado, el rival correcto ya no es la media.</li><li><strong>Cuidado con creer que el modelo aprendió el proceso.</strong> Puede haber aprendido solo que el proceso cambia despacio.</li></ul></section>
+<section class="block is-bridge"><span class="kicker">Analogía</span><h2 class="block-title">Puente metalúrgico</h2><p>La memoria del modelo es la <strong>inercia de la celda</strong>. Una columna de flotación tiene un volumen de pulpa y un tiempo de residencia. Si hace una hora la ley del concentrado estaba alta, dentro de la celda todavía queda parte de esa carga. El proceso no salta, se desplaza.</p><p>El retardo del objetivo es el <strong>último análisis de turno pegado en la pizarra</strong>. Ningún operador empieza el turno suponiendo que la planta está en su media histórica. Empieza mirando el último resultado del laboratorio y ajustando desde ahí.</p><p>Y el aviso del módulo tiene su versión en planta. Si un modelo predice bien la ley solo porque sabe la ley de hace una hora, está haciendo lo mismo que el operador <strong>sin aportar nada por encima</strong>. Lo que se paga en una sala de control no es repetir el último análisis. Es anticipar el cambio antes de que aparezca.</p></section>
+<section class="block is-review"><span class="kicker">Repaso</span><h2 class="block-title">Repaso</h2><details><summary>¿Por qué usar la sílice de la hora anterior no es fuga de datos?</summary><p>Porque ya existe en el instante de predecir. La regla del módulo 1 dice que una entrada es lícita si está disponible cuando hay que contestar.</p><p>Para predecir la hora 6 el instante de predicción es el comienzo de esa hora, y el laboratorio ya reportó la hora 5. Ese dato está sobre la mesa. No lo está la sílice de la hora 6, que es el valor a predecir. La fuga sería usar el análisis de la propia hora 6. O el hierro del concentrado, que llega después.</p></details><details><summary>Las variables subieron el R² de 0,119 a 0,492 y el modelo de 0,492 a 0,641. ¿Qué se aprende?</summary><p>Que las variables rindieron el doble que el algoritmo, y eso es lo habitual.</p><p>Los módulos 2, 3 y 4 probaron árboles, bosques, rectas y regularización contra un techo de 0,04. Ninguno lo movió. Cuatro columnas construidas a mano lo movieron de golpe. Cuando un proyecto se atasca, la pregunta productiva no suele ser qué modelo probar, sino qué información no está llegando al modelo.</p></details><details><summary>El boosting llega a 0,637 en la ronda 5 y cae a 0,55 después. ¿Qué está pasando?</summary><p>Sobreajuste, el mismo del módulo 2 con otra perilla.</p><p>Cada ronda añade un árbol dedicado a corregir los errores que quedaban. Al principio esos errores son señal real. Pasado cierto punto, lo que queda es ruido, y los árboles nuevos se dedican a memorizarlo. El error de entrenamiento sigue bajando y el de prueba empieza a subir. La parada temprana existe justo para esto: aparta un trozo del entrenamiento, vigila el error en él y corta cuando deja de mejorar.</p></details><details><summary>Este módulo consigue R² 0,64. ¿Se puede afirmar que el ML resuelve el problema?</summary><p>Todavía no, y por una razón concreta. La variable más importante del modelo es el propio objetivo desplazado una hora, que correlaciona +0,816 con él.</p><p>Antes de atribuirle el mérito al modelo hay que medir qué puntúa esa columna sola, sin modelo ninguno. Es el baseline de persistencia, y el ejemplo de juguete ya avisó de que es fuerte: RMSE 1,0 contra 1,5 de la media. El módulo 7 hace esa medición sobre los datos reales, y el resultado obliga a releer este 0,641.</p></details><details><summary>¿Qué habría que probar después para subir más el techo?</summary><p>Tres caminos, en orden de coste.</p><p>El primero es más ingeniería de variables: retardos de las columnas de proceso, no solo del objetivo, y promedios móviles de ventanas distintas. El segundo es modelos que traten la secuencia como secuencia, en vez de tratar cada hora como una fila suelta. El tercero es conseguir datos que hoy no existen, sobre todo registros de consigna y de cambios de operación. El módulo 11 recorre el segundo camino con redes de secuencia.</p></details></section>
+</main>
+<nav class="pager"><a class="prev" href="m04_preprocesar_y_validar.html"><span class="dir">Anterior</span>4. Preprocesar y validar sin hacer trampa</a><a class="next" href="m06_clasificar_fuera_de_spec.html"><span class="dir">Siguiente</span>6. Clasificar: dentro o fuera de especificación</a></nav>
+<footer class="footer">
+  <div class="footer-inner">
+    <span>S&iacute;lice / M&oacute;dulo 5</span>
+    <span>generado el 2026-08-20</span>
+    <span>fuente: los 31 apuntes originales, sus scripts y el CSV de la planta</span>
+  </div>
+</footer>
+</body>
+</html>

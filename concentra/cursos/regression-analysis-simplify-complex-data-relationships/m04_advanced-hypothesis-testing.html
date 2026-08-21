@@ -1,0 +1,510 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Advanced hypothesis testing — Regression Analysis: Simplify Complex Data Relationships</title>
+<style>
+/* ============================================================================
+   Concentra — design tokens and shared components.
+   Inlined into every generated page by load_style(), so pages stay self-contained
+   and work offline from file:// with no external requests.
+
+   Direction: an assay lab, not a tech dashboard. The palette is taken from ore
+   and lab materials (chalcopyrite brass, malachite, hematite, quartz) on warm
+   graphite rather than the blue-black + neon of a generic dark UI. Type is
+   Bahnschrift, the DIN-descended grotesque that Windows ships and that lives on
+   machinery plates and technical drawings, over Corbel for reading.
+   ========================================================================== */
+
+:root {
+  /* Ground and surfaces: warm graphite, the colour of rock dust, not blue-black */
+  --rock: #1a1714;
+  --bench: #221e19;
+  --core: #2b251f;
+  --seam: #3d352c;
+
+  /* Ore palette. No blue and no purple anywhere: those are the tones that make a
+     page read as generated, and this palette comes from the ores instead. */
+  --brass: #c9a227;      /* chalcopyrite, the primary accent */
+  --malachite: #5d9b7a;  /* verified output, results that came out right */
+  --hematite: #b04a35;   /* iron oxide, pitfalls and warnings */
+
+  /* Text */
+  --quartz: #ece7de;
+  --dust: #9a9186;
+  --shadowed: #6f675c;
+
+  --display: Bahnschrift, 'DIN Alternate', 'Segoe UI Semibold', system-ui, sans-serif;
+  --body: Corbel, Candara, 'Segoe UI', system-ui, sans-serif;
+  --data: Consolas, 'Cascadia Mono', ui-monospace, monospace;
+
+  /* In px, not ch: ch scales with font-size, so a heading ended up wider than a
+     paragraph and the page had four different right edges instead of two. */
+  --measure: 640px;
+  --wide: 900px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--rock);
+  color: var(--quartz);
+  font-family: var(--body);
+  font-size: 16px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection { background: var(--brass); color: var(--rock); }
+
+:focus-visible {
+  outline: 2px solid var(--brass);
+  outline-offset: 3px;
+}
+
+/* --------------------------------------------------------------- the signature
+   A sieve series: ticks that get finer from left to right, coarse feed to fine
+   concentrate. It is the one ornament on the page and appears exactly twice —
+   under the wordmark and under a page title. */
+.mesh {
+  height: 10px;
+  background-image:
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 16px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 9px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 5px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 3px);
+  background-size: 25% 100%;
+  background-position: 0 0, 25% 0, 50% 0, 75% 0;
+  background-repeat: no-repeat;
+  opacity: .8;
+  transform-origin: left center;
+  animation: sieve .55s cubic-bezier(.2, .8, .3, 1) both;
+}
+@keyframes sieve { from { transform: scaleX(0); opacity: 0; } to { transform: scaleX(1); opacity: .8; } }
+@media (prefers-reduced-motion: reduce) {
+  .mesh { animation: none; }
+  * { transition: none !important; }
+}
+
+/* ------------------------------------------------------------------ page head */
+.header {
+  border-bottom: 1px solid var(--seam);
+  padding: 3.2rem 2rem 0;
+  background: linear-gradient(180deg, #221d16 0%, var(--rock) 100%);
+}
+.header-content { max-width: 1080px; margin: 0 auto; }
+
+.eyebrow {
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--brass);
+  margin-bottom: 1rem;
+}
+.eyebrow a { color: inherit; text-decoration: none; border-bottom: 1px solid transparent; }
+.eyebrow a:hover { border-bottom-color: var(--brass); }
+
+.header h1 {
+  font-family: var(--display);
+  font-size: clamp(2rem, 4.5vw, 3.1rem);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -.015em;
+  color: var(--quartz);
+  max-width: 20ch;
+}
+.header .subtitle {
+  color: var(--dust);
+  max-width: var(--measure);
+  margin-top: 1rem;
+  font-size: 1.02rem;
+}
+.header .mesh { margin: 1.8rem 0 0; }
+
+/* An assay line: the real composition of the module, in lab-report shorthand. */
+.assay {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.4rem;
+  font-family: var(--data);
+  font-size: .78rem;
+  color: var(--shadowed);
+  padding: .9rem 0 1.6rem;
+  letter-spacing: .04em;
+}
+.assay b { color: var(--dust); font-weight: 400; }
+
+/* --------------------------------------------------------------------- layout */
+/* The container hugs the widest block, so there is no orphan edge past the content. */
+.container { max-width: var(--wide); margin: 3rem auto 5rem; padding: 0 2rem; }
+
+/* Two deliberate right edges and no more: prose stops at the reading measure, and
+   only the things that genuinely need room (code, output, figures, big tables) run
+   out to the full column. */
+.section-block {
+  border-top: 1px solid var(--seam);
+  padding: 2rem 0 2.4rem;
+}
+.section-block > p,
+.section-block > ul,
+.section-block > ol,
+.section-block h3.sub,
+.section-block h4.sub,
+.section-block blockquote,
+details > *:not(summary) { max-width: var(--measure); }
+.section-block:first-child { border-top: 0; padding-top: .5rem; }
+
+/* The kicker names what kind of content follows: context, method, pitfalls.
+   It replaces decorative icons with something that actually classifies. */
+.kicker {
+  font-family: var(--data);
+  font-size: .68rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  display: block;
+  margin-bottom: .5rem;
+}
+.section-title {
+  font-family: var(--display);
+  font-size: 1.55rem;
+  font-weight: 600;
+  letter-spacing: -.01em;
+  line-height: 1.2;
+  margin-bottom: 1.2rem;
+  color: var(--quartz);
+}
+.is-warning .kicker { color: var(--hematite); }
+.is-warning .section-title { color: #e8c4b8; }
+.is-bridge .kicker, .is-decision .kicker { color: var(--malachite); }
+.is-toy .kicker, .is-result .kicker, .is-question .kicker { color: var(--brass); }
+
+/* ---------------------------------------------------------------------- prose */
+/* Justified with hyphenation. In Spanish, justifying without hyphens opens rivers of
+   white space and reads worse than ragged right; lang="es" is what feeds the
+   dictionary. Tables, code, captions and summaries stay ragged on purpose. */
+.section-block p,
+.section-block li,
+details > *:not(summary) {
+  text-align: justify;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+}
+.section-block p { margin-bottom: 1rem; }
+.section-block p:last-child { margin-bottom: 0; }
+/* Indent with padding, not margin, so the bullet sits inside the measure instead of
+   pushing the list 1.2rem past the right edge of the paragraphs. */
+.section-block ul, .section-block ol { margin: 0 0 1rem; padding-left: 1.2rem; }
+.section-block li { margin-bottom: .55rem; padding-left: .2rem; }
+.section-block li::marker { color: var(--brass); }
+td, th, figcaption, .res li, .assay { text-align: left; hyphens: manual; }
+a { color: var(--brass); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+a:hover { text-decoration-thickness: 2px; }
+strong { color: #fff; font-weight: 700; }
+em { color: var(--dust); font-style: italic; }
+
+h3.sub {
+  font-family: var(--display);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--brass);
+  margin: 2rem 0 .7rem;
+  letter-spacing: -.005em;
+}
+h3.sub:first-child { margin-top: 0; }
+h4.sub {
+  font-family: var(--display);
+  font-size: .98rem;
+  font-weight: 600;
+  color: var(--dust);
+  margin: 1.3rem 0 .5rem;
+}
+
+code {
+  font-family: var(--data);
+  font-size: .9em;
+  background: var(--core);
+  border-radius: 3px;
+  padding: .08rem .32rem;
+  color: var(--brass);
+}
+pre {
+  background: #14110e;
+  border: 1px solid var(--seam);
+  border-left: 2px solid var(--seam);
+  border-radius: 2px;
+  padding: 1.1rem 1.2rem;
+  overflow-x: auto;
+  margin-bottom: 1rem;
+}
+pre code {
+  background: none; padding: 0; color: var(--quartz);
+  font-size: .87rem; line-height: 1.6;
+}
+
+/* What the code prints. Malachite: the material that came out of the process. */
+.output {
+  position: relative;
+  border: 1px solid rgba(93, 155, 122, .32);
+  border-left: 2px solid var(--malachite);
+  border-radius: 2px;
+  background: rgba(93, 155, 122, .06);
+  padding: 1.7rem 1.2rem 1rem;
+  margin-bottom: 1rem;
+  overflow-x: auto;
+}
+.output-tag {
+  position: absolute; top: .5rem; left: 1.2rem;
+  font-family: var(--data); font-size: .64rem;
+  letter-spacing: .18em; text-transform: uppercase; color: var(--malachite);
+}
+.output pre {
+  background: none; border: 0; padding: 0; margin: 0;
+  font-family: var(--data); font-size: .85rem;
+  color: var(--quartz); white-space: pre-wrap;
+}
+
+/* Line by line explanation of a code block, for a reader new to programming.
+   Two columns: the fragment of code, and what it does. */
+.annot {
+  display: grid;
+  grid-template-columns: minmax(9rem, auto) 1fr;
+  gap: .1rem 1.2rem;
+  align-items: baseline;
+  max-width: var(--wide);
+  margin: -.4rem 0 1.4rem;
+  padding: .9rem 1.1rem 1rem;
+  border: 1px solid var(--seam);
+  border-top: 0;
+  border-radius: 0 0 2px 2px;
+  background: rgba(201, 162, 39, .04);
+}
+.annot-head {
+  grid-column: 1 / -1;
+  font-family: var(--data);
+  font-size: .64rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  margin-bottom: .5rem;
+}
+.annot dt { padding: .35rem 0; }
+.annot dt code {
+  background: var(--core);
+  color: var(--brass);
+  font-size: .82rem;
+  white-space: nowrap;
+}
+.annot dd {
+  padding: .35rem 0;
+  margin: 0;
+  color: var(--dust);
+  font-size: .93rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(61, 53, 44, .5);
+}
+.annot dt { border-bottom: 1px solid rgba(61, 53, 44, .5); }
+.annot dt:last-of-type, .annot dd:last-of-type { border-bottom: 0; }
+/* The code block sits directly on top of its annotation, as one unit. */
+pre:has(+ .annot) { margin-bottom: 0; border-radius: 2px 2px 0 0; }
+
+@media (max-width: 640px) {
+  .annot { grid-template-columns: 1fr; gap: 0; }
+  .annot dt { border-bottom: 0; padding-bottom: 0; }
+  .annot dd { padding-top: .15rem; }
+}
+
+blockquote {
+  border-left: 2px solid var(--brass);
+  padding: .3rem 0 .3rem 1.3rem;
+  margin: 0 0 1rem;
+  font-family: var(--display);
+  font-size: 1.2rem;
+  font-weight: 400;
+  line-height: 1.4;
+  color: var(--quartz);
+}
+
+/* Tables read as assay data: mono figures, hairline rules, no zebra fill.
+   They take the width they need instead of being stretched to the full column,
+   which is what left a two-column table floating in empty space. */
+.table-wrap { overflow-x: auto; margin-bottom: 1rem; }
+table { border-collapse: collapse; width: auto; max-width: 100%; font-size: .93rem; }
+th, td {
+  border-bottom: 1px solid var(--seam);
+  padding: .55rem .8rem .55rem 0;
+  text-align: left;
+  vertical-align: top;
+}
+th {
+  font-family: var(--data);
+  font-size: .7rem;
+  font-weight: 400;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  border-bottom-color: var(--brass);
+}
+td:first-child { color: var(--quartz); }
+
+/* Review questions: closed by default, so they work as recall practice. */
+details {
+  border-top: 1px solid var(--seam);
+  padding: .9rem 0;
+}
+details:last-child { border-bottom: 1px solid var(--seam); }
+summary {
+  cursor: pointer;
+  font-family: var(--display);
+  font-size: 1.02rem;
+  font-weight: 600;
+  color: var(--quartz);
+  list-style: none;
+  display: flex;
+  gap: .7rem;
+  align-items: baseline;
+}
+summary::-webkit-details-marker { display: none; }
+summary::before {
+  content: '+';
+  font-family: var(--data);
+  color: var(--brass);
+  font-size: .95rem;
+}
+details[open] summary::before { content: '−'; }
+details[open] summary { color: var(--brass); margin-bottom: .7rem; }
+details > *:not(summary) { color: var(--dust); }
+
+figure.fig {
+  margin: 1.6rem 0;
+  border: 1px solid var(--seam);
+  padding: .7rem;
+  background: var(--bench);
+}
+figure.fig img { width: 100%; height: auto; display: block; }
+/* The interactive twin of a figure. Its aspect matches the still one, 10 by 4.4, so a
+   case sheet keeps the same rhythm whichever kind of figure comes next. */
+figure.fig.is-live iframe {
+  width: 100%;
+  /* Matches INTERACTIVE_HEIGHT in src/make_figures.py. It used to be an aspect ratio, and
+     that made the figure's height depend on the window: the caption and the legend are
+     placed at fractions of the plot area, so on a wide screen they were pushed past the
+     bottom margin, clipping the caption and covering the x-axis title. */
+  height: 520px;
+  border: 0;
+  display: block;
+}
+figure.fig figcaption {
+  font-family: var(--data);
+  font-size: .72rem;
+  color: var(--shadowed);
+  margin-top: .6rem;
+  letter-spacing: .04em;
+}
+
+/* File listings on a case sheet */
+.res { list-style: none; margin-left: 0 !important; }
+.res li {
+  display: flex; align-items: baseline; gap: .8rem; flex-wrap: wrap;
+  padding: .5rem 0; border-bottom: 1px solid var(--seam); margin-bottom: 0;
+}
+.res .path { font-family: var(--data); font-size: .74rem; color: var(--shadowed); }
+.res .size { font-family: var(--data); font-size: .74rem; color: var(--shadowed); margin-left: auto; }
+.res .gone { font-family: var(--data); font-size: .74rem; color: var(--hematite); }
+
+.footer {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 2rem 4rem;
+  color: var(--shadowed);
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .03em;
+}
+
+@media (max-width: 640px) {
+  body { font-size: 15px; }
+  .header { padding: 2rem 1.2rem 0; }
+  .container { padding: 0 1.2rem; margin-top: 2rem; }
+  .footer { padding: 0 1.2rem 3rem; }
+}
+
+@media print {
+  body { background: #fff; color: #16130f; }
+  .header { background: none; border-bottom: 1px solid #bbb; padding-top: 0; }
+  .header h1, .section-title, summary { color: #16130f; }
+  .mesh { animation: none; }
+  .section-block { break-inside: avoid; max-width: none; }
+  pre, .output { background: #f6f4f0; border-color: #ccc; }
+  details:not([open]) > *:not(summary) { display: block; }
+  a { color: #16130f; }
+}
+
+</style>
+</head>
+<body>
+<header class="header">
+  <div class="header-content">
+    <div class="eyebrow"><a href="https://www.coursera.org/learn/regression-analysis-simplify-complex-data-relationships">Regression Analysis: Simplify Complex Data Relationships</a> / Módulo 4</div>
+    <h1>Advanced hypothesis testing</h1>
+    <p class="subtitle">Dos pruebas para dos preguntas que la prueba t no sabe responder: si dos variables de categorías están relacionadas, con chi cuadrado, y si tres grupos o más tienen medias distintas, con ANOVA. Las dos salen exactas a mano aquí, y el post hoc enseña por qué ANOVA sola no basta.</p>
+    <div class="mesh" role="presentation"></div>
+    <div class="assay"><span><b>4 h</b> de curso</span><span><b>9</b> vídeos</span><span><b>3</b> lecturas</span><span><b>4</b> tareas</span><span><b>3</b> prácticas</span></div>
+  </div>
+</header>
+<main class="container">
+<section class="section-block "><span class="kicker">Contexto</span><h2 class="section-title">Qué resuelve este módulo</h2><p>El curso anterior comparaba <strong>dos</strong> grupos con una prueba t. Dos preguntas muy comunes se quedaban fuera.</p><p>La primera: <strong>¿están relacionadas dos variables que son categorías?</strong> Por ejemplo, si el turno y el que un lote pase o no pase especificación tienen algo que ver. Ahí no hay medias que restar, solo conteos. Eso es chi cuadrado.</p><p>La segunda: <strong>¿son distintas las medias de tres grupos o más?</strong> Y la respuesta obvia, encadenar pruebas t de dos en dos, está mal por una razón que se ve con aritmética simple. Eso es ANOVA.</p></section>
+<section class="section-block is-toy"><span class="kicker">Ejemplo</span><h2 class="section-title">Antes de la teoría: un ejemplo de juguete</h2><p>Van dos, uno por prueba, con los números elegidos para que salgan enteros.</p><h3 class="sub h3">Ejemplo A. Chi cuadrado: ¿influye el turno en pasar especificación?</h3><p>Cien lotes, repartidos por turno y por resultado:</p><div class="table-wrap"><table><thead><tr><th></th><th>En especificación</th><th>Fuera</th><th>Total</th></tr></thead><tbody><tr><td><strong>Turno de día</strong></td><td>40</td><td>10</td><td>50</td></tr><tr><td><strong>Turno de noche</strong></td><td>30</td><td>20</td><td>50</td></tr><tr><td><strong>Total</strong></td><td>70</td><td>30</td><td><strong>100</strong></td></tr></tbody></table></div><h4 class="sub h4">Paso 1. Qué esperaríamos si el turno diera igual</h4><p>En total, 70 de 100 lotes pasan, o sea el 70 %. <strong>Si el turno no influyera</strong>, ese 70 % debería aparecer en los dos turnos por igual:</p><pre><code>día,   en spec:  50 × 0,70 = 35        día,   fuera:  50 × 0,30 = 15
+noche, en spec:  50 × 0,70 = 35        noche, fuera:  50 × 0,30 = 15</code></pre><p>Esos cuatro números son los <strong>esperados</strong>. La regla general es la misma que acabamos de usar: total de la fila por total de la columna, dividido por el total general.</p><h4 class="sub h4">Paso 2. Cuánto se aparta la realidad de eso</h4><div class="table-wrap"><table><thead><tr><th>Casilla</th><th>Observado</th><th>Esperado</th><th>Diferencia</th><th>Diferencia² / esperado</th></tr></thead><tbody><tr><td>Día, en spec</td><td>40</td><td>35</td><td>+5</td><td>25 / 35 = 0,714</td></tr><tr><td>Día, fuera</td><td>10</td><td>15</td><td>−5</td><td>25 / 15 = 1,667</td></tr><tr><td>Noche, en spec</td><td>30</td><td>35</td><td>−5</td><td>25 / 35 = 0,714</td></tr><tr><td>Noche, fuera</td><td>20</td><td>15</td><td>+5</td><td>25 / 15 = 1,667</td></tr></tbody></table></div><p>Las cuatro diferencias son de 5 exactos, y no por casualidad: en una tabla de dos por dos, <strong>si los totales están fijos, la desviación es forzosamente la misma en las cuatro casillas</strong>, con los signos alternados.</p><p>Se dividen entre el esperado para que una desviación de 5 pese más cuando se esperaban 15 que cuando se esperaban 35. Sumando la última columna:</p><pre><code>chi² = 0,714 + 1,667 + 0,714 + 1,667 = 4,762</code></pre><h4 class="sub h4">Paso 3. Decidir</h4><p>Con una tabla de dos por dos hay <strong>un grado de libertad</strong>: fijados los totales, basta con saber una casilla para deducir las otras tres. Con un grado de libertad, el umbral del 5 % es 3,841, y nuestro 4,762 lo pasa. El valor p exacto es <strong>0,0291</strong>.</p><p><strong>Conclusión: el turno y el pasar especificación no son independientes.</strong> El turno de noche tiene el doble de lotes fuera de spec.</p><h3 class="sub h3">Ejemplo B. ANOVA: tres turnos, ¿tienen la misma media?</h3><p>Tres mediciones de recuperación en cada uno de tres turnos:</p><pre><code>Turno A    84   86   88      media 86
+Turno B    80   82   84      media 82
+Turno C    88   90   92      media 90</code></pre><p>La media de las nueve mediciones es 86.</p><h4 class="sub h4">Paso 1. La variación que hay entre los grupos</h4><p>Cuánto se alejan las medias de los grupos de la media general, pesado por el tamaño de cada grupo:</p><pre><code>A:  3 × (86 − 86)² = 3 × 0  =  0
+B:  3 × (82 − 86)² = 3 × 16 = 48
+C:  3 × (90 − 86)² = 3 × 16 = 48
+
+variación entre grupos = 96,  con 2 grados de libertad (3 grupos − 1)
+96 / 2 = 48</code></pre><h4 class="sub h4">Paso 2. La variación que hay dentro de cada grupo</h4><p>Dentro de cada turno, las tres mediciones se desvían de su propia media en −2, 0 y +2:</p><pre><code>por grupo:  (−2)² + 0² + (+2)² = 8
+los tres:   8 + 8 + 8 = 24,  con 6 grados de libertad (9 datos − 3 grupos)
+24 / 6 = 4</code></pre><h4 class="sub h4">Paso 3. Compararlas, que es toda la idea de ANOVA</h4><pre><code>F = variación entre grupos / variación dentro de los grupos = 48 / 4 = 12</code></pre><p><strong>Ese cociente es todo el método.</strong> Si los tres turnos fueran iguales, las medias de los grupos se separarían solo por el mismo azar que separa a las mediciones dentro de un grupo, y F rondaría 1. Un F de 12 significa que los grupos están <strong>doce veces más separados entre sí</strong> de lo que el ruido interno justifica.</p><p>El valor p es <strong>0,0080</strong>, así que se rechaza la igualdad de las tres medias.</p><h4 class="sub h4">Paso 4. Lo que ANOVA no dice</h4><p>ANOVA dice que <strong>hay</strong> una diferencia. <strong>No dice dónde.</strong> Con tres turnos hay tres parejas posibles, y averiguar cuál o cuáles difieren es un segundo paso, el post hoc, que está en el código y que en este ejemplo da una sorpresa muy instructiva.</p></section>
+<section class="section-block "><span class="kicker">Términos</span><h2 class="section-title">Glosario</h2><ul><li><strong>Chi cuadrado.</strong> La prueba para variables categóricas, que trabaja con conteos y no con medias. Se escribe χ².</li><li><strong>Frecuencia observada.</strong> Lo que realmente contaste. Los 40, 10, 30 y 20 de la tabla.</li><li><strong>Frecuencia esperada.</strong> Lo que habría si la hipótesis nula fuera cierta. Los cuatro 35 y 15.</li><li><strong>Prueba de independencia.</strong> La versión de chi cuadrado con dos variables categóricas, que pregunta si están relacionadas. El ejemplo A.</li><li><strong>Prueba de bondad de ajuste.</strong> La versión con una sola variable, que pregunta si el reparto observado coincide con uno esperado de antemano.</li><li><strong>ANOVA.</strong> Análisis de la varianza. Compara las medias de tres grupos o más. En inglés, <em>analysis of variance</em>.</li><li><strong>ANOVA de un factor.</strong> Cuando los grupos se definen por una sola variable de agrupación, como el turno. En inglés, <em>one-way</em>.</li><li><strong>ANOVA de dos factores.</strong> Cuando hay dos variables de agrupación a la vez, como turno y tipo de mineral. En inglés, <em>two-way</em>.</li><li><strong>Interacción.</strong> Que el efecto de un factor dependa del nivel del otro. Solo aparece en el de dos factores, y suele ser el hallazgo interesante.</li><li><strong>Estadístico F.</strong> El cociente del paso 3: variación entre grupos dividida entre variación dentro de los grupos.</li><li><strong>Post hoc.</strong> Las comparaciones por parejas que se hacen <strong>después</strong> de que ANOVA salga significativa, para saber qué grupos difieren.</li><li><strong>Tasa de error acumulada.</strong> El riesgo total de falso positivo cuando se hacen varias pruebas seguidas. Es la razón de ser de ANOVA y de los ajustes post hoc.</li><li><strong>ANCOVA.</strong> ANOVA con una variable numérica de control metida dentro, para descontar su efecto.</li><li><strong>MANOVA.</strong> ANOVA con varias variables dependientes a la vez.</li></ul></section>
+<section class="section-block is-recipe"><span class="kicker">Método</span><h2 class="section-title">Paso a paso</h2><h3 class="sub h3">Paso 1. Elegir cuál de las dos pruebas</h3><p>La decisión sale del tipo de variables, igual que en el módulo 1:</p><div class="table-wrap"><table><thead><tr><th>Pregunta</th><th>Variables</th><th>Prueba</th></tr></thead><tbody><tr><td>¿Están relacionadas dos categorías?</td><td>Dos categóricas</td><td>Chi cuadrado de independencia</td></tr><tr><td>¿Coincide un reparto con el esperado?</td><td>Una categórica</td><td>Chi cuadrado de bondad de ajuste</td></tr><tr><td>¿Difieren las medias de 3 grupos o más?</td><td>Una categórica, una numérica</td><td>ANOVA de un factor</td></tr><tr><td>¿Y con dos variables de agrupación?</td><td>Dos categóricas, una numérica</td><td>ANOVA de dos factores</td></tr></tbody></table></div><p>Las dos variantes de chi cuadrado se confunden mucho, y la diferencia es simple: <strong>la de independencia compara dos columnas de tu tabla entre sí; la de bondad de ajuste compara una columna contra una expectativa que traes de fuera</strong>, como &quot;el proveedor promete un reparto 25/25/25/25&quot;.</p><h3 class="sub h3">Paso 2. Por qué no se encadenan pruebas t</h3><p>Con tres grupos hay tres parejas: A contra B, A contra C, B contra C. Tentador, y mal.</p><p>Cada prueba al 5 % acierta el 95 % de las veces cuando no hay diferencia real. Tres pruebas independientes aciertan todas:</p><pre><code>0,95 × 0,95 × 0,95 = 0,857</code></pre><p>Así que el riesgo de que <strong>al menos una</strong> dé un falso positivo es <code>1 − 0,857 = 0,143</code>, o sea <strong>un 14 %, no un 5 %</strong>. Con cinco grupos son diez parejas y el riesgo real sube al 40 %.</p><p>ANOVA resuelve eso haciendo <strong>una sola</strong> prueba para toda la pregunta. Y cuando hace falta bajar al detalle, el post hoc lo hace con el ajuste que compensa las comparaciones múltiples.</p><h3 class="sub h3">Paso 3. Los supuestos, que aquí también existen</h3><p>Para ANOVA son tres, y los dos primeros son viejos conocidos del curso anterior:</p><div class="table-wrap"><table><thead><tr><th>Supuesto</th><th>Cómo se comprueba</th></tr></thead><tbody><tr><td>Normalidad dentro de cada grupo</td><td>Histograma o gráfico cuantil por grupo</td></tr><tr><td>Varianzas parecidas entre grupos</td><td>Prueba de Levene, la misma del caso Automatidata</td></tr><tr><td>Observaciones independientes</td><td>Por cómo se recogieron los datos</td></tr></tbody></table></div><p>Para chi cuadrado el supuesto es distinto y muy concreto: <strong>las frecuencias esperadas tienen que ser suficientes</strong>. La regla habitual es que ninguna casilla esperada baje de 5, y con tablas más grandes, que no más del 20 % de las casillas lo haga. Con esperados pequeños el resultado deja de ser fiable y hay que agrupar categorías o usar la prueba exacta de Fisher.</p><p>Ojo con esto: <strong>el supuesto se comprueba sobre los esperados, no sobre los observados</strong>. Una casilla con 2 observados no es un problema si su esperado es 15.</p><h3 class="sub h3">Paso 4. Después de ANOVA, el post hoc</h3><p>Si ANOVA sale significativa, la pregunta pasa a ser cuál difiere de cuál. La prueba habitual es la de <strong>Tukey</strong>, que compara todas las parejas y ajusta el umbral para que el riesgo total siga siendo del 5 %.</p><p>Ese ajuste tiene una consecuencia que sorprende y que se ve en el código: <strong>puede pasar que ANOVA salga significativa y que ninguna pareja concreta lo sea</strong>, o que solo una lo sea. No es una contradicción, es el precio de comparar muchas cosas a la vez con honestidad.</p><h3 class="sub h3">Paso 5. Las extensiones que el temario nombra</h3><p>Cuatro nombres que conviene poder situar, aunque el curso no los desarrolle:</p><div class="table-wrap"><table><thead><tr><th>Nombre</th><th>Qué añade</th><th>Ejemplo</th></tr></thead><tbody><tr><td><strong>ANOVA de dos factores</strong></td><td>Dos variables de agrupación, y su interacción</td><td>Turno y tipo de mineral a la vez</td></tr><tr><td><strong>ANCOVA</strong></td><td>Una variable numérica de control que se descuenta</td><td>Comparar turnos descontando la ley de cabeza</td></tr><tr><td><strong>MANOVA</strong></td><td>Varias variables dependientes a la vez</td><td>Comparar turnos por recuperación <strong>y</strong> ley de concentrado</td></tr><tr><td><strong>MANCOVA</strong></td><td>Las dos cosas anteriores juntas</td><td>Lo anterior descontando la ley de cabeza</td></tr></tbody></table></div><p>De los cuatro, el que más se usa en planta es ANCOVA, y por un motivo reconocible: casi nunca puedes comparar dos turnos limpiamente, porque no procesaron el mismo mineral. ANCOVA es la forma de descontar esa diferencia, y es la misma idea de &quot;manteniendo lo demás constante&quot; del módulo 3, aplicada a una comparación de grupos.</p></section>
+<section class="section-block is-recipe"><span class="kicker">Código</span><h2 class="section-title">El código, por partes</h2><h3 class="sub h3">Paso 1. Chi cuadrado de independencia</h3><p>La tabla de contingencia entra tal cual, y scipy calcula los esperados por su cuenta.</p><pre><code class="language-python">import numpy as np
+from scipy import stats
+
+observed = np.array([[40, 10],
+                     [30, 20]])
+
+chi2, p_value, dof, expected = stats.chi2_contingency(observed, correction=False)
+
+print(f&quot;esperados =\n{expected}&quot;)
+print(f&quot;chi2 = {chi2:.4f}   gl = {dof}   p = {p_value:.4f}&quot;)</code></pre><dl class="annot"><div class="annot-head">línea por línea</div><dt><code>np.array([[40, 10], [30, 20]])</code></dt><dd>Una lista <strong>de listas</strong>: cada lista interior es una fila de la tabla. Los corchetes dobles son la señal de que hay dos dimensiones.</dd><dt><code>stats.chi2_contingency(...)</code></dt><dd>Devuelve cuatro cosas de golpe, así que hay cuatro nombres a la izquierda y hay que respetar el orden en que vienen.</dd><dt><code>correction=False</code></dt><dd>Apaga la corrección de Yates, que scipy aplica por defecto en tablas de dos por dos. Se apaga aquí <strong>para que el resultado coincida con la cuenta hecha a mano</strong>; en un análisis real conviene dejarla puesta, porque es algo más conservadora.</dd><dt><code>expected</code></dt><dd>Los cuatro esperados. Se imprimen siempre, porque son la comprobación del supuesto: ninguno debe bajar de 5.</dd><dt><code>\n</code></dt><dd>Dentro de una cadena, significa salto de línea. Aquí sirve para que la tabla de esperados empiece en su propia línea.</dd></dl><div class="output"><span class="output-tag">sale</span><pre>esperados =
+[[35. 15.]
+ [35. 15.]]
+chi2 = 4.7619   gl = 1   p = 0.0291</pre></div><p>Los mismos 35 y 15 del papel, el mismo 4,762 y el mismo grado de libertad. Ningún esperado baja de 5, así que la prueba es aplicable.</p><h3 class="sub h3">Paso 2. Chi cuadrado de bondad de ajuste</h3><p>La otra variante. Un proveedor asegura que su mineral viene a partes iguales de cuatro zonas. Se toman 100 lotes y se cuenta de dónde salió cada uno.</p><pre><code class="language-python">counts = np.array([30, 20, 28, 22])
+promised = np.array([25, 25, 25, 25])
+
+chi2_fit, p_fit = stats.chisquare(counts, promised)
+print(f&quot;chi2 = {chi2_fit:.2f}   p = {p_fit:.4f}&quot;)</code></pre><dl class="annot"><div class="annot-head">línea por línea</div><dt><code>stats.chisquare(...)</code></dt><dd>Función distinta de la anterior. Esta compara <strong>una</strong> lista de conteos contra una expectativa que le das tú; la del paso 1 compara filas contra columnas de una tabla.</dd><dt><code>promised</code></dt><dd>Los esperados no salen de los datos, vienen de fuera: la promesa del proveedor. Esa es toda la diferencia entre las dos pruebas.</dd></dl><div class="output"><span class="output-tag">sale</span><pre>chi2 = 2.72   p = 0.4368</pre></div><p>Un p de 0,44 no da ninguna razón para dudar del proveedor: <strong>una diferencia de 30 contra 20 entre dos zonas es perfectamente normal con 100 lotes</strong>, y el ojo tiende a ver ahí un patrón que no está.</p><h3 class="sub h3">Paso 3. ANOVA de un factor</h3><pre><code class="language-python">shift_a = np.array([84, 86, 88])
+shift_b = np.array([80, 82, 84])
+shift_c = np.array([88, 90, 92])
+
+f_stat, p_anova = stats.f_oneway(shift_a, shift_b, shift_c)
+print(f&quot;F = {f_stat:.4f}   p = {p_anova:.4f}&quot;)</code></pre><dl class="annot"><div class="annot-head">línea por línea</div><dt><code>stats.f_oneway(a, b, c)</code></dt><dd>Los grupos se pasan como argumentos sueltos, separados por comas, no como una lista. Admite tantos como quieras.</dd><dt><code>f_stat</code></dt><dd>El cociente que calculamos a mano: 48 dividido entre 4.</dd></dl><div class="output"><span class="output-tag">sale</span><pre>F = 12.0000   p = 0.0080</pre></div><p>El 12 exacto del paso 3 del ejemplo.</p><h3 class="sub h3">Paso 4. El post hoc, y la sorpresa</h3><pre><code class="language-python">tukey = stats.tukey_hsd(shift_a, shift_b, shift_c)
+print(tukey)</code></pre><dl class="annot"><div class="annot-head">línea por línea</div><dt><code>stats.tukey_hsd(...)</code></dt><dd>Compara <strong>todas</strong> las parejas y ajusta el umbral por el número de comparaciones. Siglas de <em>honestly significant difference</em>.</dd><dt><code>print(tukey)</code></dt><dd>El objeto se imprime ya formateado como tabla. Los grupos aparecen numerados desde 0 en el orden en que se pasaron: 0 es A, 1 es B y 2 es C.</dd></dl><div class="output"><span class="output-tag">sale</span><pre>Pairwise Group Comparisons (95.0% Confidence Interval)
+Comparison  Statistic  p-value  Lower CI  Upper CI
+ (0 - 1)      4.000     0.109    -1.010     9.010
+ (0 - 2)     -4.000     0.109    -9.010     1.010
+ (1 - 0)     -4.000     0.109    -9.010     1.010
+ (1 - 2)     -8.000     0.006   -13.010    -2.990
+ (2 - 0)      4.000     0.109    -1.010     9.010
+ (2 - 1)      8.000     0.006     2.990    13.010</pre></div><p>Léelo con calma, porque es la lección del módulo:</p><ul><li><strong>ANOVA dijo que hay diferencia</strong> entre los turnos, con p de 0,0080.</li><li><strong>La única pareja que difiere es B contra C</strong>, con p de 0,006 y un intervalo que va de 2,99 a 13,01, sin tocar el cero.</li><li><strong>A no difiere de ninguno de los dos.</strong> Su p contra B y contra C es 0,109, y los dos intervalos cruzan el cero.</li></ul><p>O sea que la diferencia que ANOVA detectó está entre el peor turno y el mejor, y el intermedio no se distingue de ninguno. Reportar solo el &quot;sí hay diferencia entre turnos&quot; habría dado a entender que los tres son distintos, que es falso.</p><h3 class="sub h3">Paso 5. Lo que aquí no se puede correr, y qué hacer</h3><p><strong>El ANOVA de dos factores no está en scipy.</strong> La herramienta habitual es <code>statsmodels</code>, que no está instalada en esta máquina, así que este cuaderno no lo ejecuta. Las opciones honestas son tres: instalar <code>statsmodels</code> cuando haga falta, calcular las sumas de cuadrados a mano con el mismo esquema del ejemplo B, o quedarse con el de un factor, que responde a la mayoría de las preguntas.</p><p>Lo que <strong>no</strong> vale es sustituirlo por dos ANOVA de un factor por separado, uno por cada variable de agrupación: eso deja fuera precisamente la interacción, que suele ser lo interesante.</p></section>
+<section class="section-block is-warning"><span class="kicker">Trampas</span><h2 class="section-title">Ojo</h2><ul><li><strong>Encadenar pruebas t con tres grupos infla el riesgo del 5 % al 14 %.</strong> Con cinco grupos, al 40 %. Para eso existe ANOVA.</li><li><strong>ANOVA no dice qué grupos difieren.</strong> Solo dice que alguno lo hace. Lo demás es el post hoc, y puede contradecir la impresión que deja el resultado global.</li><li><strong>Puede haber ANOVA significativa sin ninguna pareja significativa</strong>, o con solo una, como en el ejemplo. No es un error, es el ajuste por comparaciones múltiples haciendo su trabajo.</li><li><strong>El supuesto de chi cuadrado se comprueba sobre los esperados, no sobre los observados.</strong> Ninguna casilla esperada por debajo de 5.</li><li><strong>Chi cuadrado dice que hay relación, no cómo de fuerte es.</strong> Con muchísimos datos, una asociación irrelevante sale significativa. Para el tamaño hacen falta otras medidas.</li><li><strong>No confundas las dos variantes de chi cuadrado.</strong> Independencia compara dos variables entre sí; bondad de ajuste compara una contra una expectativa externa.</li><li><strong>Un F grande no significa un efecto grande en unidades reales.</strong> Significa que la separación entre grupos es grande <strong>comparada con el ruido interno</strong>, que es otra cosa.</li><li><strong>Chi cuadrado sobre conteos, nunca sobre porcentajes.</strong> Meter porcentajes en la tabla cambia el resultado por completo, porque la prueba usa el tamaño de la muestra.</li></ul></section>
+<section class="section-block is-bridge"><span class="kicker">Analogía</span><h2 class="section-title">Puente metalúrgico</h2><p>Estas dos pruebas responden a dos preguntas que ya te haces en planta, y la segunda además te evita un error caro.</p><p><strong>Chi cuadrado es la pregunta del control de calidad</strong>: de los lotes que salieron fuera de especificación, ¿se reparten por igual entre turnos, o hay un turno que concentra los fallos? El ejemplo A dice que el de noche tiene el doble, y que esa diferencia no es azar.</p><p><strong>ANOVA es la comparación de tres reactivos.</strong> Y aquí está el error que evita: la costumbre natural es probar A contra B, luego B contra C, luego A contra C, y quedarse con la comparación que salió bien. Con tres pruebas al 5 %, el riesgo de que alguna dé un falso positivo es del 14 %, así que <strong>una de cada siete campañas de pruebas te va a regalar un ganador que no existe</strong>. Cambiar de reactivo por eso cuesta dinero.</p><p>La tabla de traducción:</p><div class="table-wrap"><table><thead><tr><th>En planta</th><th>En el módulo</th></tr></thead><tbody><tr><td>¿Los fallos se concentran en un turno?</td><td>Chi cuadrado de independencia</td></tr><tr><td>¿El mineral llega en la proporción de zonas pactada?</td><td>Chi cuadrado de bondad de ajuste</td></tr><tr><td>¿Rinden distinto tres colectores?</td><td>ANOVA de un factor</td></tr><tr><td>¿Y si además importa el tipo de mineral?</td><td>ANOVA de dos factores</td></tr><tr><td>¿Y descontando que cada turno tuvo otra ley de cabeza?</td><td>ANCOVA</td></tr><tr><td>Probar de dos en dos y quedarse con lo que salga</td><td>El error del 14 %</td></tr></tbody></table></div><p>Y el post hoc tiene su equivalente exacto: es la diferencia entre decir &quot;los tres reactivos no son iguales&quot; y decir <strong>cuál</strong> hay que comprar. Lo primero no sirve para firmar una orden de compra.</p></section>
+<section class="section-block is-review"><span class="kicker">Repaso</span><h2 class="section-title">Repaso</h2><details><summary>¿Por qué no se pueden comparar tres grupos con tres pruebas t?</summary><p>Porque cada prueba lleva su propio riesgo de falso positivo y los riesgos se acumulan. Con tres comparaciones al 5 %, la probabilidad de que las tres acierten cuando no hay ninguna diferencia real es 0,95 elevado a 3, o sea 0,857, así que el riesgo de que al menos una dé un falso positivo es del 14 % y no del 5 %. Con cinco grupos son diez parejas y el riesgo real sube a cerca del 40 %. ANOVA responde a la pregunta con una sola prueba, y si hace falta bajar al detalle, el post hoc compara las parejas ajustando el umbral para que el riesgo total siga siendo el declarado.</p></details><details><summary>¿Qué compara exactamente el estadístico F?</summary><p>La variación <strong>entre</strong> los grupos contra la variación <strong>dentro</strong> de los grupos. En el ejemplo, las medias de los turnos se separan de la media general lo suficiente para producir una variación entre grupos de 48 por grado de libertad, mientras que las mediciones dentro de cada turno se separan de su propia media solo 4 por grado de libertad. El cociente, 12, dice que los grupos están doce veces más separados de lo que justifica el ruido interno. Si los grupos fueran realmente iguales, ambas variaciones medirían lo mismo y F rondaría 1.</p></details><details><summary>ANOVA sale significativa pero ninguna pareja del post hoc lo es. ¿Hay una contradicción?</summary><p>No. Son pruebas distintas con umbrales distintos: el post hoc de Tukey ajusta el suyo para que el riesgo total de las tres comparaciones sea del 5 %, así que exige más evidencia a cada pareja que la que ANOVA exige al conjunto. Cuando la evidencia global está justo en el límite, puede repartirse entre las parejas sin que ninguna alcance su umbral individual. En el ejemplo del módulo pasa algo parecido en versión suave: ANOVA sale con p de 0,0080 y solo la pareja B contra C es significativa, mientras que el turno A no se distingue de ninguno de los otros dos.</p></details><details><summary>¿En qué se diferencian las dos pruebas de chi cuadrado?</summary><p>En de dónde salen las frecuencias esperadas. La prueba de independencia trabaja con dos variables categóricas en una tabla y calcula los esperados <strong>desde los propios totales</strong> de la tabla, para preguntar si las dos variables están relacionadas: es el caso del turno contra el pasar especificación. La de bondad de ajuste trabaja con una sola variable y compara los conteos observados contra una expectativa que viene <strong>de fuera</strong>, como el reparto que promete un proveedor. La aritmética posterior es idéntica en las dos: diferencia al cuadrado dividida entre el esperado, sumada sobre todas las casillas.</p></details><details><summary>¿Cuándo se usa ANCOVA en vez de ANOVA?</summary><p>Cuando hay una variable numérica que afecta al resultado y que no está igualada entre los grupos, y se quiere descontar su efecto antes de comparar las medias. El caso típico en planta es comparar el rendimiento de tres turnos que no procesaron el mismo mineral: si un turno recibió una ley de cabeza más alta, parte de su mejor recuperación es del mineral y no del turno. ANCOVA mete esa variable como control y compara las medias ya ajustadas, que es la misma idea de &quot;manteniendo lo demás constante&quot; del módulo 3 aplicada a una comparación de grupos.</p></details></section>
+</main>
+<footer class="footer">
+  Concentra / destilado del temario público del curso / 2026-08-20
+</footer>
+</body>
+</html>

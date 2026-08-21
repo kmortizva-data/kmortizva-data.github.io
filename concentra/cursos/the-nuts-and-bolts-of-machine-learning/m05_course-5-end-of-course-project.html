@@ -1,0 +1,486 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Course 5 end-of-course project — The Nuts and Bolts of Machine Learning</title>
+<style>
+/* ============================================================================
+   Concentra — design tokens and shared components.
+   Inlined into every generated page by load_style(), so pages stay self-contained
+   and work offline from file:// with no external requests.
+
+   Direction: an assay lab, not a tech dashboard. The palette is taken from ore
+   and lab materials (chalcopyrite brass, malachite, hematite, quartz) on warm
+   graphite rather than the blue-black + neon of a generic dark UI. Type is
+   Bahnschrift, the DIN-descended grotesque that Windows ships and that lives on
+   machinery plates and technical drawings, over Corbel for reading.
+   ========================================================================== */
+
+:root {
+  /* Ground and surfaces: warm graphite, the colour of rock dust, not blue-black */
+  --rock: #1a1714;
+  --bench: #221e19;
+  --core: #2b251f;
+  --seam: #3d352c;
+
+  /* Ore palette. No blue and no purple anywhere: those are the tones that make a
+     page read as generated, and this palette comes from the ores instead. */
+  --brass: #c9a227;      /* chalcopyrite, the primary accent */
+  --malachite: #5d9b7a;  /* verified output, results that came out right */
+  --hematite: #b04a35;   /* iron oxide, pitfalls and warnings */
+
+  /* Text */
+  --quartz: #ece7de;
+  --dust: #9a9186;
+  --shadowed: #6f675c;
+
+  --display: Bahnschrift, 'DIN Alternate', 'Segoe UI Semibold', system-ui, sans-serif;
+  --body: Corbel, Candara, 'Segoe UI', system-ui, sans-serif;
+  --data: Consolas, 'Cascadia Mono', ui-monospace, monospace;
+
+  /* In px, not ch: ch scales with font-size, so a heading ended up wider than a
+     paragraph and the page had four different right edges instead of two. */
+  --measure: 640px;
+  --wide: 900px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--rock);
+  color: var(--quartz);
+  font-family: var(--body);
+  font-size: 16px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection { background: var(--brass); color: var(--rock); }
+
+:focus-visible {
+  outline: 2px solid var(--brass);
+  outline-offset: 3px;
+}
+
+/* --------------------------------------------------------------- the signature
+   A sieve series: ticks that get finer from left to right, coarse feed to fine
+   concentrate. It is the one ornament on the page and appears exactly twice —
+   under the wordmark and under a page title. */
+.mesh {
+  height: 10px;
+  background-image:
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 16px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 9px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 5px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 3px);
+  background-size: 25% 100%;
+  background-position: 0 0, 25% 0, 50% 0, 75% 0;
+  background-repeat: no-repeat;
+  opacity: .8;
+  transform-origin: left center;
+  animation: sieve .55s cubic-bezier(.2, .8, .3, 1) both;
+}
+@keyframes sieve { from { transform: scaleX(0); opacity: 0; } to { transform: scaleX(1); opacity: .8; } }
+@media (prefers-reduced-motion: reduce) {
+  .mesh { animation: none; }
+  * { transition: none !important; }
+}
+
+/* ------------------------------------------------------------------ page head */
+.header {
+  border-bottom: 1px solid var(--seam);
+  padding: 3.2rem 2rem 0;
+  background: linear-gradient(180deg, #221d16 0%, var(--rock) 100%);
+}
+.header-content { max-width: 1080px; margin: 0 auto; }
+
+.eyebrow {
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--brass);
+  margin-bottom: 1rem;
+}
+.eyebrow a { color: inherit; text-decoration: none; border-bottom: 1px solid transparent; }
+.eyebrow a:hover { border-bottom-color: var(--brass); }
+
+.header h1 {
+  font-family: var(--display);
+  font-size: clamp(2rem, 4.5vw, 3.1rem);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -.015em;
+  color: var(--quartz);
+  max-width: 20ch;
+}
+.header .subtitle {
+  color: var(--dust);
+  max-width: var(--measure);
+  margin-top: 1rem;
+  font-size: 1.02rem;
+}
+.header .mesh { margin: 1.8rem 0 0; }
+
+/* An assay line: the real composition of the module, in lab-report shorthand. */
+.assay {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.4rem;
+  font-family: var(--data);
+  font-size: .78rem;
+  color: var(--shadowed);
+  padding: .9rem 0 1.6rem;
+  letter-spacing: .04em;
+}
+.assay b { color: var(--dust); font-weight: 400; }
+
+/* --------------------------------------------------------------------- layout */
+/* The container hugs the widest block, so there is no orphan edge past the content. */
+.container { max-width: var(--wide); margin: 3rem auto 5rem; padding: 0 2rem; }
+
+/* Two deliberate right edges and no more: prose stops at the reading measure, and
+   only the things that genuinely need room (code, output, figures, big tables) run
+   out to the full column. */
+.section-block {
+  border-top: 1px solid var(--seam);
+  padding: 2rem 0 2.4rem;
+}
+.section-block > p,
+.section-block > ul,
+.section-block > ol,
+.section-block h3.sub,
+.section-block h4.sub,
+.section-block blockquote,
+details > *:not(summary) { max-width: var(--measure); }
+.section-block:first-child { border-top: 0; padding-top: .5rem; }
+
+/* The kicker names what kind of content follows: context, method, pitfalls.
+   It replaces decorative icons with something that actually classifies. */
+.kicker {
+  font-family: var(--data);
+  font-size: .68rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  display: block;
+  margin-bottom: .5rem;
+}
+.section-title {
+  font-family: var(--display);
+  font-size: 1.55rem;
+  font-weight: 600;
+  letter-spacing: -.01em;
+  line-height: 1.2;
+  margin-bottom: 1.2rem;
+  color: var(--quartz);
+}
+.is-warning .kicker { color: var(--hematite); }
+.is-warning .section-title { color: #e8c4b8; }
+.is-bridge .kicker, .is-decision .kicker { color: var(--malachite); }
+.is-toy .kicker, .is-result .kicker, .is-question .kicker { color: var(--brass); }
+
+/* ---------------------------------------------------------------------- prose */
+/* Justified with hyphenation. In Spanish, justifying without hyphens opens rivers of
+   white space and reads worse than ragged right; lang="es" is what feeds the
+   dictionary. Tables, code, captions and summaries stay ragged on purpose. */
+.section-block p,
+.section-block li,
+details > *:not(summary) {
+  text-align: justify;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+}
+.section-block p { margin-bottom: 1rem; }
+.section-block p:last-child { margin-bottom: 0; }
+/* Indent with padding, not margin, so the bullet sits inside the measure instead of
+   pushing the list 1.2rem past the right edge of the paragraphs. */
+.section-block ul, .section-block ol { margin: 0 0 1rem; padding-left: 1.2rem; }
+.section-block li { margin-bottom: .55rem; padding-left: .2rem; }
+.section-block li::marker { color: var(--brass); }
+td, th, figcaption, .res li, .assay { text-align: left; hyphens: manual; }
+a { color: var(--brass); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+a:hover { text-decoration-thickness: 2px; }
+strong { color: #fff; font-weight: 700; }
+em { color: var(--dust); font-style: italic; }
+
+h3.sub {
+  font-family: var(--display);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--brass);
+  margin: 2rem 0 .7rem;
+  letter-spacing: -.005em;
+}
+h3.sub:first-child { margin-top: 0; }
+h4.sub {
+  font-family: var(--display);
+  font-size: .98rem;
+  font-weight: 600;
+  color: var(--dust);
+  margin: 1.3rem 0 .5rem;
+}
+
+code {
+  font-family: var(--data);
+  font-size: .9em;
+  background: var(--core);
+  border-radius: 3px;
+  padding: .08rem .32rem;
+  color: var(--brass);
+}
+pre {
+  background: #14110e;
+  border: 1px solid var(--seam);
+  border-left: 2px solid var(--seam);
+  border-radius: 2px;
+  padding: 1.1rem 1.2rem;
+  overflow-x: auto;
+  margin-bottom: 1rem;
+}
+pre code {
+  background: none; padding: 0; color: var(--quartz);
+  font-size: .87rem; line-height: 1.6;
+}
+
+/* What the code prints. Malachite: the material that came out of the process. */
+.output {
+  position: relative;
+  border: 1px solid rgba(93, 155, 122, .32);
+  border-left: 2px solid var(--malachite);
+  border-radius: 2px;
+  background: rgba(93, 155, 122, .06);
+  padding: 1.7rem 1.2rem 1rem;
+  margin-bottom: 1rem;
+  overflow-x: auto;
+}
+.output-tag {
+  position: absolute; top: .5rem; left: 1.2rem;
+  font-family: var(--data); font-size: .64rem;
+  letter-spacing: .18em; text-transform: uppercase; color: var(--malachite);
+}
+.output pre {
+  background: none; border: 0; padding: 0; margin: 0;
+  font-family: var(--data); font-size: .85rem;
+  color: var(--quartz); white-space: pre-wrap;
+}
+
+/* Line by line explanation of a code block, for a reader new to programming.
+   Two columns: the fragment of code, and what it does. */
+.annot {
+  display: grid;
+  grid-template-columns: minmax(9rem, auto) 1fr;
+  gap: .1rem 1.2rem;
+  align-items: baseline;
+  max-width: var(--wide);
+  margin: -.4rem 0 1.4rem;
+  padding: .9rem 1.1rem 1rem;
+  border: 1px solid var(--seam);
+  border-top: 0;
+  border-radius: 0 0 2px 2px;
+  background: rgba(201, 162, 39, .04);
+}
+.annot-head {
+  grid-column: 1 / -1;
+  font-family: var(--data);
+  font-size: .64rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  margin-bottom: .5rem;
+}
+.annot dt { padding: .35rem 0; }
+.annot dt code {
+  background: var(--core);
+  color: var(--brass);
+  font-size: .82rem;
+  white-space: nowrap;
+}
+.annot dd {
+  padding: .35rem 0;
+  margin: 0;
+  color: var(--dust);
+  font-size: .93rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(61, 53, 44, .5);
+}
+.annot dt { border-bottom: 1px solid rgba(61, 53, 44, .5); }
+.annot dt:last-of-type, .annot dd:last-of-type { border-bottom: 0; }
+/* The code block sits directly on top of its annotation, as one unit. */
+pre:has(+ .annot) { margin-bottom: 0; border-radius: 2px 2px 0 0; }
+
+@media (max-width: 640px) {
+  .annot { grid-template-columns: 1fr; gap: 0; }
+  .annot dt { border-bottom: 0; padding-bottom: 0; }
+  .annot dd { padding-top: .15rem; }
+}
+
+blockquote {
+  border-left: 2px solid var(--brass);
+  padding: .3rem 0 .3rem 1.3rem;
+  margin: 0 0 1rem;
+  font-family: var(--display);
+  font-size: 1.2rem;
+  font-weight: 400;
+  line-height: 1.4;
+  color: var(--quartz);
+}
+
+/* Tables read as assay data: mono figures, hairline rules, no zebra fill.
+   They take the width they need instead of being stretched to the full column,
+   which is what left a two-column table floating in empty space. */
+.table-wrap { overflow-x: auto; margin-bottom: 1rem; }
+table { border-collapse: collapse; width: auto; max-width: 100%; font-size: .93rem; }
+th, td {
+  border-bottom: 1px solid var(--seam);
+  padding: .55rem .8rem .55rem 0;
+  text-align: left;
+  vertical-align: top;
+}
+th {
+  font-family: var(--data);
+  font-size: .7rem;
+  font-weight: 400;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  border-bottom-color: var(--brass);
+}
+td:first-child { color: var(--quartz); }
+
+/* Review questions: closed by default, so they work as recall practice. */
+details {
+  border-top: 1px solid var(--seam);
+  padding: .9rem 0;
+}
+details:last-child { border-bottom: 1px solid var(--seam); }
+summary {
+  cursor: pointer;
+  font-family: var(--display);
+  font-size: 1.02rem;
+  font-weight: 600;
+  color: var(--quartz);
+  list-style: none;
+  display: flex;
+  gap: .7rem;
+  align-items: baseline;
+}
+summary::-webkit-details-marker { display: none; }
+summary::before {
+  content: '+';
+  font-family: var(--data);
+  color: var(--brass);
+  font-size: .95rem;
+}
+details[open] summary::before { content: '−'; }
+details[open] summary { color: var(--brass); margin-bottom: .7rem; }
+details > *:not(summary) { color: var(--dust); }
+
+figure.fig {
+  margin: 1.6rem 0;
+  border: 1px solid var(--seam);
+  padding: .7rem;
+  background: var(--bench);
+}
+figure.fig img { width: 100%; height: auto; display: block; }
+/* The interactive twin of a figure. Its aspect matches the still one, 10 by 4.4, so a
+   case sheet keeps the same rhythm whichever kind of figure comes next. */
+figure.fig.is-live iframe {
+  width: 100%;
+  /* Matches INTERACTIVE_HEIGHT in src/make_figures.py. It used to be an aspect ratio, and
+     that made the figure's height depend on the window: the caption and the legend are
+     placed at fractions of the plot area, so on a wide screen they were pushed past the
+     bottom margin, clipping the caption and covering the x-axis title. */
+  height: 520px;
+  border: 0;
+  display: block;
+}
+figure.fig figcaption {
+  font-family: var(--data);
+  font-size: .72rem;
+  color: var(--shadowed);
+  margin-top: .6rem;
+  letter-spacing: .04em;
+}
+
+/* File listings on a case sheet */
+.res { list-style: none; margin-left: 0 !important; }
+.res li {
+  display: flex; align-items: baseline; gap: .8rem; flex-wrap: wrap;
+  padding: .5rem 0; border-bottom: 1px solid var(--seam); margin-bottom: 0;
+}
+.res .path { font-family: var(--data); font-size: .74rem; color: var(--shadowed); }
+.res .size { font-family: var(--data); font-size: .74rem; color: var(--shadowed); margin-left: auto; }
+.res .gone { font-family: var(--data); font-size: .74rem; color: var(--hematite); }
+
+.footer {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 2rem 4rem;
+  color: var(--shadowed);
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .03em;
+}
+
+@media (max-width: 640px) {
+  body { font-size: 15px; }
+  .header { padding: 2rem 1.2rem 0; }
+  .container { padding: 0 1.2rem; margin-top: 2rem; }
+  .footer { padding: 0 1.2rem 3rem; }
+}
+
+@media print {
+  body { background: #fff; color: #16130f; }
+  .header { background: none; border-bottom: 1px solid #bbb; padding-top: 0; }
+  .header h1, .section-title, summary { color: #16130f; }
+  .mesh { animation: none; }
+  .section-block { break-inside: avoid; max-width: none; }
+  pre, .output { background: #f6f4f0; border-color: #ccc; }
+  details:not([open]) > *:not(summary) { display: block; }
+  a { color: #16130f; }
+}
+
+</style>
+</head>
+<body>
+<header class="header">
+  <div class="header-content">
+    <div class="eyebrow"><a href="https://www.coursera.org/learn/the-nuts-and-bolts-of-machine-learning">The Nuts and Bolts of Machine Learning</a> / Módulo 5</div>
+    <h1>Course 5 end-of-course project</h1>
+    <p class="subtitle">Los tres proyectos, entregados. Y una pregunta que solo se puede contestar teniéndolos los tres al lado: el modelo complicado se enfrentó a tres cantidades de señal distintas y no ganó en ninguna de las tres.</p>
+    <div class="mesh" role="presentation"></div>
+    <div class="assay"><span><b>10 h</b> de curso</span><span><b>5</b> vídeos</span><span><b>10</b> lecturas</span><span><b>4</b> tareas</span><span><b>6</b> prácticas</span></div>
+  </div>
+</header>
+<main class="container">
+<section class="section-block "><span class="kicker">Contexto</span><h2 class="section-title">Qué resuelve este módulo</h2><p>Este módulo es la entrega. Los tres escenarios de siempre, ahora con modelos de árbol, con la partición en tres del módulo 2, el agrupamiento del 3 y el ajuste de perillas del 4.</p><p>Y trae algo que ningún curso anterior podía traer. Los tres proyectos se hicieron con el mismo método y <strong>cayeron en tres situaciones completamente distintas</strong>: uno con la señal justita, otro con una señal enorme y otro sin ninguna señal. Eso convierte a los tres juntos en un experimento sobre la pregunta del curso, y la respuesta es incómoda.</p></section>
+<section class="section-block "><span class="kicker">Nota</span><h2 class="section-title">El arco del curso</h2><p>Tres proyectos, tres cantidades de señal, y <strong>el modelo complicado no gana en ninguna</strong>.</p><div class="table-wrap"><table><thead><tr><th>Proyecto</th><th>Cuánta señal hay</th><th>Qué pasó</th></tr></thead><tbody><tr><td><strong>Waze</strong></td><td>Poca</td><td>Ajustar el bosque gana 0,0276 y se queda a <strong>0,0019</strong> de la logística</td></tr><tr><td><strong>TikTok</strong></td><td>Enorme</td><td>Una sola pregunta empata con 300 árboles: <strong>+0,0000</strong></td></tr><tr><td><strong>Automatidata</strong></td><td>Ninguna</td><td>Dos de tres modelos deciden <strong>exactamente igual</strong> que contestar siempre «no»</td></tr></tbody></table></div><h3 class="sub h3">Waze: casi cierra la distancia, y no la cierra</h3><p>Es el único de los tres que se puede comparar de verdad con el curso anterior, porque el Curso 4 predijo lo mismo sobre el mismo archivo. La partición está montada para eso: el primer corte es el mismo 25 % con la misma semilla, así que <strong>los 3.575 usuarios de prueba son literalmente los mismos</strong>.</p><p>Sobre ellos, y mirando la prueba una sola vez:</p><div class="table-wrap"><table><thead><tr><th>Modelo</th><th>AUC</th><th>Sensibilidad</th></tr></thead><tbody><tr><td>Logística del Curso 4</td><td>0,7368</td><td>0,0820</td></tr><tr><td><strong>Logística de este curso</strong></td><td><strong>0,7379</strong></td><td><strong>0,0962</strong></td></tr><tr><td>Bosque ajustado</td><td>0,7318</td><td>0,0710</td></tr><tr><td>Refuerzo ajustado</td><td>0,7348</td><td>0,0489</td></tr></tbody></table></div><p>Lo interesante no es el veredicto, es el margen. <strong>Ajustar el bosque le dio 0,0276 de AUC</strong>, de 0,7129 a 0,7405, que es una mejora grande para lo que se juega aquí. Y se quedó a <strong>0,0019</strong> de un modelo que no tiene ni una perilla que ajustar.</p><p>Ese es el resultado en una frase: <strong>afinar el modelo complicado casi cierra la distancia, y no la cierra.</strong></p><h3 class="sub h3">TikTok: el mérito no era del modelo</h3><p>Aquí la señal es enorme y se sabía desde el Curso 2: una reclamación se ve 101 veces más que una opinión. Así que el proyecto se diseñó con un control fijado <strong>antes</strong> de tocar nada: un árbol de una sola pregunta sobre una sola columna.</p><div class="table-wrap"><table><thead><tr><th>Modelo</th><th>Variables</th><th>Exactitud</th></tr></thead><tbody><tr><td><strong>Una pregunta</strong></td><td><strong>1</strong></td><td><strong>0,9958</strong></td></tr><tr><td>Regresión logística</td><td>9</td><td>0,9940</td></tr><tr><td><strong>Bosque ajustado, 300 árboles</strong></td><td><strong>9</strong></td><td><strong>0,9958</strong></td></tr></tbody></table></div><p><strong>Nueve variables y trescientos árboles aportan 0,0000 de exactitud</strong> sobre una pregunta. La logística, con las nueve, saca menos.</p><p>Y la razón de que cualquier algoritmo lo encuentre: la opinión más vista de todo el archivo tiene <strong>9.998</strong> visualizaciones y el corte que aprende el modelo cae en <strong>10.031</strong>. Las dos clases están separadas por una línea.</p><p>Eso lleva a un sitio que el exemplar oficial no pisa. <strong>Un hueco así no existe en una plataforma real</strong>; ningún vídeo de opinión tiene un techo de diez mil visualizaciones. Aparece cuando alguien genera dos poblaciones con rangos distintos, y estos datos son sintéticos. Un modelo con 99,58 % aquí ha medido <strong>cómo se fabricó el archivo</strong>.</p><h3 class="sub h3">Automatidata: no hay nada que encontrar</h3><p>El encargo era predecir quién deja propina generosa. Antes de modelar aparecieron dos cosas que decidieron el proyecto entero.</p><p><strong>La propina en efectivo no se registra nunca</strong>: los 7.434 viajes que no son con tarjeta tienen propina cero en el 100 % de los casos. Entrenar con el archivo entero le enseña al modelo «efectivo, luego no hay propina», que es una propiedad del taxímetro disfrazada de hallazgo.</p><p><strong>Y «generoso» hubo que definirlo mirando la distribución</strong>: 4.363 viajes dejan exactamente el 20,00 %, que es el botón por defecto de la máquina, y la mediana cae justo ahí. Quien pulsa el botón no decidió ser generoso: aceptó.</p><p>Con eso resuelto, el resultado:</p><div class="table-wrap"><table><thead><tr><th>Modelo</th><th>Exactitud</th><th>Sensibilidad</th><th>AUC</th></tr></thead><tbody><tr><td>Contestar siempre «no»</td><td>0,7688</td><td>0,0000</td><td>0,5000</td></tr><tr><td>Regresión logística</td><td>0,7688</td><td><strong>0,0000</strong></td><td>0,5395</td></tr><tr><td>Bosque ajustado</td><td>0,7688</td><td><strong>0,0000</strong></td><td>0,6073</td></tr><tr><td>Refuerzo ajustado</td><td>0,7708</td><td>0,0128</td><td>0,6104</td></tr></tbody></table></div><p><strong>Dos de los tres modelos no señalan a nadie.</strong> Su exactitud coincide con la del modelo vago hasta el cuarto decimal porque toman exactamente las mismas decisiones.</p><p>Y aquí, por primera y única vez en el curso, <strong>los árboles le ganan a la logística</strong>: 0,6073 y 0,6104 contra 0,5395. Ordenan mejor los casos. Y aun así no deciden nada distinto.</p><p><strong>Un AUC mejor no es un modelo utilizable.</strong> El AUC mide si sabes ordenar; la sensibilidad mide si sirves para decidir.</p></section>
+<section class="section-block "><span class="kicker">Términos</span><h2 class="section-title">Glosario</h2><ul><li><strong>Modelo de referencia.</strong> El resultado más simple que se puede conseguir sin esfuerzo, y contra el que se mide todo lo demás. Puede ser contestar siempre la clase mayoritaria, o un árbol de una sola pregunta.</li><li><strong>Señal.</strong> Cuánta información sobre la respuesta hay realmente en las variables. No es una propiedad del modelo: es una propiedad del archivo.</li><li><strong>Modelo campeón.</strong> El que gana en validación, elegido antes de tocar la prueba.</li><li><strong>Fuga de información.</strong> Que llegue al modelo algo que no existiría en el momento real de predecir. En Automatidata, el importe total contiene la propina.</li><li><strong>Artefacto de generación.</strong> Un patrón que existe porque así se fabricaron los datos, no porque describa el mundo. El hueco de TikTok es uno.</li><li><strong>Umbral.</strong> El corte de probabilidad a partir del cual se contesta que sí. Cambiarlo cambia las decisiones sin cambiar el modelo.</li></ul></section>
+<section class="section-block is-recipe"><span class="kicker">Método</span><h2 class="section-title">Paso a paso</h2><h3 class="sub h3">Paso 1. Escribir lo que esperas antes de ajustar nada</h3><p>Los tres proyectos lo hacen en su documento PACE, y no es una formalidad: <strong>una expectativa escrita después de ver el resultado no es una expectativa</strong>, es una racionalización.</p><p>En Waze se escribió que los árboles probablemente no ganarían. En TikTok, que un resultado por encima del 99 % no sería un éxito sino una confirmación. En Automatidata, que la propina es una decisión de la persona y no del viaje. Las tres se cumplieron, pero eso da igual: lo que las hace valer es que estaban escritas antes.</p><h3 class="sub h3">Paso 2. Fijar el modelo de referencia antes que el modelo bueno</h3><p>Es el paso que más cambia un informe, y el que más gente se salta.</p><div class="table-wrap"><table><thead><tr><th>Proyecto</th><th>Referencia</th><th>Qué destapó</th></tr></thead><tbody><tr><td>TikTok</td><td>Un árbol de una pregunta</td><td>Que el modelo completo no aportaba nada</td></tr><tr><td>Automatidata</td><td>Contestar siempre «no»</td><td>Que dos modelos no decidían nada</td></tr><tr><td>Waze</td><td>El modelo del Curso 4</td><td>Que ajustar no bastaba</td></tr></tbody></table></div><p>Y se fija <strong>antes</strong>. Elegir qué cuenta como buena referencia una vez que ya has visto tu resultado es cómo un proyecto se convence a sí mismo de ser impresionante.</p><h3 class="sub h3">Paso 3. Ajustar las dos familias, no solo la que te gusta</h3><p>Un bosque sin acotar no representa a los bosques. En Waze, el árbol suelto saca 0,5717, que está a un paso de tirar una moneda; el bosque ajustado saca 0,7405.</p><p>Si vas a concluir que los árboles no ganan, tienes que haberles dado su oportunidad, o la conclusión no vale. Por eso los tres proyectos ajustan bosque y refuerzo con búsqueda en rejilla, y reportan cuántas combinaciones probaron y cuánto tardaron.</p><h3 class="sub h3">Paso 4. Mirar la prueba una vez, y publicar esa cifra</h3><p>En Waze la validación cruzada dio 0,7529 y la prueba 0,7379. Esa diferencia no es ruido: la validación es el conjunto sobre el que se eligió entre 88 combinaciones, así que el ganador lo es en parte por suerte con esos pliegues.</p><h3 class="sub h3">Paso 5. Contar lo que no funcionó con el mismo detalle</h3><p>Los tres informes lo hacen, y es lo que los hace creíbles:</p><ul><li>En Waze, <strong>la segmentación del módulo 3 no encontró grupos</strong>. La mejor silueta fue 0,2588, y la variable quedó la última de nueve con 0,0026 de importancia.</li><li>En TikTok, el modelo bueno <strong>empata con una pregunta</strong>.</li><li>En Automatidata, <strong>no se puede cumplir el encargo</strong> con los datos disponibles.</li></ul><p>Ese tercero es el más difícil de entregar y el más valioso. Saber que algo no se puede hacer con lo que hay ahorra construirlo.</p></section>
+<section class="section-block is-recipe"><span class="kicker">Código</span><h2 class="section-title">El código, por partes</h2><h3 class="sub h3">Paso 1. Los tres proyectos, leídos de una vez</h3><p>Cada guion escribe su <code>model_results.json</code>, y <strong>ni el informe ni la ficha pueden citar un número que no esté ahí dentro</strong>.</p><pre><code class="language-python">import json
+from pathlib import Path
+
+for slug in (&quot;waze&quot;, &quot;tiktok&quot;, &quot;automatidata&quot;):
+    report = Path(f&quot;projects/curso5/{slug}/04_reports/model_results.json&quot;)
+    numbers = json.loads(report.read_text(encoding=&quot;utf-8&quot;))
+    print(f&quot;{slug:14} campeon: {numbers[&#x27;champion&#x27;]}&quot;)</code></pre><dl class="annot"><div class="annot-head">línea por línea</div><dt><code>Path(f&quot;projects/...&quot;)</code></dt><dd>Una f-string dentro de <code>Path</code>, para construir las tres rutas cambiando solo el nombre. <code>Path</code> entiende las barras normales también en Windows.</dd><dt><code>.read_text(encoding=&quot;utf-8&quot;)</code></dt><dd>Leer el archivo entero como texto. <strong>El <code>encoding</code> no es opcional</strong>: sin él Windows usa cp1252 y revienta con los acentos de las etiquetas.</dd><dt><code>json.loads(...)</code></dt><dd>Convierte ese texto en diccionarios y listas de Python. Con <code>s</code> al final es &quot;load string&quot;; sin la <code>s</code>, <code>json.load</code>, recibe un archivo abierto en vez de texto.</dd><dt><code>numbers[&#x27;champion&#x27;]</code></dt><dd>La clave que cada guion escribió con el modelo que ganó en validación. Está en el JSON porque ninguna cifra publicada puede salir de otro sitio.</dd></dl><div class="output"><span class="output-tag">sale</span><pre>waze           campeon: logistica
+tiktok         campeon: bosque
+automatidata   campeon: xgboost</pre></div><p>Tres campeones distintos, y aun así la misma conclusión. Eso es lo que hace que el arco signifique algo: <strong>no salió de repetir un modelo tres veces</strong>.</p><h3 class="sub h3">Paso 2. La pregunta del curso, contestada con los tres</h3><pre><code class="language-python">for slug in (&quot;waze&quot;, &quot;tiktok&quot;, &quot;automatidata&quot;):
+    report = Path(f&quot;projects/curso5/{slug}/04_reports/model_results.json&quot;)
+    test = json.loads(report.read_text(encoding=&quot;utf-8&quot;))[&quot;test&quot;]
+    simple = test.get(&quot;logistica&quot;, test.get(&quot;lone&quot;))[&quot;auc&quot;]
+    complicated = max(test[name][&quot;auc&quot;] for name in (&quot;bosque&quot;, &quot;xgboost&quot;) if name in test)
+    print(f&quot;{slug:14} {complicated - simple:+.4f}&quot;)</code></pre><dl class="annot"><div class="annot-head">línea por línea</div><dt><code>test.get(&quot;logistica&quot;, test.get(&quot;lone&quot;))</code></dt><dd><code>get</code> con dos argumentos devuelve el segundo si la clave no existe. Hace falta porque en TikTok el modelo simple se llama <code>lone</code>, que es el árbol de una sola pregunta.</dd><dt><code>max(... for name in (...) if name in test)</code></dt><dd>Una expresión generadora con filtro dentro de <code>max</code>: recorre los dos modelos complicados, se salta el que no esté, y se queda con el AUC mayor.</dd><dt><code>{... :+.4f}</code></dt><dd>El <code>+</code> fuerza a escribir el signo también cuando el número es positivo, que es justo lo que hay que ver de un vistazo.</dd></dl><div class="output"><span class="output-tag">sale</span><pre>waze           -0.0031
+tiktok         +0.0028
+automatidata   +0.0709</pre></div><p>Y aquí hay que leer con cuidado, porque <strong>el número dice una cosa y el proyecto dice otra</strong>.</p><p>En TikTok el bosque gana 0,0028 de AUC y <strong>empata en exactitud</strong>, así que no decide mejor. En Automatidata gana 0,0709, que parece mucho, y <strong>no señala a nadie</strong>: su sensibilidad es cero.</p><p>El AUC solo mide si el modelo ordena bien. Un modelo que ordena mejor y decide igual no es un modelo mejor. Por eso la tabla del arco mira sensibilidad y exactitud, no solo AUC.</p></section>
+<section class="section-block is-warning"><span class="kicker">Trampas</span><h2 class="section-title">Ojo</h2><ul><li><strong>Un modelo de referencia elegido después no es una referencia</strong>, es una excusa.</li><li><strong>Un AUC mejor no es un modelo mejor.</strong> En Automatidata los árboles ganan 0,07 de AUC y siguen sin detectar a nadie.</li><li><strong>Casi perfecto huele mal.</strong> El 0,9958 de TikTok mide cómo se generó el archivo.</li><li><strong>No compares un bosque ajustado contra un árbol suelto.</strong> El árbol suelto de Waze saca 0,5717 y no representa a los modelos de árbol.</li><li><strong>La cifra de validación es optimista</strong>, porque sobre ella se eligió al ganador.</li><li><strong>La importancia de variables reparte el total aunque el modelo no funcione.</strong> El bosque de Automatidata da un reparto presentable con un AUC de 0,6073.</li><li><strong>Un resultado negativo bien hecho es un entregable</strong>, no un fracaso. Cuesta más de defender y vale más.</li></ul></section>
+<section class="section-block is-bridge"><span class="kicker">Analogía</span><h2 class="section-title">Puente metalúrgico</h2><p>Los tres proyectos son las tres campañas de pruebas que ya has vivido, en el mismo orden.</p><p><strong>Waze es la campaña que mejora poco.</strong> Pruebas un reactivo nuevo, ajustas dosis, pH y tiempo de acondicionamiento, y sacas medio punto de recuperación sobre lo que ya hacías. La pregunta entonces no es si el resultado es real, es <strong>si medio punto paga el reactivo, el cambio de procedimiento y el riesgo</strong>. Un bosque de trescientos árboles que gana 0,0019 tiene exactamente ese problema: hay que mantenerlo, y la regresión no.</p><p><strong>TikTok es el ensayo que sale perfecto y hay que desconfiar.</strong> Una separación limpísima en laboratorio con una muestra preparada. El resultado es correcto y no describe la planta, porque la muestra no es la alimentación real. Nadie con experiencia lleva ese número a comité sin decir antes de dónde salió la muestra.</p><p><strong>Automatidata es la campaña que demuestra que no se puede.</strong> Pruebas todo lo que se te ocurre y el mineral no responde. Ese informe existe, se entrega y es útil: evita que la empresa monte un circuito para algo que no va a funcionar. Y la recomendación buena no es «más pruebas», es <strong>mirar otra palanca</strong>: en el proyecto, mover el botón por defecto de la máquina, que decide el 28,7 % de las propinas y no necesita ningún modelo.</p><p>La lección de fondo es la misma que la de la muestra testigo del módulo 2: <strong>el método no garantiza un resultado bueno, garantiza que sabes cuál tienes</strong>.</p></section>
+<section class="section-block is-review"><span class="kicker">Repaso</span><h2 class="section-title">Repaso</h2><details><summary>Los tres proyectos tuvieron campeones distintos y la misma conclusión. ¿Por qué eso importa?</summary><p>Porque descarta que la conclusión venga del modelo. Si los tres hubieran ganado con la regresión logística, la lectura razonable sería que esos datos favorecen a los modelos lineales. Pero ganó la logística en Waze, el bosque en TikTok y el refuerzo en Automatidata, y en los tres el modelo complicado no aportó una decisión mejor: empató en exactitud en TikTok, perdió por 0,0031 de AUC en Waze y no señaló a nadie en Automatidata. Tres caminos distintos hasta el mismo sitio es lo que convierte tres anécdotas en un arco.</p></details><details><summary>¿Qué hace que el modelo de referencia tenga que fijarse antes y no después?</summary><p>Que después ya conoces tu resultado, y entonces eliges, sin querer, una referencia que tu modelo supere. En TikTok el control se escribió antes de entrenar nada: un árbol de una pregunta sobre una columna. Sacó 0,9958 de exactitud, y el bosque ajustado con nueve variables y trescientos árboles sacó exactamente lo mismo. Si ese control se hubiera pensado al final, la tentación habría sido compararse con algo más flojo y cerrar el informe celebrando un 99,6 %.</p></details><details><summary>En Automatidata los árboles ganan 0,07 de AUC a la logística. ¿Por qué el informe dice que no sirven?</summary><p>Porque el AUC mide si el modelo ordena bien los casos y la sensibilidad mide si señala a alguien. Con el umbral por defecto, la logística y el bosque tienen sensibilidad cero: no marcan ni un pasajero generoso, así que toman exactamente las mismas decisiones que contestar siempre que no, y su exactitud coincide con la de ese modelo vago hasta el cuarto decimal. Ordenar mejor y decidir igual no es un modelo mejor. Lo que sí se podría hacer con ese AUC es bajar el umbral, y eso es una decisión de negocio sobre cuántas falsas alarmas se aceptan.</p></details><details><summary>¿Por qué un 99,58 % de acierto puede ser una mala noticia?</summary><p>Porque obliga a preguntar de dónde sale. En TikTok salía de que la opinión más vista de todo el archivo tiene 9.998 visualizaciones y el corte aprendido cae en 10.031: las dos clases están separadas por una línea. Un hueco así no existe en una plataforma real, donde los vídeos de opinión no tienen un techo de diez mil visualizaciones; aparece cuando dos poblaciones se generan con rangos distintos, y esos datos son sintéticos. Así que el modelo midió cómo se fabricó el archivo, no cómo se comporta TikTok, y desplegarlo sería desplegar un umbral que solo existe en el material de prácticas.</p></details><details><summary>La segmentación del módulo 3 no encontró grupos en Waze. ¿Por qué se dejó igual dentro del modelo?</summary><p>Porque si vale algo o no lo decide el modelo, no quien la construye. La silueta ya avisaba: 0,2588 en el mejor caso, y por debajo de 0,35 los grupos se tocan entre sí, así que esos usuarios son un continuo y no familias separadas. Aun así la variable entró, y quedó la última de nueve con 0,0026 de importancia. Sacarla antes de medirla habría sido decidir por adelantado lo que había que comprobar; dejarla dentro convierte una sospecha en un dato que se puede reportar.</p></details></section>
+</main>
+<footer class="footer">
+  Concentra / destilado del temario público del curso / 2026-08-20
+</footer>
+</body>
+</html>

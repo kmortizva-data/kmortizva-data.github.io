@@ -1,0 +1,552 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tree-based modeling — The Nuts and Bolts of Machine Learning</title>
+<style>
+/* ============================================================================
+   Concentra — design tokens and shared components.
+   Inlined into every generated page by load_style(), so pages stay self-contained
+   and work offline from file:// with no external requests.
+
+   Direction: an assay lab, not a tech dashboard. The palette is taken from ore
+   and lab materials (chalcopyrite brass, malachite, hematite, quartz) on warm
+   graphite rather than the blue-black + neon of a generic dark UI. Type is
+   Bahnschrift, the DIN-descended grotesque that Windows ships and that lives on
+   machinery plates and technical drawings, over Corbel for reading.
+   ========================================================================== */
+
+:root {
+  /* Ground and surfaces: warm graphite, the colour of rock dust, not blue-black */
+  --rock: #1a1714;
+  --bench: #221e19;
+  --core: #2b251f;
+  --seam: #3d352c;
+
+  /* Ore palette. No blue and no purple anywhere: those are the tones that make a
+     page read as generated, and this palette comes from the ores instead. */
+  --brass: #c9a227;      /* chalcopyrite, the primary accent */
+  --malachite: #5d9b7a;  /* verified output, results that came out right */
+  --hematite: #b04a35;   /* iron oxide, pitfalls and warnings */
+
+  /* Text */
+  --quartz: #ece7de;
+  --dust: #9a9186;
+  --shadowed: #6f675c;
+
+  --display: Bahnschrift, 'DIN Alternate', 'Segoe UI Semibold', system-ui, sans-serif;
+  --body: Corbel, Candara, 'Segoe UI', system-ui, sans-serif;
+  --data: Consolas, 'Cascadia Mono', ui-monospace, monospace;
+
+  /* In px, not ch: ch scales with font-size, so a heading ended up wider than a
+     paragraph and the page had four different right edges instead of two. */
+  --measure: 640px;
+  --wide: 900px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--rock);
+  color: var(--quartz);
+  font-family: var(--body);
+  font-size: 16px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection { background: var(--brass); color: var(--rock); }
+
+:focus-visible {
+  outline: 2px solid var(--brass);
+  outline-offset: 3px;
+}
+
+/* --------------------------------------------------------------- the signature
+   A sieve series: ticks that get finer from left to right, coarse feed to fine
+   concentrate. It is the one ornament on the page and appears exactly twice —
+   under the wordmark and under a page title. */
+.mesh {
+  height: 10px;
+  background-image:
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 16px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 9px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 5px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 3px);
+  background-size: 25% 100%;
+  background-position: 0 0, 25% 0, 50% 0, 75% 0;
+  background-repeat: no-repeat;
+  opacity: .8;
+  transform-origin: left center;
+  animation: sieve .55s cubic-bezier(.2, .8, .3, 1) both;
+}
+@keyframes sieve { from { transform: scaleX(0); opacity: 0; } to { transform: scaleX(1); opacity: .8; } }
+@media (prefers-reduced-motion: reduce) {
+  .mesh { animation: none; }
+  * { transition: none !important; }
+}
+
+/* ------------------------------------------------------------------ page head */
+.header {
+  border-bottom: 1px solid var(--seam);
+  padding: 3.2rem 2rem 0;
+  background: linear-gradient(180deg, #221d16 0%, var(--rock) 100%);
+}
+.header-content { max-width: 1080px; margin: 0 auto; }
+
+.eyebrow {
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--brass);
+  margin-bottom: 1rem;
+}
+.eyebrow a { color: inherit; text-decoration: none; border-bottom: 1px solid transparent; }
+.eyebrow a:hover { border-bottom-color: var(--brass); }
+
+.header h1 {
+  font-family: var(--display);
+  font-size: clamp(2rem, 4.5vw, 3.1rem);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -.015em;
+  color: var(--quartz);
+  max-width: 20ch;
+}
+.header .subtitle {
+  color: var(--dust);
+  max-width: var(--measure);
+  margin-top: 1rem;
+  font-size: 1.02rem;
+}
+.header .mesh { margin: 1.8rem 0 0; }
+
+/* An assay line: the real composition of the module, in lab-report shorthand. */
+.assay {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.4rem;
+  font-family: var(--data);
+  font-size: .78rem;
+  color: var(--shadowed);
+  padding: .9rem 0 1.6rem;
+  letter-spacing: .04em;
+}
+.assay b { color: var(--dust); font-weight: 400; }
+
+/* --------------------------------------------------------------------- layout */
+/* The container hugs the widest block, so there is no orphan edge past the content. */
+.container { max-width: var(--wide); margin: 3rem auto 5rem; padding: 0 2rem; }
+
+/* Two deliberate right edges and no more: prose stops at the reading measure, and
+   only the things that genuinely need room (code, output, figures, big tables) run
+   out to the full column. */
+.section-block {
+  border-top: 1px solid var(--seam);
+  padding: 2rem 0 2.4rem;
+}
+.section-block > p,
+.section-block > ul,
+.section-block > ol,
+.section-block h3.sub,
+.section-block h4.sub,
+.section-block blockquote,
+details > *:not(summary) { max-width: var(--measure); }
+.section-block:first-child { border-top: 0; padding-top: .5rem; }
+
+/* The kicker names what kind of content follows: context, method, pitfalls.
+   It replaces decorative icons with something that actually classifies. */
+.kicker {
+  font-family: var(--data);
+  font-size: .68rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  display: block;
+  margin-bottom: .5rem;
+}
+.section-title {
+  font-family: var(--display);
+  font-size: 1.55rem;
+  font-weight: 600;
+  letter-spacing: -.01em;
+  line-height: 1.2;
+  margin-bottom: 1.2rem;
+  color: var(--quartz);
+}
+.is-warning .kicker { color: var(--hematite); }
+.is-warning .section-title { color: #e8c4b8; }
+.is-bridge .kicker, .is-decision .kicker { color: var(--malachite); }
+.is-toy .kicker, .is-result .kicker, .is-question .kicker { color: var(--brass); }
+
+/* ---------------------------------------------------------------------- prose */
+/* Justified with hyphenation. In Spanish, justifying without hyphens opens rivers of
+   white space and reads worse than ragged right; lang="es" is what feeds the
+   dictionary. Tables, code, captions and summaries stay ragged on purpose. */
+.section-block p,
+.section-block li,
+details > *:not(summary) {
+  text-align: justify;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+}
+.section-block p { margin-bottom: 1rem; }
+.section-block p:last-child { margin-bottom: 0; }
+/* Indent with padding, not margin, so the bullet sits inside the measure instead of
+   pushing the list 1.2rem past the right edge of the paragraphs. */
+.section-block ul, .section-block ol { margin: 0 0 1rem; padding-left: 1.2rem; }
+.section-block li { margin-bottom: .55rem; padding-left: .2rem; }
+.section-block li::marker { color: var(--brass); }
+td, th, figcaption, .res li, .assay { text-align: left; hyphens: manual; }
+a { color: var(--brass); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+a:hover { text-decoration-thickness: 2px; }
+strong { color: #fff; font-weight: 700; }
+em { color: var(--dust); font-style: italic; }
+
+h3.sub {
+  font-family: var(--display);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--brass);
+  margin: 2rem 0 .7rem;
+  letter-spacing: -.005em;
+}
+h3.sub:first-child { margin-top: 0; }
+h4.sub {
+  font-family: var(--display);
+  font-size: .98rem;
+  font-weight: 600;
+  color: var(--dust);
+  margin: 1.3rem 0 .5rem;
+}
+
+code {
+  font-family: var(--data);
+  font-size: .9em;
+  background: var(--core);
+  border-radius: 3px;
+  padding: .08rem .32rem;
+  color: var(--brass);
+}
+pre {
+  background: #14110e;
+  border: 1px solid var(--seam);
+  border-left: 2px solid var(--seam);
+  border-radius: 2px;
+  padding: 1.1rem 1.2rem;
+  overflow-x: auto;
+  margin-bottom: 1rem;
+}
+pre code {
+  background: none; padding: 0; color: var(--quartz);
+  font-size: .87rem; line-height: 1.6;
+}
+
+/* What the code prints. Malachite: the material that came out of the process. */
+.output {
+  position: relative;
+  border: 1px solid rgba(93, 155, 122, .32);
+  border-left: 2px solid var(--malachite);
+  border-radius: 2px;
+  background: rgba(93, 155, 122, .06);
+  padding: 1.7rem 1.2rem 1rem;
+  margin-bottom: 1rem;
+  overflow-x: auto;
+}
+.output-tag {
+  position: absolute; top: .5rem; left: 1.2rem;
+  font-family: var(--data); font-size: .64rem;
+  letter-spacing: .18em; text-transform: uppercase; color: var(--malachite);
+}
+.output pre {
+  background: none; border: 0; padding: 0; margin: 0;
+  font-family: var(--data); font-size: .85rem;
+  color: var(--quartz); white-space: pre-wrap;
+}
+
+/* Line by line explanation of a code block, for a reader new to programming.
+   Two columns: the fragment of code, and what it does. */
+.annot {
+  display: grid;
+  grid-template-columns: minmax(9rem, auto) 1fr;
+  gap: .1rem 1.2rem;
+  align-items: baseline;
+  max-width: var(--wide);
+  margin: -.4rem 0 1.4rem;
+  padding: .9rem 1.1rem 1rem;
+  border: 1px solid var(--seam);
+  border-top: 0;
+  border-radius: 0 0 2px 2px;
+  background: rgba(201, 162, 39, .04);
+}
+.annot-head {
+  grid-column: 1 / -1;
+  font-family: var(--data);
+  font-size: .64rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  margin-bottom: .5rem;
+}
+.annot dt { padding: .35rem 0; }
+.annot dt code {
+  background: var(--core);
+  color: var(--brass);
+  font-size: .82rem;
+  white-space: nowrap;
+}
+.annot dd {
+  padding: .35rem 0;
+  margin: 0;
+  color: var(--dust);
+  font-size: .93rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(61, 53, 44, .5);
+}
+.annot dt { border-bottom: 1px solid rgba(61, 53, 44, .5); }
+.annot dt:last-of-type, .annot dd:last-of-type { border-bottom: 0; }
+/* The code block sits directly on top of its annotation, as one unit. */
+pre:has(+ .annot) { margin-bottom: 0; border-radius: 2px 2px 0 0; }
+
+@media (max-width: 640px) {
+  .annot { grid-template-columns: 1fr; gap: 0; }
+  .annot dt { border-bottom: 0; padding-bottom: 0; }
+  .annot dd { padding-top: .15rem; }
+}
+
+blockquote {
+  border-left: 2px solid var(--brass);
+  padding: .3rem 0 .3rem 1.3rem;
+  margin: 0 0 1rem;
+  font-family: var(--display);
+  font-size: 1.2rem;
+  font-weight: 400;
+  line-height: 1.4;
+  color: var(--quartz);
+}
+
+/* Tables read as assay data: mono figures, hairline rules, no zebra fill.
+   They take the width they need instead of being stretched to the full column,
+   which is what left a two-column table floating in empty space. */
+.table-wrap { overflow-x: auto; margin-bottom: 1rem; }
+table { border-collapse: collapse; width: auto; max-width: 100%; font-size: .93rem; }
+th, td {
+  border-bottom: 1px solid var(--seam);
+  padding: .55rem .8rem .55rem 0;
+  text-align: left;
+  vertical-align: top;
+}
+th {
+  font-family: var(--data);
+  font-size: .7rem;
+  font-weight: 400;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  border-bottom-color: var(--brass);
+}
+td:first-child { color: var(--quartz); }
+
+/* Review questions: closed by default, so they work as recall practice. */
+details {
+  border-top: 1px solid var(--seam);
+  padding: .9rem 0;
+}
+details:last-child { border-bottom: 1px solid var(--seam); }
+summary {
+  cursor: pointer;
+  font-family: var(--display);
+  font-size: 1.02rem;
+  font-weight: 600;
+  color: var(--quartz);
+  list-style: none;
+  display: flex;
+  gap: .7rem;
+  align-items: baseline;
+}
+summary::-webkit-details-marker { display: none; }
+summary::before {
+  content: '+';
+  font-family: var(--data);
+  color: var(--brass);
+  font-size: .95rem;
+}
+details[open] summary::before { content: '−'; }
+details[open] summary { color: var(--brass); margin-bottom: .7rem; }
+details > *:not(summary) { color: var(--dust); }
+
+figure.fig {
+  margin: 1.6rem 0;
+  border: 1px solid var(--seam);
+  padding: .7rem;
+  background: var(--bench);
+}
+figure.fig img { width: 100%; height: auto; display: block; }
+/* The interactive twin of a figure. Its aspect matches the still one, 10 by 4.4, so a
+   case sheet keeps the same rhythm whichever kind of figure comes next. */
+figure.fig.is-live iframe {
+  width: 100%;
+  /* Matches INTERACTIVE_HEIGHT in src/make_figures.py. It used to be an aspect ratio, and
+     that made the figure's height depend on the window: the caption and the legend are
+     placed at fractions of the plot area, so on a wide screen they were pushed past the
+     bottom margin, clipping the caption and covering the x-axis title. */
+  height: 520px;
+  border: 0;
+  display: block;
+}
+figure.fig figcaption {
+  font-family: var(--data);
+  font-size: .72rem;
+  color: var(--shadowed);
+  margin-top: .6rem;
+  letter-spacing: .04em;
+}
+
+/* File listings on a case sheet */
+.res { list-style: none; margin-left: 0 !important; }
+.res li {
+  display: flex; align-items: baseline; gap: .8rem; flex-wrap: wrap;
+  padding: .5rem 0; border-bottom: 1px solid var(--seam); margin-bottom: 0;
+}
+.res .path { font-family: var(--data); font-size: .74rem; color: var(--shadowed); }
+.res .size { font-family: var(--data); font-size: .74rem; color: var(--shadowed); margin-left: auto; }
+.res .gone { font-family: var(--data); font-size: .74rem; color: var(--hematite); }
+
+.footer {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 2rem 4rem;
+  color: var(--shadowed);
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .03em;
+}
+
+@media (max-width: 640px) {
+  body { font-size: 15px; }
+  .header { padding: 2rem 1.2rem 0; }
+  .container { padding: 0 1.2rem; margin-top: 2rem; }
+  .footer { padding: 0 1.2rem 3rem; }
+}
+
+@media print {
+  body { background: #fff; color: #16130f; }
+  .header { background: none; border-bottom: 1px solid #bbb; padding-top: 0; }
+  .header h1, .section-title, summary { color: #16130f; }
+  .mesh { animation: none; }
+  .section-block { break-inside: avoid; max-width: none; }
+  pre, .output { background: #f6f4f0; border-color: #ccc; }
+  details:not([open]) > *:not(summary) { display: block; }
+  a { color: #16130f; }
+}
+
+</style>
+</head>
+<body>
+<header class="header">
+  <div class="header-content">
+    <div class="eyebrow"><a href="https://www.coursera.org/learn/the-nuts-and-bolts-of-machine-learning">The Nuts and Bolts of Machine Learning</a> / Módulo 4</div>
+    <h1>Tree-based modeling</h1>
+    <p class="subtitle">Un corte de árbol calculado a mano con diez lotes, y luego la demostración de por qué un árbol sin límite acierta el 100 % en entrenamiento y el 54 % en prueba. De ahí salen las dos formas de juntar muchos árboles, y el aviso de que dos columnas de puro ruido se llevan el 43 % de la importancia.</p>
+    <div class="mesh" role="presentation"></div>
+    <div class="assay"><span><b>10 h</b> de curso</span><span><b>17</b> vídeos</span><span><b>11</b> lecturas</span><span><b>5</b> tareas</span><span><b>10</b> prácticas</span><span><b>2</b> interactivos</span></div>
+  </div>
+</header>
+<main class="container">
+<section class="section-block "><span class="kicker">Contexto</span><h2 class="section-title">Qué resuelve este módulo</h2><p>Un árbol de decisión es el modelo más fácil de explicar que existe: una cadena de preguntas de sí o no. Se dibuja, se lee en voz alta y se entiende sin saber matemáticas.</p><p>Y tiene un defecto grave que este módulo ataca de frente: <strong>si lo dejas crecer, memoriza</strong>. Un árbol sin límite puede llegar a hacer una pregunta por cada fila de tus datos, acertar el 100 % de lo que ya vio, y no servir para nada con un caso nuevo.</p><p>De ese defecto salen las dos ideas grandes del módulo. La primera es <strong>ponerle límites</strong> al árbol, y elegir esos límites con datos en vez de a ojo. La segunda es <strong>usar muchos árboles en vez de uno</strong>, que se puede hacer de dos maneras distintas y con lógicas opuestas.</p></section>
+<section class="section-block is-toy"><span class="kicker">Ejemplo</span><h2 class="section-title">Antes de la teoría: un ejemplo de juguete</h2><p>Diez lotes procesados. De cada uno se sabe si se le dosificó reactivo, y si pasó especificación:</p><div class="table-wrap"><table><thead><tr><th></th><th>Pasaron</th><th>No pasaron</th><th>Total</th></tr></thead><tbody><tr><td><strong>Sin reactivo</strong></td><td>1</td><td>4</td><td>5</td></tr><tr><td><strong>Con reactivo</strong></td><td>5</td><td>0</td><td>5</td></tr><tr><td><strong>Total</strong></td><td><strong>6</strong></td><td><strong>4</strong></td><td><strong>10</strong></td></tr></tbody></table></div><p>El árbol tiene que decidir si merece la pena preguntar por el reactivo. Y lo decide con un número, la <strong>impureza de Gini</strong>, que mide lo revuelto que está un grupo.</p><h3 class="sub h3">Paso 1. La fórmula, en palabras</h3><p>La impureza de Gini contesta: <strong>si eligiera dos lotes al azar de este grupo, ¿qué probabilidad hay de que uno pase y el otro no?</strong> Cero significa que todos son iguales; cuanto más alto, más mezclado.</p><p>Se calcula restándole a 1 la suma de los cuadrados de las proporciones:</p><pre><code>Gini = 1 − (proporción que pasa)² − (proporción que no pasa)²</code></pre><h3 class="sub h3">Paso 2. Lo revuelto que está el grupo entero</h3><p>Antes de preguntar nada, hay 6 que pasan y 4 que no, de 10:</p><pre><code>Gini de la raíz = 1 − (6/10)² − (4/10)²
+                = 1 − 0,36 − 0,16
+                = 0,48</code></pre><p><strong>0,48.</strong> Cerca de 0,5, que es el máximo con dos clases, o sea muy revuelto. Tiene sentido: casi mitad y mitad.</p><h3 class="sub h3">Paso 3. Lo revuelto que quedan los dos trozos</h3><p>Si preguntamos por el reactivo, el grupo se parte en dos.</p><p><strong>Los cinco sin reactivo</strong>, de los que pasó uno:</p><pre><code>Gini izquierda = 1 − (1/5)² − (4/5)²
+               = 1 − 0,04 − 0,64
+               = 0,32</code></pre><p><strong>Los cinco con reactivo</strong>, de los que pasaron los cinco:</p><pre><code>Gini derecha = 1 − (5/5)² − (0/5)²
+             = 1 − 1 − 0
+             = 0</code></pre><p><strong>Cero exacto.</strong> Ese grupo es puro: todos pasaron, y no hace falta preguntar nada más sobre ellos. Cuando un árbol llega a un cero, deja de partir por ahí.</p><h3 class="sub h3">Paso 4. ¿Ha merecido la pena?</h3><p>Los dos trozos tienen cinco lotes cada uno, así que la impureza que queda después de preguntar es el promedio de las dos:</p><pre><code>impureza después = (5/10) × 0,32 + (5/10) × 0
+                 = 0,16 + 0
+                 = 0,16</code></pre><p>Y la <strong>ganancia</strong> es lo que se ha limpiado:</p><pre><code>ganancia = 0,48 − 0,16 = 0,32</code></pre><p><strong>Bajar de 0,48 a 0,16 es reducir la mezcla a un tercio con una sola pregunta.</strong> Eso es todo lo que hace un árbol al crecer: prueba todas las preguntas posibles, calcula la ganancia de cada una, y <strong>se queda con la mayor</strong>. Después repite lo mismo dentro de cada trozo.</p><h3 class="sub h3">Paso 5. Y aquí empieza el problema</h3><p>Fíjate en el trozo izquierdo, que quedó con Gini 0,32: cuatro que no pasan y uno que sí. El árbol no se conforma. Va a buscar otra pregunta que separe a ese uno de los otros cuatro, y <strong>la va a encontrar</strong>, aunque sea preguntando por algo irrelevante como el número de camión.</p><p>Si le dejas, seguirá hasta que cada hoja tenga un solo lote y todas las impurezas valgan cero. Habrá acertado el 100 % de lo que vio, y habrá aprendido que el camión 47 produce lotes buenos. Eso es el sobreajuste, y el resto del módulo va de contenerlo.</p></section>
+<section class="section-block "><span class="kicker">Términos</span><h2 class="section-title">Glosario</h2><ul><li><strong>Árbol de decisión.</strong> Un modelo que hace preguntas de sí o no encadenadas. Cada respuesta te lleva a otra pregunta, hasta llegar a una respuesta final.</li><li><strong>Nodo raíz.</strong> La primera pregunta, arriba del todo.</li><li><strong>Hoja.</strong> Un extremo del árbol, donde ya no se pregunta más y se da la respuesta.</li><li><strong>Profundidad.</strong> Cuántas preguntas encadenadas hay como máximo desde la raíz hasta una hoja.</li><li><strong>Impureza de Gini.</strong> Lo revuelto que está un grupo, de 0 (todos iguales) a 0,5 (mitad y mitad con dos clases).</li><li><strong>Ganancia.</strong> Cuánta impureza se quita con una pregunta. El árbol elige la pregunta que más gana.</li><li><strong>Sobreajuste.</strong> Que el modelo aprenda las particularidades de tus datos concretos en vez de la regla general. Se reconoce porque acierta mucho más en entrenamiento que en prueba.</li><li><strong>Hiperparámetro.</strong> Una perilla que tú fijas antes de entrenar y que el modelo no aprende: la profundidad máxima, cuántos árboles, cuánto corrige cada uno. Aquí las llamo perillas.</li><li><strong>Búsqueda en rejilla.</strong> Probar todas las combinaciones de una lista de valores de las perillas y quedarse con la mejor. En inglés, <em>grid search</em>.</li><li><strong>Remuestreo.</strong> Sacar una muestra del mismo tamaño que el original <strong>con reemplazo</strong>, así que algunas filas salen repetidas y otras no salen. En inglés, <em>bootstrap</em>.</li><li><strong>Bosque aleatorio.</strong> Muchos árboles entrenados sobre remuestreos distintos y con solo algunas variables disponibles en cada corte. Se vota entre todos.</li><li><strong>Refuerzo.</strong> Muchos árboles entrenados <strong>en cadena</strong>, cada uno dedicado a corregir lo que falló el anterior. En inglés, <em>boosting</em>.</li><li><strong>Importancia de variables.</strong> Cuánto contribuyó cada columna a los cortes del modelo. **No es una prueba de significancia.**</li></ul></section>
+<section class="section-block is-recipe"><span class="kicker">Método</span><h2 class="section-title">Paso a paso</h2><h3 class="sub h3">Paso 1. Cómo crece un árbol</h3><ol><li>Mira todas las preguntas posibles sobre todas las columnas.</li><li>Calcula la ganancia de cada una, como en el ejemplo.</li><li>Se queda con la mejor y parte el grupo en dos.</li><li>Repite dentro de cada trozo.</li><li>Para cuando un trozo es puro, o cuando alguna perilla se lo impide.</li></ol><p>Dos cosas que salen gratis y conviene saber. <strong>No hace falta escalar</strong>, porque el árbol compara cada variable consigo misma y nunca mide distancias entre variables distintas: es justo lo contrario de k-medias. Y <strong>las relaciones curvas no le molestan</strong>, porque una curva se aproxima con escalones.</p><h3 class="sub h3">Paso 2. Por qué memoriza, y cómo se ve</h3><p>El paso 5 de la lista es el culpable: si nada lo impide, el árbol parte hasta que cada hoja tenga un solo caso. Con 300 lotes de entrenamiento eso son unas 77 hojas, cada una diciendo &quot;este lote concreto pasó&quot;.</p><p>Y se reconoce con una comparación que hay que hacer siempre:</p><div class="table-wrap"><table><thead><tr><th></th><th>Entrenamiento</th><th>Prueba</th></tr></thead><tbody><tr><td>Árbol sin límite</td><td><strong>1,0000</strong></td><td><strong>0,5400</strong></td></tr><tr><td>Árbol de profundidad 3</td><td>0,7267</td><td>0,6100</td></tr></tbody></table></div><p><strong>El primero acierta todo lo que ya vio y poco más que una moneda al aire con lo que no.</strong> El segundo acierta menos en entrenamiento y más en prueba, que es lo único que importa.</p><p>Si tu modelo acierta mucho más en entrenamiento que en prueba, está memorizando. La distancia entre esas dos columnas es el diagnóstico.</p><h3 class="sub h3">Paso 3. Las perillas, y cómo se eligen</h3><p>Las que contienen a un árbol:</p><div class="table-wrap"><table><thead><tr><th>Perilla</th><th>Qué hace</th><th>Efecto</th></tr></thead><tbody><tr><td><code>max_depth</code></td><td>Cuántas preguntas encadenadas como máximo</td><td>La más directa</td></tr><tr><td><code>min_samples_leaf</code></td><td>Cuántos casos mínimo en una hoja</td><td>Impide hojas de un caso</td></tr><tr><td><code>min_samples_split</code></td><td>Cuántos casos hacen falta para partir</td><td>Parecida a la anterior</td></tr><tr><td><code>max_features</code></td><td>Cuántas columnas puede mirar en cada corte</td><td>Da variedad, clave en el bosque</td></tr></tbody></table></div><p>Y cómo se eligen: <strong>no a ojo</strong>. Se hace una lista de valores para cada una, se prueban todas las combinaciones con validación cruzada, y se mira cuál gana. Eso es la búsqueda en rejilla.</p><p>Con 6 profundidades y 4 tamaños de hoja son 24 combinaciones, y con 5 pliegues cada una son 120 entrenamientos. Suena mucho y tarda menos de un segundo con 300 filas. Con cien mil filas y una rejilla de mil combinaciones tarda horas, y por eso <strong>se acota la rejilla y se dice cuánto tardó</strong>.</p><h3 class="sub h3">Paso 4. La primera forma de juntar árboles: el bosque</h3><p>La idea es de una honestidad desarmante. <strong>Si un árbol solo se equivoca por memorizar sus datos, entrena muchos sobre datos ligeramente distintos y que voten.</strong> Cada uno memorizará cosas distintas, y sus errores se cancelan entre sí.</p><p>Se consigue variedad de dos formas a la vez:</p><ol><li><strong>Remuestreo.</strong> Cada árbol se entrena con una muestra del mismo tamaño sacada al azar <strong>con reemplazo</strong>, así que ve algunas filas repetidas y otras ninguna vez.</li><li><strong>Columnas limitadas.</strong> En cada corte, cada árbol solo puede mirar unas pocas columnas elegidas al azar. Sin esto, todos empezarían por la misma pregunta y se parecerían demasiado.</li></ol><p>Ese segundo punto es lo que convierte el remuestreo a secas en un <strong>bosque aleatorio</strong>, y es la parte que más gente se salta al explicarlo.</p><p>Lo que ganas: mucho menos sobreajuste, y unas perillas que perdonan. Lo que pierdes: ya no puedes dibujar el modelo en una pizarra, porque son trescientos árboles.</p><h3 class="sub h3">Paso 5. La segunda forma: el refuerzo</h3><p>Aquí la lógica es la contraria, y por eso son familias distintas y no variantes.</p><p>En el bosque, los árboles son <strong>independientes</strong>: se podrían entrenar todos a la vez y cada uno ignora a los demás. En el refuerzo van <strong>en cadena</strong>: se entrena uno, se mira en qué se equivocó, y <strong>el siguiente se dedica a esos casos</strong>. Luego otro sobre lo que sigue fallando, y así.</p><div class="table-wrap"><table><thead><tr><th></th><th>Bosque aleatorio</th><th>Refuerzo</th></tr></thead><tbody><tr><td>Los árboles se entrenan</td><td>A la vez, independientes</td><td>En cadena, cada uno tras el otro</td></tr><tr><td>Cada árbol es</td><td>Profundo y potente</td><td>Diminuto, a veces de un solo corte</td></tr><tr><td>Combina</td><td>Votando</td><td>Sumando correcciones</td></tr><tr><td>Ataca</td><td>La varianza: que el modelo baile</td><td>El sesgo: que el modelo se quede corto</td></tr><tr><td>Si le sobran árboles</td><td>Se estanca, no empeora</td><td><strong>Empieza a memorizar</strong></td></tr></tbody></table></div><p>Esa última fila decide cuál usar cuando tienes prisa. <strong>A un bosque le puedes poner árboles de más sin castigo</strong>; a un refuerzo no, y por eso su perilla más importante es <code>learning_rate</code>, que dice cuánto se le hace caso a cada corrección.</p><p>Nombres que verás: <strong>AdaBoost</strong> fue el primero y le da más peso a los casos que se fallaron; <strong>gradient boosting</strong> es la versión general y la que se usa hoy; <strong>XGBoost</strong> es una implementación muy optimizada de esa idea, y es la que el curso enseña por su nombre.</p><h3 class="sub h3">Paso 6. Dónde se usan de verdad los modelos basados en árboles</h3><p>El curso trae aquí un <strong>caso de estudio de Booz Allen Hamilton</strong>, una consultora grande, sobre cómo un modelo de aprendizaje automático les destapó hallazgos acerca de <strong>cómo asignan a su gente a los proyectos</strong>. El detalle está en la plataforma; lo transferible es por qué el problema pide un árbol y no una regresión, y eso sí se puede razonar.</p><p>Un problema de asignación de personal tiene tres características que los modelos basados en árboles manejan bien y una regresión mal:</p><div class="table-wrap"><table><thead><tr><th>Cómo es el problema</th><th>Por qué encaja con un árbol</th></tr></thead><tbody><tr><td>Casi todo son <strong>categorías</strong>: rol, oficina, cliente, tipo de proyecto</td><td>El árbol pregunta por ellas directamente, sin convertirlas en decenas de columnas</td></tr><tr><td>Las reglas son <strong>condicionales</strong>: lo que importa para un rol no importa para otro</td><td>Un árbol es literalmente una cadena de condiciones anidadas</td></tr><tr><td>La respuesta no es <strong>recta</strong>: la experiencia ayuda hasta cierto punto y luego deja de ayudar</td><td>Los escalones aproximan cualquier forma sin que nadie la declare</td></tr></tbody></table></div><p>Y una advertencia que este caso concreto obliga a repetir: <strong>un modelo que decide sobre la carrera de personas cae de lleno en el módulo 1</strong>. La tercera pregunta de aquel paso, si el afectado puede saber por qué, tiene aquí una respuesta incómoda, porque un bosque no la contesta bien. Un hallazgo agregado sobre cómo se asigna la gente es una cosa; un modelo que decida quién va a qué proyecto es otra, y la segunda necesita mucho más que buen acierto.</p><h3 class="sub h3">Paso 7. La importancia de las variables, con su aviso</h3><p>Un bosque no se puede dibujar, pero sí puede decirte <strong>qué columnas usó más para partir</strong>. Es lo que lo devuelve al terreno de lo explicable, y es de lo primero que se mira.</p><p>Y trae un aviso que casi nunca se da. En el ejemplo del código hay cuatro columnas: dos que influyen de verdad y dos de <strong>ruido puro generado al azar</strong>, que por construcción no significan nada. La importancia sale así:</p><div class="table-wrap"><table><thead><tr><th>Variable</th><th>Importancia</th></tr></thead><tbody><tr><td>pH</td><td>0,3020</td></tr><tr><td>Reactivo</td><td>0,2664</td></tr><tr><td><strong>Ruido 2</strong></td><td><strong>0,2186</strong></td></tr><tr><td><strong>Ruido 1</strong></td><td><strong>0,2130</strong></td></tr></tbody></table></div><p><strong>Las dos columnas de ruido se llevan el 43 % del total.</strong> No es un fallo: el árbol necesita partir por algún sitio, y una columna aleatoria a veces separa un poco por casualidad.</p><p>Así que la importancia ordena bien las variables de verdad por encima del ruido, y <strong>no dice que las de abajo sean irrelevantes ni que las de arriba causen nada</strong>. Es una pista, no una prueba.</p></section>
+<section class="section-block is-recipe"><span class="kicker">Código</span><h2 class="section-title">El código, por partes</h2><h3 class="sub h3">Paso 1. El corte a mano, comprobado</h3><p>Los diez lotes del ejemplo, para ver que la máquina calcula los mismos Gini.</p><pre><code class="language-python">import numpy as np
+from sklearn.tree import DecisionTreeClassifier
+
+# columna unica: reactivo dosificado (1) o no (0)
+batches = np.array([[0]] * 5 + [[1]] * 5)
+passed = np.array([1, 0, 0, 0, 0] + [1] * 5)
+
+tree = DecisionTreeClassifier(max_depth=1).fit(batches, passed)
+print(f&quot;Gini raiz      {tree.tree_.impurity[0]:.4f}&quot;)
+print(f&quot;Gini izquierda {tree.tree_.impurity[1]:.4f}&quot;)
+print(f&quot;Gini derecha   {tree.tree_.impurity[2]:.4f}&quot;)</code></pre><dl class="annot"><div class="annot-head">línea por línea</div><dt><code>[[0]] * 5 + [[1]] * 5</code></dt><dd>Multiplicar una lista por 5 la repite cinco veces, y el <code>+</code> las pega. Es la forma corta de escribir diez filas sin teclearlas.</dd><dt><code>max_depth=1</code></dt><dd>Un solo corte, que es justo el ejemplo. Sin esta perilla el árbol seguiría partiendo el trozo izquierdo.</dd><dt><code>tree.tree_.impurity</code></dt><dd>El vector de impurezas de todos los nodos. La posición 0 es la raíz, la 1 el hijo izquierdo y la 2 el derecho, que es el orden en que se recorre un árbol.</dd></dl><div class="output"><span class="output-tag">sale</span><pre>Gini raiz      0.4800
+Gini izquierda 0.3200
+Gini derecha   0.0000</pre></div><p>Los tres números del ejemplo a mano: <strong>0,48, 0,32 y 0 exacto</strong>.</p><h3 class="sub h3">Paso 2. El sobreajuste, medido</h3><p>Cuatrocientos lotes donde solo dos de las cuatro columnas influyen de verdad.</p><pre><code class="language-python">from sklearn.model_selection import train_test_split
+
+rng = np.random.default_rng(7)
+n = 400
+reagent = rng.normal(30, 8, n)
+ph = rng.normal(10.5, 1.2, n)
+noise = rng.normal(0, 1, (n, 2))
+chance = 1 / (1 + np.exp(-(0.10 * (reagent - 30) + 0.8 * (ph - 10.5))))
+passed = (rng.random(n) &lt; chance).astype(int)
+features = np.column_stack([reagent, ph, noise])
+
+train_x, test_x, train_y, test_y = train_test_split(
+    features, passed, test_size=0.25, random_state=42, stratify=passed)
+
+for name, model in [(&quot;sin limite&quot;, DecisionTreeClassifier(random_state=0)),
+                    (&quot;profundidad 3&quot;, DecisionTreeClassifier(max_depth=3, random_state=0))]:
+    model.fit(train_x, train_y)
+    print(f&quot;{name:14} entrenamiento {model.score(train_x, train_y):.4f}   &quot;
+          f&quot;prueba {model.score(test_x, test_y):.4f}   hojas {model.get_n_leaves()}&quot;)</code></pre><dl class="annot"><div class="annot-head">línea por línea</div><dt><code>rng.normal(30, 8, n)</code></dt><dd>Cuatrocientos valores de campana con media 30 y desviación 8. Es la dosis de reactivo simulada.</dd><dt><code>1 / (1 + np.exp(-(...)))</code></dt><dd>La función logística del Curso 4, usada al revés: aquí se <strong>fabrica</strong> la probabilidad de pasar a partir de las dos variables que influyen. Así sabemos con certeza cuáles importan, que es lo que el ejemplo quiere demostrar.</dd><dt><code>rng.random(n) &lt; chance</code></dt><dd>Convierte esa probabilidad en un sí o un no, tirando un dado por lote. Sin este paso los datos serían deterministas y no habría nada que aprender.</dd><dt><code>np.column_stack([...])</code></dt><dd>Pega los vectores como columnas de una tabla. <code>reagent</code> y <code>ph</code> son una columna cada uno y <code>noise</code> aporta dos, así que salen cuatro.</dd><dt><code>model.score(...)</code></dt><dd>La exactitud, que es lo que devuelve <code>score</code> por defecto en un clasificador. Se llama dos veces, sobre entrenamiento y sobre prueba, y <strong>la comparación entre las dos es el diagnóstico</strong>.</dd><dt><code>model.get_n_leaves()</code></dt><dd>Cuántas hojas tiene el árbol. Es la medida más directa de cuánto se ha complicado.</dd></dl><div class="output"><span class="output-tag">sale</span><pre>sin limite     entrenamiento 1.0000   prueba 0.5400   hojas 77
+profundidad 3  entrenamiento 0.7267   prueba 0.6100   hojas 8</pre></div><p><strong>Setenta y siete hojas para trescientos lotes</strong>, exactitud perfecta en entrenamiento y 0,54 en prueba, que con clases casi balanceadas es apenas mejor que una moneda.</p><p>El de profundidad 3 acierta <strong>menos</strong> en entrenamiento y <strong>más</strong> en prueba. Un modelo peor sobre lo que ya sabe y mejor sobre lo que no: eso es exactamente lo que se busca.</p><h3 class="sub h3">Paso 3. Elegir las perillas con la rejilla</h3><pre><code class="language-python">from sklearn.model_selection import GridSearchCV
+
+grid = {&quot;max_depth&quot;: [2, 3, 4, 5, 6, None],
+        &quot;min_samples_leaf&quot;: [1, 5, 10, 20]}
+
+search = GridSearchCV(DecisionTreeClassifier(random_state=0), grid, cv=5,
+                      scoring=&quot;roc_auc&quot;).fit(train_x, train_y)
+
+print(&quot;mejor combinacion:&quot;, search.best_params_)
+print(f&quot;AUC en validacion cruzada: {search.best_score_:.4f}&quot;)
+print(f&quot;AUC en prueba:             {search.score(test_x, test_y):.4f}&quot;)</code></pre><dl class="annot"><div class="annot-head">línea por línea</div><dt><code>grid = {...}</code></dt><dd>Un diccionario: cada clave es el nombre exacto de una perilla y cada valor la lista a probar. Se prueban <strong>todas las combinaciones</strong>, o sea 6 por 4 igual a 24.</dd><dt><code>None en max_depth</code></dt><dd>Sin límite. Se incluye a propósito para que la búsqueda pueda elegirlo si de verdad fuera lo mejor, en vez de descartarlo por prejuicio.</dd><dt><code>cv=5</code></dt><dd>Validación cruzada de cinco pliegues. Cada combinación se entrena cinco veces, así que son 120 entrenamientos en total.</dd><dt><code>scoring=&quot;roc_auc&quot;</code></dt><dd>Con qué se decide quién gana. <strong>Si no lo pones usa la exactitud</strong>, que con clases desbalanceadas elegiría el modelo equivocado.</dd><dt><code>.fit(train_x, train_y)</code></dt><dd>Sobre el entrenamiento, nunca sobre la prueba. La rejilla parte el entrenamiento en cinco por dentro, y la prueba sigue sin tocarse.</dd><dt><code>search.best_params_</code></dt><dd>La combinación ganadora. Y <code>search.best_estimator_</code> es ese modelo ya reentrenado con todo el entrenamiento.</dd></dl><div class="output"><span class="output-tag">sale</span><pre>mejor combinacion: {&#x27;max_depth&#x27;: 5, &#x27;min_samples_leaf&#x27;: 5}
+AUC en validacion cruzada: 0.7013
+AUC en prueba:             0.6556</pre></div><p>Dos cosas que leer aquí. La primera: eligió profundidad 5 y hojas de al menos 5 casos, o sea <strong>contuvo el árbol sin que nadie se lo dijera a mano</strong>.</p><p>La segunda es más importante. <strong>La validación dio 0,7013 y la prueba 0,6556.</strong> La validación sale más optimista, y no es casualidad: es el conjunto que se usó para elegir entre 24 candidatos, así que el ganador lo es en parte por suerte con esos pliegues. <strong>Por eso la cifra que se publica es la de la prueba</strong>, y por eso hay tres conjuntos y no dos.</p><h3 class="sub h3">Paso 4. Las tres familias, sobre los mismos datos</h3><pre><code class="language-python">from sklearn.ensemble import RandomForestClassifier, HistGradientBoostingClassifier
+from sklearn.metrics import roc_auc_score
+from xgboost import XGBClassifier
+
+models = {
+    &quot;un arbol, ajustado&quot;:      search.best_estimator_,
+    &quot;bosque aleatorio&quot;:        RandomForestClassifier(n_estimators=300, random_state=0),
+    &quot;refuerzo (scikit-learn)&quot;: HistGradientBoostingClassifier(random_state=0),
+    &quot;refuerzo (xgboost)&quot;:      XGBClassifier(n_estimators=100, max_depth=3,
+                                             learning_rate=0.1, eval_metric=&quot;logloss&quot;,
+                                             random_state=0),
+}
+for name, model in models.items():
+    model.fit(train_x, train_y)
+    print(f&quot;{name:24} AUC {roc_auc_score(test_y, model.predict_proba(test_x)[:, 1]):.4f}&quot;)</code></pre><dl class="annot"><div class="annot-head">línea por línea</div><dt><code>n_estimators=300</code></dt><dd>Trescientos árboles en el bosque. Más casi nunca empeora, solo tarda más, y por eso esta perilla del bosque perdona.</dd><dt><code>learning_rate=0.1</code></dt><dd>Cuánto se le hace caso a cada corrección del refuerzo. Bajarlo obliga a poner más árboles y suele generalizar mejor. <strong>Es la perilla que decide en esta familia.</strong></dd><dt><code>eval_metric=&quot;logloss&quot;</code></dt><dd>xgboost pide que declares con qué se mide durante el entrenamiento. Sin esto imprime un aviso.</dd><dt><code>model.predict_proba(test_x)[:, 1]</code></dt><dd>Todas las filas, columna 1: la probabilidad de la clase positiva. Los dos puntos solos significan «todas».</dd><dt><code>roc_auc_score(...)</code></dt><dd>Compara la verdad con esas probabilidades. Se usa aquí porque no depende del umbral, así que compara modelos y no decisiones.</dd></dl><div class="output"><span class="output-tag">sale</span><pre>un arbol, ajustado       AUC 0.6556
+bosque aleatorio         AUC 0.6759
+refuerzo (scikit-learn)  AUC 0.6787
+refuerzo (xgboost)       AUC 0.6868</pre></div><p>El orden es el del manual: <strong>un árbol pierde con el bosque, y el bosque con el refuerzo</strong>. Las diferencias son de dos o tres centésimas, que con cien casos de prueba es poco margen.</p><p>Guárdate esa reserva, porque en el proyecto de Waze este mismo orden <strong>no se cumple</strong> y la regresión logística del Curso 4 le gana a los tres.</p><h3 class="sub h3">Paso 5. Qué usó el bosque, y qué no significa eso</h3><pre><code class="language-python">forest = RandomForestClassifier(n_estimators=300, random_state=0).fit(train_x, train_y)
+names = [&quot;reactivo&quot;, &quot;pH&quot;, &quot;ruido 1&quot;, &quot;ruido 2&quot;]
+
+for position in np.argsort(forest.feature_importances_)[::-1]:
+    print(f&quot;{names[position]:10} {forest.feature_importances_[position]:.4f}&quot;)</code></pre><dl class="annot"><div class="annot-head">línea por línea</div><dt><code>np.argsort(...)</code></dt><dd>Devuelve <strong>las posiciones</strong> que ordenarían el vector de menor a mayor, no los valores. Sirve para ordenar los nombres por su importancia.</dd><dt><code>[::-1]</code></dt><dd>Dar la vuelta a una lista. Como <code>argsort</code> ordena de menor a mayor y queremos lo contrario, se invierte.</dd><dt><code>forest.feature_importances_</code></dt><dd>Cuánto contribuyó cada columna a bajar la impureza, sumado sobre los trescientos árboles y normalizado para que sume 1.</dd></dl><div class="output"><span class="output-tag">sale</span><pre>pH         0.3020
+reactivo   0.2664
+ruido 2    0.2186
+ruido 1    0.2130</pre></div><p>Las dos que influyen de verdad quedan arriba, así que el orden es correcto. Pero mira los números: <strong>las dos columnas de ruido puro se llevan 0,4316 entre las dos, el 43 % del total.</strong></p><p>Esas dos columnas son valores aleatorios que no tienen absolutamente ninguna relación con el resultado, por construcción, porque las fabricamos nosotros. Y aun así puntúan casi como las buenas.</p><p>La razón es que el árbol tiene que partir por algún sitio, y una columna aleatoria a veces separa un poco por pura casualidad. <strong>La importancia ordena; no descarta.</strong> Si la usas para decidir qué columnas tirar, tira las de abajo con cuidado y comprueba que el modelo no empeora.</p></section>
+<section class="section-block is-warning"><span class="kicker">Trampas</span><h2 class="section-title">Ojo</h2><ul><li><strong>Un árbol sin límite memoriza siempre.</strong> No es un riesgo: es lo que hace por diseño si nada se lo impide.</li><li><strong>Compara siempre entrenamiento contra prueba.</strong> Un modelo con 1,0000 en entrenamiento es sospechoso, no bueno.</li><li><strong>La cifra de validación es optimista.</strong> Salió 0,7013 contra 0,6556 en prueba, porque el ganador se eligió mirando esa validación.</li><li><strong>La importancia de variables no es significancia.</strong> Dos columnas de ruido puro sumaron el 43 %.</li><li><strong>Ni tampoco causa.</strong> Que el pH salga arriba no dice que moverlo cambie el resultado.</li><li><strong>A un bosque le sobran árboles sin castigo; a un refuerzo, no.</strong> Poner mil árboles en un refuerzo con <code>learning_rate</code> alto es una receta de sobreajuste.</li><li><strong>Los árboles no necesitan escalado</strong>, al revés que k-medias. Escalar no les hace daño, solo no sirve de nada.</li><li><strong>Un árbol es inestable.</strong> Cambia unas pocas filas y puede salirte un árbol completamente distinto con parecido acierto. Por eso dibujar «el» árbol y contarlo como si fuera la verdad es arriesgado.</li><li><strong>Que el bosque le gane al árbol no está garantizado.</strong> Es lo habitual, y en el proyecto de Waze de este mismo curso no ocurre.</li></ul></section>
+<section class="section-block is-bridge"><span class="kicker">Analogía</span><h2 class="section-title">Puente metalúrgico</h2><p>El árbol de decisión no hay que explicártelo: <strong>ya existe, escrito en una pizarra al lado del panel de control</strong>. Es el árbol de operación de la planta.</p><pre><code>¿La ley de cabeza pasa de 0,8 %?
+├── sí  → ¿El pH está por encima de 10,5?
+│         ├── sí  → dosis normal de colector
+│         └── no  → subir cal antes de nada
+└── no  → ¿Hay finos por encima del 30 %?
+          ├── sí  → bajar tonelaje
+          └── no  → dosis reforzada</code></pre><p>Eso es literalmente un árbol de decisión, con sus nodos, sus ramas y sus hojas. La diferencia es de dónde salen las preguntas: <strong>el de la pizarra lo escribió alguien con veinte años de planta, y el del modelo sale de calcular la ganancia de Gini de todas las preguntas posibles</strong>.</p><p>Y las trampas también viajan. Un jefe de turno que añadiera una regla por cada incidente raro que ha visto acabaría con un árbol enorme, con una rama para el día que llovió y otra para el lote del camión 47. <strong>Ese árbol describe perfectamente los últimos tres años y no sirve para mañana</strong>, que es exactamente el sobreajuste con overol.</p><p>La forma de contenerlo es la misma en los dos sitios: <strong>no se añade una rama por un solo caso</strong>. Eso es <code>min_samples_leaf</code>, y en planta se llama sentido común.</p><p>Y el bosque también tiene su equivalente, que es la razón de que las decisiones importantes se tomen en comité. Preguntas a cinco personas que han visto plantas distintas, cada una se equivoca en cosas distintas, y la decisión conjunta es mejor que la de cualquiera por separado. Lo que se pierde es igual de real: después ya no puedes escribir en el acta una sola razón limpia de por qué se decidió eso.</p></section>
+<section class="section-block is-review"><span class="kicker">Repaso</span><h2 class="section-title">Repaso</h2><details><summary>En el ejemplo de los diez lotes, ¿por qué la ganancia vale 0,32 y qué significa?</summary><p>Porque el grupo entero, con 6 que pasan y 4 que no, tiene una impureza de Gini de 1 − 0,36 − 0,16 = 0,48, muy cerca del máximo de 0,5 que corresponde a mitad y mitad. Al preguntar por el reactivo, el trozo sin reactivo queda con 1 de 5 y una impureza de 0,32, y el trozo con reactivo queda con 5 de 5 y una impureza de 0 exacto, porque es puro. Como los dos trozos tienen cinco lotes, la impureza que queda es el promedio, 0,16, y la ganancia es la diferencia: 0,48 − 0,16 = 0,32. Significa que esa única pregunta redujo la mezcla a un tercio, y el árbol elige siempre la pregunta con la ganancia mayor.</p></details><details><summary>Un árbol acierta el 100 % en entrenamiento y el 54 % en prueba. ¿Qué ha pasado y cómo se arregla?</summary><p>Ha memorizado. Sin ninguna perilla que lo detenga, el árbol siguió partiendo hasta que cada hoja contuvo casi un solo caso, 77 hojas para 300 lotes, así que puede recitar el conjunto de entrenamiento y no ha aprendido ninguna regla general. El 54 % en prueba, con clases casi balanceadas, es apenas mejor que una moneda. Se arregla poniéndole límites: con profundidad 3 el mismo árbol baja a 0,7267 en entrenamiento y sube a 0,6100 en prueba, o sea un modelo peor sobre lo que ya sabía y mejor sobre lo que no. Y esos límites se eligen con una búsqueda en rejilla y validación cruzada, no a ojo.</p></details><details><summary>¿Qué diferencia real hay entre un bosque aleatorio y un refuerzo por gradiente?</summary><p>Que sus árboles se relacionan de forma opuesta. En el bosque son independientes: cada uno se entrena sobre un remuestreo distinto y viendo solo algunas columnas en cada corte, y al final votan, de modo que sus errores, que son distintos, se cancelan. En el refuerzo van en cadena: se entrena uno, se mira en qué falló, y el siguiente se dedica a esos casos, sumando correcciones. La consecuencia práctica es la que decide: a un bosque le puedes poner árboles de más y como mucho se estanca, mientras que a un refuerzo le sobran árboles y empieza a memorizar, y por eso su perilla crítica es cuánto caso se le hace a cada corrección.</p></details><details><summary>La búsqueda en rejilla dio 0,7013 y la prueba 0,6556. ¿Cuál se publica y por qué?</summary><p>La de la prueba, 0,6556. La cifra de validación cruzada está inflada porque es el conjunto sobre el que se compararon las 24 combinaciones y se eligió la ganadora, así que parte de su ventaja es haber encajado bien con esos pliegues concretos. Elegir el máximo de veinticuatro medidas ruidosas produce un número optimista incluso si ninguna combinación fuera realmente mejor. El conjunto de prueba no participó en ninguna decisión, y esa es toda la razón de que exista y de que se aparte antes de empezar.</p></details><details><summary>Dos columnas de ruido puro obtuvieron el 43 % de la importancia. ¿Qué conclusión hay que sacar?</summary><p>Que la importancia de variables ordena pero no descarta, y desde luego no es una prueba de significancia ni de causa. Esas dos columnas se generaron al azar y no tienen ninguna relación con el resultado, pero el árbol necesita partir por algún sitio y una columna aleatoria separa un poco por casualidad de vez en cuando, así que acumula importancia. Lo que sí funcionó es el orden: las dos variables que influyen de verdad quedaron por encima de las dos de ruido. La lectura correcta es tratarla como una pista sobre qué mirar, y si se va a usar para eliminar columnas, quitarlas y comprobar que el rendimiento en prueba no empeora.</p></details></section>
+</main>
+<footer class="footer">
+  Concentra / destilado del temario público del curso / 2026-08-20
+</footer>
+</body>
+</html>

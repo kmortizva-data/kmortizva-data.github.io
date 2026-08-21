@@ -1,0 +1,492 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The different types of machine learning — The Nuts and Bolts of Machine Learning</title>
+<style>
+/* ============================================================================
+   Concentra — design tokens and shared components.
+   Inlined into every generated page by load_style(), so pages stay self-contained
+   and work offline from file:// with no external requests.
+
+   Direction: an assay lab, not a tech dashboard. The palette is taken from ore
+   and lab materials (chalcopyrite brass, malachite, hematite, quartz) on warm
+   graphite rather than the blue-black + neon of a generic dark UI. Type is
+   Bahnschrift, the DIN-descended grotesque that Windows ships and that lives on
+   machinery plates and technical drawings, over Corbel for reading.
+   ========================================================================== */
+
+:root {
+  /* Ground and surfaces: warm graphite, the colour of rock dust, not blue-black */
+  --rock: #1a1714;
+  --bench: #221e19;
+  --core: #2b251f;
+  --seam: #3d352c;
+
+  /* Ore palette. No blue and no purple anywhere: those are the tones that make a
+     page read as generated, and this palette comes from the ores instead. */
+  --brass: #c9a227;      /* chalcopyrite, the primary accent */
+  --malachite: #5d9b7a;  /* verified output, results that came out right */
+  --hematite: #b04a35;   /* iron oxide, pitfalls and warnings */
+
+  /* Text */
+  --quartz: #ece7de;
+  --dust: #9a9186;
+  --shadowed: #6f675c;
+
+  --display: Bahnschrift, 'DIN Alternate', 'Segoe UI Semibold', system-ui, sans-serif;
+  --body: Corbel, Candara, 'Segoe UI', system-ui, sans-serif;
+  --data: Consolas, 'Cascadia Mono', ui-monospace, monospace;
+
+  /* In px, not ch: ch scales with font-size, so a heading ended up wider than a
+     paragraph and the page had four different right edges instead of two. */
+  --measure: 640px;
+  --wide: 900px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--rock);
+  color: var(--quartz);
+  font-family: var(--body);
+  font-size: 16px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection { background: var(--brass); color: var(--rock); }
+
+:focus-visible {
+  outline: 2px solid var(--brass);
+  outline-offset: 3px;
+}
+
+/* --------------------------------------------------------------- the signature
+   A sieve series: ticks that get finer from left to right, coarse feed to fine
+   concentrate. It is the one ornament on the page and appears exactly twice —
+   under the wordmark and under a page title. */
+.mesh {
+  height: 10px;
+  background-image:
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 16px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 9px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 5px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 3px);
+  background-size: 25% 100%;
+  background-position: 0 0, 25% 0, 50% 0, 75% 0;
+  background-repeat: no-repeat;
+  opacity: .8;
+  transform-origin: left center;
+  animation: sieve .55s cubic-bezier(.2, .8, .3, 1) both;
+}
+@keyframes sieve { from { transform: scaleX(0); opacity: 0; } to { transform: scaleX(1); opacity: .8; } }
+@media (prefers-reduced-motion: reduce) {
+  .mesh { animation: none; }
+  * { transition: none !important; }
+}
+
+/* ------------------------------------------------------------------ page head */
+.header {
+  border-bottom: 1px solid var(--seam);
+  padding: 3.2rem 2rem 0;
+  background: linear-gradient(180deg, #221d16 0%, var(--rock) 100%);
+}
+.header-content { max-width: 1080px; margin: 0 auto; }
+
+.eyebrow {
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--brass);
+  margin-bottom: 1rem;
+}
+.eyebrow a { color: inherit; text-decoration: none; border-bottom: 1px solid transparent; }
+.eyebrow a:hover { border-bottom-color: var(--brass); }
+
+.header h1 {
+  font-family: var(--display);
+  font-size: clamp(2rem, 4.5vw, 3.1rem);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -.015em;
+  color: var(--quartz);
+  max-width: 20ch;
+}
+.header .subtitle {
+  color: var(--dust);
+  max-width: var(--measure);
+  margin-top: 1rem;
+  font-size: 1.02rem;
+}
+.header .mesh { margin: 1.8rem 0 0; }
+
+/* An assay line: the real composition of the module, in lab-report shorthand. */
+.assay {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.4rem;
+  font-family: var(--data);
+  font-size: .78rem;
+  color: var(--shadowed);
+  padding: .9rem 0 1.6rem;
+  letter-spacing: .04em;
+}
+.assay b { color: var(--dust); font-weight: 400; }
+
+/* --------------------------------------------------------------------- layout */
+/* The container hugs the widest block, so there is no orphan edge past the content. */
+.container { max-width: var(--wide); margin: 3rem auto 5rem; padding: 0 2rem; }
+
+/* Two deliberate right edges and no more: prose stops at the reading measure, and
+   only the things that genuinely need room (code, output, figures, big tables) run
+   out to the full column. */
+.section-block {
+  border-top: 1px solid var(--seam);
+  padding: 2rem 0 2.4rem;
+}
+.section-block > p,
+.section-block > ul,
+.section-block > ol,
+.section-block h3.sub,
+.section-block h4.sub,
+.section-block blockquote,
+details > *:not(summary) { max-width: var(--measure); }
+.section-block:first-child { border-top: 0; padding-top: .5rem; }
+
+/* The kicker names what kind of content follows: context, method, pitfalls.
+   It replaces decorative icons with something that actually classifies. */
+.kicker {
+  font-family: var(--data);
+  font-size: .68rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  display: block;
+  margin-bottom: .5rem;
+}
+.section-title {
+  font-family: var(--display);
+  font-size: 1.55rem;
+  font-weight: 600;
+  letter-spacing: -.01em;
+  line-height: 1.2;
+  margin-bottom: 1.2rem;
+  color: var(--quartz);
+}
+.is-warning .kicker { color: var(--hematite); }
+.is-warning .section-title { color: #e8c4b8; }
+.is-bridge .kicker, .is-decision .kicker { color: var(--malachite); }
+.is-toy .kicker, .is-result .kicker, .is-question .kicker { color: var(--brass); }
+
+/* ---------------------------------------------------------------------- prose */
+/* Justified with hyphenation. In Spanish, justifying without hyphens opens rivers of
+   white space and reads worse than ragged right; lang="es" is what feeds the
+   dictionary. Tables, code, captions and summaries stay ragged on purpose. */
+.section-block p,
+.section-block li,
+details > *:not(summary) {
+  text-align: justify;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+}
+.section-block p { margin-bottom: 1rem; }
+.section-block p:last-child { margin-bottom: 0; }
+/* Indent with padding, not margin, so the bullet sits inside the measure instead of
+   pushing the list 1.2rem past the right edge of the paragraphs. */
+.section-block ul, .section-block ol { margin: 0 0 1rem; padding-left: 1.2rem; }
+.section-block li { margin-bottom: .55rem; padding-left: .2rem; }
+.section-block li::marker { color: var(--brass); }
+td, th, figcaption, .res li, .assay { text-align: left; hyphens: manual; }
+a { color: var(--brass); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+a:hover { text-decoration-thickness: 2px; }
+strong { color: #fff; font-weight: 700; }
+em { color: var(--dust); font-style: italic; }
+
+h3.sub {
+  font-family: var(--display);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--brass);
+  margin: 2rem 0 .7rem;
+  letter-spacing: -.005em;
+}
+h3.sub:first-child { margin-top: 0; }
+h4.sub {
+  font-family: var(--display);
+  font-size: .98rem;
+  font-weight: 600;
+  color: var(--dust);
+  margin: 1.3rem 0 .5rem;
+}
+
+code {
+  font-family: var(--data);
+  font-size: .9em;
+  background: var(--core);
+  border-radius: 3px;
+  padding: .08rem .32rem;
+  color: var(--brass);
+}
+pre {
+  background: #14110e;
+  border: 1px solid var(--seam);
+  border-left: 2px solid var(--seam);
+  border-radius: 2px;
+  padding: 1.1rem 1.2rem;
+  overflow-x: auto;
+  margin-bottom: 1rem;
+}
+pre code {
+  background: none; padding: 0; color: var(--quartz);
+  font-size: .87rem; line-height: 1.6;
+}
+
+/* What the code prints. Malachite: the material that came out of the process. */
+.output {
+  position: relative;
+  border: 1px solid rgba(93, 155, 122, .32);
+  border-left: 2px solid var(--malachite);
+  border-radius: 2px;
+  background: rgba(93, 155, 122, .06);
+  padding: 1.7rem 1.2rem 1rem;
+  margin-bottom: 1rem;
+  overflow-x: auto;
+}
+.output-tag {
+  position: absolute; top: .5rem; left: 1.2rem;
+  font-family: var(--data); font-size: .64rem;
+  letter-spacing: .18em; text-transform: uppercase; color: var(--malachite);
+}
+.output pre {
+  background: none; border: 0; padding: 0; margin: 0;
+  font-family: var(--data); font-size: .85rem;
+  color: var(--quartz); white-space: pre-wrap;
+}
+
+/* Line by line explanation of a code block, for a reader new to programming.
+   Two columns: the fragment of code, and what it does. */
+.annot {
+  display: grid;
+  grid-template-columns: minmax(9rem, auto) 1fr;
+  gap: .1rem 1.2rem;
+  align-items: baseline;
+  max-width: var(--wide);
+  margin: -.4rem 0 1.4rem;
+  padding: .9rem 1.1rem 1rem;
+  border: 1px solid var(--seam);
+  border-top: 0;
+  border-radius: 0 0 2px 2px;
+  background: rgba(201, 162, 39, .04);
+}
+.annot-head {
+  grid-column: 1 / -1;
+  font-family: var(--data);
+  font-size: .64rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  margin-bottom: .5rem;
+}
+.annot dt { padding: .35rem 0; }
+.annot dt code {
+  background: var(--core);
+  color: var(--brass);
+  font-size: .82rem;
+  white-space: nowrap;
+}
+.annot dd {
+  padding: .35rem 0;
+  margin: 0;
+  color: var(--dust);
+  font-size: .93rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(61, 53, 44, .5);
+}
+.annot dt { border-bottom: 1px solid rgba(61, 53, 44, .5); }
+.annot dt:last-of-type, .annot dd:last-of-type { border-bottom: 0; }
+/* The code block sits directly on top of its annotation, as one unit. */
+pre:has(+ .annot) { margin-bottom: 0; border-radius: 2px 2px 0 0; }
+
+@media (max-width: 640px) {
+  .annot { grid-template-columns: 1fr; gap: 0; }
+  .annot dt { border-bottom: 0; padding-bottom: 0; }
+  .annot dd { padding-top: .15rem; }
+}
+
+blockquote {
+  border-left: 2px solid var(--brass);
+  padding: .3rem 0 .3rem 1.3rem;
+  margin: 0 0 1rem;
+  font-family: var(--display);
+  font-size: 1.2rem;
+  font-weight: 400;
+  line-height: 1.4;
+  color: var(--quartz);
+}
+
+/* Tables read as assay data: mono figures, hairline rules, no zebra fill.
+   They take the width they need instead of being stretched to the full column,
+   which is what left a two-column table floating in empty space. */
+.table-wrap { overflow-x: auto; margin-bottom: 1rem; }
+table { border-collapse: collapse; width: auto; max-width: 100%; font-size: .93rem; }
+th, td {
+  border-bottom: 1px solid var(--seam);
+  padding: .55rem .8rem .55rem 0;
+  text-align: left;
+  vertical-align: top;
+}
+th {
+  font-family: var(--data);
+  font-size: .7rem;
+  font-weight: 400;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  border-bottom-color: var(--brass);
+}
+td:first-child { color: var(--quartz); }
+
+/* Review questions: closed by default, so they work as recall practice. */
+details {
+  border-top: 1px solid var(--seam);
+  padding: .9rem 0;
+}
+details:last-child { border-bottom: 1px solid var(--seam); }
+summary {
+  cursor: pointer;
+  font-family: var(--display);
+  font-size: 1.02rem;
+  font-weight: 600;
+  color: var(--quartz);
+  list-style: none;
+  display: flex;
+  gap: .7rem;
+  align-items: baseline;
+}
+summary::-webkit-details-marker { display: none; }
+summary::before {
+  content: '+';
+  font-family: var(--data);
+  color: var(--brass);
+  font-size: .95rem;
+}
+details[open] summary::before { content: '−'; }
+details[open] summary { color: var(--brass); margin-bottom: .7rem; }
+details > *:not(summary) { color: var(--dust); }
+
+figure.fig {
+  margin: 1.6rem 0;
+  border: 1px solid var(--seam);
+  padding: .7rem;
+  background: var(--bench);
+}
+figure.fig img { width: 100%; height: auto; display: block; }
+/* The interactive twin of a figure. Its aspect matches the still one, 10 by 4.4, so a
+   case sheet keeps the same rhythm whichever kind of figure comes next. */
+figure.fig.is-live iframe {
+  width: 100%;
+  /* Matches INTERACTIVE_HEIGHT in src/make_figures.py. It used to be an aspect ratio, and
+     that made the figure's height depend on the window: the caption and the legend are
+     placed at fractions of the plot area, so on a wide screen they were pushed past the
+     bottom margin, clipping the caption and covering the x-axis title. */
+  height: 520px;
+  border: 0;
+  display: block;
+}
+figure.fig figcaption {
+  font-family: var(--data);
+  font-size: .72rem;
+  color: var(--shadowed);
+  margin-top: .6rem;
+  letter-spacing: .04em;
+}
+
+/* File listings on a case sheet */
+.res { list-style: none; margin-left: 0 !important; }
+.res li {
+  display: flex; align-items: baseline; gap: .8rem; flex-wrap: wrap;
+  padding: .5rem 0; border-bottom: 1px solid var(--seam); margin-bottom: 0;
+}
+.res .path { font-family: var(--data); font-size: .74rem; color: var(--shadowed); }
+.res .size { font-family: var(--data); font-size: .74rem; color: var(--shadowed); margin-left: auto; }
+.res .gone { font-family: var(--data); font-size: .74rem; color: var(--hematite); }
+
+.footer {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 2rem 4rem;
+  color: var(--shadowed);
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .03em;
+}
+
+@media (max-width: 640px) {
+  body { font-size: 15px; }
+  .header { padding: 2rem 1.2rem 0; }
+  .container { padding: 0 1.2rem; margin-top: 2rem; }
+  .footer { padding: 0 1.2rem 3rem; }
+}
+
+@media print {
+  body { background: #fff; color: #16130f; }
+  .header { background: none; border-bottom: 1px solid #bbb; padding-top: 0; }
+  .header h1, .section-title, summary { color: #16130f; }
+  .mesh { animation: none; }
+  .section-block { break-inside: avoid; max-width: none; }
+  pre, .output { background: #f6f4f0; border-color: #ccc; }
+  details:not([open]) > *:not(summary) { display: block; }
+  a { color: #16130f; }
+}
+
+</style>
+</head>
+<body>
+<header class="header">
+  <div class="header-content">
+    <div class="eyebrow"><a href="https://www.coursera.org/learn/the-nuts-and-bolts-of-machine-learning">The Nuts and Bolts of Machine Learning</a> / Módulo 1</div>
+    <h1>The different types of machine learning</h1>
+    <p class="subtitle">Seis lotes de mineral, una sola columna de ley, y dos formas completamente distintas de trabajarlos según exista o no la columna que quieres predecir. Aquí se fija el mapa del curso, se ve por qué un modelo hereda el pasado que le des, y se monta la caja de herramientas de Python.</p>
+    <div class="mesh" role="presentation"></div>
+    <div class="assay"><span><b>5 h</b> de curso</span><span><b>16</b> vídeos</span><span><b>7</b> lecturas</span><span><b>7</b> tareas</span><span><b>4</b> interactivos</span></div>
+  </div>
+</header>
+<main class="container">
+<section class="section-block "><span class="kicker">Contexto</span><h2 class="section-title">Qué resuelve este módulo</h2><p>El curso anterior terminaba con modelos que <strong>explican</strong>: un coeficiente, su intervalo, su valor p. Podías escribir &quot;por cada gramo por tonelada de colector la recuperación sube 0,4 puntos&quot; y defenderlo.</p><p>Este curso cambia lo que se le pide al modelo. Aquí lo que importa es <strong>acertar sobre casos que no ha visto</strong>, aunque no se pueda escribir la razón en una fórmula. Es un intercambio real: ganas acierto y pierdes explicación.</p><p>Este módulo monta el mapa antes de tocar nada. Fija tres cosas: <strong>qué separa los dos grandes tipos de aprendizaje</strong>, qué obligaciones traes contigo al construir un modelo que decide sobre personas, y qué herramientas de Python se usan a partir de aquí.</p></section>
+<section class="section-block is-toy"><span class="kicker">Ejemplo</span><h2 class="section-title">Antes de la teoría: un ejemplo de juguete</h2><p>Seis lotes de mineral, y de cada uno se conoce la ley de oro en gramos por tonelada:</p><pre><code>lote        1    2    3    4     5     6
+ley (g/t)   2    4    6    20    22    24</code></pre><p>Un vistazo basta para ver que hay <strong>dos familias</strong>: tres lotes pobres y tres ricos, con un hueco enorme en medio. Vamos a trabajar estos mismos seis números de las dos maneras que existen, y la diferencia entre ellas no está en el algoritmo: está en <strong>qué información tienes</strong>.</p><h3 class="sub h3">Caso A. Alguien ya marcó cuáles eran rentables</h3><p>Supón que la planta procesó los seis y anotó el resultado:</p><div class="table-wrap"><table><thead><tr><th>Lote</th><th>Ley (g/t)</th><th>¿Fue rentable?</th></tr></thead><tbody><tr><td>1</td><td>2</td><td>no</td></tr><tr><td>2</td><td>4</td><td>no</td></tr><tr><td>3</td><td>6</td><td>no</td></tr><tr><td>4</td><td>20</td><td><strong>sí</strong></td></tr><tr><td>5</td><td>22</td><td><strong>sí</strong></td></tr><tr><td>6</td><td>24</td><td><strong>sí</strong></td></tr></tbody></table></div><p>Aquí existe <strong>la columna que quieres predecir</strong>, y eso lo cambia todo. La tarea es encontrar una regla que, mirando solo la ley, reproduzca esa última columna. Y la regla se ve sola:</p><pre><code>si la ley pasa de 13  -&gt;  rentable
+si no                 -&gt;  no rentable</code></pre><p>Con esa regla aciertas <strong>los seis de seis</strong>. Esto es <strong>aprendizaje supervisado</strong>: hay un supervisor, que son las etiquetas que alguien puso, y el modelo aprende a imitarlo.</p><p>Fíjate en un detalle que parece menor y no lo es: <strong>el 13 no es especial</strong>. Cualquier corte entre 6 y 20 acierta igual de bien, y con estos datos no hay forma de elegir. El 13 sale de partir la diferencia. Con seis lotes, el modelo tiene mucha libertad y eso es exactamente lo que lo hace frágil ante el lote número siete.</p><h3 class="sub h3">Caso B. Nadie marcó nada</h3><p>Ahora tapa la última columna. Solo quedan seis números: 2, 4, 6, 20, 22, 24. No hay nada que imitar, así que la pregunta cambia: ya no es <em>&quot;¿cuál es la regla?&quot;</em> sino <strong>&quot;¿hay grupos aquí dentro?&quot;</strong>.</p><p>Un algoritmo de agrupamiento haría esto, y se puede seguir a mano. Empieza poniendo dos centros donde sea, digamos en 2 y en 4, y repite dos pasos:</p><p><strong>Vuelta 1.</strong> Cada lote se apunta al centro más cercano. El 2 está pegado al primer centro; los otros cinco caen más cerca del 4. Los centros se mudan al promedio de los suyos:</p><pre><code>centro 1 = 2
+centro 2 = (4 + 6 + 20 + 22 + 24) / 5 = 76 / 5 = 15,2</code></pre><p><strong>Vuelta 2.</strong> Se reparte otra vez con los centros nuevos. Ahora el 2, el 4 y el 6 están más cerca del 2 que del 15,2, y el 20, 22 y 24 al revés:</p><pre><code>centro 1 = (2 + 4 + 6) / 3   = 12 / 3 = 4
+centro 2 = (20 + 22 + 24) / 3 = 66 / 3 = 22</code></pre><p><strong>Vuelta 3.</strong> Se reparte con los centros 4 y 22, y <strong>nadie cambia de grupo</strong>. Cuando eso pasa, se ha terminado.</p><p>Encontró la misma división que la etiqueta escondida, sin haberla visto nunca. Eso es <strong>aprendizaje no supervisado</strong>.</p><h3 class="sub h3">Y ahora la parte importante</h3><p>Los dos casos partieron los mismos seis lotes por el mismo sitio. Pero el segundo <strong>no sabe qué ha encontrado</strong>. Sus grupos se llaman 0 y 1 porque hay que llamarlos de alguna manera: puede decirte que hay dos familias y cuál es cuál, pero <strong>no que una sea la rentable</strong>. Esa palabra no estaba en los datos.</p><div class="table-wrap"><table><thead><tr><th></th><th>Supervisado</th><th>No supervisado</th></tr></thead><tbody><tr><td>¿Existe la columna a predecir?</td><td>Sí</td><td>No</td></tr><tr><td>Qué te devuelve</td><td>Una respuesta con nombre</td><td>Grupos numerados</td></tr><tr><td>Cómo sabes si acertó</td><td>Comparando con la verdad</td><td><strong>No hay verdad con la que comparar</strong></td></tr><tr><td>Qué le pides al dato</td><td>Que alguien lo haya etiquetado</td><td>Solo que exista</td></tr></tbody></table></div><p>Esa tercera fila es la que más cuesta. En el caso A puedes contar aciertos. En el caso B no hay nada que contar, y por eso el módulo 3 dedica media clase a inventar formas de juzgar un resultado sin respuesta correcta.</p></section>
+<section class="section-block "><span class="kicker">Términos</span><h2 class="section-title">Glosario</h2><ul><li><strong>Aprendizaje automático.</strong> Construir un modelo que aprende reglas a partir de ejemplos, en vez de que tú se las escribas una a una. En inglés, <em>machine learning</em>.</li><li><strong>Aprendizaje supervisado.</strong> El caso A: existe la columna que quieres predecir, y el modelo aprende a reproducirla. El &quot;supervisor&quot; son esas etiquetas.</li><li><strong>Aprendizaje no supervisado.</strong> El caso B: esa columna no existe, y lo que se busca es estructura dentro de los datos. Agrupar es su tarea típica.</li><li><strong>Etiqueta.</strong> La columna que quieres predecir, la respuesta correcta. También se le llama variable objetivo o, en inglés, <em>target</em>.</li><li><strong>Variable.</strong> Cada columna que el modelo usa para predecir. En inglés <em>feature</em>, y verás esa palabra en todas partes, también traducida como característica o atributo.</li><li><strong>Variable continua.</strong> La que puede tomar cualquier valor de un rango: una ley, una tarifa, un tiempo. Entre dos valores cualesquiera siempre cabe otro, así que **los valores posibles son infinitos**.</li><li><strong>Variable categórica.</strong> La que toma etiquetas de una lista cerrada: pasa o no pasa, turno de día o de noche. Los valores posibles se pueden contar con los dedos.</li><li><strong>Clasificación.</strong> Predecir una etiqueta categórica. El caso A es clasificación.</li><li><strong>Regresión.</strong> Predecir un número continuo. Es lo del curso anterior.</li><li><strong>Agrupamiento.</strong> Repartir los datos en grupos parecidos entre sí sin que nadie diga cuáles son. En inglés, <em>clustering</em>.</li><li><strong>Sistema de recomendación.</strong> El modelo que sugiere qué te puede interesar a partir de lo que han hecho personas parecidas a ti, o de lo que se parece a lo que ya elegiste. Es la aplicación más visible del aprendizaje automático y casi siempre mezcla los dos tipos.</li><li><strong>Sesgo.</strong> Aquí no significa lo del curso de estadística. Significa que **el modelo trata sistemáticamente peor a un grupo de personas**, normalmente porque los datos históricos ya lo hacían.</li><li><strong>Equidad.</strong> Que el rendimiento del modelo no dependa de a qué grupo pertenezcas. No es un número único: hay varias definiciones y <strong>son incompatibles entre sí</strong>, así que hay que elegir cuál te importa y decirlo.</li></ul></section>
+<section class="section-block is-recipe"><span class="kicker">Método</span><h2 class="section-title">Paso a paso</h2><h3 class="sub h3">Paso 1. Preguntar si existe la columna que quieres predecir</h3><p>Es la primera pregunta y decide todo lo demás. No <em>&quot;¿qué algoritmo uso?&quot;</em>, sino <strong>&quot;¿alguien ya marcó la respuesta en mis datos?&quot;</strong>.</p><p>Si la respuesta es sí, estás en aprendizaje supervisado y puedes medir si aciertas. Si es no, tienes dos salidas: conseguir esas etiquetas, que suele costar dinero y tiempo de un experto, o cambiar la pregunta a una que no las necesite.</p><h3 class="sub h3">Paso 2. Si hay etiqueta, mirar de qué tipo es</h3><p>Ya sabes hacer esto del curso anterior, y la regla no ha cambiado: <strong>manda la variable que quieres predecir, no las que usas para predecir</strong>.</p><div class="table-wrap"><table><thead><tr><th>Lo que quieres predecir</th><th>La tarea se llama</th><th>Ejemplo de este proyecto</th></tr></thead><tbody><tr><td>Un número</td><td>Regresión</td><td>La tarifa de un viaje</td></tr><tr><td>Una de dos etiquetas</td><td>Clasificación binaria</td><td>Si un usuario abandona</td></tr><tr><td>Una de varias etiquetas</td><td>Clasificación multiclase</td><td>Qué tipo de mineral es</td></tr></tbody></table></div><h3 class="sub h3">Paso 3. Mirar qué hay dentro de las variables</h3><p>Aquí aparece una distinción que el curso trata con nombre propio. Una variable continua tiene <strong>infinitos valores posibles</strong>: entre 20 y 21 gramos por tonelada caben 20,5 y 20,53 y 20,531. Una categórica tiene una lista cerrada.</p><p>Importa por una razón práctica: casi ningún modelo entiende texto. La columna que dice &quot;iPhone&quot; o &quot;Android&quot; hay que convertirla en números antes, y cómo se convierte cambia el resultado. Eso es el módulo 2.</p><h3 class="sub h3">Paso 4. Preguntar a quién afecta el modelo, antes de construirlo</h3><p>Este paso no es un apéndice moral: es parte del trabajo, y el curso le dedica un bloque entero.</p><p>Un modelo aprende de lo que pasó, así que <strong>repite lo que pasó</strong>. Si los datos históricos recogen una decisión que trataba peor a un grupo, el modelo la aprende y la aplica más rápido, a más gente y con apariencia de objetividad, que es lo peor de todo.</p><p>Tres preguntas antes de desplegar cualquier modelo que decida sobre personas:</p><ol><li><strong>¿De quién son estos datos, y quién no está en ellos?</strong> Un modelo entrenado con quien ya era cliente no sabe nada de quien nunca pudo serlo.</li><li><strong>¿Qué cuesta cada tipo de error, y a quién le cuesta?</strong> Confundir a un moroso con uno solvente le cuesta al banco. Al revés le cuesta a una persona.</li><li><strong>¿Puede el afectado saber por qué se decidió eso?</strong> Un bosque de trescientos árboles acierta más que una regresión y contesta esta pregunta mucho peor. Es un intercambio real y hay contextos donde no se puede aceptar.</li></ol><h3 class="sub h3">Paso 5. Montar la caja de herramientas de Python</h3><p>Dos palabras primero, porque el curso las usa mezcladas. Una <strong>librería</strong> es código que alguien escribió y publicó para que tú lo uses sin reescribirlo. Un <strong>paquete</strong> es cómo se distribuye e instala esa librería. En la práctica se dicen indistintamente.</p><p>Estas son las que sostienen todo el certificado, y conviene saber para qué sirve cada una en vez de copiar los <code>import</code> de memoria:</p><div class="table-wrap"><table><thead><tr><th>Librería</th><th>Para qué</th><th>Desde qué curso</th></tr></thead><tbody><tr><td><code>numpy</code></td><td>Cuentas con vectores y matrices. Es la base sobre la que se apoyan las demás</td><td>Curso 2</td></tr><tr><td><code>pandas</code></td><td>Tablas: leer un CSV, filtrar, agrupar, unir</td><td>Curso 2</td></tr><tr><td><code>matplotlib</code></td><td>Dibujar</td><td>Curso 2</td></tr><tr><td><code>seaborn</code></td><td>Dibujar estadística con menos líneas. Va por encima de matplotlib</td><td>Curso 2</td></tr><tr><td><code>scipy</code></td><td>Pruebas de hipótesis y distribuciones</td><td>Curso 3</td></tr><tr><td><code>statsmodels</code></td><td>Modelos que <strong>explican</strong>: coeficientes con intervalo y valor p</td><td>Curso 4</td></tr><tr><td><strong><code>scikit-learn</code></strong></td><td>Modelos que <strong>aciertan</strong>: partir, entrenar, validar, medir</td><td><strong>Este</strong></td></tr><tr><td><code>xgboost</code></td><td>Refuerzo por gradiente, del módulo 4</td><td><strong>Este</strong></td></tr></tbody></table></div><p>Fíjate en la pareja <code>statsmodels</code> y <code>scikit-learn</code>, porque resume el salto de curso. La primera te da un coeficiente con su incertidumbre. La segunda te da una predicción y las herramientas para comprobar que acierta. No compiten: hacen cosas distintas, y los proyectos de este proyecto usan las dos.</p><p><code>scikit-learn</code> se importa por trozos y no entera, porque es enorme:</p><div class="table-wrap"><table><thead><tr><th>De dónde</th><th>Qué trae</th></tr></thead><tbody><tr><td><code>sklearn.model_selection</code></td><td>Partir los datos y validar</td></tr><tr><td><code>sklearn.tree</code>, <code>sklearn.ensemble</code></td><td>Árboles, bosques y refuerzo</td></tr><tr><td><code>sklearn.cluster</code></td><td>K-medias</td></tr><tr><td><code>sklearn.metrics</code></td><td>Exactitud, precisión, sensibilidad, AUC</td></tr><tr><td><code>sklearn.naive_bayes</code></td><td>El clasificador del módulo 2</td></tr></tbody></table></div><p>Sobre dónde escribir el código: el curso enseña cuadernos, que van bien para explorar porque ves cada resultado al lado de su código. Tienen una trampa conocida, y es que <strong>puedes ejecutar las celdas en cualquier orden</strong>, así que un cuaderno que funciona puede no volver a funcionar de arriba abajo. Los proyectos de este proyecto se escriben como guiones <code>.py</code> justo por eso, y el cuaderno se genera después.</p><h3 class="sub h3">Paso 6. Los recursos para resolver dudas de programación</h3><p>El curso le dedica un bloque entero a esto, y con razón: nadie se sabe scikit-learn de memoria, y buscar una respuesta no es una derrota sino parte del oficio. Lo que distingue a quien avanza es <strong>el orden en que busca</strong>.</p><ol><li><strong>Lee el mensaje de error entero, empezando por abajo.</strong> Python escribe el recorrido completo, y la última línea es la que dice qué pasó. `ValueError: Expected 2D array, got 1D array instead` es literalmente el error de los corchetes dobles del paso 3, y el propio mensaje sugiere la solución.</li><li><strong>La documentación oficial de la librería.</strong> La de scikit-learn trae, para cada modelo, qué hace cada perilla y un ejemplo corto que corre tal cual. Es más rápida que buscar en internet y no está desactualizada.</li><li><strong>Busca el mensaje de error, no tu problema.</strong> Pegar el texto exacto del error encuentra a las cien personas que lo tuvieron antes. Describirlo con tus palabras, no.</li><li><strong>Stack Overflow, mirando la fecha.</strong> Una respuesta de 2015 sobre pandas puede usar funciones que ya no existen. Cruza siempre con la documentación.</li><li><strong>Si preguntas, prepara un ejemplo mínimo</strong>: el trozo de código más corto que reproduzca el fallo, con datos de juguete. La mitad de las veces, construirlo te enseña dónde estaba el problema y ya no tienes que preguntar.</li></ol><p>Y una regla que vale para el código que te den hecho, incluido el de un asistente: <strong>si no puedes explicar qué hace una línea, no la pongas en un informe</strong>. Los bloques <code>anota</code> de estas lecciones existen para eso.</p><h3 class="sub h3">Paso 7. Los sistemas de recomendación, que es el aprendizaje que ya usas a diario</h3><p>Es la aplicación más visible del aprendizaje automático: lo que te sugiere el siguiente vídeo, la siguiente canción o el siguiente producto. Y funciona de dos maneras, que suelen combinarse:</p><div class="table-wrap"><table><thead><tr><th>Enfoque</th><th>En qué se fija</th><th>Ejemplo</th></tr></thead><tbody><tr><td><strong>Por contenido</strong></td><td>En qué se parece un producto a los que ya elegiste</td><td>Compraste un kit de ganchillo, te ofrece más ganchillo</td></tr><tr><td><strong>Por comportamiento</strong></td><td>En qué eligió gente que se comporta como tú</td><td>Quien compró ese kit compró también hilo grueso</td></tr></tbody></table></div><p>El segundo es más potente y más raro de explicar, porque <strong>no necesita saber nada del producto</strong>: le basta con el patrón de quién compra qué. También es el que produce las recomendaciones absurdas cuando hay pocos datos de un artículo nuevo.</p><p>El curso trae aquí un <strong>caso de estudio de The Woobles</strong>, una empresa que vende kits de ganchillo para principiantes, sobre cómo usaron la recomendación para vender más. El detalle está en la plataforma; lo transferible, y lo que conviene tener claro antes de leerlo, es esto:</p><ul><li>Un sistema de recomendación <strong>actúa</strong>, no solo predice. Cambia lo que la gente ve, así que cambia lo que compra, así que <strong>cambia los datos con los que se entrena el siguiente</strong>.</li><li>Por eso se refuerza solo: lo que se recomienda se compra, y lo que se compra se recomienda más. Un producto que nunca aparece nunca acumula pruebas de que funcionaría.</li><li>Y por eso se mide con un experimento, comparando contra no recomendar nada, que es exactamente la prueba A/B del Curso 3. Sin ese contraste, el sistema siempre parece funcionar.</li></ul></section>
+<section class="section-block is-recipe"><span class="kicker">Código</span><h2 class="section-title">El código, por partes</h2><h3 class="sub h3">Paso 1. El caso A, con la etiqueta puesta</h3><p>Los mismos seis lotes que hicimos con lápiz, para comprobar que la máquina encuentra el mismo corte.</p><pre><code class="language-python">import numpy as np
+from sklearn.tree import DecisionTreeClassifier
+
+grade = np.array([[2], [4], [6], [20], [22], [24]])
+profitable = np.array([0, 0, 0, 1, 1, 1])
+
+model = DecisionTreeClassifier(max_depth=1).fit(grade, profitable)
+print(&quot;aciertos:&quot;, (model.predict(grade) == profitable).sum(), &quot;de&quot;, len(profitable))
+print(&quot;corte que eligio:&quot;, model.tree_.threshold[0])</code></pre><dl class="annot"><div class="annot-head">línea por línea</div><dt><code>from sklearn.tree import DecisionTreeClassifier</code></dt><dd>De scikit-learn, solo el clasificador de árbol. Importar la librería entera tarda y trae cientos de cosas que no vas a usar.</dd><dt><code>np.array([[2], [4], ...])</code></dt><dd>Los corchetes dobles no son un capricho. scikit-learn siempre espera una <strong>tabla</strong>: una fila por caso y una columna por variable. Aquí hay seis casos con una variable cada uno, así que la tabla es de 6 por 1.</dd><dt><code>profitable</code></dt><dd>La etiqueta va aparte, como un vector normal de seis valores. Y va en números: 0 y 1, no &quot;no&quot; y &quot;sí&quot;.</dd><dt><code>max_depth=1</code></dt><dd>Una perilla del modelo: que el árbol haga <strong>un solo corte</strong>. Sin ella intentaría afinar más, y con seis lotes eso es memorizar.</dd><dt><code>.fit(grade, profitable)</code></dt><dd>Entrenar. Es el verbo de scikit-learn y siempre recibe primero la tabla y después la etiqueta. Devuelve el propio modelo, ya entrenado, y por eso se puede encadenar detrás del paréntesis.</dd><dt><code>model.predict(grade)</code></dt><dd>Pedirle su respuesta para esos mismos lotes. Devuelve un vector de ceros y unos.</dd><dt><code>(... == profitable).sum()</code></dt><dd>Comparar dos vectores da un vector de verdadero y falso; sumarlo cuenta los verdaderos, porque verdadero vale 1. Es la forma corta de contar aciertos.</dd><dt><code>model.tree_.threshold[0]</code></dt><dd>Abrir el árbol por dentro y leer el número por el que corta. El guion bajo al final de <code>tree_</code> es la convención de scikit-learn para decir &quot;esto solo existe después de entrenar&quot;.</dd></dl><div class="output"><span class="output-tag">sale</span><pre>aciertos: 6 de 6
+corte que eligio: 13.0</pre></div><p>Los seis de seis, y el corte en <strong>13,0</strong>, que es justo la mitad entre 6 y 20. El árbol no tenía ninguna razón para preferir el 13 sobre el 12 o el 19: partió la diferencia, que es lo que hace cuando los datos no le dicen más.</p><h3 class="sub h3">Paso 2. El caso B, tapando la etiqueta</h3><p>Ahora exactamente los mismos lotes, sin decirle nada.</p><pre><code class="language-python">from sklearn.cluster import KMeans
+
+groups = KMeans(n_clusters=2, n_init=10, random_state=0).fit(grade)
+print(&quot;grupo de cada lote:&quot;, groups.labels_)
+print(&quot;centro de cada grupo:&quot;, groups.cluster_centers_.ravel())</code></pre><dl class="annot"><div class="annot-head">línea por línea</div><dt><code>n_clusters=2</code></dt><dd>Cuántos grupos quieres. <strong>Se lo tienes que decir tú</strong>, y ese es el problema difícil del módulo 3: aquí se ven dos a simple vista, con datos de verdad no.</dd><dt><code>n_init=10</code></dt><dd>Que repita el proceso entero diez veces desde arranques distintos y se quede con el mejor. Hace falta porque el resultado depende de dónde pongas los centros al principio.</dd><dt><code>random_state=0</code></dt><dd>Fija el azar del arranque, así que dos ejecuciones dan lo mismo. Sin esto el resultado cambia entre corridas y no se puede reproducir un informe.</dd><dt><code>.fit(grade)</code></dt><dd><strong>Un solo argumento.</strong> Ahí está la diferencia entera con el paso anterior: no hay etiqueta que pasarle.</dd><dt><code>groups.labels_</code></dt><dd>El grupo que le tocó a cada lote. Otra vez el guion bajo: solo existe después de entrenar.</dd><dt><code>.cluster_centers_.ravel()</code></dt><dd>Los centros que encontró. <code>ravel</code> aplana la tabla a un vector para que se imprima en una línea.</dd></dl><div class="output"><span class="output-tag">sale</span><pre>grupo de cada lote: [1 1 1 0 0 0]
+centro de cada grupo: [22.  4.]</pre></div><p>Los centros son <strong>22 y 4</strong>, los mismos que salieron a mano, y el reparto es el mismo que la etiqueta escondida.</p><p>Pero mira los nombres: llamó <strong>grupo 1</strong> a los lotes pobres y <strong>grupo 0</strong> a los ricos. Al revés de como habíamos numerado la etiqueta, y da igual, porque esos números no significan nada. Son dos cajas sin rótulo.</p><h3 class="sub h3">Paso 3. Lo que pasa con un lote nuevo</h3><pre><code class="language-python">new_batch = np.array([[21]])
+print(&quot;supervisado responde:&quot;, model.predict(new_batch)[0])
+print(&quot;no supervisado responde:&quot;, groups.predict(new_batch)[0])</code></pre><dl class="annot"><div class="annot-head">línea por línea</div><dt><code>np.array([[21]])</code></dt><dd>Otra vez corchetes dobles: un caso con una variable sigue siendo una tabla, de 1 por 1. Pasarle <code>[21]</code> a secas da error, y es el fallo más común al empezar.</dd><dt><code>.predict(new_batch)[0]</code></dt><dd><code>predict</code> siempre devuelve un vector, aunque le pases un solo caso. El <code>[0]</code> saca ese único valor de dentro.</dd></dl><div class="output"><span class="output-tag">sale</span><pre>supervisado responde: 1
+no supervisado responde: 0</pre></div><p><strong>Dos respuestas distintas para el mismo lote, y las dos son correctas.</strong> El 1 del primero significa &quot;rentable&quot;, porque así se lo enseñamos. El 0 del segundo significa &quot;del grupo cuyo centro está en 22&quot;, y ese grupo resulta ser el de los ricos, pero el modelo no lo sabe ni puede decírtelo.</p><p>Ahí está la lección del módulo entera: <strong>el no supervisado encuentra estructura, no significado</strong>. El significado lo pones tú al mirar los grupos y bautizarlos.</p></section>
+<section class="section-block is-warning"><span class="kicker">Trampas</span><h2 class="section-title">Ojo</h2><ul><li><strong>Más datos no arregla la falta de etiquetas.</strong> Un millón de filas sin la columna que quieres predecir sigue sin permitir aprendizaje supervisado. Lo que hace falta es la columna, y conseguirla suele ser el cuello de botella real de un proyecto.</li><li><strong>El agrupamiento siempre devuelve grupos.</strong> Aunque no los haya. Le pides tres y te da tres, sobre datos completamente uniformes. Que salgan grupos no demuestra que existan.</li><li><strong>Los números de los grupos no significan nada</strong> y cambian entre ejecuciones. Nunca escribas &quot;los del grupo 1&quot; en un informe sin decir qué es el grupo 1.</li><li><strong>No confundas el sesgo de este curso con el del anterior.</strong> Allí era una muestra que no representa a la población. Aquí es un modelo que trata peor a un grupo de personas. Se parecen y no son lo mismo.</li><li><strong>Un modelo con buen acierto medio puede ser malo para un grupo concreto.</strong> El promedio esconde a quién le va mal, y por eso las métricas se miran también por subgrupo.</li><li><strong>Que un modelo sea complicado no lo hace mejor.</strong> Es la pregunta del curso y la respuesta se mide, no se supone.</li><li><strong>Los cuadernos se ejecutan en el orden que tú quieras.</strong> Un resultado que sale de celdas corridas en desorden no es reproducible aunque esté delante de ti.</li></ul></section>
+<section class="section-block is-bridge"><span class="kicker">Analogía</span><h2 class="section-title">Puente metalúrgico</h2><p>Los dos tipos de aprendizaje son dos cosas que ya haces en planta, y una de ellas tiene nombre propio en tu campo.</p><p><strong>El supervisado es la curva de calibración.</strong> Mandas muestras al laboratorio, te devuelven la ley de verdad, y con esos pares construyes la relación que te permite estimar la ley de las siguientes sin mandarlas. El laboratorio es el supervisor, y sus análisis son la etiqueta: cuestan dinero y tiempo, que es exactamente por qué las etiquetas son caras.</p><p><strong>El no supervisado es la clasificación de dominios geometalúrgicos.</strong> Tienes cientos de muestras con su composición, su dureza y su respuesta a flotación, y <strong>nadie ha decidido todavía cuántos tipos de mineral hay en ese yacimiento</strong>. Agrupas por parecido, sale que hay tres familias, y solo entonces un geólogo las mira y les pone nombre: la oxidada, la de transición, la primaria.</p><p>Fíjate en el orden, porque es literalmente el del ejemplo de juguete: <strong>primero el algoritmo encuentra que hay tres grupos, después una persona decide qué son</strong>. Si el algoritmo hubiera devuelto los nombres, sobraría el geólogo, y no sobra.</p><p>Y el aviso también viaja. Si le pides cinco dominios a un yacimiento que tiene tres, te dará cinco, con sus mapas y sus estadísticas, y dos de ellos serán un corte arbitrario por mitad de una familia real. El algoritmo no protesta. El que tiene que protestar eres tú.</p></section>
+<section class="section-block is-review"><span class="kicker">Repaso</span><h2 class="section-title">Repaso</h2><details><summary>¿Qué decide si un problema es de aprendizaje supervisado o no supervisado?</summary><p>Si existe o no, dentro de tus datos, la columna que quieres predecir. No lo decide el algoritmo ni el tamaño del conjunto: lo decide la información disponible. Con los seis lotes del ejemplo, tener anotado cuáles fueron rentables permite aprender la regla &quot;rentable si la ley pasa de 13&quot; y contar que acierta seis de seis. Tapando esa columna, los mismos seis números solo permiten preguntar si hay grupos, y sale que hay dos, con centros en 4 y 22, pero sin poder decir cuál de los dos es el rentable.</p></details><details><summary>El agrupamiento encontró la misma división que la etiqueta escondida. ¿Significa que da igual tener etiquetas?</summary><p>No, y este ejemplo está construido para que se vea. El agrupamiento encontró <strong>la misma frontera</strong>, pero devolvió dos cajas numeradas 0 y 1 sin ningún significado, y de hecho llamó 1 al grupo pobre y 0 al rico, al revés de la etiqueta. Puede decirte que hay dos familias; no puede decirte que una sea rentable, porque esa palabra no estaba en los datos. Además, aquí coincidieron porque la separación era enorme y la única variable era la relevante. Con diez variables, el agrupamiento puede partir por algo que a ti no te importa.</p></details><details><summary>El árbol eligió cortar en 13. ¿Por qué ese número y qué dice sobre el modelo?</summary><p>Porque es el punto medio entre el lote más rico de los pobres, 6, y el más pobre de los ricos, 20. Cualquier corte en ese hueco acierta los seis igual, así que <strong>los datos no contienen información para elegir</strong> y el algoritmo parte la diferencia. Eso es una señal de fragilidad, no de precisión: con solo seis lotes y un hueco tan grande, el modelo tiene mucha libertad, y un lote nuevo de ley 12 recibirá una respuesta que no está respaldada por ninguna observación parecida.</p></details><details><summary>¿Por qué la ética entra en un módulo técnico y no en un apéndice?</summary><p>Porque un modelo aprende de lo que pasó y por tanto repite lo que pasó, aplicándolo más rápido, a más gente y con apariencia de objetividad. Si los datos históricos recogen una decisión que trataba peor a un grupo, el modelo la hereda sin que nadie la haya escrito. Las tres preguntas del paso 4 son parte del diseño y no de la revisión final: de quién son los datos y quién falta en ellos, cuánto cuesta cada tipo de error y a quién le cuesta, y si el afectado puede saber por qué se decidió eso. Esa última convierte la elección entre una regresión y un bosque en una decisión con consecuencias, no solo en una cuestión de acierto.</p></details><details><summary>¿Qué significa que una variable sea continua y por qué importa en la práctica?</summary><p>Que puede tomar cualquier valor dentro de un rango, así que sus valores posibles son infinitos: entre 20 y 21 gramos por tonelada caben 20,5 y 20,53 y 20,531. Una categórica, en cambio, tiene una lista cerrada de valores que se pueden contar. Importa por dos razones muy concretas. La primera es que el tipo de la columna que quieres predecir decide la tarea: número es regresión, etiqueta es clasificación. La segunda es que casi ningún modelo entiende texto, así que una columna categórica hay que convertirla en números antes de entrenar, y la forma de convertirla cambia el resultado.</p></details></section>
+</main>
+<footer class="footer">
+  Concentra / destilado del temario público del curso / 2026-08-20
+</footer>
+</body>
+</html>

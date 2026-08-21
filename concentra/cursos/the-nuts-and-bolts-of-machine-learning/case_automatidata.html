@@ -1,0 +1,483 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Automatidata — The Nuts and Bolts of Machine Learning</title>
+<style>
+/* ============================================================================
+   Concentra — design tokens and shared components.
+   Inlined into every generated page by load_style(), so pages stay self-contained
+   and work offline from file:// with no external requests.
+
+   Direction: an assay lab, not a tech dashboard. The palette is taken from ore
+   and lab materials (chalcopyrite brass, malachite, hematite, quartz) on warm
+   graphite rather than the blue-black + neon of a generic dark UI. Type is
+   Bahnschrift, the DIN-descended grotesque that Windows ships and that lives on
+   machinery plates and technical drawings, over Corbel for reading.
+   ========================================================================== */
+
+:root {
+  /* Ground and surfaces: warm graphite, the colour of rock dust, not blue-black */
+  --rock: #1a1714;
+  --bench: #221e19;
+  --core: #2b251f;
+  --seam: #3d352c;
+
+  /* Ore palette. No blue and no purple anywhere: those are the tones that make a
+     page read as generated, and this palette comes from the ores instead. */
+  --brass: #c9a227;      /* chalcopyrite, the primary accent */
+  --malachite: #5d9b7a;  /* verified output, results that came out right */
+  --hematite: #b04a35;   /* iron oxide, pitfalls and warnings */
+
+  /* Text */
+  --quartz: #ece7de;
+  --dust: #9a9186;
+  --shadowed: #6f675c;
+
+  --display: Bahnschrift, 'DIN Alternate', 'Segoe UI Semibold', system-ui, sans-serif;
+  --body: Corbel, Candara, 'Segoe UI', system-ui, sans-serif;
+  --data: Consolas, 'Cascadia Mono', ui-monospace, monospace;
+
+  /* In px, not ch: ch scales with font-size, so a heading ended up wider than a
+     paragraph and the page had four different right edges instead of two. */
+  --measure: 640px;
+  --wide: 900px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--rock);
+  color: var(--quartz);
+  font-family: var(--body);
+  font-size: 16px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection { background: var(--brass); color: var(--rock); }
+
+:focus-visible {
+  outline: 2px solid var(--brass);
+  outline-offset: 3px;
+}
+
+/* --------------------------------------------------------------- the signature
+   A sieve series: ticks that get finer from left to right, coarse feed to fine
+   concentrate. It is the one ornament on the page and appears exactly twice —
+   under the wordmark and under a page title. */
+.mesh {
+  height: 10px;
+  background-image:
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 16px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 9px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 5px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 3px);
+  background-size: 25% 100%;
+  background-position: 0 0, 25% 0, 50% 0, 75% 0;
+  background-repeat: no-repeat;
+  opacity: .8;
+  transform-origin: left center;
+  animation: sieve .55s cubic-bezier(.2, .8, .3, 1) both;
+}
+@keyframes sieve { from { transform: scaleX(0); opacity: 0; } to { transform: scaleX(1); opacity: .8; } }
+@media (prefers-reduced-motion: reduce) {
+  .mesh { animation: none; }
+  * { transition: none !important; }
+}
+
+/* ------------------------------------------------------------------ page head */
+.header {
+  border-bottom: 1px solid var(--seam);
+  padding: 3.2rem 2rem 0;
+  background: linear-gradient(180deg, #221d16 0%, var(--rock) 100%);
+}
+.header-content { max-width: 1080px; margin: 0 auto; }
+
+.eyebrow {
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--brass);
+  margin-bottom: 1rem;
+}
+.eyebrow a { color: inherit; text-decoration: none; border-bottom: 1px solid transparent; }
+.eyebrow a:hover { border-bottom-color: var(--brass); }
+
+.header h1 {
+  font-family: var(--display);
+  font-size: clamp(2rem, 4.5vw, 3.1rem);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -.015em;
+  color: var(--quartz);
+  max-width: 20ch;
+}
+.header .subtitle {
+  color: var(--dust);
+  max-width: var(--measure);
+  margin-top: 1rem;
+  font-size: 1.02rem;
+}
+.header .mesh { margin: 1.8rem 0 0; }
+
+/* An assay line: the real composition of the module, in lab-report shorthand. */
+.assay {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.4rem;
+  font-family: var(--data);
+  font-size: .78rem;
+  color: var(--shadowed);
+  padding: .9rem 0 1.6rem;
+  letter-spacing: .04em;
+}
+.assay b { color: var(--dust); font-weight: 400; }
+
+/* --------------------------------------------------------------------- layout */
+/* The container hugs the widest block, so there is no orphan edge past the content. */
+.container { max-width: var(--wide); margin: 3rem auto 5rem; padding: 0 2rem; }
+
+/* Two deliberate right edges and no more: prose stops at the reading measure, and
+   only the things that genuinely need room (code, output, figures, big tables) run
+   out to the full column. */
+.section-block {
+  border-top: 1px solid var(--seam);
+  padding: 2rem 0 2.4rem;
+}
+.section-block > p,
+.section-block > ul,
+.section-block > ol,
+.section-block h3.sub,
+.section-block h4.sub,
+.section-block blockquote,
+details > *:not(summary) { max-width: var(--measure); }
+.section-block:first-child { border-top: 0; padding-top: .5rem; }
+
+/* The kicker names what kind of content follows: context, method, pitfalls.
+   It replaces decorative icons with something that actually classifies. */
+.kicker {
+  font-family: var(--data);
+  font-size: .68rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  display: block;
+  margin-bottom: .5rem;
+}
+.section-title {
+  font-family: var(--display);
+  font-size: 1.55rem;
+  font-weight: 600;
+  letter-spacing: -.01em;
+  line-height: 1.2;
+  margin-bottom: 1.2rem;
+  color: var(--quartz);
+}
+.is-warning .kicker { color: var(--hematite); }
+.is-warning .section-title { color: #e8c4b8; }
+.is-bridge .kicker, .is-decision .kicker { color: var(--malachite); }
+.is-toy .kicker, .is-result .kicker, .is-question .kicker { color: var(--brass); }
+
+/* ---------------------------------------------------------------------- prose */
+/* Justified with hyphenation. In Spanish, justifying without hyphens opens rivers of
+   white space and reads worse than ragged right; lang="es" is what feeds the
+   dictionary. Tables, code, captions and summaries stay ragged on purpose. */
+.section-block p,
+.section-block li,
+details > *:not(summary) {
+  text-align: justify;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+}
+.section-block p { margin-bottom: 1rem; }
+.section-block p:last-child { margin-bottom: 0; }
+/* Indent with padding, not margin, so the bullet sits inside the measure instead of
+   pushing the list 1.2rem past the right edge of the paragraphs. */
+.section-block ul, .section-block ol { margin: 0 0 1rem; padding-left: 1.2rem; }
+.section-block li { margin-bottom: .55rem; padding-left: .2rem; }
+.section-block li::marker { color: var(--brass); }
+td, th, figcaption, .res li, .assay { text-align: left; hyphens: manual; }
+a { color: var(--brass); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+a:hover { text-decoration-thickness: 2px; }
+strong { color: #fff; font-weight: 700; }
+em { color: var(--dust); font-style: italic; }
+
+h3.sub {
+  font-family: var(--display);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--brass);
+  margin: 2rem 0 .7rem;
+  letter-spacing: -.005em;
+}
+h3.sub:first-child { margin-top: 0; }
+h4.sub {
+  font-family: var(--display);
+  font-size: .98rem;
+  font-weight: 600;
+  color: var(--dust);
+  margin: 1.3rem 0 .5rem;
+}
+
+code {
+  font-family: var(--data);
+  font-size: .9em;
+  background: var(--core);
+  border-radius: 3px;
+  padding: .08rem .32rem;
+  color: var(--brass);
+}
+pre {
+  background: #14110e;
+  border: 1px solid var(--seam);
+  border-left: 2px solid var(--seam);
+  border-radius: 2px;
+  padding: 1.1rem 1.2rem;
+  overflow-x: auto;
+  margin-bottom: 1rem;
+}
+pre code {
+  background: none; padding: 0; color: var(--quartz);
+  font-size: .87rem; line-height: 1.6;
+}
+
+/* What the code prints. Malachite: the material that came out of the process. */
+.output {
+  position: relative;
+  border: 1px solid rgba(93, 155, 122, .32);
+  border-left: 2px solid var(--malachite);
+  border-radius: 2px;
+  background: rgba(93, 155, 122, .06);
+  padding: 1.7rem 1.2rem 1rem;
+  margin-bottom: 1rem;
+  overflow-x: auto;
+}
+.output-tag {
+  position: absolute; top: .5rem; left: 1.2rem;
+  font-family: var(--data); font-size: .64rem;
+  letter-spacing: .18em; text-transform: uppercase; color: var(--malachite);
+}
+.output pre {
+  background: none; border: 0; padding: 0; margin: 0;
+  font-family: var(--data); font-size: .85rem;
+  color: var(--quartz); white-space: pre-wrap;
+}
+
+/* Line by line explanation of a code block, for a reader new to programming.
+   Two columns: the fragment of code, and what it does. */
+.annot {
+  display: grid;
+  grid-template-columns: minmax(9rem, auto) 1fr;
+  gap: .1rem 1.2rem;
+  align-items: baseline;
+  max-width: var(--wide);
+  margin: -.4rem 0 1.4rem;
+  padding: .9rem 1.1rem 1rem;
+  border: 1px solid var(--seam);
+  border-top: 0;
+  border-radius: 0 0 2px 2px;
+  background: rgba(201, 162, 39, .04);
+}
+.annot-head {
+  grid-column: 1 / -1;
+  font-family: var(--data);
+  font-size: .64rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  margin-bottom: .5rem;
+}
+.annot dt { padding: .35rem 0; }
+.annot dt code {
+  background: var(--core);
+  color: var(--brass);
+  font-size: .82rem;
+  white-space: nowrap;
+}
+.annot dd {
+  padding: .35rem 0;
+  margin: 0;
+  color: var(--dust);
+  font-size: .93rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(61, 53, 44, .5);
+}
+.annot dt { border-bottom: 1px solid rgba(61, 53, 44, .5); }
+.annot dt:last-of-type, .annot dd:last-of-type { border-bottom: 0; }
+/* The code block sits directly on top of its annotation, as one unit. */
+pre:has(+ .annot) { margin-bottom: 0; border-radius: 2px 2px 0 0; }
+
+@media (max-width: 640px) {
+  .annot { grid-template-columns: 1fr; gap: 0; }
+  .annot dt { border-bottom: 0; padding-bottom: 0; }
+  .annot dd { padding-top: .15rem; }
+}
+
+blockquote {
+  border-left: 2px solid var(--brass);
+  padding: .3rem 0 .3rem 1.3rem;
+  margin: 0 0 1rem;
+  font-family: var(--display);
+  font-size: 1.2rem;
+  font-weight: 400;
+  line-height: 1.4;
+  color: var(--quartz);
+}
+
+/* Tables read as assay data: mono figures, hairline rules, no zebra fill.
+   They take the width they need instead of being stretched to the full column,
+   which is what left a two-column table floating in empty space. */
+.table-wrap { overflow-x: auto; margin-bottom: 1rem; }
+table { border-collapse: collapse; width: auto; max-width: 100%; font-size: .93rem; }
+th, td {
+  border-bottom: 1px solid var(--seam);
+  padding: .55rem .8rem .55rem 0;
+  text-align: left;
+  vertical-align: top;
+}
+th {
+  font-family: var(--data);
+  font-size: .7rem;
+  font-weight: 400;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  border-bottom-color: var(--brass);
+}
+td:first-child { color: var(--quartz); }
+
+/* Review questions: closed by default, so they work as recall practice. */
+details {
+  border-top: 1px solid var(--seam);
+  padding: .9rem 0;
+}
+details:last-child { border-bottom: 1px solid var(--seam); }
+summary {
+  cursor: pointer;
+  font-family: var(--display);
+  font-size: 1.02rem;
+  font-weight: 600;
+  color: var(--quartz);
+  list-style: none;
+  display: flex;
+  gap: .7rem;
+  align-items: baseline;
+}
+summary::-webkit-details-marker { display: none; }
+summary::before {
+  content: '+';
+  font-family: var(--data);
+  color: var(--brass);
+  font-size: .95rem;
+}
+details[open] summary::before { content: '−'; }
+details[open] summary { color: var(--brass); margin-bottom: .7rem; }
+details > *:not(summary) { color: var(--dust); }
+
+figure.fig {
+  margin: 1.6rem 0;
+  border: 1px solid var(--seam);
+  padding: .7rem;
+  background: var(--bench);
+}
+figure.fig img { width: 100%; height: auto; display: block; }
+/* The interactive twin of a figure. Its aspect matches the still one, 10 by 4.4, so a
+   case sheet keeps the same rhythm whichever kind of figure comes next. */
+figure.fig.is-live iframe {
+  width: 100%;
+  /* Matches INTERACTIVE_HEIGHT in src/make_figures.py. It used to be an aspect ratio, and
+     that made the figure's height depend on the window: the caption and the legend are
+     placed at fractions of the plot area, so on a wide screen they were pushed past the
+     bottom margin, clipping the caption and covering the x-axis title. */
+  height: 520px;
+  border: 0;
+  display: block;
+}
+figure.fig figcaption {
+  font-family: var(--data);
+  font-size: .72rem;
+  color: var(--shadowed);
+  margin-top: .6rem;
+  letter-spacing: .04em;
+}
+
+/* File listings on a case sheet */
+.res { list-style: none; margin-left: 0 !important; }
+.res li {
+  display: flex; align-items: baseline; gap: .8rem; flex-wrap: wrap;
+  padding: .5rem 0; border-bottom: 1px solid var(--seam); margin-bottom: 0;
+}
+.res .path { font-family: var(--data); font-size: .74rem; color: var(--shadowed); }
+.res .size { font-family: var(--data); font-size: .74rem; color: var(--shadowed); margin-left: auto; }
+.res .gone { font-family: var(--data); font-size: .74rem; color: var(--hematite); }
+
+.footer {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 2rem 4rem;
+  color: var(--shadowed);
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .03em;
+}
+
+@media (max-width: 640px) {
+  body { font-size: 15px; }
+  .header { padding: 2rem 1.2rem 0; }
+  .container { padding: 0 1.2rem; margin-top: 2rem; }
+  .footer { padding: 0 1.2rem 3rem; }
+}
+
+@media print {
+  body { background: #fff; color: #16130f; }
+  .header { background: none; border-bottom: 1px solid #bbb; padding-top: 0; }
+  .header h1, .section-title, summary { color: #16130f; }
+  .mesh { animation: none; }
+  .section-block { break-inside: avoid; max-width: none; }
+  pre, .output { background: #f6f4f0; border-color: #ccc; }
+  details:not([open]) > *:not(summary) { display: block; }
+  a { color: #16130f; }
+}
+
+</style>
+</head>
+<body>
+<header class="header">
+  <div class="header-content">
+    <div class="eyebrow">Curso 5 · The Nuts and Bolts of Machine Learning / Caso de estudio</div>
+    <h1>Automatidata</h1>
+    <p class="subtitle">El encargo no se puede cumplir con estos datos, y demostrarlo con pruebas es el entregable.</p>
+    <div class="mesh" role="presentation"></div>
+    <div class="assay"><span>15.203 viajes con tarjeta</span><span>23,11 % generosos</span><span>AUC 0,6104</span><span>sensibilidad 0,0128</span></div>
+  </div>
+</header>
+<main class="container">
+<section class="section-block "><span class="kicker">Encargo</span><h2 class="section-title">El encargo</h2><p>La <strong>Comisión de Taxis y Limusinas de Nueva York</strong> quiere saber quién deja propina generosa, para que el conductor lo sepa antes de aceptar la carrera.</p><p><strong>Y la pregunta ética va antes que el modelo, no después.</strong> Un sistema que dice al conductor quién va a dar propina puede acabar decidiendo <strong>a quién se le para el taxi</strong>. Eso es discriminación con apariencia de eficiencia, y hay que decirlo aunque el modelo funcione. Aquí resulta que además no funciona, pero el orden importa: la pregunta se hizo sin saber todavía el resultado.</p></section>
+<section class="section-block is-question"><span class="kicker">Pregunta</span><h2 class="section-title">La pregunta</h2><blockquote>¿Se puede saber, antes de que acabe el viaje, si el pasajero va a dejar propina generosa?</blockquote></section>
+<section class="section-block is-data"><span class="kicker">Datos</span><h2 class="section-title">Los datos</h2><p><code>C2_2017_Yellow_Taxi_Trip_Data.csv</code>, <strong>22.699 viajes</strong> de 2017. Los mismos del Curso 2 y del Curso 4, con una pregunta completamente distinta.</p></section>
+<section class="section-block is-data"><span class="kicker">Limpieza</span><h2 class="section-title">Lo que hubo que arreglar</h2><p>Tres cosas, y las tres decidieron el proyecto antes de entrenar nada.</p><p><strong>Primero, una fuga comprobada y no supuesta.</strong> <code>total_amount</code> <strong>incluye</strong> la propina: verificado sumando las partes y comparando con el total, coincide en <strong>22.656 de 22.699</strong> viajes. Esa columna contiene la respuesta, así que queda prohibida como variable. El coste antes de propina se reconstruye restándola, y eso sí es lo que el pasajero ve en la pantalla cuando le sale el aviso.</p><p><strong>Segundo, el efectivo.</strong></p><figure class="fig"><img src="../../projects/curso5/automatidata/03_figures/01_efectivo.ec0f185a.png" alt="01_efectivo" loading="lazy"><figcaption>01_efectivo.png</figcaption></figure><div class="table-wrap"><table><thead><tr><th>Tipo de pago</th><th>Viajes</th><th>Con propina cero</th></tr></thead><tbody><tr><td>Tarjeta</td><td>15.265</td><td>4,1 %</td></tr><tr><td>Efectivo</td><td>7.267</td><td><strong>100 %</strong></td></tr><tr><td>Sin cargo</td><td>121</td><td><strong>100 %</strong></td></tr><tr><td>Disputa</td><td>46</td><td><strong>100 %</strong></td></tr></tbody></table></div><p><strong>El taxímetro no registra la propina en efectivo.</strong> No es que esa gente no dé propina: es que el aparato solo apunta la de la tarjeta.</p><p>Entrenar con el archivo entero le enseñaría al modelo <em>«efectivo, luego no hay propina»</em>, que es una propiedad de la máquina disfrazada de hallazgo, y produciría un modelo excelente por la razón equivocada. <strong>El exemplar oficial hace exactamente eso.</strong> Aquí se apartan <strong>7.434 viajes</strong> y se dice por qué, quedando <strong>15.203</strong> utilizables.</p><p><strong>Tercero, qué significa «generoso», leído de la distribución y no elegido.</strong></p><figure class="fig"><img src="../../projects/curso5/automatidata/03_figures/02_el_boton.4f0103fa.png" alt="02_el_boton" loading="lazy"><figcaption>02_el_boton.png</figcaption></figure><div class="table-wrap"><table><thead><tr><th></th><th></th></tr></thead><tbody><tr><td>Mediana de la propina con tarjeta</td><td><strong>19,97 %</strong></td></tr><tr><td>Viajes que dejan <strong>exactamente</strong> el 20,00 %</td><td>4.363, el <strong>28,7 %</strong></td></tr><tr><td>Viajes en uno de los tres botones (20, 25, 30)</td><td>el <strong>43,1 %</strong></td></tr></tbody></table></div><p>La distribución tiene tres torres, y son los tres botones que ofrece la máquina. <strong>Quien pulsa el botón por defecto no decidió ser generoso: aceptó.</strong> Y la mediana cae justo en ese botón, o sea que la mitad de los pasajeros no elige.</p><p>Por eso el umbral es <strong>por encima del 20 %</strong>, y con él los generosos son el <strong>23,11 %</strong>.</p></section>
+<section class="section-block is-toy"><span class="kicker">Control</span><h2 class="section-title">El control, fijado antes de mirar nada</h2><p>Con un 23 % de positivos, <strong>contestar siempre «no generoso» ya saca 0,7688 de exactitud</strong> sin hacer absolutamente nada. Esa es la barra que todo lo demás tiene que superar, y se fija antes de entrenar.</p><p>Y la expectativa, escrita antes de ajustar: dar propina es una decisión personal, y las columnas de este archivo describen el viaje. <strong>Lo probable es que no se pueda predecir</strong>, y si es así el entregable es decirlo con pruebas.</p></section>
+<section class="section-block is-recipe"><span class="kicker">Modelo</span><h2 class="section-title">El modelo, y por qué este modelo</h2><p>Partición en tres, 60/20/20 estratificada: 9.121 de entrenamiento, 3.041 de validación y 3.041 de prueba.</p><p>Cuatro familias en validación, y luego búsqueda en rejilla con validación cruzada de cuatro pliegues para las dos de árboles: <strong>24 combinaciones en 41 segundos</strong> para el bosque y <strong>36 en 11</strong> para el refuerzo. El campeón, elegido en validación, fue el <strong>refuerzo ajustado</strong>.</p><p><strong>Y la métrica que decide no es la exactitud.</strong> Con un 23 % de positivos, la exactitud premia al que no señala a nadie, así que se miran sensibilidad y AUC.</p></section>
+<section class="section-block is-result"><span class="kicker">Comparación</span><h2 class="section-title">La comparación</h2><p>Sobre la prueba, mirada una sola vez, con el control dentro:</p><figure class="fig"><img src="../../projects/curso5/automatidata/03_figures/03_no_hay_senal.90520251.png" alt="03_no_hay_senal" loading="lazy"><figcaption>03_no_hay_senal.png</figcaption></figure><div class="table-wrap"><table><thead><tr><th>Modelo</th><th>Exactitud</th><th>Sensibilidad</th><th>AUC</th></tr></thead><tbody><tr><td>Contestar siempre «no generoso»</td><td>0,7688</td><td>0,0000</td><td>0,5000</td></tr><tr><td>Regresión logística</td><td>0,7688</td><td><strong>0,0000</strong></td><td>0,5395</td></tr><tr><td>Bosque ajustado</td><td>0,7688</td><td><strong>0,0000</strong></td><td>0,6073</td></tr><tr><td>Refuerzo ajustado</td><td>0,7708</td><td>0,0128</td><td>0,6104</td></tr></tbody></table></div><p><strong>La logística y el bosque no señalan absolutamente a nadie.</strong> Toman exactamente las mismas decisiones que el modelo vago, y por eso su exactitud coincide con la suya hasta el cuarto decimal. El refuerzo detecta al <strong>1,28 %</strong> de los generosos.</p><p><strong>Y aquí, por primera y única vez en el curso, los árboles le ganan a la logística</strong>: 0,6073 y 0,6104 de AUC contra 0,5395.</p><p>No significa lo que parece. Ordenan mejor los casos, sí, pero con el umbral por defecto <strong>ninguno señala a nadie</strong>. Es ganar una carrera que pierden todos.</p><blockquote><strong>Un AUC mejor no es un modelo utilizable.</strong> El AUC mide si sabes ordenar; la sensibilidad mide si sirves para decidir.</blockquote></section>
+<section class="section-block is-result"><span class="kicker">Resultado</span><h2 class="section-title">El resultado, traducido</h2><p><strong>Dar propina generosa es una decisión de la persona, no del viaje.</strong> Ni la distancia, ni la duración, ni la hora, ni lo que costó predicen quién pasa del botón por defecto.</p><figure class="fig"><img src="../../projects/curso5/automatidata/03_figures/04_importancia.1b00308b.png" alt="04_importancia" loading="lazy"><figcaption>04_importancia.png</figcaption></figure><p>Y esa figura lleva su propio aviso. Sale un reparto perfectamente presentable, con el coste antes de propina a la cabeza con 0,3757. <strong>Es el reparto de importancia de un modelo con un AUC de 0,6073</strong>, o sea de un modelo que no funciona.</p><p>La importancia siempre suma 1 entre las variables que le des, acierte el modelo o no. Leerla sin comprobar antes si el modelo sirve produce conclusiones sobre nada.</p></section>
+<section class="section-block is-decision"><span class="kicker">Decisión</span><h2 class="section-title">Qué se decide con esto</h2><ol><li><strong>No construir esto.</strong> El encargo no se puede cumplir con los datos disponibles, y decirlo con pruebas es el entregable.</li><li><strong>Si de verdad hiciera falta</strong>, lo que hay que conseguir es información del pasajero, no más variables del viaje: historial de propinas, si es cliente habitual, la app por la que pidió. Nada de eso está en el archivo.</li><li><strong>Mirar el botón por defecto</strong>, que es la palanca de verdad. El 28,7 % de los pasajeros deja exactamente lo que la máquina propone. **Mover ese botón mueve más dinero que cualquier modelo**, y se puede probar con un experimento A/B como los del Curso 3.</li><li><strong>Y no desplegar un sistema que diga al conductor a quién conviene recoger</strong>, que era el riesgo declarado al principio.</li></ol></section>
+<section class="section-block is-warning"><span class="kicker">Límites</span><h2 class="section-title">Limitaciones</h2><ul><li>Un año, una ciudad, y el archivo es <strong>una muestra</strong> de los viajes de 2017.</li><li><strong>Se descartan 7.434 viajes</strong> por no tener propina registrada. Si quien paga en efectivo se comporta distinto, esta conclusión no se le aplica.</li><li>El umbral del 20 % es defendible pero no es el único. Con «pasar del 15 %» los generosos serían el 77 % y el problema cambiaría de forma.</li><li><strong>La prueba se miró una vez</strong>, después de elegir campeón en validación.</li></ul></section><section class="section-block is-material"><span class="kicker">Archivos</span><h2 class="section-title">Material completo</h2><p>Los tres se construyeron aquí. Los CSV se leen de tu carpeta del Curso 3 sin tocarlos, y el proyecto de Waze reparte los datos exactamente igual que el del Curso 4 para que la comparación entre los dos valga.</p><h3 class="sub">Informes y notas</h3><ul class="res"><li><a href="../../projects/curso5/automatidata/04_reports/pace_plan.md" target="_blank" rel="noopener">pace_plan.md</a> <span class="path">04_reports/pace_plan.md</span> <span class="size">3.5 KB</span></li><li><a href="../../projects/curso5/automatidata/04_reports/executive_summary.md" target="_blank" rel="noopener">executive_summary.md</a> <span class="path">04_reports/executive_summary.md</span> <span class="size">4.5 KB</span></li><li><a href="../../projects/curso5/automatidata/04_reports/model_results.json" target="_blank" rel="noopener">model_results.json</a> <span class="path">04_reports/model_results.json</span> <span class="size">3.3 KB</span></li></ul><h3 class="sub">Código</h3><ul class="res"><li><a href="../../projects/curso5/automatidata/02_scripts/automatidata_trees.py" target="_blank" rel="noopener">automatidata_trees.py</a> <span class="path">02_scripts/automatidata_trees.py</span> <span class="size">23.7 KB</span></li><li><a href="../../projects/curso5/automatidata/automatidata_curso5.ipynb" target="_blank" rel="noopener">automatidata_curso5.ipynb</a> <span class="path">automatidata_curso5.ipynb</span> <span class="size">14.0 KB</span></li></ul></section>
+</main>
+<footer class="footer">
+  Concentra / esta ficha enlaza tus archivos donde ya estaban / 2026-08-20
+</footer>
+<script>
+// Same-frame links replace the current entry instead of pushing a new one, so the
+// browser's back button keeps following the sidebar routes of the shell.
+document.querySelectorAll('a.lead-link').forEach(link => {
+  link.addEventListener('click', event => {
+    event.preventDefault();
+    location.replace(link.getAttribute('href'));
+  });
+});
+</script>
+</body>
+</html>
