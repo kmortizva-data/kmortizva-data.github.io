@@ -1269,9 +1269,19 @@ p, .assay-tagline, .cred-detail, .streams dd { text-wrap: pretty; }
 /* --- the open action on an index row -------------------------------------- */
 
 /* The whole row is one anchor and anchors cannot nest, so the open button is a sibling
-   link laid over the row's right edge. On narrow screens it drops into the flow under
-   the row text instead of floating over the thumbnail. */
-.index-row { position: relative; }
+   link. It gets its OWN grid column instead of floating over the row: an absolutely
+   positioned button over flowing text overlapped the tagline the moment the viewport
+   narrowed, which Kevin caught on sight. Reserved space cannot overlap anything. */
+.index-row { display: grid; }
+
+@media (min-width: 60rem) {
+  .index-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    column-gap: 1.25rem;
+  }
+  .index-open { align-self: center; margin-right: 0.5rem; white-space: nowrap; }
+}
 
 .index-open {
   font-family: var(--mono);
@@ -1288,15 +1298,6 @@ p, .assay-tagline, .cred-detail, .streams dd { text-wrap: pretty; }
   background: var(--surface);
 }
 
-@media (min-width: 60rem) {
-  .index-open {
-    position: absolute;
-    right: 0.5rem;
-    top: 50%;
-    transform: translateY(-50%);
-  }
-}
-
 @media (max-width: 59.99rem) {
-  .index-open { display: inline-block; margin: 0 0 1.1rem 0.5rem; }
+  .index-open { display: inline-block; justify-self: start; margin: 0 0 1.1rem 0.5rem; }
 }

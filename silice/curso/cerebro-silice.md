@@ -108,7 +108,7 @@ que la persistencia también gana aquí.
 | 2 | peleando: alimentación sucia, reactivo al máximo | 2,46 |
 
 **El estado 1 domina marzo y abril y después desaparece.** La planta cambió de forma de
-operar en abril, y eso explica la deriva que arrastran los módulos 2 a 8.
+operar entre abril y mayo, y eso explica la deriva que arrastran los módulos 2 a 8.
 
 ## Deriva medida (módulo 10)
 
