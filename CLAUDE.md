@@ -80,10 +80,11 @@ python src/build.py && python src/check_site.py
 
 ## Pendientes fuera de esta ronda
 
-- **Siguiente tramo: traducir Sílice (14 módulos) y Concentra (25 módulos + 12 casos)**
-  al inglés con la infraestructura bilingüe de Geoestadística, Sílice primero. Kevin
-  (2026-08-22): «cursos individuales no tienen interruptor idioma». Hasta entonces, cada
-  curso lleva en su cabecera «English summary on the portfolio ↗» hacia su página del
-  proyecto en inglés; no se finge un interruptor que lleve a una página en español.
+- ✅ **Sílice en inglés** (2026-08-22): 14 módulos + portada como gemelas `.en.html`, con
+  interruptor de idioma en cada página y puerta de paridad de cifras. El botón de la
+  portada abre la edición del idioma del lector.
+- **Siguiente tramo: Concentra al inglés** (25 módulos + 12 casos) con la misma receta
+  (gemelas por archivo, `check_english` con paridad de cifras). Hasta entonces su
+  cabecera lleva «English summary ↗» hacia su ficha en inglés.
 - Repo público para Geoestadística si Kevin quiere el botón «Read the code».
 - Retomar la captura de bg-remover cuando se arregle y se muestre.

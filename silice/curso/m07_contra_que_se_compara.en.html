@@ -1,0 +1,690 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>What a model is compared against · Silica, module 7</title>
+<link rel="alternate" hreflang="es" href="m07_contra_que_se_compara.html">
+<style>
+/* Sílice: la hoja de estilos del curso.
+ *
+ * Identidad de papel de informe de planta, no de pantalla. El proyecto termina
+ * recomendando no desplegar, y eso es un informe técnico: papel hueso, tinta grafito,
+ * y una retícula de milimetrado muy tenue en la cabecera.
+ *
+ * Dos familias tipográficas y ni una más, las dos del sistema porque el sitio se abre
+ * desde file:// y tiene que funcionar sin internet: serif para la prosa (se lee como
+ * informe) y monoespaciada para todo lo que es dato, código, cifra o etiqueta.
+ *
+ * El acento lo inyecta cada página con --accent: es el del módulo, y marca su posición
+ * en el arco del proyecto. Los diez pasan check_palette.py antes de entrar aquí.
+ */
+
+:root {
+  --paper: #f6f3ec;
+  --bench: #eeeade;
+  --ink: #2a2622;
+  --ink-soft: #57504a;
+  --ink-faint: #8a8177;
+  --rule: #ddd6c6;
+  --rule-soft: #e8e2d4;
+  --grid: rgba(84, 69, 73, .07);
+  --accent: #632727;
+
+  --prose: Georgia, "Iowan Old Style", "Palatino Linotype", Palatino, "Times New Roman", serif;
+  --data: "Cascadia Mono", Consolas, "DejaVu Sans Mono", "Liberation Mono", monospace;
+
+  --measure: 680px;   /* la medida de la prosa, en píxeles y nunca en ch */
+  --wide: 1180px;     /* el borde derecho de los bloques anchos */
+  --margin: 132px;    /* la columna del margen, donde cuelgan los kickers */
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--prose);
+  font-size: 17px;
+  line-height: 1.62;
+  -webkit-text-size-adjust: 100%;
+}
+
+::selection { background: var(--accent); color: var(--paper); }
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+/* --------------------------------------------------------------- cabecera */
+
+.masthead {
+  border-bottom: 1px solid var(--rule);
+  background-color: var(--bench);
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 26px 26px;
+  background-position: -1px -1px;
+}
+
+.masthead-inner {
+  max-width: var(--wide);
+  margin: 0 auto;
+  padding: 2.4rem 2rem 1.6rem;
+}
+
+.eyebrow {
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-bottom: 1rem;
+}
+
+.eyebrow a { color: inherit; text-decoration: none; border-bottom: 1px solid transparent; }
+.eyebrow a:hover { border-bottom-color: var(--accent); color: var(--accent); }
+.eyebrow b { color: var(--accent); font-weight: 400; }
+
+.masthead h1 {
+  margin: 0;
+  font-size: clamp(1.9rem, 4.4vw, 2.9rem);
+  line-height: 1.14;
+  font-weight: 400;
+  letter-spacing: -.012em;
+  max-width: 900px;
+}
+
+.standfirst {
+  margin: .9rem 0 0;
+  max-width: var(--measure);
+  color: var(--ink-soft);
+  font-size: 1.02rem;
+  line-height: 1.55;
+}
+
+/* La cifra del módulo: el número que dejó, en grande, junto al título. Es lo que
+   convierte la cabecera en parte del argumento y no en decoración. */
+.figure-mark {
+  margin-top: 1.6rem;
+  display: flex;
+  align-items: baseline;
+  gap: .8rem;
+  flex-wrap: wrap;
+  border-left: 3px solid var(--accent);
+  padding-left: .9rem;
+}
+
+.figure-value {
+  font-family: var(--data);
+  font-size: clamp(1.5rem, 3.4vw, 2.1rem);
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: -.02em;
+}
+
+.figure-label {
+  font-family: var(--data);
+  font-size: .78rem;
+  letter-spacing: .04em;
+  color: var(--ink-soft);
+}
+
+/* El hilo del proyecto: diez segmentos, uno por módulo, con su cifra debajo. Desde
+   cualquier página se ve el recorrido entero, que es justo lo que a los apuntes
+   sueltos les faltaba. */
+.thread {
+  margin-top: 1.8rem;
+  display: grid;
+  /* One equal column per segment, whatever the temario says. It was pinned to ten and
+     the course grew to fourteen. */
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: 4px;
+}
+
+/* Where part 2 starts: the four modules that were never in the original project. */
+.thread .starts-part { margin-left: 10px; position: relative; }
+.thread .starts-part::after {
+  content: '';
+  position: absolute;
+  left: -7px; top: -3px; bottom: 0;
+  border-left: 1px solid var(--rule);
+}
+
+.thread a, .thread span {
+  display: block;
+  text-decoration: none;
+  color: var(--ink-faint);
+  font-family: var(--data);
+  font-size: .62rem;
+  letter-spacing: .04em;
+  padding-top: .4rem;
+  border-top: 3px solid var(--rule);
+  transition: color .12s, border-color .12s;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.thread a:hover { color: var(--ink); border-top-color: var(--ink-soft); }
+.thread [aria-current="page"] { color: var(--accent); border-top-color: var(--accent); }
+.thread .n { font-weight: 700; }
+.thread .v { color: inherit; opacity: .75; }
+
+/* Las pastillas de composición: de qué está hecho el módulo. */
+.assay {
+  margin-top: 1.6rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.4rem;
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .05em;
+  color: var(--ink-faint);
+}
+
+.assay b { color: var(--ink); font-weight: 700; }
+
+/* ----------------------------------------------------------------- cuerpo */
+
+.container {
+  max-width: var(--wide);
+  margin: 0 auto;
+  padding: 2.6rem 2rem 4rem;
+}
+
+/* Cada sección es una anotación de cuaderno: el kicker cuelga en el margen
+   izquierdo y el contenido corre en la columna principal. En pantalla estrecha el
+   kicker se pone encima. */
+.block {
+  display: grid;
+  grid-template-columns: var(--margin) minmax(0, 1fr);
+  column-gap: 2rem;
+  padding: 2.2rem 0;
+  border-top: 1px solid var(--rule);
+}
+
+.block:first-child { border-top: 0; padding-top: .6rem; }
+
+.kicker {
+  grid-column: 1;
+  font-family: var(--data);
+  font-size: .68rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding-top: .45rem;
+}
+
+.block > :not(.kicker) { grid-column: 2; }
+
+.block-title {
+  margin: 0 0 1.1rem;
+  font-size: 1.42rem;
+  font-weight: 400;
+  line-height: 1.25;
+  letter-spacing: -.008em;
+}
+
+.is-warning .kicker, .is-result .kicker { color: var(--accent); }
+.is-warning .block-title { border-bottom: 2px solid var(--accent); padding-bottom: .4rem; display: inline-block; }
+.is-result { background: var(--bench); margin: 0 -1.2rem; padding: 2.2rem 1.2rem; }
+.is-result .block-title { color: var(--accent); }
+
+/* Prosa: justificada con partición, que sin partición el español justificado abre
+   ríos. Tablas, código y pies de figura se quedan sin justificar. */
+.block p, .block li, .block dd, details > *:not(summary) {
+  max-width: var(--measure);
+  text-align: justify;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+}
+
+.block p { margin: 0 0 1rem; }
+.block p:last-child { margin-bottom: 0; }
+.block ul, .block ol { margin: 0 0 1rem; padding-left: 1.3rem; max-width: var(--measure); }
+.block li { margin-bottom: .5rem; }
+.block li::marker { color: var(--accent); font-family: var(--data); font-size: .85em; }
+
+td, th, figcaption, .assay, .thread a, .res li { text-align: left; hyphens: manual; }
+
+a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+a:hover { text-decoration-thickness: 2px; }
+strong { font-weight: 700; }
+em { font-style: italic; color: var(--ink-soft); }
+
+h3.sub {
+  margin: 1.9rem 0 .7rem;
+  font-size: 1.07rem;
+  font-weight: 700;
+  letter-spacing: -.004em;
+}
+
+h3.sub:first-child { margin-top: 0; }
+
+h4.sub {
+  margin: 1.4rem 0 .5rem;
+  font-family: var(--data);
+  font-size: .82rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  color: var(--ink-soft);
+}
+
+/* ------------------------------------------------------------ código y datos */
+
+code {
+  font-family: var(--data);
+  font-size: .87em;
+  background: var(--bench);
+  padding: .1em .32em;
+  border-radius: 2px;
+}
+
+pre {
+  margin: 0 0 1rem;
+  padding: 1rem 1.1rem;
+  background: var(--bench);
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--accent);
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+pre code { background: none; padding: 0; font-size: .82rem; line-height: 1.62; }
+
+/* La salida es lo que imprime el código, no código para correr: se marca aparte
+   para que nadie confunda entrada con salida. */
+.output {
+  margin: 0 0 1rem;
+  border: 1px dashed var(--rule);
+  background: transparent;
+}
+
+.output-tag {
+  display: block;
+  font-family: var(--data);
+  font-size: .64rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding: .45rem 1.1rem 0;
+}
+
+.output pre {
+  margin: 0;
+  border: 0;
+  background: none;
+  padding: .3rem 1.1rem 1rem;
+}
+
+.output pre code { color: var(--ink-soft); }
+
+/* La anotación línea por línea, para quien no ha programado antes. */
+.annot {
+  margin: 0 0 1.2rem;
+  border: 1px solid var(--rule);
+  border-top: 0;
+  padding: 0 1.1rem .6rem;
+  background: transparent;
+}
+
+.annot-head {
+  font-family: var(--data);
+  font-size: .64rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding: .55rem 0 .5rem;
+  border-bottom: 1px solid var(--rule-soft);
+  margin-bottom: .4rem;
+}
+
+.annot dt { padding: .4rem 0 .1rem; }
+.annot dt code { background: none; padding: 0; color: var(--accent); font-weight: 700; }
+.annot dd {
+  margin: 0 0 .4rem;
+  color: var(--ink-soft);
+  font-size: .94rem;
+  border-bottom: 1px solid var(--rule-soft);
+  padding-bottom: .5rem;
+}
+.annot dd:last-of-type { border-bottom: 0; }
+
+pre:has(+ .annot) { margin-bottom: 0; }
+
+blockquote {
+  margin: 0 0 1rem;
+  padding: .2rem 0 .2rem 1.1rem;
+  border-left: 3px solid var(--rule);
+  color: var(--ink-soft);
+  font-style: italic;
+  max-width: var(--measure);
+}
+
+/* --------------------------------------------------------------- tablas */
+
+.table-wrap { overflow-x: auto; margin: 0 0 1.2rem; }
+
+table {
+  border-collapse: collapse;
+  width: auto;
+  max-width: 100%;
+  font-size: .92rem;
+}
+
+th, td {
+  padding: .5rem .9rem .5rem 0;
+  border-bottom: 1px solid var(--rule-soft);
+  vertical-align: top;
+}
+
+th {
+  font-family: var(--data);
+  font-size: .7rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--ink-faint);
+  border-bottom: 1px solid var(--rule);
+  white-space: nowrap;
+}
+
+/* -------------------------------------------------------------- repaso */
+
+details {
+  border-bottom: 1px solid var(--rule-soft);
+  padding: .2rem 0;
+  max-width: var(--measure);
+}
+
+summary {
+  cursor: pointer;
+  list-style: none;
+  padding: .7rem 0 .7rem 1.5rem;
+  position: relative;
+  font-weight: 700;
+}
+
+summary::-webkit-details-marker { display: none; }
+
+summary::before {
+  content: '+';
+  position: absolute;
+  left: 0;
+  font-family: var(--data);
+  color: var(--accent);
+  font-weight: 700;
+}
+
+details[open] summary::before { content: '\2212'; }
+details[open] summary { color: var(--accent); }
+details > *:not(summary) { color: var(--ink-soft); }
+details > *:last-child { padding-bottom: .8rem; }
+
+/* -------------------------------------------------------------- figuras */
+
+figure.fig {
+  margin: 0 0 1.4rem;
+  max-width: 100%;
+  border: 1px solid var(--rule);
+  background: #fff;
+  padding: .6rem;
+}
+
+figure.fig img { width: 100%; height: auto; display: block; }
+
+figure.fig figcaption {
+  margin-top: .6rem;
+  padding-top: .5rem;
+  border-top: 1px solid var(--rule-soft);
+  font-family: var(--data);
+  font-size: .7rem;
+  letter-spacing: .04em;
+  color: var(--ink-faint);
+}
+
+.gone {
+  font-family: var(--data);
+  font-size: .76rem;
+  color: var(--accent);
+  border: 1px dashed var(--accent);
+  padding: .5rem .8rem;
+}
+
+/* ------------------------------------------------------- pie y navegación */
+
+.pager {
+  max-width: var(--wide);
+  margin: 0 auto;
+  padding: 0 2rem 3rem;
+  display: flex;
+  gap: 1.4rem;
+  justify-content: space-between;
+  font-family: var(--data);
+  font-size: .78rem;
+}
+
+.pager a { max-width: 46%; text-decoration: none; border-bottom: 1px solid var(--rule); padding-bottom: .3rem; }
+.pager a:hover { border-bottom-color: var(--accent); }
+.pager .dir { display: block; font-size: .64rem; letter-spacing: .13em; text-transform: uppercase; color: var(--ink-faint); }
+.pager .next { text-align: right; margin-left: auto; }
+
+.footer {
+  border-top: 1px solid var(--rule);
+  padding: 1.4rem 2rem 2.4rem;
+  font-family: var(--data);
+  font-size: .72rem;
+  letter-spacing: .06em;
+  color: var(--ink-faint);
+}
+
+.footer-inner { max-width: var(--wide); margin: 0 auto; display: flex; gap: 1.4rem; flex-wrap: wrap; }
+
+/* ------------------------------------------------------------- índice */
+
+.toc { list-style: none; margin: 0; padding: 0; max-width: 100%; }
+
+.toc li {
+  border-top: 1px solid var(--rule-soft);
+  max-width: 100%;
+}
+
+.toc li:last-child { border-bottom: 1px solid var(--rule-soft); }
+
+.toc a, .toc .pending {
+  display: grid;
+  grid-template-columns: 3rem minmax(0, 1fr) auto;
+  gap: 1.2rem;
+  align-items: baseline;
+  padding: 1rem .4rem;
+  text-decoration: none;
+  color: inherit;
+}
+
+.toc a:hover { background: var(--bench); }
+.toc .pending { color: var(--ink-faint); }
+.toc .num { font-family: var(--data); font-size: .82rem; font-weight: 700; }
+.toc .name { font-size: 1.05rem; }
+.toc .name small { display: block; font-family: var(--prose); font-size: .86rem; color: var(--ink-soft); margin-top: .2rem; }
+.toc .mark { font-family: var(--data); font-size: .82rem; font-weight: 700; white-space: nowrap; }
+.toc .tag { font-family: var(--data); font-size: .66rem; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-faint); }
+
+/* ---------------------------------------------------------- responsive */
+
+@media (max-width: 900px) {
+  .block { grid-template-columns: minmax(0, 1fr); }
+  .block > :not(.kicker) { grid-column: 1; }
+  .kicker { grid-column: 1; padding-top: 0; margin-bottom: .7rem; }
+  .thread { grid-auto-flow: row; grid-template-columns: repeat(5, 1fr); gap: 6px 4px; }
+  .thread .starts-part { margin-left: 0; }
+  .thread .starts-part::after { display: none; }
+  .toc a, .toc .pending { grid-template-columns: 2.2rem minmax(0, 1fr); }
+  .toc .mark { grid-column: 2; }
+}
+
+@media (max-width: 620px) {
+  body { font-size: 16px; }
+  .masthead-inner, .container, .pager, .footer { padding-left: 1.2rem; padding-right: 1.2rem; }
+  .is-result { margin: 0; padding: 2rem 1rem; }
+  .block p, .block li { text-align: left; }
+}
+
+@media print {
+  .thread, .pager { display: none; }
+  body { font-size: 11pt; }
+  .masthead { background: none; }
+  .block { break-inside: avoid; }
+}
+
+/* -------------------------------------------------- resumen y plegables */
+
+/* El resumen de entrada: la cifra, la trampa y la decision, en cinco vinetas.
+   Se lee en 30 segundos o se sigue leyendo. */
+.is-brief {
+  border-top: 0;
+  padding-top: .4rem;
+}
+
+.is-brief .kicker { color: var(--accent); }
+
+.is-brief ul {
+  list-style: none;
+  padding-left: 0;
+  max-width: var(--measure);
+  border-left: 3px solid var(--accent);
+  padding: .2rem 0 .2rem 1.1rem;
+}
+
+.is-brief li { margin-bottom: .7rem; text-align: left; }
+.is-brief li:last-child { margin-bottom: 0; }
+
+/* Los plegables de contenido denso: el glosario y la anotacion del codigo.
+   Cerrados por defecto, para que la pagina no sea un muro. */
+details.fold {
+  border: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+  background: transparent;
+  margin: 0 0 1.2rem;
+  padding: 0;
+  max-width: 100%;
+}
+
+details.fold > summary {
+  font-family: var(--data);
+  font-size: .68rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  font-weight: 400;
+  color: var(--ink-faint);
+  padding: .55rem .9rem .55rem 2rem;
+}
+
+details.fold > summary::before { left: .9rem; }
+details.fold[open] > summary {
+  color: var(--accent);
+  border-bottom: 1px solid var(--rule-soft);
+  margin-bottom: 0;
+}
+
+details.fold > *:not(summary) { padding: .8rem .9rem; color: inherit; }
+details.fold ul { margin-bottom: 0; }
+details.fold .annot { border: 0; padding: 0; margin: 0; }
+details.fold .annot dd { max-width: var(--measure); }
+
+/* Un bloque de codigo seguido de su plegable van pegados. */
+pre:has(+ details.fold) { margin-bottom: 0; border-bottom: 0; }
+
+/* The course exists in Spanish only; an English reader gets an honest way out, to the
+   project's summary on the portfolio, instead of a language switch that does not exist. */
+.portfolio-link {
+  float: right;
+  margin: 0 0 .6rem 1.2rem;
+  font-family: var(--data);
+  font-size: .7rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: inherit;
+  opacity: .72;
+  text-decoration: none;
+  border-bottom: 1px solid currentColor;
+}
+.portfolio-link:hover { opacity: 1; }
+
+:root { --accent: #632727; }
+</style>
+</head>
+<body>
+<header class="masthead">
+  <div class="masthead-inner">
+    <a class="portfolio-link" href="m07_contra_que_se_compara.html" hreflang="es" rel="alternate">Español</a>
+    <div class="eyebrow"><a href="index.en.html">Silica</a> / Module <b>7</b> of 14</div>
+    <h1>What a model is compared against</h1>
+    <p class="standfirst">Permutation importance, SHAP, and the measurement that takes almost all the credit away from module 5</p>
+    <div class="figure-mark">
+      <span class="figure-value">+0.009</span>
+      <span class="figure-label">what ML adds over persistence</span>
+    </div>
+    <nav class="thread" aria-label="The arc of the project"><a href="m01_radiografia_del_dataset.en.html" title="1. An X-ray of the dataset"><span class="n">1</span> <span class="v">737,453</span></a><a href="m02_el_primer_modelo_y_el_techo.en.html" title="2. The first model, and the ceiling that appeared at once"><span class="n">2</span> <span class="v">R² 0.04</span></a><a href="m03_como_aprende_un_modelo.en.html" title="3. How a model learns on the inside"><span class="n">3</span> <span class="v">R² 0.06</span></a><a href="m04_preprocesar_y_validar.en.html" title="4. Preprocessing and validating without cheating"><span class="n">4</span> <span class="v">R² −0.13</span></a><a href="m05_darle_memoria_al_modelo.en.html" title="5. Giving the model a memory"><span class="n">5</span> <span class="v">R² 0.64</span></a><a href="m06_clasificar_fuera_de_spec.en.html" title="6. Classifying: in or out of specification"><span class="n">6</span> <span class="v">0.62 vs 0.77</span></a><span aria-current="page" title="7. What a model is compared against"><span class="n">7</span> <span class="v">+0.009</span></span><a href="m08_donde_aporta_el_ml.en.html" title="8. Where does ML really add value?"><span class="n">8</span> <span class="v">0 of 4</span></a><a href="m09_los_tres_estados_de_la_planta.en.html" title="9. The three states of the plant"><span class="n">9</span> <span class="v">k = 3</span></a><a href="m10_redes_producto_y_cierre.en.html" title="10. Networks, product and closing"><span class="n">10</span> <span class="v">0.76</span></a><a class="starts-part" href="m11_modelos_de_secuencia.en.html" title="11. Sequence models: LSTM, GRU and causal convolution"><span class="n">11</span> <span class="v">+0.215</span></a><a href="m12_practica_de_pronostico.en.html" title="12. The forecasting practice that was missing"><span class="n">12</span> <span class="v">0.52 vs 0.63</span></a><a href="m13_incertidumbre.en.html" title="13. Uncertainty: from the point to the interval"><span class="n">13</span> <span class="v">92.0%</span></a><a href="m14_lectura_causal.en.html" title="14. A causal reading of the control loop"><span class="n">14</span> <span class="v">+0.16</span></a></nav>
+    <div class="assay"><span><b>2</b> source notes</span><span><b>4</b> figures</span><span><b>3</b> scripts</span></div>
+  </div>
+</header>
+<main class="container">
+<section class="block is-brief"><span class="kicker">Summary</span><h2 class="block-title">In 30 seconds</h2><ul><li><strong>+0.009.</strong> That is all machine learning adds over repeating the laboratory&#x27;s last assay.</li><li><strong>Persistence was already worth 0.632.</strong> The 0.641 of module 5 was not the model&#x27;s merit, it was the inertia of the process.</li><li><strong>Permutation importance gives it away.</strong> Shuffling <code>sil_lag1</code> sinks the R² by 0.818. The next variable is barely worth 0.050.</li><li><strong>SHAP explains the model, not the process.</strong> It shows where each prediction comes from, and here almost all of it comes from the same place.</li><li><strong>This is the most expensive lesson of the project.</strong> Choose the rival before seeing the result.</li></ul></section>
+<section class="block "><span class="kicker">Context</span><h2 class="block-title">What this module solves</h2><p>Module 5 left a question open on purpose. Its best variable was the previous hour&#x27;s silica, and its toy example already warned that this column alone predicts fairly well.</p><p>Here it is answered with two tools. The first measures what the model holds on to. The second puts the right rival in front of it.</p><p>Both point to the same place, and the result forces a rereading of modules 5 and 6.</p></section>
+<section class="block is-toy"><span class="kicker">By hand</span><h2 class="block-title">Before the theory: a toy example</h2><p>The same six hours as module 5, predicting from 2 to 6.</p><div class="table-wrap"><table><thead><tr><th>Hour</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th></tr></thead><tbody><tr><td><strong>% SiO₂</strong></td><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td><td>6</td></tr></tbody></table></div><h3 class="sub">Step 1. How much variation there is to explain</h3><p>The mean of hours 2 to 6 is 4.</p><pre><code>total variation = (2−4)² + (3−4)² + (4−4)² + (5−4)² + (6−4)²
+                =   4    +   1    +   0    +   1    +   4
+                = 10</code></pre><p>R² is built by comparing a model&#x27;s error against that 10.</p><h3 class="sub">Step 2. A model that looks very good</h3><p>A model predicts 1.5 · 2.5 · 3.5 · 4.5 · 5.0.</p><pre><code>actual:     2      3      4      5      6
+predicted: 1.5    2.5    3.5    4.5    5.0
+miss:     −0.5   −0.5   −0.5   −0.5   −1.0
+error =   0.25 + 0.25 + 0.25 + 0.25 + 1.00 = 2</code></pre><pre><code>R² = 1 − (2 / 10) = 1 − 0.2 = 0.80</code></pre><p><strong>R² 0.80.</strong> A result that any report would present as a success.</p><h3 class="sub">Step 3. What a rule without a model achieves</h3><p>Repeating the previous hour, as in module 5.</p><pre><code>actual:     2      3      4      5      6
+predicted:  1      2      3      4      5
+miss:      +1     +1     +1     +1     +1
+error =    1 + 1 + 1 + 1 + 1 = 5</code></pre><pre><code>R² = 1 − (5 / 10) = 1 − 0.5 = 0.50</code></pre><h3 class="sub">Step 4. Share out the credit</h3><pre><code>the model explains              0.80
+persistence already explained   0.50
+                                ----
+the model&#x27;s own contribution    0.30</code></pre><p><strong>Of that 0.80, two thirds were already there for free.</strong> The model adds 0.30, not 0.80.</p><h3 class="sub">Step 5. And how to know what the model holds on to</h3><p>Shuffle one column at random, score again, and see how much it fell. If destroying a column sinks the model, that column was holding it up.</p><div class="table-wrap"><table><thead><tr><th>Shuffled column</th><th>R² afterwards</th><th>Drop</th></tr></thead><tbody><tr><td>None</td><td>0.80</td><td>reference</td></tr><tr><td>Previous hour&#x27;s silica</td><td>0.10</td><td><strong>0.70</strong></td></tr><tr><td>pH</td><td>0.78</td><td>0.02</td></tr><tr><td>Air</td><td>0.80</td><td>0.00</td></tr></tbody></table></div><p>One column takes 0.70 and the others do not reach 0.02. That is the profile of a model that leans on one single thing. <strong>And that thing is free.</strong></p></section>
+<section class="block is-terms"><span class="kicker">Terms</span><h2 class="block-title">Glossary</h2><details class="fold"><summary>9 terms, in plain words</summary><ul><li><strong>Persistence baseline.</strong> Predicting that the next value will equal the last one measured. No model and no cost.</li><li><strong>The model&#x27;s contribution.</strong> The difference between what the model scores and what the right baseline scores. It is the only thing that can be credited to it.</li><li><strong>Permutation importance.</strong> Shuffling a column and measuring how much the model worsens. Done on test data and with the model already trained.</li><li><strong>Impurity importance.</strong> The one from module 2, which comes out of the tree&#x27;s splits. It is biased towards variables with many distinct values.</li><li><strong>SHAP.</strong> A method that shares each specific prediction out among the variables that pushed it. Short for <em>SHapley Additive exPlanations</em>.</li><li><strong>Local explanation.</strong> Why the model said what it said in <strong>one</strong> specific case.</li><li><strong>Global explanation.</strong> What the model holds on to in general, adding up many cases.</li><li><strong>Waterfall plot.</strong> The SHAP figure that shows one case, stacking the contributions.</li><li><strong>Beeswarm plot.</strong> The SHAP figure that shows many cases at once, one row per variable.</li></ul></details></section>
+<section class="block is-method"><span class="kicker">Method</span><h2 class="block-title">Step by step</h2><h3 class="sub">Step 1. Measure importance again, better</h3><p>The importance of module 2 came out of how the tree was built. It serves, but it is biased.</p><p>Permutation importance is more direct. It takes the model already trained, wrecks one column by shuffling it, and measures how much it worsens. What it measures is <strong>how much the model depends on that column</strong>.</p><h3 class="sub">Step 2. Read the profile of dependencies</h3><p>If the importance is spread over many columns, the model combines information. If a single one takes almost all of it, the model is that column with decorations.</p><h3 class="sub">Step 3. Put the right rival in front</h3><p>Three competitors, not two:</p><ul><li>always predicting the mean, which is the rival of module 2,</li><li>repeating the last assay, which is persistence,</li><li>the full model.</li></ul><h3 class="sub">Step 4. Subtract, do not compare</h3><p>The number that matters is not the model&#x27;s R². It is the difference against the right baseline.</p><h3 class="sub">Step 5. Open up one specific prediction</h3><p>Global importance says what the model depends on, on average. SHAP goes down to the case: why this specific alarm, at this specific hour.</p></section>
+<section class="block is-code"><span class="kicker">Code</span><h2 class="block-title">The code, in parts</h2><h3 class="sub">Step 1. Permutation importance</h3><pre><code class="language-python">from sklearn.inspection import permutation_importance
+
+resultado = permutation_importance(modelo, X_test, y_test,
+                                   n_repeats=5, random_state=0, scoring=&quot;r2&quot;)
+orden = resultado.importances_mean.argsort()[::-1]
+for i in orden[:4]:
+    print(f&quot;  {resultado.importances_mean[i]:.3f}  {feats[i]}&quot;)</code></pre><details class="fold"><summary>line by line, 4 entries</summary><dl class="annot"><dt><code>permutation_importance(...)</code></dt><dd>Shuffles each column in turn and measures the drop in the metric.</dd><dt><code>n_repeats=5</code></dt><dd>Repeats the shuffle five times per column, because the chance of a single time misleads.</dd><dt><code>.importances_mean</code></dt><dd>The mean drop of each column. It is in the units of the metric, here R².</dd><dt><code>.argsort()[::-1]</code></dt><dd>Sorts from smallest to largest and then reverses it, so they come out largest first.</dd></dl></details><div class="output"><span class="output-tag">prints</span><pre><code>R2 del modelo: 0.641
+Top 6 por permutacion:
+  0.818  sil_lag1
+  0.050  sil_lag2
+  0.010  sil_roll3
+  0.006  sil_lag3
+  0.004  Ore Pulp Density
+  0.002  Flotation Column 04 Level</code></pre></div><figure class="fig"><img src="../figuras/fig_m7_permutation.39ea6a4f.png" alt="The drop in R² when each column is shuffled. In green the four memory ones. A single one takes practically everything." loading="lazy"><figcaption>The drop in R² when each column is shuffled. In green the four memory ones. A single one takes practically everything.</figcaption></figure><p><strong>0.818 against 0.050.</strong> Shuffling the previous hour&#x27;s silica sinks the model by more than its own R² is worth. No process variable reaches 0.005.</p><p>The model did not learn the process. It learned that the process changes slowly.</p><h3 class="sub">Step 2. Put the three competitors on the same scale</h3><pre><code class="language-python">r2_media = r2_score(y_test, [y_train.mean()] * len(y_test))
+r2_persistencia = r2_score(y_test, test[&quot;sil_lag1&quot;])
+r2_modelo = r2_score(y_test, modelo.predict(X_test))
+print(f&quot;aporte del ML sobre persistencia: {r2_modelo - r2_persistencia:+.3f}&quot;)</code></pre><details class="fold"><summary>line by line, 2 entries</summary><dl class="annot"><dt><code>test[&quot;sil_lag1&quot;]</code></dt><dd>The lag column used directly as the prediction. It is persistence whole, with no model.</dd><dt><code>{...:+.3f}</code></dt><dd>The plus sign forces the sign to print, also when the number is positive.</dd></dl></details><div class="output"><span class="output-tag">prints</span><pre><code>mean -0.000 | persistencia 0.632 | modelo 0.641
+aporte del ML sobre persistencia: +0.009</code></pre></div><figure class="fig"><img src="../figuras/fig_m7_persistencia.c1244c91.png" alt="The three competitors. The arrow between the two bars on the right is everything machine learning adds." loading="lazy"><figcaption>The three competitors. The arrow between the two bars on the right is everything machine learning adds.</figcaption></figure><h3 class="sub">Step 3. Open up a prediction with SHAP</h3><pre><code class="language-python">import shap
+
+explainer = shap.TreeExplainer(clasificador)
+valores = explainer(X_test.iloc[:300])
+shap.plots.waterfall(valores[264])</code></pre><details class="fold"><summary>line by line, 3 entries</summary><dl class="annot"><dt><code>shap.TreeExplainer</code></dt><dd>The fast version of SHAP for tree models. With other models the generic one has to be used, which is far slower.</dd><dt><code>explainer(X)</code></dt><dd>Computes, for each row and each column, how much that column pushed the prediction.</dd><dt><code>valores[264]</code></dt><dd>One specific row. The waterfall explains that case, not the whole model.</dd></dl></details><div class="output"><span class="output-tag">prints</span><pre><code>shape de los valores SHAP: (300, 25)
+Caso explicado: fila 264, probabilidad 0.889</code></pre></div><figure class="fig"><img src="../figuras/fig_m7_shap_caso.fcb78c14.png" alt="One specific alarm, with probability 0.889, opened up. Each bar is what one variable contributed." loading="lazy"><figcaption>One specific alarm, with probability 0.889, opened up. Each bar is what one variable contributed.</figcaption></figure><figure class="fig"><img src="../figuras/fig_m7_shap_global.7d692c35.png" alt="The beeswarm: 300 cases at once. One row per variable, and the colour is the value of that variable." loading="lazy"><figcaption>The beeswarm: 300 cases at once. One row per variable, and the colour is the value of that variable.</figcaption></figure><p>In the waterfall, the previous hour&#x27;s silica was 4.79 and pushes the alarm by <strong>+3.4</strong>. Everything else together does not reach +1.3. The beeswarm confirms the same across 300 cases.</p></section>
+<section class="block is-result"><span class="kicker">Result</span><h2 class="block-title">The result, measured</h2><p><strong>What we expected.</strong> That the model would combine memory and process, and that the contribution over persistence would be modest but clear, perhaps 0.05 or 0.10.</p><p><strong>What came out.</strong></p><div class="table-wrap"><table><thead><tr><th>Competitor</th><th>Test R²</th></tr></thead><tbody><tr><td>Predicting the mean</td><td>−0.000</td></tr><tr><td><strong>Repeating the laboratory&#x27;s last assay</strong></td><td><strong>0.632</strong></td></tr><tr><td>Boosting with 25 variables</td><td>0.641</td></tr><tr><td><strong>Machine learning&#x27;s own contribution</strong></td><td><strong>+0.009</strong></td></tr></tbody></table></div><p><strong>What it means.</strong> The 0.641 of module 5 was real, and almost all of it was inertia. The plant changes slowly, so the value of an hour ago is an excellent prediction on its own.</p><p>Nine thousandths is the price of the whole project: the cleaning, the built variables, the boosting and the tuning. <strong>None of it buys a model worth deploying.</strong></p><h3 class="sub">The correct reading of the previous modules</h3><p>Nothing earlier has to be thrown away. It has to be reread with the right rival in front.</p><div class="table-wrap"><table><thead><tr><th>Module</th><th>What it said</th><th>What it says with the right baseline</th></tr></thead><tbody><tr><td>2</td><td>R² 0.04, the problem&#x27;s ceiling</td><td>Correct, and against a weak rival</td></tr><tr><td>4</td><td>R² −0.13 with honest validation</td><td>Correct, and even more severe</td></tr><tr><td>5</td><td>R² 0.64, the best in the project</td><td>The number is real. The own merit is +0.009</td></tr><tr><td>6</td><td>The classifier beats the baseline</td><td>Against persistence, it loses: it catches 113 of 182 against 140</td></tr></tbody></table></div><h3 class="sub">Why this is not a failure</h3><p>A well-measured negative result is a result. And this one is measured three times: by permutation, by direct comparison and by SHAP.</p><p>What is demonstrated here is that <strong>the inertia of the process already contains almost all the predictable information one hour ahead</strong>. That is a finding about the plant, not about the model.</p><h3 class="sub">What this module leaves open</h3><p>One way out remains. At one hour, persistence is unbeatable because the process has barely moved. At longer horizons that advantage has to disappear.</p><p>If machine learning adds anything, it has to be there. Module 8 repeats the measurement at 1, 3, 6 and 12 hours, and also changes the question: predicting the <strong>change</strong> instead of the level.</p></section>
+<section class="block is-warning"><span class="kicker">Traps</span><h2 class="block-title">Watch out</h2><ul><li><strong>A high R² is not merit until the baseline is subtracted.</strong> Here 0.641 becomes +0.009.</li><li><strong>The baseline is chosen before seeing the result.</strong> If it is chosen afterwards, the one that flatters the model most gets chosen.</li><li><strong>Impurity importance and permutation importance do not measure the same thing.</strong> The first comes from how the tree was built. The second, from how much the finished model depends on it.</li><li><strong>Permutation is done on test data.</strong> On training it measures memorisation.</li><li><strong>SHAP explains the model, never the process.</strong> If the model learned a correlation inverted by the control loop, SHAP will explain it with perfect composure.</li><li><strong>A single variable with dominant importance is an alarm.</strong> It almost always means leakage, or that the variable is the target in disguise.</li></ul></section>
+<section class="block is-bridge"><span class="kicker">Analogy</span><h2 class="block-title">Metallurgical bridge</h2><p>The right baseline is the <strong>blank of a test</strong>. Nobody reports the recovery of a new reagent without running a test without reagent in parallel. If the blank already gives 90% of what the reagent gives, the reagent contributes the remaining 10%, not the 100% the meter shows.</p><p>Persistence is the blank test of this project. It scores 0.632 while doing nothing.</p><p>Permutation importance is a <strong>sensitivity test in the plant</strong>. One variable is disturbed and you see how much the result moves. If disconnecting a sensor changes nothing, that sensor was not governing the process.</p><p>And the result has a very concrete operating reading. That the grade of an hour ago predicts the grade now means that <strong>the circuit has a long residence time compared with the laboratory&#x27;s frequency</strong>. That is real information about the plant, and no model gives it: the baseline does.</p></section>
+<section class="block is-review"><span class="kicker">Review</span><h2 class="block-title">Review</h2><details><summary>The model gives R² 0.641 and persistence 0.632. How do you sum that up in one sentence?</summary><p>The model adds nine thousandths over repeating the laboratory&#x27;s last assay.</p><p>That is the number to give, not the 0.641. A model&#x27;s R² is measured against predicting the mean, which here is a rival with no information at all. Persistence does use information the plant already has, so it is the honest rival. All the work of cleaning, built variables and boosting buys +0.009.</p></details><details><summary>Shuffling one column sinks the R² by 0.818, when the whole model is worth 0.641. How can that be?</summary><p>Because R² can go below zero, and that is where the model falls without that column.</p><p>Permutation importance measures the difference between the R² with the column intact and the R² with the column shuffled. If with it the score is 0.641 and without it it falls to −0.177, the drop is 0.818. There is no cap at 1: the drop can exceed the original R² when the wrecked model predicts worse than the mean.</p></details><details><summary>What exactly does SHAP explain, and what does it not?</summary><p>It explains the model. It does not explain the process.</p><p>SHAP shares a specific prediction out among the variables that pushed it, and it does so faithfully: it says where that number came from. What it cannot say is whether that relationship is causal. In this project the amine appears with its sign inverted with respect to the chemistry, because the operator doses more when the silica rises. SHAP will reproduce that inverted relationship without blinking, because it is the one the model learned. Confusing a SHAP explanation with a physical explanation is the most common mistake in using it.</p></details><details><summary>The project spent five modules celebrating improvements. Were they wrong?</summary><p>They were not wrong, they were wrongly compared. The measurements were correct and still are.</p><p>Module 2 measured its 0.04 well, module 4 measured its −0.126 well and module 5 measured its 0.641 well. What was missing was the right rival in the same table. As soon as it appears, the 0.641 breaks down into 0.632 of inertia and 0.009 of model. The practical lesson is that the baseline is defined at the start of the project, not at the end, because choosing it at the end means choosing the one that flatters the work done.</p></details><details><summary>If persistence wins at one hour, where could machine learning contribute?</summary><p>At longer horizons, and by predicting the change instead of the level.</p><p>Persistence wins at one hour because the process has barely moved in that time. The further ahead you look, the more that advantage degrades, and that is where a model with process information could contribute something of its own. The other route is to change the question: instead of predicting how much silica there will be, predict how much it is going to rise or fall. Persistence, by definition, always predicts zero change. Module 8 measures both ideas.</p></details></section>
+</main>
+<nav class="pager"><a class="prev" href="m06_clasificar_fuera_de_spec.en.html"><span class="dir">Previous</span>6. Classifying: in or out of specification</a><a class="next" href="m08_donde_aporta_el_ml.en.html"><span class="dir">Next</span>8. Where does ML really add value?</a></nav>
+<footer class="footer">
+  <div class="footer-inner">
+    <span>Silica / Module 7</span>
+    <span>generated on 2026-08-22</span>
+    <span>source: the 31 original notes, their scripts and the plant CSV</span>
+  </div>
+</footer>
+</body>
+</html>

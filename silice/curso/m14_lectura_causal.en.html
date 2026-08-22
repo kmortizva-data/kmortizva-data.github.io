@@ -1,0 +1,683 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>A causal reading of the control loop · Silica, module 14</title>
+<link rel="alternate" hreflang="es" href="m14_lectura_causal.html">
+<style>
+/* Sílice: la hoja de estilos del curso.
+ *
+ * Identidad de papel de informe de planta, no de pantalla. El proyecto termina
+ * recomendando no desplegar, y eso es un informe técnico: papel hueso, tinta grafito,
+ * y una retícula de milimetrado muy tenue en la cabecera.
+ *
+ * Dos familias tipográficas y ni una más, las dos del sistema porque el sitio se abre
+ * desde file:// y tiene que funcionar sin internet: serif para la prosa (se lee como
+ * informe) y monoespaciada para todo lo que es dato, código, cifra o etiqueta.
+ *
+ * El acento lo inyecta cada página con --accent: es el del módulo, y marca su posición
+ * en el arco del proyecto. Los diez pasan check_palette.py antes de entrar aquí.
+ */
+
+:root {
+  --paper: #f6f3ec;
+  --bench: #eeeade;
+  --ink: #2a2622;
+  --ink-soft: #57504a;
+  --ink-faint: #8a8177;
+  --rule: #ddd6c6;
+  --rule-soft: #e8e2d4;
+  --grid: rgba(84, 69, 73, .07);
+  --accent: #632727;
+
+  --prose: Georgia, "Iowan Old Style", "Palatino Linotype", Palatino, "Times New Roman", serif;
+  --data: "Cascadia Mono", Consolas, "DejaVu Sans Mono", "Liberation Mono", monospace;
+
+  --measure: 680px;   /* la medida de la prosa, en píxeles y nunca en ch */
+  --wide: 1180px;     /* el borde derecho de los bloques anchos */
+  --margin: 132px;    /* la columna del margen, donde cuelgan los kickers */
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--prose);
+  font-size: 17px;
+  line-height: 1.62;
+  -webkit-text-size-adjust: 100%;
+}
+
+::selection { background: var(--accent); color: var(--paper); }
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+/* --------------------------------------------------------------- cabecera */
+
+.masthead {
+  border-bottom: 1px solid var(--rule);
+  background-color: var(--bench);
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 26px 26px;
+  background-position: -1px -1px;
+}
+
+.masthead-inner {
+  max-width: var(--wide);
+  margin: 0 auto;
+  padding: 2.4rem 2rem 1.6rem;
+}
+
+.eyebrow {
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-bottom: 1rem;
+}
+
+.eyebrow a { color: inherit; text-decoration: none; border-bottom: 1px solid transparent; }
+.eyebrow a:hover { border-bottom-color: var(--accent); color: var(--accent); }
+.eyebrow b { color: var(--accent); font-weight: 400; }
+
+.masthead h1 {
+  margin: 0;
+  font-size: clamp(1.9rem, 4.4vw, 2.9rem);
+  line-height: 1.14;
+  font-weight: 400;
+  letter-spacing: -.012em;
+  max-width: 900px;
+}
+
+.standfirst {
+  margin: .9rem 0 0;
+  max-width: var(--measure);
+  color: var(--ink-soft);
+  font-size: 1.02rem;
+  line-height: 1.55;
+}
+
+/* La cifra del módulo: el número que dejó, en grande, junto al título. Es lo que
+   convierte la cabecera en parte del argumento y no en decoración. */
+.figure-mark {
+  margin-top: 1.6rem;
+  display: flex;
+  align-items: baseline;
+  gap: .8rem;
+  flex-wrap: wrap;
+  border-left: 3px solid var(--accent);
+  padding-left: .9rem;
+}
+
+.figure-value {
+  font-family: var(--data);
+  font-size: clamp(1.5rem, 3.4vw, 2.1rem);
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: -.02em;
+}
+
+.figure-label {
+  font-family: var(--data);
+  font-size: .78rem;
+  letter-spacing: .04em;
+  color: var(--ink-soft);
+}
+
+/* El hilo del proyecto: diez segmentos, uno por módulo, con su cifra debajo. Desde
+   cualquier página se ve el recorrido entero, que es justo lo que a los apuntes
+   sueltos les faltaba. */
+.thread {
+  margin-top: 1.8rem;
+  display: grid;
+  /* One equal column per segment, whatever the temario says. It was pinned to ten and
+     the course grew to fourteen. */
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: 4px;
+}
+
+/* Where part 2 starts: the four modules that were never in the original project. */
+.thread .starts-part { margin-left: 10px; position: relative; }
+.thread .starts-part::after {
+  content: '';
+  position: absolute;
+  left: -7px; top: -3px; bottom: 0;
+  border-left: 1px solid var(--rule);
+}
+
+.thread a, .thread span {
+  display: block;
+  text-decoration: none;
+  color: var(--ink-faint);
+  font-family: var(--data);
+  font-size: .62rem;
+  letter-spacing: .04em;
+  padding-top: .4rem;
+  border-top: 3px solid var(--rule);
+  transition: color .12s, border-color .12s;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.thread a:hover { color: var(--ink); border-top-color: var(--ink-soft); }
+.thread [aria-current="page"] { color: var(--accent); border-top-color: var(--accent); }
+.thread .n { font-weight: 700; }
+.thread .v { color: inherit; opacity: .75; }
+
+/* Las pastillas de composición: de qué está hecho el módulo. */
+.assay {
+  margin-top: 1.6rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.4rem;
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .05em;
+  color: var(--ink-faint);
+}
+
+.assay b { color: var(--ink); font-weight: 700; }
+
+/* ----------------------------------------------------------------- cuerpo */
+
+.container {
+  max-width: var(--wide);
+  margin: 0 auto;
+  padding: 2.6rem 2rem 4rem;
+}
+
+/* Cada sección es una anotación de cuaderno: el kicker cuelga en el margen
+   izquierdo y el contenido corre en la columna principal. En pantalla estrecha el
+   kicker se pone encima. */
+.block {
+  display: grid;
+  grid-template-columns: var(--margin) minmax(0, 1fr);
+  column-gap: 2rem;
+  padding: 2.2rem 0;
+  border-top: 1px solid var(--rule);
+}
+
+.block:first-child { border-top: 0; padding-top: .6rem; }
+
+.kicker {
+  grid-column: 1;
+  font-family: var(--data);
+  font-size: .68rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding-top: .45rem;
+}
+
+.block > :not(.kicker) { grid-column: 2; }
+
+.block-title {
+  margin: 0 0 1.1rem;
+  font-size: 1.42rem;
+  font-weight: 400;
+  line-height: 1.25;
+  letter-spacing: -.008em;
+}
+
+.is-warning .kicker, .is-result .kicker { color: var(--accent); }
+.is-warning .block-title { border-bottom: 2px solid var(--accent); padding-bottom: .4rem; display: inline-block; }
+.is-result { background: var(--bench); margin: 0 -1.2rem; padding: 2.2rem 1.2rem; }
+.is-result .block-title { color: var(--accent); }
+
+/* Prosa: justificada con partición, que sin partición el español justificado abre
+   ríos. Tablas, código y pies de figura se quedan sin justificar. */
+.block p, .block li, .block dd, details > *:not(summary) {
+  max-width: var(--measure);
+  text-align: justify;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+}
+
+.block p { margin: 0 0 1rem; }
+.block p:last-child { margin-bottom: 0; }
+.block ul, .block ol { margin: 0 0 1rem; padding-left: 1.3rem; max-width: var(--measure); }
+.block li { margin-bottom: .5rem; }
+.block li::marker { color: var(--accent); font-family: var(--data); font-size: .85em; }
+
+td, th, figcaption, .assay, .thread a, .res li { text-align: left; hyphens: manual; }
+
+a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+a:hover { text-decoration-thickness: 2px; }
+strong { font-weight: 700; }
+em { font-style: italic; color: var(--ink-soft); }
+
+h3.sub {
+  margin: 1.9rem 0 .7rem;
+  font-size: 1.07rem;
+  font-weight: 700;
+  letter-spacing: -.004em;
+}
+
+h3.sub:first-child { margin-top: 0; }
+
+h4.sub {
+  margin: 1.4rem 0 .5rem;
+  font-family: var(--data);
+  font-size: .82rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  color: var(--ink-soft);
+}
+
+/* ------------------------------------------------------------ código y datos */
+
+code {
+  font-family: var(--data);
+  font-size: .87em;
+  background: var(--bench);
+  padding: .1em .32em;
+  border-radius: 2px;
+}
+
+pre {
+  margin: 0 0 1rem;
+  padding: 1rem 1.1rem;
+  background: var(--bench);
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--accent);
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+pre code { background: none; padding: 0; font-size: .82rem; line-height: 1.62; }
+
+/* La salida es lo que imprime el código, no código para correr: se marca aparte
+   para que nadie confunda entrada con salida. */
+.output {
+  margin: 0 0 1rem;
+  border: 1px dashed var(--rule);
+  background: transparent;
+}
+
+.output-tag {
+  display: block;
+  font-family: var(--data);
+  font-size: .64rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding: .45rem 1.1rem 0;
+}
+
+.output pre {
+  margin: 0;
+  border: 0;
+  background: none;
+  padding: .3rem 1.1rem 1rem;
+}
+
+.output pre code { color: var(--ink-soft); }
+
+/* La anotación línea por línea, para quien no ha programado antes. */
+.annot {
+  margin: 0 0 1.2rem;
+  border: 1px solid var(--rule);
+  border-top: 0;
+  padding: 0 1.1rem .6rem;
+  background: transparent;
+}
+
+.annot-head {
+  font-family: var(--data);
+  font-size: .64rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding: .55rem 0 .5rem;
+  border-bottom: 1px solid var(--rule-soft);
+  margin-bottom: .4rem;
+}
+
+.annot dt { padding: .4rem 0 .1rem; }
+.annot dt code { background: none; padding: 0; color: var(--accent); font-weight: 700; }
+.annot dd {
+  margin: 0 0 .4rem;
+  color: var(--ink-soft);
+  font-size: .94rem;
+  border-bottom: 1px solid var(--rule-soft);
+  padding-bottom: .5rem;
+}
+.annot dd:last-of-type { border-bottom: 0; }
+
+pre:has(+ .annot) { margin-bottom: 0; }
+
+blockquote {
+  margin: 0 0 1rem;
+  padding: .2rem 0 .2rem 1.1rem;
+  border-left: 3px solid var(--rule);
+  color: var(--ink-soft);
+  font-style: italic;
+  max-width: var(--measure);
+}
+
+/* --------------------------------------------------------------- tablas */
+
+.table-wrap { overflow-x: auto; margin: 0 0 1.2rem; }
+
+table {
+  border-collapse: collapse;
+  width: auto;
+  max-width: 100%;
+  font-size: .92rem;
+}
+
+th, td {
+  padding: .5rem .9rem .5rem 0;
+  border-bottom: 1px solid var(--rule-soft);
+  vertical-align: top;
+}
+
+th {
+  font-family: var(--data);
+  font-size: .7rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--ink-faint);
+  border-bottom: 1px solid var(--rule);
+  white-space: nowrap;
+}
+
+/* -------------------------------------------------------------- repaso */
+
+details {
+  border-bottom: 1px solid var(--rule-soft);
+  padding: .2rem 0;
+  max-width: var(--measure);
+}
+
+summary {
+  cursor: pointer;
+  list-style: none;
+  padding: .7rem 0 .7rem 1.5rem;
+  position: relative;
+  font-weight: 700;
+}
+
+summary::-webkit-details-marker { display: none; }
+
+summary::before {
+  content: '+';
+  position: absolute;
+  left: 0;
+  font-family: var(--data);
+  color: var(--accent);
+  font-weight: 700;
+}
+
+details[open] summary::before { content: '\2212'; }
+details[open] summary { color: var(--accent); }
+details > *:not(summary) { color: var(--ink-soft); }
+details > *:last-child { padding-bottom: .8rem; }
+
+/* -------------------------------------------------------------- figuras */
+
+figure.fig {
+  margin: 0 0 1.4rem;
+  max-width: 100%;
+  border: 1px solid var(--rule);
+  background: #fff;
+  padding: .6rem;
+}
+
+figure.fig img { width: 100%; height: auto; display: block; }
+
+figure.fig figcaption {
+  margin-top: .6rem;
+  padding-top: .5rem;
+  border-top: 1px solid var(--rule-soft);
+  font-family: var(--data);
+  font-size: .7rem;
+  letter-spacing: .04em;
+  color: var(--ink-faint);
+}
+
+.gone {
+  font-family: var(--data);
+  font-size: .76rem;
+  color: var(--accent);
+  border: 1px dashed var(--accent);
+  padding: .5rem .8rem;
+}
+
+/* ------------------------------------------------------- pie y navegación */
+
+.pager {
+  max-width: var(--wide);
+  margin: 0 auto;
+  padding: 0 2rem 3rem;
+  display: flex;
+  gap: 1.4rem;
+  justify-content: space-between;
+  font-family: var(--data);
+  font-size: .78rem;
+}
+
+.pager a { max-width: 46%; text-decoration: none; border-bottom: 1px solid var(--rule); padding-bottom: .3rem; }
+.pager a:hover { border-bottom-color: var(--accent); }
+.pager .dir { display: block; font-size: .64rem; letter-spacing: .13em; text-transform: uppercase; color: var(--ink-faint); }
+.pager .next { text-align: right; margin-left: auto; }
+
+.footer {
+  border-top: 1px solid var(--rule);
+  padding: 1.4rem 2rem 2.4rem;
+  font-family: var(--data);
+  font-size: .72rem;
+  letter-spacing: .06em;
+  color: var(--ink-faint);
+}
+
+.footer-inner { max-width: var(--wide); margin: 0 auto; display: flex; gap: 1.4rem; flex-wrap: wrap; }
+
+/* ------------------------------------------------------------- índice */
+
+.toc { list-style: none; margin: 0; padding: 0; max-width: 100%; }
+
+.toc li {
+  border-top: 1px solid var(--rule-soft);
+  max-width: 100%;
+}
+
+.toc li:last-child { border-bottom: 1px solid var(--rule-soft); }
+
+.toc a, .toc .pending {
+  display: grid;
+  grid-template-columns: 3rem minmax(0, 1fr) auto;
+  gap: 1.2rem;
+  align-items: baseline;
+  padding: 1rem .4rem;
+  text-decoration: none;
+  color: inherit;
+}
+
+.toc a:hover { background: var(--bench); }
+.toc .pending { color: var(--ink-faint); }
+.toc .num { font-family: var(--data); font-size: .82rem; font-weight: 700; }
+.toc .name { font-size: 1.05rem; }
+.toc .name small { display: block; font-family: var(--prose); font-size: .86rem; color: var(--ink-soft); margin-top: .2rem; }
+.toc .mark { font-family: var(--data); font-size: .82rem; font-weight: 700; white-space: nowrap; }
+.toc .tag { font-family: var(--data); font-size: .66rem; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-faint); }
+
+/* ---------------------------------------------------------- responsive */
+
+@media (max-width: 900px) {
+  .block { grid-template-columns: minmax(0, 1fr); }
+  .block > :not(.kicker) { grid-column: 1; }
+  .kicker { grid-column: 1; padding-top: 0; margin-bottom: .7rem; }
+  .thread { grid-auto-flow: row; grid-template-columns: repeat(5, 1fr); gap: 6px 4px; }
+  .thread .starts-part { margin-left: 0; }
+  .thread .starts-part::after { display: none; }
+  .toc a, .toc .pending { grid-template-columns: 2.2rem minmax(0, 1fr); }
+  .toc .mark { grid-column: 2; }
+}
+
+@media (max-width: 620px) {
+  body { font-size: 16px; }
+  .masthead-inner, .container, .pager, .footer { padding-left: 1.2rem; padding-right: 1.2rem; }
+  .is-result { margin: 0; padding: 2rem 1rem; }
+  .block p, .block li { text-align: left; }
+}
+
+@media print {
+  .thread, .pager { display: none; }
+  body { font-size: 11pt; }
+  .masthead { background: none; }
+  .block { break-inside: avoid; }
+}
+
+/* -------------------------------------------------- resumen y plegables */
+
+/* El resumen de entrada: la cifra, la trampa y la decision, en cinco vinetas.
+   Se lee en 30 segundos o se sigue leyendo. */
+.is-brief {
+  border-top: 0;
+  padding-top: .4rem;
+}
+
+.is-brief .kicker { color: var(--accent); }
+
+.is-brief ul {
+  list-style: none;
+  padding-left: 0;
+  max-width: var(--measure);
+  border-left: 3px solid var(--accent);
+  padding: .2rem 0 .2rem 1.1rem;
+}
+
+.is-brief li { margin-bottom: .7rem; text-align: left; }
+.is-brief li:last-child { margin-bottom: 0; }
+
+/* Los plegables de contenido denso: el glosario y la anotacion del codigo.
+   Cerrados por defecto, para que la pagina no sea un muro. */
+details.fold {
+  border: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+  background: transparent;
+  margin: 0 0 1.2rem;
+  padding: 0;
+  max-width: 100%;
+}
+
+details.fold > summary {
+  font-family: var(--data);
+  font-size: .68rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  font-weight: 400;
+  color: var(--ink-faint);
+  padding: .55rem .9rem .55rem 2rem;
+}
+
+details.fold > summary::before { left: .9rem; }
+details.fold[open] > summary {
+  color: var(--accent);
+  border-bottom: 1px solid var(--rule-soft);
+  margin-bottom: 0;
+}
+
+details.fold > *:not(summary) { padding: .8rem .9rem; color: inherit; }
+details.fold ul { margin-bottom: 0; }
+details.fold .annot { border: 0; padding: 0; margin: 0; }
+details.fold .annot dd { max-width: var(--measure); }
+
+/* Un bloque de codigo seguido de su plegable van pegados. */
+pre:has(+ details.fold) { margin-bottom: 0; border-bottom: 0; }
+
+/* The course exists in Spanish only; an English reader gets an honest way out, to the
+   project's summary on the portfolio, instead of a language switch that does not exist. */
+.portfolio-link {
+  float: right;
+  margin: 0 0 .6rem 1.2rem;
+  font-family: var(--data);
+  font-size: .7rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: inherit;
+  opacity: .72;
+  text-decoration: none;
+  border-bottom: 1px solid currentColor;
+}
+.portfolio-link:hover { opacity: 1; }
+
+:root { --accent: #21686d; }
+</style>
+</head>
+<body>
+<header class="masthead">
+  <div class="masthead-inner">
+    <a class="portfolio-link" href="m14_lectura_causal.html" hreflang="es" rel="alternate">Español</a>
+    <div class="eyebrow"><a href="index.en.html">Silica</a> / Module <b>14</b> of 14</div>
+    <h1>A causal reading of the control loop</h1>
+    <p class="standfirst">Why the amine comes out with the wrong sign, and what it would take to measure cause in a plant that controls itself</p>
+    <div class="figure-mark">
+      <span class="figure-value">+0.16</span>
+      <span class="figure-label">the amine&#x27;s correlation, and why it is inverted</span>
+    </div>
+    <nav class="thread" aria-label="The arc of the project"><a href="m01_radiografia_del_dataset.en.html" title="1. An X-ray of the dataset"><span class="n">1</span> <span class="v">737,453</span></a><a href="m02_el_primer_modelo_y_el_techo.en.html" title="2. The first model, and the ceiling that appeared at once"><span class="n">2</span> <span class="v">R² 0.04</span></a><a href="m03_como_aprende_un_modelo.en.html" title="3. How a model learns on the inside"><span class="n">3</span> <span class="v">R² 0.06</span></a><a href="m04_preprocesar_y_validar.en.html" title="4. Preprocessing and validating without cheating"><span class="n">4</span> <span class="v">R² −0.13</span></a><a href="m05_darle_memoria_al_modelo.en.html" title="5. Giving the model a memory"><span class="n">5</span> <span class="v">R² 0.64</span></a><a href="m06_clasificar_fuera_de_spec.en.html" title="6. Classifying: in or out of specification"><span class="n">6</span> <span class="v">0.62 vs 0.77</span></a><a href="m07_contra_que_se_compara.en.html" title="7. What a model is compared against"><span class="n">7</span> <span class="v">+0.009</span></a><a href="m08_donde_aporta_el_ml.en.html" title="8. Where does ML really add value?"><span class="n">8</span> <span class="v">0 of 4</span></a><a href="m09_los_tres_estados_de_la_planta.en.html" title="9. The three states of the plant"><span class="n">9</span> <span class="v">k = 3</span></a><a href="m10_redes_producto_y_cierre.en.html" title="10. Networks, product and closing"><span class="n">10</span> <span class="v">0.76</span></a><a class="starts-part" href="m11_modelos_de_secuencia.en.html" title="11. Sequence models: LSTM, GRU and causal convolution"><span class="n">11</span> <span class="v">+0.215</span></a><a href="m12_practica_de_pronostico.en.html" title="12. The forecasting practice that was missing"><span class="n">12</span> <span class="v">0.52 vs 0.63</span></a><a href="m13_incertidumbre.en.html" title="13. Uncertainty: from the point to the interval"><span class="n">13</span> <span class="v">92.0%</span></a><span aria-current="page" title="14. A causal reading of the control loop"><span class="n">14</span> <span class="v">+0.16</span></span></nav>
+    <div class="assay"><span><b>0</b> source notes</span><span><b>4</b> figures</span><span><b>2</b> scripts</span></div>
+  </div>
+</header>
+<main class="container">
+<section class="block is-brief"><span class="kicker">Summary</span><h2 class="block-title">In 30 seconds</h2><ul><li><strong>+0.16.</strong> The correlation of the amine with the silica, when the chemistry predicts the opposite sign. That contradiction is the key to the whole project.</li><li><strong>Simulated, the trap shows.</strong> With the real effect fixed at −0.60, a partial compensation by the operator measures it as <strong>+0.41</strong>.</li><li><strong>Adjusting for the disturbance fixes it</strong>, and returns −0.600 exactly. But it has to be measured well.</li><li><strong>A noisy measurement is not enough</strong>: the coefficient stays at +0.080, still with the wrong sign.</li><li><strong>The only thing that works is exciting on purpose.</strong> With 403 hours of random dosing it comes out at −0.654.</li></ul></section>
+<section class="block "><span class="kicker">Context</span><h2 class="block-title">What this module solves</h2><p>Thirteen modules measuring that it cannot be predicted. This one explains <strong>why</strong>, and the explanation is not from machine learning.</p><p>The plant operates in closed loop. When a control does its job well, it moves the manipulated variables to cancel the disturbances, and in doing so <strong>erases precisely the variation a model would learn from</strong>.</p><p>The symptom was in module 1, in plain sight, and nobody treated it as what it was: a correlation with the wrong sign.</p></section>
+<section class="block is-toy"><span class="kicker">By hand</span><h2 class="block-title">Before the theory: a toy example</h2><p>A plant where we know the truth because we set it ourselves.</p><pre><code>dirty feed RAISES the silica      +1.0 per unit
+amine LOWERS the silica           −0.6 per unit   &lt;- the real effect</code></pre><p>Four hours, two scenarios. In the first the operator touches nothing. In the second he doses more amine when dirty feed comes in.</p><h3 class="sub">Step 1. Without an operator</h3><div class="table-wrap"><table><thead><tr><th>Hour</th><th>Feed</th><th>Amine</th><th>Silica = 1.0·feed − 0.6·amine</th></tr></thead><tbody><tr><td>1</td><td>0</td><td>2</td><td>0 − 1.2 = <strong>−1.2</strong></td></tr><tr><td>2</td><td>0</td><td>4</td><td>0 − 2.4 = <strong>−2.4</strong></td></tr><tr><td>3</td><td>0</td><td>6</td><td>0 − 3.6 = <strong>−3.6</strong></td></tr><tr><td>4</td><td>0</td><td>8</td><td>0 − 4.8 = <strong>−4.8</strong></td></tr></tbody></table></div><p><strong>More amine, less silica.</strong> The relationship shows directly, and its slope is the real effect.</p><pre><code>slope = (−4.8 − (−1.2)) / (8 − 2) = −3.6 / 6 = −0.6</code></pre><h3 class="sub">Step 2. With an operator, compensating in part</h3><p>Now the feed varies, and the operator adds <strong>one unit of amine for every unit of dirt</strong>.</p><div class="table-wrap"><table><thead><tr><th>Hour</th><th>Feed</th><th>Amine</th><th>Silica = 1.0·feed − 0.6·amine</th></tr></thead><tbody><tr><td>1</td><td>2</td><td>2</td><td>2 − 1.2 = <strong>0.8</strong></td></tr><tr><td>2</td><td>4</td><td>4</td><td>4 − 2.4 = <strong>1.6</strong></td></tr><tr><td>3</td><td>6</td><td>6</td><td>6 − 3.6 = <strong>2.4</strong></td></tr><tr><td>4</td><td>8</td><td>8</td><td>8 − 4.8 = <strong>3.2</strong></td></tr></tbody></table></div><h3 class="sub">Step 3. Measure the slope now</h3><pre><code>slope = (3.2 − 0.8) / (8 − 2) = 2.4 / 6 = +0.4</code></pre><p><strong>+0.4.</strong> The real effect is still −0.6 and has not changed one bit. What has changed is what gets measured.</p><p>And the explanation is simple: <strong>the operator only compensates 60% of the problem</strong>. Each unit of dirt raises the silica by 1.0, and the added amine lowers it by 0.6. A residue of +0.4 remains, which rises with the dosing.</p><h3 class="sub">Step 4. The cure, and its price</h3><p>If the feed is known, you can ask what happens to the silica <strong>at equal feed</strong>. In the four hours of step 2 no two have the same feed, so it cannot be done. The feed has to be measured and it has to vary independently.</p><p>When that holds, the effect is recovered exactly. When the measurement is bad, it is not.</p><h3 class="sub">Step 5. What just happened</h3><p><strong>A correct datum, a correct calculation, and an inverted conclusion.</strong> Nobody measured wrongly.</p><p>Correlation answers &quot;what happens when the amine is high&quot;. The useful question is another: &quot;what would happen if I raised the amine&quot;. They differ whenever something pushes both, and in a controlled plant that something is the very reason the control exists.</p></section>
+<section class="block is-terms"><span class="kicker">Terms</span><h2 class="block-title">Glossary</h2><details class="fold"><summary>10 terms, in plain words</summary><ul><li><strong>Open loop.</strong> The operator or the control does not react. The manipulated variables vary on their own.</li><li><strong>Closed loop.</strong> The control moves the manipulated variables in response to what it measures.</li><li><strong>Disturbance.</strong> What comes in without anyone deciding it. Here, the feed grade.</li><li><strong>Manipulated variable.</strong> The one the operator moves. Here, the amine.</li><li><strong>Confounder.</strong> Something that causes both the supposed cause and the supposed effect. In Spanish, <em>confusor</em>.</li><li><strong>Adjusting for a variable.</strong> Comparing only cases with the same value of that variable. Also called <em>conditioning</em>.</li><li><strong>Observational.</strong> Looking at what happened without intervening.</li><li><strong>Interventional.</strong> Moving something on purpose and seeing what happens.</li><li><strong>Excitation.</strong> Moving a variable deliberately and independently, so its effect can be measured. In control it is called a <em>test signal</em>.</li><li><strong>Identifiability.</strong> Whether the effect can be recovered from the data available. Sometimes the answer is no.</li></ul></details></section>
+<section class="block is-method"><span class="kicker">Method</span><h2 class="block-title">Step by step</h2><h3 class="sub">Step 1. Compare the measured sign with the expected sign</h3><p>The chemistry of reverse flotation says more collector carries more gangue, so more amine should mean less silica. If the data say otherwise, there is something structural.</p><h3 class="sub">Step 2. Simulate a plant whose truth is known</h3><p>In the real data the true effect is unknown, so nothing can be checked. In a simulation it can: we set it ourselves and see what each method measures.</p><h3 class="sub">Step 3. Sweep the degree of compensation</h3><p>From an operator who touches nothing to one who over-compensates. The trap appears in the middle.</p><h3 class="sub">Step 4. Try the cure</h3><p>Adjust for the disturbance. Then repeat with the disturbance badly measured, which is the real situation of this project.</p><h3 class="sub">Step 5. Try what does work</h3><p>Deliberate excitation: moving the amine at random for some hours, independently of the silica.</p></section>
+<section class="block is-code"><span class="kicker">Code</span><h2 class="block-title">The code, in parts</h2><h3 class="sub">Step 1. The simulated plant, in three lines</h3><pre><code class="language-python">feed = RNG.normal(0, 1, HOURS)
+amina = response * feed + RNG.normal(0, 0.5, HOURS)
+silica = 1.00 * feed + (-0.60) * amina + RNG.normal(0, 0.3, HOURS)</code></pre><details class="fold"><summary>line by line, 3 entries</summary><dl class="annot"><dt><code>RNG.normal(0, 1, HOURS)</code></dt><dd>Random numbers from a bell curve of mean zero and deviation one. It is the disturbance.</dd><dt><code>response * feed</code></dt><dd>The operator&#x27;s rule: how much amine he adds per unit of dirt. With zero he does not react.</dd><dt><code>(-0.60) * amina</code></dt><dd>The true effect, set by us. Nothing we measure afterwards changes it.</dd></dl></details><div class="output"><span class="output-tag">prints</span><pre><code>1. LO QUE MIDEN LOS DATOS REALES
+  correlacion amina con silica: +0.171
+  la quimica predice el signo:  negativo (mas colector, menos silice)
+  el dato dice:                 positivo  -&gt; contradiccion</code></pre></div><p>On hourly data the correlation is <strong>+0.171</strong>, and on the full file at 20 seconds it was +0.16. Both are positive, and both contradict the chemistry.</p><figure class="fig"><img src="../figuras/fig_m14_lazo_control.c95d6fe3.png" alt="The same circuit with the loop open and closed. On the right, the operator reacts to the dirty feed and the amine ends up rising together with the silica." loading="lazy"><figcaption>The same circuit with the loop open and closed. On the right, the operator reacts to the dirty feed and the amine ends up rising together with the silica.</figcaption></figure><h3 class="sub">Step 2. Measure the coefficient with and without adjusting</h3><pre><code class="language-python">def regress(frame, columns):
+    design = np.column_stack([np.ones(len(frame))] + [frame[c] for c in columns])
+    coefficients, *_ = np.linalg.lstsq(design, frame[&quot;silica&quot;], rcond=None)
+    return dict(zip([&quot;intercepto&quot;] + columns, coefficients))</code></pre><details class="fold"><summary>line by line, 4 entries</summary><dl class="annot"><dt><code>np.column_stack([...])</code></dt><dd>Glues columns side by side to form the design matrix.</dd><dt><code>np.ones(len(frame))</code></dt><dd>A column of ones. It is what produces the intercept of the line.</dd><dt><code>np.linalg.lstsq</code></dt><dd>Solves least squares. It is the linear regression of module 3, written by hand.</dd><dt><code>rcond=None</code></dt><dd>Asks for the modern behaviour for deciding which singular values to discard.</dd></dl></details><div class="output"><span class="output-tag">prints</span><pre><code>2. LA MISMA PLANTA, SIMULADA CON EL LAZO ABIERTO Y CERRADO
+  efecto verdadero de la amina, fijado por nosotros: -0.60
+
+  respuesta del operador        corr(amina, silice)   coef. simple  coef. con feed
+  abierto (sin operador)                     -0.277         -0.593          -0.596
+  respuesta debil (0,5)                       0.350          0.406          -0.593
+  respuesta parcial (1,0)                     0.370          0.193          -0.598
+  sobrecompensa (2,0)                        -0.576         -0.128          -0.597</code></pre></div><figure class="fig"><img src="../figuras/fig_m14_dag.03a44432.png" alt="The diagram of the problem. Dirty feed pushes the amine, through the operator, and the silica, directly. It is a confounder." loading="lazy"><figcaption>The diagram of the problem. Dirty feed pushes the amine, through the operator, and the silica, directly. It is a confounder.</figcaption></figure><h3 class="sub">Step 3. When the disturbance is badly measured</h3><pre><code class="language-python">ruidosa = frame.copy()
+ruidosa[&quot;feed&quot;] = frame[&quot;feed&quot;] + RNG.normal(0, 1.0, HOURS)
+print(regress(ruidosa, [&quot;amina&quot;, &quot;feed&quot;])[&quot;amina&quot;])</code></pre><details class="fold"><summary>line by line, 2 entries</summary><dl class="annot"><dt><code>frame.copy()</code></dt><dd>An independent copy. Without it, modifying the column would change the original too.</dd><dt><code>+ RNG.normal(0, 1.0, ...)</code></dt><dd>Adds noise to the measurement of the disturbance, as much as the signal itself. It is the realistic case.</dd></dl></details><div class="output"><span class="output-tag">prints</span><pre><code>3. QUE PASA SI LA PERTURBACION NO SE REGISTRA
+  efecto verdadero                        -0.600
+  sin ajustar por la perturbacion         +0.216
+  ajustando con la perturbacion completa  -0.600
+  ajustando con una medida ruidosa        +0.080</code></pre></div><h3 class="sub">Step 4. Excite on purpose</h3><pre><code class="language-python">mask = RNG.random(HOURS) &lt; 0.10
+excited.loc[mask, &quot;amina&quot;] = RNG.normal(0, 1.5, int(mask.sum()))
+print(regress(excited[mask], [&quot;amina&quot;])[&quot;amina&quot;])</code></pre><details class="fold"><summary>line by line, 3 entries</summary><dl class="annot"><dt><code>RNG.random(HOURS) &lt; 0.10</code></dt><dd>Marks one hour in ten at random. It is the fraction of the time devoted to the test.</dd><dt><code>excited.loc[mask, &quot;amina&quot;] = ...</code></dt><dd>In those hours the dosing is chosen at random, without looking at the silica. That breaks the loop.</dd><dt><code>regress(excited[mask], ...)</code></dt><dd>The estimate uses ONLY those hours. They are few, and they are the only ones that inform.</dd></dl></details><div class="output"><span class="output-tag">prints</span><pre><code>4. LO QUE SI FUNCIONARIA
+  usando solo las horas excitadas (403 de 4000): -0.654
+  efecto verdadero                                     -0.600</code></pre></div></section>
+<section class="block is-result"><span class="kicker">Result</span><h2 class="block-title">The result, measured</h2><p><strong>What we expected.</strong> That the control would dampen the correlation, leaving it near zero.</p><p><strong>What came out.</strong> It does not dampen it: <strong>it flips its sign</strong>.</p><div class="table-wrap"><table><thead><tr><th>Operator&#x27;s response</th><th>Measured correlation</th><th>Unadjusted coefficient</th><th>Adjusting for the feed</th></tr></thead><tbody><tr><td>None, open loop</td><td>−0.277</td><td>−0.593</td><td>−0.596</td></tr><tr><td>Weak, 0.5</td><td><strong>+0.350</strong></td><td><strong>+0.406</strong></td><td>−0.593</td></tr><tr><td>Partial, 1.0</td><td><strong>+0.370</strong></td><td>+0.193</td><td>−0.598</td></tr><tr><td>Over-compensation, 2.0</td><td>−0.576</td><td>−0.128</td><td>−0.597</td></tr></tbody></table></div><figure class="fig"><img src="../figuras/fig_m14_signo_invertido.8b3fd3f5.png" alt="The measured coefficient by how much the operator compensates. The dotted line is the real effect, which never changes. The shaded zone is where the sign comes out backwards." loading="lazy"><figcaption>The measured coefficient by how much the operator compensates. The dotted line is the real effect, which never changes. The shaded zone is where the sign comes out backwards.</figcaption></figure><p><strong>What it means.</strong> The true effect is −0.60 in all four rows. The only thing that changes is how much the operator compensates, and that is enough for the measured coefficient to go from −0.593 to +0.406.</p><p>And there is an even more uncomfortable detail. <strong>Adjusting for the feed, the four rows return approximately −0.60</strong>, with an error of three thousandths. The correct method works perfectly. The problem is not the method, it is what data there are.</p><h3 class="sub">Why in this plant the cure cannot be applied</h3><div class="table-wrap"><table><thead><tr><th>Estimate</th><th>Coefficient</th><th>Right?</th></tr></thead><tbody><tr><td>Looking at the correlation</td><td>+0.216</td><td>No, and with the wrong sign</td></tr><tr><td>Adjusting with a noisy measurement</td><td>+0.080</td><td>No, still wrong</td></tr><tr><td>Adjusting with the full disturbance</td><td><strong>−0.600</strong></td><td>Yes, exactly</td></tr><tr><td>Exciting on purpose, 403 hours out of 4,000</td><td><strong>−0.654</strong></td><td>Yes, with 9% error</td></tr></tbody></table></div><figure class="fig"><img src="../figuras/fig_m14_que_haria_falta.70c52d9c.png" alt="Four ways of estimating the same effect. Only two get it right, and both need something this file does not have." loading="lazy"><figcaption>Four ways of estimating the same effect. Only two get it right, and both need something this file does not have.</figcaption></figure><p>Adjusting with a noisy measurement gives <strong>+0.080</strong>. It still has the wrong sign.</p><p>That is not a technicality: it is the exact situation of this project. The real disturbance of this plant is the mineralogy of the feed, and of it there are only two laboratory assays per hour, one of which was frozen for 792 hours.</p><h3 class="sub">The closing of the project</h3><p><strong>These data cannot answer the question they were asked</strong>, and now it is known why.</p><p>It is not that machine learning is insufficient. It is that the necessary information was destroyed before it reached the file, by the very control system that makes the plant run. A control that erases the disturbances is doing its job. And in doing so, it leaves data from which the physics of the process cannot be learned.</p><p>The fourteen modules say the same thing from fourteen angles:</p><div class="table-wrap"><table><thead><tr><th>Module</th><th>How it says it</th></tr></thead><tbody><tr><td>2</td><td>Three different models tie at R² 0.04</td></tr><tr><td>4</td><td>Honest validation gives −0.126</td></tr><tr><td>7</td><td>The contribution over persistence is +0.009</td></tr><tr><td>8</td><td>Four attacks on the verdict, and none moves it</td></tr><tr><td>9</td><td>The plant changed regime in May</td></tr><tr><td>11</td><td>Not even the sequence models fix it</td></tr><tr><td>12</td><td>Nor the classical baseline</td></tr><tr><td>13</td><td>A valid interval, and as wide as half the range</td></tr><tr><td><strong>14</strong></td><td><strong>And this is the reason for all the previous ones</strong></td></tr></tbody></table></div><h3 class="sub">What it would take, now with its technical name</h3><ul><li><strong>A setpoint log.</strong> Without knowing what the operator moved and when, his reaction cannot be separated from the effect of the process.</li><li><strong>The disturbance well measured.</strong> Mineralogy and feed grade at the frequency of the process, not two assays per hour.</li><li><strong>An excitation campaign.</strong> Moving setpoints in a planned way for a few days. The simulation says that with 10% of the hours the effect is recovered with 9% error.</li></ul><p>That last one is the real recommendation, and <strong>it does not cost a model: it costs a week of plant</strong>.</p></section>
+<section class="block is-warning"><span class="kicker">Traps</span><h2 class="block-title">Watch out</h2><ul><li><strong>Correlation and effect are different questions.</strong> One answers what happens when the variable is high. The other, what would happen if you raised it.</li><li><strong>An inverted sign is an alarm, not a curiosity.</strong> It almost always means there is a confounder or a control loop.</li><li><strong>Adjusting for the confounder only works if it is well measured.</strong> With noise, the bias returns, and here even the sign.</li><li><strong>Partial compensation is the dangerous case.</strong> With an open loop the sign is correct, and with over-compensation too. The trap is in the middle, which is where almost every plant operates.</li><li><strong>SHAP and feature importance do not fix this.</strong> They faithfully explain the model, and the model learned the inverted relationship.</li><li><strong>Closed-loop data do not identify the plant.</strong> It is a classic result of system identification, and here it has been rediscovered the hard way.</li></ul></section>
+<section class="block is-bridge"><span class="kicker">Analogy</span><h2 class="block-title">Metallurgical bridge</h2><p>This is exactly why <strong>flotation tests are done in the laboratory and not by reading the plant history</strong>. In a laboratory test the dosing is set on purpose, everything else is held the same, and the recovery is measured. That is deliberate excitation.</p><p>In the plant there are never two comparable hours. The ore changes, the flow changes, three setpoints change at once, and the operator reacts to everything. That is why an experienced metallurgist distrusts conclusions drawn from the history, even with six months of data: <strong>he knows the circuit was compensating the whole time</strong>.</p><p>The excitation campaign has its name in the trade: a <strong>planned plant trial</strong>. It is scheduled, the shift is told, a setpoint is moved in steps and everything is recorded. It costs a few days of operation away from the optimum. In return it gives the one thing the history cannot: the circuit&#x27;s response to a change nobody made to compensate for something else.</p></section>
+<section class="block is-review"><span class="kicker">Review</span><h2 class="block-title">Review</h2><details><summary>The amine correlates +0.16 with the silica and the chemistry says it should be negative. Who is wrong?</summary><p>Neither. The chemistry is right about the effect and the data are right about what was observed.</p><p>What happens is that correlation does not measure the effect when there is a control loop. The operator adds amine precisely when the silica rises, so the two rise together. This module&#x27;s simulation reproduces it: with the real effect fixed at −0.60, a partial compensation is measured as +0.406. The datum is correct and the conclusion drawn from it, inverted.</p></details><details><summary>Why is partial compensation the dangerous case, and not full compensation?</summary><p>Because with an open loop and with over-compensation the sign comes out right, and in the middle it does not.</p><p>Without an operator, the amine varies on its own and its relationship with the silica is the real one, −0.593 in the simulation. With strong over-compensation, the operator overshoots so much that the appearance flips back and the coefficient comes out negative again, −0.128. Right in the middle, when the operator corrects part of the problem but not all of it, a positive residue remains that rises with the dosing. And compensating partially is what any real plant does.</p></details><details><summary>Adjusting for the feed returns −0.600 exactly. Why not just do that and be done?</summary><p>Because in the file that variable is badly measured, and with a bad measurement the adjustment is no use.</p><p>In the simulation, adjusting with the full disturbance returns the true effect with three thousandths of error. Adjusting with a measurement that carries as much noise as signal leaves the coefficient at +0.080, still with the wrong sign. In this plant the real disturbance is the mineralogy of the feed, and of it there are two assays per hour, one frozen for 792 hours. The cure exists and the data to apply it do not.</p></details><details><summary>What is deliberate excitation and how much would it cost here?</summary><p>Moving a variable on purpose and at random, without looking at what the process is doing, for a fraction of the time.</p><p>That breaks the loop: in those hours the amine no longer responds to the silica, so its relationship with it becomes the real one again. In the simulation 10% of the hours are devoted to it, 403 out of 4,000. The effect is recovered at −0.654 against the true −0.600, with 9% error. Carried over to the plant it would be a few days of operation with setpoints moved on purpose. It is expensive in production and cheap compared with deploying a system built on an inverted relationship.</p></details><details><summary>If the control erases the information, is the conclusion that a plant can never be modelled?</summary><p>No. The conclusion is that <strong>the physics of a plant cannot be identified from closed-loop operating data</strong>, without excitation and without knowing the controller.</p><p>That leaves other things open. You can predict with inertia, which is what persistence does and works well at one hour. You can detect anomalies, which does not need causality. And you can model the real physics if planned trials are done. What you cannot do is extract cause-and-effect relationships from a history where somebody was compensating the whole time, and this project is the measured demonstration of that claim.</p></details></section>
+</main>
+<nav class="pager"><a class="prev" href="m13_incertidumbre.en.html"><span class="dir">Previous</span>13. Uncertainty: from the point to the interval</a></nav>
+<footer class="footer">
+  <div class="footer-inner">
+    <span>Silica / Module 14</span>
+    <span>generated on 2026-08-22</span>
+    <span>source: the 31 original notes, their scripts and the plant CSV</span>
+  </div>
+</footer>
+</body>
+</html>

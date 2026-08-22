@@ -1,0 +1,699 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Networks, product and closing · Silica, module 10</title>
+<link rel="alternate" hreflang="es" href="m10_redes_producto_y_cierre.html">
+<style>
+/* Sílice: la hoja de estilos del curso.
+ *
+ * Identidad de papel de informe de planta, no de pantalla. El proyecto termina
+ * recomendando no desplegar, y eso es un informe técnico: papel hueso, tinta grafito,
+ * y una retícula de milimetrado muy tenue en la cabecera.
+ *
+ * Dos familias tipográficas y ni una más, las dos del sistema porque el sitio se abre
+ * desde file:// y tiene que funcionar sin internet: serif para la prosa (se lee como
+ * informe) y monoespaciada para todo lo que es dato, código, cifra o etiqueta.
+ *
+ * El acento lo inyecta cada página con --accent: es el del módulo, y marca su posición
+ * en el arco del proyecto. Los diez pasan check_palette.py antes de entrar aquí.
+ */
+
+:root {
+  --paper: #f6f3ec;
+  --bench: #eeeade;
+  --ink: #2a2622;
+  --ink-soft: #57504a;
+  --ink-faint: #8a8177;
+  --rule: #ddd6c6;
+  --rule-soft: #e8e2d4;
+  --grid: rgba(84, 69, 73, .07);
+  --accent: #632727;
+
+  --prose: Georgia, "Iowan Old Style", "Palatino Linotype", Palatino, "Times New Roman", serif;
+  --data: "Cascadia Mono", Consolas, "DejaVu Sans Mono", "Liberation Mono", monospace;
+
+  --measure: 680px;   /* la medida de la prosa, en píxeles y nunca en ch */
+  --wide: 1180px;     /* el borde derecho de los bloques anchos */
+  --margin: 132px;    /* la columna del margen, donde cuelgan los kickers */
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--prose);
+  font-size: 17px;
+  line-height: 1.62;
+  -webkit-text-size-adjust: 100%;
+}
+
+::selection { background: var(--accent); color: var(--paper); }
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+/* --------------------------------------------------------------- cabecera */
+
+.masthead {
+  border-bottom: 1px solid var(--rule);
+  background-color: var(--bench);
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 26px 26px;
+  background-position: -1px -1px;
+}
+
+.masthead-inner {
+  max-width: var(--wide);
+  margin: 0 auto;
+  padding: 2.4rem 2rem 1.6rem;
+}
+
+.eyebrow {
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-bottom: 1rem;
+}
+
+.eyebrow a { color: inherit; text-decoration: none; border-bottom: 1px solid transparent; }
+.eyebrow a:hover { border-bottom-color: var(--accent); color: var(--accent); }
+.eyebrow b { color: var(--accent); font-weight: 400; }
+
+.masthead h1 {
+  margin: 0;
+  font-size: clamp(1.9rem, 4.4vw, 2.9rem);
+  line-height: 1.14;
+  font-weight: 400;
+  letter-spacing: -.012em;
+  max-width: 900px;
+}
+
+.standfirst {
+  margin: .9rem 0 0;
+  max-width: var(--measure);
+  color: var(--ink-soft);
+  font-size: 1.02rem;
+  line-height: 1.55;
+}
+
+/* La cifra del módulo: el número que dejó, en grande, junto al título. Es lo que
+   convierte la cabecera en parte del argumento y no en decoración. */
+.figure-mark {
+  margin-top: 1.6rem;
+  display: flex;
+  align-items: baseline;
+  gap: .8rem;
+  flex-wrap: wrap;
+  border-left: 3px solid var(--accent);
+  padding-left: .9rem;
+}
+
+.figure-value {
+  font-family: var(--data);
+  font-size: clamp(1.5rem, 3.4vw, 2.1rem);
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: -.02em;
+}
+
+.figure-label {
+  font-family: var(--data);
+  font-size: .78rem;
+  letter-spacing: .04em;
+  color: var(--ink-soft);
+}
+
+/* El hilo del proyecto: diez segmentos, uno por módulo, con su cifra debajo. Desde
+   cualquier página se ve el recorrido entero, que es justo lo que a los apuntes
+   sueltos les faltaba. */
+.thread {
+  margin-top: 1.8rem;
+  display: grid;
+  /* One equal column per segment, whatever the temario says. It was pinned to ten and
+     the course grew to fourteen. */
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: 4px;
+}
+
+/* Where part 2 starts: the four modules that were never in the original project. */
+.thread .starts-part { margin-left: 10px; position: relative; }
+.thread .starts-part::after {
+  content: '';
+  position: absolute;
+  left: -7px; top: -3px; bottom: 0;
+  border-left: 1px solid var(--rule);
+}
+
+.thread a, .thread span {
+  display: block;
+  text-decoration: none;
+  color: var(--ink-faint);
+  font-family: var(--data);
+  font-size: .62rem;
+  letter-spacing: .04em;
+  padding-top: .4rem;
+  border-top: 3px solid var(--rule);
+  transition: color .12s, border-color .12s;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.thread a:hover { color: var(--ink); border-top-color: var(--ink-soft); }
+.thread [aria-current="page"] { color: var(--accent); border-top-color: var(--accent); }
+.thread .n { font-weight: 700; }
+.thread .v { color: inherit; opacity: .75; }
+
+/* Las pastillas de composición: de qué está hecho el módulo. */
+.assay {
+  margin-top: 1.6rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.4rem;
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .05em;
+  color: var(--ink-faint);
+}
+
+.assay b { color: var(--ink); font-weight: 700; }
+
+/* ----------------------------------------------------------------- cuerpo */
+
+.container {
+  max-width: var(--wide);
+  margin: 0 auto;
+  padding: 2.6rem 2rem 4rem;
+}
+
+/* Cada sección es una anotación de cuaderno: el kicker cuelga en el margen
+   izquierdo y el contenido corre en la columna principal. En pantalla estrecha el
+   kicker se pone encima. */
+.block {
+  display: grid;
+  grid-template-columns: var(--margin) minmax(0, 1fr);
+  column-gap: 2rem;
+  padding: 2.2rem 0;
+  border-top: 1px solid var(--rule);
+}
+
+.block:first-child { border-top: 0; padding-top: .6rem; }
+
+.kicker {
+  grid-column: 1;
+  font-family: var(--data);
+  font-size: .68rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding-top: .45rem;
+}
+
+.block > :not(.kicker) { grid-column: 2; }
+
+.block-title {
+  margin: 0 0 1.1rem;
+  font-size: 1.42rem;
+  font-weight: 400;
+  line-height: 1.25;
+  letter-spacing: -.008em;
+}
+
+.is-warning .kicker, .is-result .kicker { color: var(--accent); }
+.is-warning .block-title { border-bottom: 2px solid var(--accent); padding-bottom: .4rem; display: inline-block; }
+.is-result { background: var(--bench); margin: 0 -1.2rem; padding: 2.2rem 1.2rem; }
+.is-result .block-title { color: var(--accent); }
+
+/* Prosa: justificada con partición, que sin partición el español justificado abre
+   ríos. Tablas, código y pies de figura se quedan sin justificar. */
+.block p, .block li, .block dd, details > *:not(summary) {
+  max-width: var(--measure);
+  text-align: justify;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+}
+
+.block p { margin: 0 0 1rem; }
+.block p:last-child { margin-bottom: 0; }
+.block ul, .block ol { margin: 0 0 1rem; padding-left: 1.3rem; max-width: var(--measure); }
+.block li { margin-bottom: .5rem; }
+.block li::marker { color: var(--accent); font-family: var(--data); font-size: .85em; }
+
+td, th, figcaption, .assay, .thread a, .res li { text-align: left; hyphens: manual; }
+
+a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+a:hover { text-decoration-thickness: 2px; }
+strong { font-weight: 700; }
+em { font-style: italic; color: var(--ink-soft); }
+
+h3.sub {
+  margin: 1.9rem 0 .7rem;
+  font-size: 1.07rem;
+  font-weight: 700;
+  letter-spacing: -.004em;
+}
+
+h3.sub:first-child { margin-top: 0; }
+
+h4.sub {
+  margin: 1.4rem 0 .5rem;
+  font-family: var(--data);
+  font-size: .82rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  color: var(--ink-soft);
+}
+
+/* ------------------------------------------------------------ código y datos */
+
+code {
+  font-family: var(--data);
+  font-size: .87em;
+  background: var(--bench);
+  padding: .1em .32em;
+  border-radius: 2px;
+}
+
+pre {
+  margin: 0 0 1rem;
+  padding: 1rem 1.1rem;
+  background: var(--bench);
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--accent);
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+pre code { background: none; padding: 0; font-size: .82rem; line-height: 1.62; }
+
+/* La salida es lo que imprime el código, no código para correr: se marca aparte
+   para que nadie confunda entrada con salida. */
+.output {
+  margin: 0 0 1rem;
+  border: 1px dashed var(--rule);
+  background: transparent;
+}
+
+.output-tag {
+  display: block;
+  font-family: var(--data);
+  font-size: .64rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding: .45rem 1.1rem 0;
+}
+
+.output pre {
+  margin: 0;
+  border: 0;
+  background: none;
+  padding: .3rem 1.1rem 1rem;
+}
+
+.output pre code { color: var(--ink-soft); }
+
+/* La anotación línea por línea, para quien no ha programado antes. */
+.annot {
+  margin: 0 0 1.2rem;
+  border: 1px solid var(--rule);
+  border-top: 0;
+  padding: 0 1.1rem .6rem;
+  background: transparent;
+}
+
+.annot-head {
+  font-family: var(--data);
+  font-size: .64rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding: .55rem 0 .5rem;
+  border-bottom: 1px solid var(--rule-soft);
+  margin-bottom: .4rem;
+}
+
+.annot dt { padding: .4rem 0 .1rem; }
+.annot dt code { background: none; padding: 0; color: var(--accent); font-weight: 700; }
+.annot dd {
+  margin: 0 0 .4rem;
+  color: var(--ink-soft);
+  font-size: .94rem;
+  border-bottom: 1px solid var(--rule-soft);
+  padding-bottom: .5rem;
+}
+.annot dd:last-of-type { border-bottom: 0; }
+
+pre:has(+ .annot) { margin-bottom: 0; }
+
+blockquote {
+  margin: 0 0 1rem;
+  padding: .2rem 0 .2rem 1.1rem;
+  border-left: 3px solid var(--rule);
+  color: var(--ink-soft);
+  font-style: italic;
+  max-width: var(--measure);
+}
+
+/* --------------------------------------------------------------- tablas */
+
+.table-wrap { overflow-x: auto; margin: 0 0 1.2rem; }
+
+table {
+  border-collapse: collapse;
+  width: auto;
+  max-width: 100%;
+  font-size: .92rem;
+}
+
+th, td {
+  padding: .5rem .9rem .5rem 0;
+  border-bottom: 1px solid var(--rule-soft);
+  vertical-align: top;
+}
+
+th {
+  font-family: var(--data);
+  font-size: .7rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--ink-faint);
+  border-bottom: 1px solid var(--rule);
+  white-space: nowrap;
+}
+
+/* -------------------------------------------------------------- repaso */
+
+details {
+  border-bottom: 1px solid var(--rule-soft);
+  padding: .2rem 0;
+  max-width: var(--measure);
+}
+
+summary {
+  cursor: pointer;
+  list-style: none;
+  padding: .7rem 0 .7rem 1.5rem;
+  position: relative;
+  font-weight: 700;
+}
+
+summary::-webkit-details-marker { display: none; }
+
+summary::before {
+  content: '+';
+  position: absolute;
+  left: 0;
+  font-family: var(--data);
+  color: var(--accent);
+  font-weight: 700;
+}
+
+details[open] summary::before { content: '\2212'; }
+details[open] summary { color: var(--accent); }
+details > *:not(summary) { color: var(--ink-soft); }
+details > *:last-child { padding-bottom: .8rem; }
+
+/* -------------------------------------------------------------- figuras */
+
+figure.fig {
+  margin: 0 0 1.4rem;
+  max-width: 100%;
+  border: 1px solid var(--rule);
+  background: #fff;
+  padding: .6rem;
+}
+
+figure.fig img { width: 100%; height: auto; display: block; }
+
+figure.fig figcaption {
+  margin-top: .6rem;
+  padding-top: .5rem;
+  border-top: 1px solid var(--rule-soft);
+  font-family: var(--data);
+  font-size: .7rem;
+  letter-spacing: .04em;
+  color: var(--ink-faint);
+}
+
+.gone {
+  font-family: var(--data);
+  font-size: .76rem;
+  color: var(--accent);
+  border: 1px dashed var(--accent);
+  padding: .5rem .8rem;
+}
+
+/* ------------------------------------------------------- pie y navegación */
+
+.pager {
+  max-width: var(--wide);
+  margin: 0 auto;
+  padding: 0 2rem 3rem;
+  display: flex;
+  gap: 1.4rem;
+  justify-content: space-between;
+  font-family: var(--data);
+  font-size: .78rem;
+}
+
+.pager a { max-width: 46%; text-decoration: none; border-bottom: 1px solid var(--rule); padding-bottom: .3rem; }
+.pager a:hover { border-bottom-color: var(--accent); }
+.pager .dir { display: block; font-size: .64rem; letter-spacing: .13em; text-transform: uppercase; color: var(--ink-faint); }
+.pager .next { text-align: right; margin-left: auto; }
+
+.footer {
+  border-top: 1px solid var(--rule);
+  padding: 1.4rem 2rem 2.4rem;
+  font-family: var(--data);
+  font-size: .72rem;
+  letter-spacing: .06em;
+  color: var(--ink-faint);
+}
+
+.footer-inner { max-width: var(--wide); margin: 0 auto; display: flex; gap: 1.4rem; flex-wrap: wrap; }
+
+/* ------------------------------------------------------------- índice */
+
+.toc { list-style: none; margin: 0; padding: 0; max-width: 100%; }
+
+.toc li {
+  border-top: 1px solid var(--rule-soft);
+  max-width: 100%;
+}
+
+.toc li:last-child { border-bottom: 1px solid var(--rule-soft); }
+
+.toc a, .toc .pending {
+  display: grid;
+  grid-template-columns: 3rem minmax(0, 1fr) auto;
+  gap: 1.2rem;
+  align-items: baseline;
+  padding: 1rem .4rem;
+  text-decoration: none;
+  color: inherit;
+}
+
+.toc a:hover { background: var(--bench); }
+.toc .pending { color: var(--ink-faint); }
+.toc .num { font-family: var(--data); font-size: .82rem; font-weight: 700; }
+.toc .name { font-size: 1.05rem; }
+.toc .name small { display: block; font-family: var(--prose); font-size: .86rem; color: var(--ink-soft); margin-top: .2rem; }
+.toc .mark { font-family: var(--data); font-size: .82rem; font-weight: 700; white-space: nowrap; }
+.toc .tag { font-family: var(--data); font-size: .66rem; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-faint); }
+
+/* ---------------------------------------------------------- responsive */
+
+@media (max-width: 900px) {
+  .block { grid-template-columns: minmax(0, 1fr); }
+  .block > :not(.kicker) { grid-column: 1; }
+  .kicker { grid-column: 1; padding-top: 0; margin-bottom: .7rem; }
+  .thread { grid-auto-flow: row; grid-template-columns: repeat(5, 1fr); gap: 6px 4px; }
+  .thread .starts-part { margin-left: 0; }
+  .thread .starts-part::after { display: none; }
+  .toc a, .toc .pending { grid-template-columns: 2.2rem minmax(0, 1fr); }
+  .toc .mark { grid-column: 2; }
+}
+
+@media (max-width: 620px) {
+  body { font-size: 16px; }
+  .masthead-inner, .container, .pager, .footer { padding-left: 1.2rem; padding-right: 1.2rem; }
+  .is-result { margin: 0; padding: 2rem 1rem; }
+  .block p, .block li { text-align: left; }
+}
+
+@media print {
+  .thread, .pager { display: none; }
+  body { font-size: 11pt; }
+  .masthead { background: none; }
+  .block { break-inside: avoid; }
+}
+
+/* -------------------------------------------------- resumen y plegables */
+
+/* El resumen de entrada: la cifra, la trampa y la decision, en cinco vinetas.
+   Se lee en 30 segundos o se sigue leyendo. */
+.is-brief {
+  border-top: 0;
+  padding-top: .4rem;
+}
+
+.is-brief .kicker { color: var(--accent); }
+
+.is-brief ul {
+  list-style: none;
+  padding-left: 0;
+  max-width: var(--measure);
+  border-left: 3px solid var(--accent);
+  padding: .2rem 0 .2rem 1.1rem;
+}
+
+.is-brief li { margin-bottom: .7rem; text-align: left; }
+.is-brief li:last-child { margin-bottom: 0; }
+
+/* Los plegables de contenido denso: el glosario y la anotacion del codigo.
+   Cerrados por defecto, para que la pagina no sea un muro. */
+details.fold {
+  border: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+  background: transparent;
+  margin: 0 0 1.2rem;
+  padding: 0;
+  max-width: 100%;
+}
+
+details.fold > summary {
+  font-family: var(--data);
+  font-size: .68rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  font-weight: 400;
+  color: var(--ink-faint);
+  padding: .55rem .9rem .55rem 2rem;
+}
+
+details.fold > summary::before { left: .9rem; }
+details.fold[open] > summary {
+  color: var(--accent);
+  border-bottom: 1px solid var(--rule-soft);
+  margin-bottom: 0;
+}
+
+details.fold > *:not(summary) { padding: .8rem .9rem; color: inherit; }
+details.fold ul { margin-bottom: 0; }
+details.fold .annot { border: 0; padding: 0; margin: 0; }
+details.fold .annot dd { max-width: var(--measure); }
+
+/* Un bloque de codigo seguido de su plegable van pegados. */
+pre:has(+ details.fold) { margin-bottom: 0; border-bottom: 0; }
+
+/* The course exists in Spanish only; an English reader gets an honest way out, to the
+   project's summary on the portfolio, instead of a language switch that does not exist. */
+.portfolio-link {
+  float: right;
+  margin: 0 0 .6rem 1.2rem;
+  font-family: var(--data);
+  font-size: .7rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: inherit;
+  opacity: .72;
+  text-decoration: none;
+  border-bottom: 1px solid currentColor;
+}
+.portfolio-link:hover { opacity: 1; }
+
+:root { --accent: #544549; }
+</style>
+</head>
+<body>
+<header class="masthead">
+  <div class="masthead-inner">
+    <a class="portfolio-link" href="m10_redes_producto_y_cierre.html" hreflang="es" rel="alternate">Español</a>
+    <div class="eyebrow"><a href="index.en.html">Silica</a> / Module <b>10</b> of 14</div>
+    <h1>Networks, product and closing</h1>
+    <p class="standfirst">The neural network comes last, drift is measured month by month, and the project closes with a defensible recommendation</p>
+    <div class="figure-mark">
+      <span class="figure-value">0.76</span>
+      <span class="figure-label">September&#x27;s RMSE, drift measured</span>
+    </div>
+    <nav class="thread" aria-label="The arc of the project"><a href="m01_radiografia_del_dataset.en.html" title="1. An X-ray of the dataset"><span class="n">1</span> <span class="v">737,453</span></a><a href="m02_el_primer_modelo_y_el_techo.en.html" title="2. The first model, and the ceiling that appeared at once"><span class="n">2</span> <span class="v">R² 0.04</span></a><a href="m03_como_aprende_un_modelo.en.html" title="3. How a model learns on the inside"><span class="n">3</span> <span class="v">R² 0.06</span></a><a href="m04_preprocesar_y_validar.en.html" title="4. Preprocessing and validating without cheating"><span class="n">4</span> <span class="v">R² −0.13</span></a><a href="m05_darle_memoria_al_modelo.en.html" title="5. Giving the model a memory"><span class="n">5</span> <span class="v">R² 0.64</span></a><a href="m06_clasificar_fuera_de_spec.en.html" title="6. Classifying: in or out of specification"><span class="n">6</span> <span class="v">0.62 vs 0.77</span></a><a href="m07_contra_que_se_compara.en.html" title="7. What a model is compared against"><span class="n">7</span> <span class="v">+0.009</span></a><a href="m08_donde_aporta_el_ml.en.html" title="8. Where does ML really add value?"><span class="n">8</span> <span class="v">0 of 4</span></a><a href="m09_los_tres_estados_de_la_planta.en.html" title="9. The three states of the plant"><span class="n">9</span> <span class="v">k = 3</span></a><span aria-current="page" title="10. Networks, product and closing"><span class="n">10</span> <span class="v">0.76</span></span><a class="starts-part" href="m11_modelos_de_secuencia.en.html" title="11. Sequence models: LSTM, GRU and causal convolution"><span class="n">11</span> <span class="v">+0.215</span></a><a href="m12_practica_de_pronostico.en.html" title="12. The forecasting practice that was missing"><span class="n">12</span> <span class="v">0.52 vs 0.63</span></a><a href="m13_incertidumbre.en.html" title="13. Uncertainty: from the point to the interval"><span class="n">13</span> <span class="v">92.0%</span></a><a href="m14_lectura_causal.en.html" title="14. A causal reading of the control loop"><span class="n">14</span> <span class="v">+0.16</span></a></nav>
+    <div class="assay"><span><b>4</b> source notes</span><span><b>5</b> figures</span><span><b>6</b> scripts</span></div>
+  </div>
+</header>
+<main class="container">
+<section class="block is-brief"><span class="kicker">Summary</span><h2 class="block-title">In 30 seconds</h2><ul><li><strong>0.76.</strong> September&#x27;s RMSE, against 0.509 in training. Drift is measured, not assumed.</li><li><strong>The neural network comes last</strong>, with R² 0.165. Below the forest, the boosting and persistence.</li><li><strong>The GPU speeds things up 32 times</strong>, from 541 ms to 17 ms. It speeds up, it does not improve: the R² stays at 0.190.</li><li><strong>The retraining threshold comes out of the data</strong>: 0.661, 30% above the training error. It is crossed in September.</li><li><strong>The deliverable is not a model.</strong> It is a recommendation not to deploy, with the measurements that hold it up.</li></ul></section>
+<section class="block "><span class="kicker">Context</span><h2 class="block-title">What this module solves</h2><p>Three things are left to do and this module closes them.</p><p>The first is to try the technique not yet used: neural networks. The second is to measure what would happen to the model in production, month by month. The third is to turn nine modules of measurements into something that can be defended in front of a committee.</p></section>
+<section class="block is-toy"><span class="kicker">The path</span><h2 class="block-title">The arc of the project</h2><p>This module delivers the project instead of teaching a new idea, so in place of the toy example comes the whole path, with the number each step left behind.</p><div class="table-wrap"><table><thead><tr><th>Module</th><th>What was tried</th><th>Result</th></tr></thead><tbody><tr><td>1</td><td>An X-ray of the dataset</td><td>737,453 rows, 3 scars, the anti-leak rule</td></tr><tr><td>2</td><td>Tree, forest, baseline</td><td>R² 0.04, the same ceiling for all three</td></tr><tr><td>3</td><td>Line and regularisation</td><td>R² 0.010, and 0.061 regularising</td></tr><tr><td>4</td><td>Temporal cross-validation</td><td>R² −0.126, negative and highly variable</td></tr><tr><td>5</td><td>Memory and boosting</td><td>R² 0.641, the best in the project</td></tr><tr><td>6</td><td>Classification as a warning</td><td>Catches 113 of 182, against persistence&#x27;s 140</td></tr><tr><td>7</td><td>The right baseline</td><td><strong>Persistence was already worth 0.632. ML&#x27;s contribution: +0.009</strong></td></tr><tr><td>8</td><td>Four horizons, four attacks</td><td>0 of 4. The verdict holds</td></tr><tr><td>9</td><td>Operating states</td><td>k = 3, and one disappears in May</td></tr></tbody></table></div><h3 class="sub">How to read that path</h3><p>There is a temptation to read it as a curve that rises and then falls. It is not that.</p><p>Modules 2 to 5 kept raising the number against a weak rival. Module 7 changed the rival and put everything back in its place. Module 8 checked that the verdict withstands four different attacks. And module 9 explained the cause.</p><p><strong>No measurement fell. What changed was what they were compared against.</strong></p><h3 class="sub">What remains to be measured here</h3><p>Two things. Whether a neural network changes the result, and how much the model would degrade in production.</p></section>
+<section class="block is-terms"><span class="kicker">Terms</span><h2 class="block-title">Glossary</h2><details class="fold"><summary>9 terms, in plain words</summary><ul><li><strong>Neuron.</strong> A weighted sum of inputs, plus a bias, passed through a function.</li><li><strong>Weight.</strong> The number that multiplies each input. It is what the network learns.</li><li><strong>Bias.</strong> A number added at the end. It shifts the result. In Spanish, <em>sesgo</em>.</li><li><strong>Activation function.</strong> The one that decides whether the neuron switches on. ReLU lets the positive through and turns the negative into zero.</li><li><strong>Hidden layer.</strong> A group of neurons between the input and the output.</li><li><strong>Epoch.</strong> One full pass over all the training data.</li><li><strong>Drift.</strong> The model&#x27;s performance worsening over time because the process changed.</li><li><strong>Retraining threshold.</strong> The level of error above which training has to be done again.</li><li><strong>Monitoring.</strong> Measuring the model&#x27;s error in production, continuously.</li></ul></details></section>
+<section class="block is-toy"><span class="kicker">By hand</span><h2 class="block-title">Before the theory: a toy example</h2><p>A tiny network: two inputs, two hidden neurons and one output. All the weights already fixed.</p><pre><code>inputs:    x1 = scaled air         x2 = scaled amine
+neuron A:  weights 0.5 and −1.0    bias +1.0
+neuron B:  weights 1.0 and  0.5    bias −2.0
+output:    weights 2.0 and  2.0    bias +0.5</code></pre><h3 class="sub">Step 1. An hour with high amine</h3><p>Inputs: <code>x1 = 2</code>, <code>x2 = 3</code>.</p><pre><code>neuron A: 0.5·2 + (−1.0)·3 + 1.0 = 1 − 3 + 1 = −1   -&gt;  ReLU(−1) = 0
+neuron B: 1.0·2 + 0.5·3 + (−2.0) = 2 + 1.5 − 2 = 1.5 -&gt;  ReLU(1.5) = 1.5
+output:   2.0·0 + 2.0·1.5 + 0.5 = 0 + 3 + 0.5 = 3.5</code></pre><p><strong>Neuron A is switched off.</strong> Its sum came out negative and ReLU set it to zero, so it takes no part in the answer.</p><h3 class="sub">Step 2. An hour with high air and little amine</h3><p>Inputs: <code>x1 = 4</code>, <code>x2 = 0</code>.</p><pre><code>neuron A: 0.5·4 + (−1.0)·0 + 1.0 = 2 + 0 + 1 = 3   -&gt;  ReLU(3) = 3
+neuron B: 1.0·4 + 0.5·0 + (−2.0) = 4 + 0 − 2 = 2   -&gt;  ReLU(2) = 2
+output:   2.0·3 + 2.0·2 + 0.5 = 6 + 4 + 0.5 = 10.5</code></pre><p>Now both neurons are switched on and the answer is 10.5.</p><h3 class="sub">Step 3. What just happened</h3><p>The whole network is weighted sums and a cut at zero. There is nothing else.</p><p>What gives it power is step 1: <strong>depending on the input, some neurons switch on and others do not</strong>. With many neurons, the network keeps carving up the space and fitting a different behaviour in each piece.</p><p>And the weights are not set by hand. They are learned with the gradient descent of module 3, the same one that took <code>w</code> from 0 to 1, then 1.5, then 1.75.</p></section>
+<section class="block is-method"><span class="kicker">Method</span><h2 class="block-title">Step by step</h2><h3 class="sub">Step 1. Train the network with the same variables</h3><p>No new data. The same 25 columns as module 5, so the comparison is clean.</p><h3 class="sub">Step 2. Compare it against everything before</h3><p>A more modern technique does not win for being so. It goes into the same table as the rest.</p><h3 class="sub">Step 3. Simulate production month by month</h3><p>The model trained up to July is frozen and its error is measured in each month separately. That is what an operations team would see on a dashboard.</p><h3 class="sub">Step 4. Set the threshold with data, not by eye</h3><p>The alarm threshold comes from the training error plus a margin. Here, 30%.</p><h3 class="sub">Step 5. Write the recommendation</h3><p>With everything measured, the recommendation is written in business language and with the conditions that would make it change.</p></section>
+<section class="block is-code"><span class="kicker">Code</span><h2 class="block-title">The code, in parts</h2><h3 class="sub">Step 1. The neural network</h3><pre><code class="language-python">from sklearn.neural_network import MLPRegressor
+
+red = MLPRegressor(hidden_layer_sizes=(32, 16), max_iter=300,
+                   early_stopping=True, random_state=0)
+red.fit(X_train_escalado, y_train)
+print(&quot;iteraciones:&quot;, red.n_iter_)</code></pre><details class="fold"><summary>line by line, 5 entries</summary><dl class="annot"><dt><code>MLPRegressor</code></dt><dd>A neural network for predicting a number. MLP means multilayer perceptron.</dd><dt><code>hidden_layer_sizes=(32, 16)</code></dt><dd>Two hidden layers, of 32 and 16 neurons. The input and the output are set by sklearn.</dd><dt><code>max_iter=300</code></dt><dd>At most 300 epochs, that is, 300 passes over the data.</dd><dt><code>early_stopping=True</code></dt><dd>Cuts off earlier if the validation error stops dropping.</dd><dt><code>.n_iter_</code></dt><dd>How many epochs were really needed.</dd></dl></details><div class="output"><span class="output-tag">prints</span><pre><code>scores: {&#x27;red&#x27;: 0.165, &#x27;boosting&#x27;: 0.641, &#x27;persistencia&#x27;: 0.632}
+iteraciones: 102</code></pre></div><figure class="fig"><img src="../figuras/fig_m10_red.92da8649.png" alt="The trained architecture: 25 inputs, two hidden layers of 32 and 16 neurons, and one output. Every line is a weight that gets learned." loading="lazy"><figcaption>The trained architecture: 25 inputs, two hidden layers of 32 and 16 neurons, and one output. Every line is a weight that gets learned.</figcaption></figure><figure class="fig"><img src="../figuras/fig_m10_red_resultado.52357ca0.png" alt="Left: the loss dropping during training, which is the gradient descent of module 3 in action. Right: the network compared with the boosting and persistence." loading="lazy"><figcaption>Left: the loss dropping during training, which is the gradient descent of module 3 in action. Right: the network compared with the boosting and persistence.</figcaption></figure><p><strong>R² 0.165.</strong> The network comes in below the forest, the boosting and persistence.</p><h3 class="sub">Step 2. Measure the drift month by month</h3><pre><code class="language-python">for mes, bloque in test.groupby(test.index.to_period(&quot;M&quot;)):
+    error = root_mean_squared_error(bloque[TARGET], modelo.predict(bloque[feats]))
+    print(f&quot;{mes}  RMSE {error:.3f}&quot;)
+umbral = rmse_entrenamiento * 1.30</code></pre><details class="fold"><summary>line by line, 3 entries</summary><dl class="annot"><dt><code>.groupby(test.index.to_period(&quot;M&quot;))</code></dt><dd>Groups by calendar month, using the date index.</dd><dt><code>for mes, bloque in ...</code></dt><dd>Each turn brings the group&#x27;s name and its piece of the table.</dd><dt><code>rmse_entrenamiento * 1.30</code></dt><dd>The threshold: 30% above the error the model was trained with. The margin is chosen, and declared.</dd></dl></details><div class="output"><span class="output-tag">prints</span><pre><code>RMSE por mes:
+mes
+2017-03    0.691
+2017-04    0.511
+2017-05    0.495
+2017-06    0.437
+2017-07    0.526
+2017-08    0.654
+2017-09    0.763
+
+RMSE en entrenamiento: 0.509 | umbral de alarma: 0.661</code></pre></div><figure class="fig"><img src="../figuras/fig_m10_drift.3af8555f.png" alt="The RMSE month by month. In green the training months and in red the new ones. The dotted line is the alarm threshold." loading="lazy"><figcaption>The RMSE month by month. In green the training months and in red the new ones. The dotted line is the alarm threshold.</figcaption></figure><h3 class="sub">Step 3. The whole project on a single scale</h3><pre><code class="language-python">for nombre, puntuacion in resultados.items():
+    print(f&quot;{nombre:&lt;45} {puntuacion:+.3f}&quot;)</code></pre><details class="fold"><summary>line by line, 2 entries</summary><dl class="annot"><dt><code>resultados.items()</code></dt><dd>Walks a dictionary returning the name and value pair on each turn.</dd><dt><code>{nombre:&lt;45}</code></dt><dd>Left-aligns, padding up to 45 characters, so the column of numbers stays straight.</dd></dl></details><div class="output"><span class="output-tag">prints</span><pre><code>Predecir el promedio (baseline trivial)       -0.000
+Boosting SIN memoria (solo proceso)           +0.118
+Red neuronal (con memoria)                    +0.165
+Random forest (con memoria)                   +0.492
+PERSISTENCIA (repetir ultimo valor)           +0.632
+Gradient boosting (con memoria)               +0.641</code></pre></div><figure class="fig"><img src="../figuras/fig_m10_resumen.b4147ebd.png" alt="Everything tried in the project, measured the same way. In orange the trivial baseline, which beats almost all of the machine learning." loading="lazy"><figcaption>Everything tried in the project, measured the same way. In orange the trivial baseline, which beats almost all of the machine learning.</figcaption></figure><h3 class="sub">Step 4. The GPU, to know when it is useful</h3><pre><code class="language-python">import torch
+
+print(&quot;CUDA disponible:&quot;, torch.cuda.is_available())
+print(&quot;GPU:&quot;, torch.cuda.get_device_name(0))</code></pre><details class="fold"><summary>line by line, 2 entries</summary><dl class="annot"><dt><code>torch.cuda.is_available()</code></dt><dd>Checks whether PyTorch finds a usable GPU.</dd><dt><code>torch.cuda.get_device_name(0)</code></dt><dd>The name of the first GPU in the system.</dd></dl></details><div class="output"><span class="output-tag">prints</span><pre><code>PyTorch: 2.12.0.dev20260408+cu128
+CUDA disponible: True
+GPU: NVIDIA GeForce RTX 5060 Laptop GPU
+Capacidad de computo: sm_120  (Blackwell = sm_120)
+CUDA compilada en torch: 12.8
+times (ms): {&#x27;cpu&#x27;: 540.7, &#x27;cuda&#x27;: 17.1}
+R2 test: +0.190</code></pre></div><figure class="fig"><img src="../figuras/fig_m11_gpu.9222c72b.png" alt="Left: multiplying 4096 by 4096 matrices on CPU and on GPU. Right: the training loop written by hand, lowering the loss." loading="lazy"><figcaption>Left: multiplying 4096 by 4096 matrices on CPU and on GPU. Right: the training loop written by hand, lowering the loss.</figcaption></figure></section>
+<section class="block is-result"><span class="kicker">Result</span><h2 class="block-title">The result, measured</h2><p><strong>What we expected.</strong> That the neural network would land in the middle zone, comparable to the forest. That is the normal thing with tabular data.</p><p><strong>What came out.</strong> Last of all the ones that use memory.</p><div class="table-wrap"><table><thead><tr><th>Model</th><th>Test R²</th></tr></thead><tbody><tr><td>Predicting the average</td><td>−0.000</td></tr><tr><td>Boosting without memory</td><td>+0.118</td></tr><tr><td><strong>Neural network with memory</strong></td><td><strong>+0.165</strong></td></tr><tr><td>Random forest with memory</td><td>+0.492</td></tr><tr><td>Persistence, no model</td><td>+0.632</td></tr><tr><td>Gradient boosting with memory</td><td>+0.641</td></tr></tbody></table></div><p><strong>What it means.</strong> With tabular data and a few thousand rows, tree models keep beating networks. The network needs far more data to make up for its flexibility, and here there are only 4,091 hours.</p><h3 class="sub">The drift, measured</h3><div class="table-wrap"><table><thead><tr><th>Month</th><th>RMSE</th><th>State</th></tr></thead><tbody><tr><td>March</td><td>0.691</td><td>training, <strong>above the threshold</strong></td></tr><tr><td>April</td><td>0.511</td><td>training</td></tr><tr><td>May</td><td>0.495</td><td>training</td></tr><tr><td>June</td><td>0.437</td><td>training, the best month</td></tr><tr><td>July</td><td>0.526</td><td>training</td></tr><tr><td>August</td><td>0.654</td><td>production, brushing the threshold</td></tr><tr><td><strong>September</strong></td><td><strong>0.763</strong></td><td>production, <strong>crosses the threshold</strong></td></tr></tbody></table></div><p>The threshold is 0.661, 30% above the 0.509 of training. September crosses it clearly, and that is where an operations team would have to retrain.</p><p><strong>March is above it too</strong>, and that is the interesting part. March is part of the training set and even so the model predicts it badly. Module 9 gave the explanation: March is 100% state 1, and that state disappears in May. The model, trained on a mixture, describes neither regime well.</p><h3 class="sub">The GPU</h3><p>The GPU multiplies matrices 32 times faster, from 541 to 17 milliseconds. The R² of the model trained on it is 0.190.</p><p><strong>It speeds up, it does not improve.</strong> That is the practical lesson: the GPU buys time, not quality. And for 4,091 rows of tabular data, it does not even buy time that is needed.</p><blockquote>Declared discrepancy: the original note for this experiment reported 34 times and 580 milliseconds. Measured again, it comes out at 541 milliseconds and 32 times. The new measurement is reported.</blockquote><h3 class="sub">The recommendation</h3><p><strong>Do not deploy machine learning to predict the SiO₂ of the concentrate with these data.</strong></p><p>Held up by four measurements:</p><ol><li>The contribution over repeating the last assay is <strong>+0.009</strong> at one hour.</li><li>From five hours on <strong>nobody beats predicting the mean</strong>.</li><li>The verdict withstood four attacks: retraining, moving window, per-regime models and reframing the problem as a warning.</li><li>The cause is identified: <strong>the plant changed operating regime in May</strong>, and there is no stable relationship to learn.</li></ol><h3 class="sub">What it would take to try again</h3><ul><li><strong>A log of setpoints and operating changes.</strong> That is what the file lacks, and without it the May change is invisible to the model.</li><li><strong>More frequent laboratory assays</strong>, or an online analyser. With the target measured every few minutes, persistence would stop being so strong.</li><li><strong>At least a year of data</strong>, to have several campaign cycles instead of a single change.</li><li><strong>An experiment with excitation</strong>, moving setpoints on purpose. It is the only way to separate cause from correlation in a controlled plant, and it is what module 14 is about.</li></ul><h3 class="sub">And what comes next</h3><p>The original project ends here. Part 2 of the course, modules 11 to 14, closes the machine learning gaps that remained. And it puts the verdict to the test again with techniques that were never tried.</p></section>
+<section class="block is-warning"><span class="kicker">Traps</span><h2 class="block-title">Watch out</h2><ul><li><strong>A neural network does not win for being modern.</strong> Here it comes last among the ones that use memory, with 0.165 against the boosting&#x27;s 0.641.</li><li><strong>Networks need a lot of data.</strong> 4,091 rows is very little for 25 inputs and two layers.</li><li><strong>The GPU speeds up, it does not improve.</strong> Same model, same result, 32 times less time.</li><li><strong>The retraining threshold is declared at deployment</strong>, not when the alarm goes off.</li><li><strong>A training month with high error is a signal, not noise.</strong> March has one, and it points to the change of regime.</li><li><strong>Drift is measured in production, not assumed.</strong> Without monitoring nobody finds out that the model stopped being useful.</li></ul></section>
+<section class="block is-bridge"><span class="kicker">Analogy</span><h2 class="block-title">Metallurgical bridge</h2><p>The neural network is an <strong>empirical plant model with many parameters</strong>. It serves when there are thousands of recorded campaigns. With six months of a single circuit, fitting hundreds of weights is like fitting a six-constant model to three experimental points.</p><p>Drift is the <strong>decalibration of an online analyser</strong>. It does not fail all at once: it keeps drifting while nobody looks, which is why daily verification standards exist. The threshold of 0.661 is exactly that, a verification standard.</p><p>And the final recommendation is a <strong>test report with a negative result</strong>, which in metallurgy is delivered just like a positive one. If a test campaign shows that a new reagent does not improve recovery, that report saves the investment. Here it saves the deployment of a system that would have given worse warnings than looking at the last assay.</p></section>
+<section class="block is-review"><span class="kicker">Review</span><h2 class="block-title">Review</h2><details><summary>The neural network comes last. Does that mean networks are no use for processes?</summary><p>No. It means they are no use <strong>for this dataset</strong>, and for a concrete reason: size.</p><p>There are 4,091 usable hours and 25 input variables. A two-layer network with 32 and 16 neurons has hundreds of weights to fit with those few thousand examples. Tree models need less data for the same job, which is why they keep winning on tabular data of this size. With years of history, or with sequence data treated as a sequence, the comparison could be different. Module 11 checks it.</p></details><details><summary>March&#x27;s error is 0.691 and March is in the training set. How is that explained?</summary><p>With the finding of module 9. March is 100% operating state 1, and that state disappears in May.</p><p>The model was trained on March to July, that is, on a mixture of two very different regimes. The result is an average model that describes the central months reasonably well, June with 0.437, and the extremes badly. A high error inside the training set itself is not noise: it is the signal that the data are not homogeneous and that a single model cannot cover them.</p></details><details><summary>How is the retraining threshold chosen?</summary><p>With the training error plus a margin declared in advance, not by watching when it starts to fail.</p><p>Here the training RMSE is 0.509 and the chosen margin is 30%, so the threshold lands at 0.661. September crosses it with 0.763. The important part of the procedure is the order: the threshold is set at deployment, when nobody yet knows what is going to happen. Setting it after seeing the curve is choosing the number that justifies the decision already taken.</p></details><details><summary>The GPU speeds things up 32 times. Is it worth it for this project?</summary><p>No, and knowing that is also a result.</p><p>The GPU multiplies large matrices 32 times faster, from 541 to 17 milliseconds, and with it the model&#x27;s R² is 0.190 instead of 0.165. The difference comes from the model, not from the hardware: training faster does not change what there is to learn. The GPU is justified when training is the bottleneck, which is the case with images, text or long sequences. With 4,091 tabular rows, the bottleneck is the information available.</p></details><details><summary>Summarise the whole project in two minutes, as in an interview.</summary><p>The brief was to predict the percentage of silica in the concentrate of an iron flotation plant, in real time, from process sensors. Six months of real data, 737,453 rows.</p><p>With honest temporal evaluation, the ceiling of every tabular model was R² 0.04. Building variables with the process&#x27;s memory lifted it to 0.64, which looked like a success. The decisive step was measuring the right baseline: repeating the last laboratory assay already gave 0.632, so all of machine learning contributed nine thousandths. From five hours of lead time on, no method beats predicting the mean.</p><p>The verdict was attacked four ways, including retraining daily and reframing the problem as an out-of-specification warning, and none moved it. Unsupervised learning explained why: the plant changed operating regime in May and there is no stable relationship to learn.</p><p>The deliverable is a reasoned recommendation not to deploy, plus the list of what it would take for a second attempt to make sense. Defending a well-measured negative result is a different skill from obtaining a good one, and in a plant it saves more money.</p></details></section>
+</main>
+<nav class="pager"><a class="prev" href="m09_los_tres_estados_de_la_planta.en.html"><span class="dir">Previous</span>9. The three states of the plant</a><a class="next" href="m11_modelos_de_secuencia.en.html"><span class="dir">Next</span>11. Sequence models: LSTM, GRU and causal convolution</a></nav>
+<footer class="footer">
+  <div class="footer-inner">
+    <span>Silica / Module 10</span>
+    <span>generated on 2026-08-22</span>
+    <span>source: the 31 original notes, their scripts and the plant CSV</span>
+  </div>
+</footer>
+</body>
+</html>

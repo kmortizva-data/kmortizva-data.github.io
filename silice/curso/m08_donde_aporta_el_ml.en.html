@@ -1,0 +1,690 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Where does ML really add value? · Silica, module 8</title>
+<link rel="alternate" hreflang="es" href="m08_donde_aporta_el_ml.html">
+<style>
+/* Sílice: la hoja de estilos del curso.
+ *
+ * Identidad de papel de informe de planta, no de pantalla. El proyecto termina
+ * recomendando no desplegar, y eso es un informe técnico: papel hueso, tinta grafito,
+ * y una retícula de milimetrado muy tenue en la cabecera.
+ *
+ * Dos familias tipográficas y ni una más, las dos del sistema porque el sitio se abre
+ * desde file:// y tiene que funcionar sin internet: serif para la prosa (se lee como
+ * informe) y monoespaciada para todo lo que es dato, código, cifra o etiqueta.
+ *
+ * El acento lo inyecta cada página con --accent: es el del módulo, y marca su posición
+ * en el arco del proyecto. Los diez pasan check_palette.py antes de entrar aquí.
+ */
+
+:root {
+  --paper: #f6f3ec;
+  --bench: #eeeade;
+  --ink: #2a2622;
+  --ink-soft: #57504a;
+  --ink-faint: #8a8177;
+  --rule: #ddd6c6;
+  --rule-soft: #e8e2d4;
+  --grid: rgba(84, 69, 73, .07);
+  --accent: #632727;
+
+  --prose: Georgia, "Iowan Old Style", "Palatino Linotype", Palatino, "Times New Roman", serif;
+  --data: "Cascadia Mono", Consolas, "DejaVu Sans Mono", "Liberation Mono", monospace;
+
+  --measure: 680px;   /* la medida de la prosa, en píxeles y nunca en ch */
+  --wide: 1180px;     /* el borde derecho de los bloques anchos */
+  --margin: 132px;    /* la columna del margen, donde cuelgan los kickers */
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--prose);
+  font-size: 17px;
+  line-height: 1.62;
+  -webkit-text-size-adjust: 100%;
+}
+
+::selection { background: var(--accent); color: var(--paper); }
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+/* --------------------------------------------------------------- cabecera */
+
+.masthead {
+  border-bottom: 1px solid var(--rule);
+  background-color: var(--bench);
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 26px 26px;
+  background-position: -1px -1px;
+}
+
+.masthead-inner {
+  max-width: var(--wide);
+  margin: 0 auto;
+  padding: 2.4rem 2rem 1.6rem;
+}
+
+.eyebrow {
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-bottom: 1rem;
+}
+
+.eyebrow a { color: inherit; text-decoration: none; border-bottom: 1px solid transparent; }
+.eyebrow a:hover { border-bottom-color: var(--accent); color: var(--accent); }
+.eyebrow b { color: var(--accent); font-weight: 400; }
+
+.masthead h1 {
+  margin: 0;
+  font-size: clamp(1.9rem, 4.4vw, 2.9rem);
+  line-height: 1.14;
+  font-weight: 400;
+  letter-spacing: -.012em;
+  max-width: 900px;
+}
+
+.standfirst {
+  margin: .9rem 0 0;
+  max-width: var(--measure);
+  color: var(--ink-soft);
+  font-size: 1.02rem;
+  line-height: 1.55;
+}
+
+/* La cifra del módulo: el número que dejó, en grande, junto al título. Es lo que
+   convierte la cabecera en parte del argumento y no en decoración. */
+.figure-mark {
+  margin-top: 1.6rem;
+  display: flex;
+  align-items: baseline;
+  gap: .8rem;
+  flex-wrap: wrap;
+  border-left: 3px solid var(--accent);
+  padding-left: .9rem;
+}
+
+.figure-value {
+  font-family: var(--data);
+  font-size: clamp(1.5rem, 3.4vw, 2.1rem);
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: -.02em;
+}
+
+.figure-label {
+  font-family: var(--data);
+  font-size: .78rem;
+  letter-spacing: .04em;
+  color: var(--ink-soft);
+}
+
+/* El hilo del proyecto: diez segmentos, uno por módulo, con su cifra debajo. Desde
+   cualquier página se ve el recorrido entero, que es justo lo que a los apuntes
+   sueltos les faltaba. */
+.thread {
+  margin-top: 1.8rem;
+  display: grid;
+  /* One equal column per segment, whatever the temario says. It was pinned to ten and
+     the course grew to fourteen. */
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: 4px;
+}
+
+/* Where part 2 starts: the four modules that were never in the original project. */
+.thread .starts-part { margin-left: 10px; position: relative; }
+.thread .starts-part::after {
+  content: '';
+  position: absolute;
+  left: -7px; top: -3px; bottom: 0;
+  border-left: 1px solid var(--rule);
+}
+
+.thread a, .thread span {
+  display: block;
+  text-decoration: none;
+  color: var(--ink-faint);
+  font-family: var(--data);
+  font-size: .62rem;
+  letter-spacing: .04em;
+  padding-top: .4rem;
+  border-top: 3px solid var(--rule);
+  transition: color .12s, border-color .12s;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.thread a:hover { color: var(--ink); border-top-color: var(--ink-soft); }
+.thread [aria-current="page"] { color: var(--accent); border-top-color: var(--accent); }
+.thread .n { font-weight: 700; }
+.thread .v { color: inherit; opacity: .75; }
+
+/* Las pastillas de composición: de qué está hecho el módulo. */
+.assay {
+  margin-top: 1.6rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.4rem;
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .05em;
+  color: var(--ink-faint);
+}
+
+.assay b { color: var(--ink); font-weight: 700; }
+
+/* ----------------------------------------------------------------- cuerpo */
+
+.container {
+  max-width: var(--wide);
+  margin: 0 auto;
+  padding: 2.6rem 2rem 4rem;
+}
+
+/* Cada sección es una anotación de cuaderno: el kicker cuelga en el margen
+   izquierdo y el contenido corre en la columna principal. En pantalla estrecha el
+   kicker se pone encima. */
+.block {
+  display: grid;
+  grid-template-columns: var(--margin) minmax(0, 1fr);
+  column-gap: 2rem;
+  padding: 2.2rem 0;
+  border-top: 1px solid var(--rule);
+}
+
+.block:first-child { border-top: 0; padding-top: .6rem; }
+
+.kicker {
+  grid-column: 1;
+  font-family: var(--data);
+  font-size: .68rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding-top: .45rem;
+}
+
+.block > :not(.kicker) { grid-column: 2; }
+
+.block-title {
+  margin: 0 0 1.1rem;
+  font-size: 1.42rem;
+  font-weight: 400;
+  line-height: 1.25;
+  letter-spacing: -.008em;
+}
+
+.is-warning .kicker, .is-result .kicker { color: var(--accent); }
+.is-warning .block-title { border-bottom: 2px solid var(--accent); padding-bottom: .4rem; display: inline-block; }
+.is-result { background: var(--bench); margin: 0 -1.2rem; padding: 2.2rem 1.2rem; }
+.is-result .block-title { color: var(--accent); }
+
+/* Prosa: justificada con partición, que sin partición el español justificado abre
+   ríos. Tablas, código y pies de figura se quedan sin justificar. */
+.block p, .block li, .block dd, details > *:not(summary) {
+  max-width: var(--measure);
+  text-align: justify;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+}
+
+.block p { margin: 0 0 1rem; }
+.block p:last-child { margin-bottom: 0; }
+.block ul, .block ol { margin: 0 0 1rem; padding-left: 1.3rem; max-width: var(--measure); }
+.block li { margin-bottom: .5rem; }
+.block li::marker { color: var(--accent); font-family: var(--data); font-size: .85em; }
+
+td, th, figcaption, .assay, .thread a, .res li { text-align: left; hyphens: manual; }
+
+a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+a:hover { text-decoration-thickness: 2px; }
+strong { font-weight: 700; }
+em { font-style: italic; color: var(--ink-soft); }
+
+h3.sub {
+  margin: 1.9rem 0 .7rem;
+  font-size: 1.07rem;
+  font-weight: 700;
+  letter-spacing: -.004em;
+}
+
+h3.sub:first-child { margin-top: 0; }
+
+h4.sub {
+  margin: 1.4rem 0 .5rem;
+  font-family: var(--data);
+  font-size: .82rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  color: var(--ink-soft);
+}
+
+/* ------------------------------------------------------------ código y datos */
+
+code {
+  font-family: var(--data);
+  font-size: .87em;
+  background: var(--bench);
+  padding: .1em .32em;
+  border-radius: 2px;
+}
+
+pre {
+  margin: 0 0 1rem;
+  padding: 1rem 1.1rem;
+  background: var(--bench);
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--accent);
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+pre code { background: none; padding: 0; font-size: .82rem; line-height: 1.62; }
+
+/* La salida es lo que imprime el código, no código para correr: se marca aparte
+   para que nadie confunda entrada con salida. */
+.output {
+  margin: 0 0 1rem;
+  border: 1px dashed var(--rule);
+  background: transparent;
+}
+
+.output-tag {
+  display: block;
+  font-family: var(--data);
+  font-size: .64rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding: .45rem 1.1rem 0;
+}
+
+.output pre {
+  margin: 0;
+  border: 0;
+  background: none;
+  padding: .3rem 1.1rem 1rem;
+}
+
+.output pre code { color: var(--ink-soft); }
+
+/* La anotación línea por línea, para quien no ha programado antes. */
+.annot {
+  margin: 0 0 1.2rem;
+  border: 1px solid var(--rule);
+  border-top: 0;
+  padding: 0 1.1rem .6rem;
+  background: transparent;
+}
+
+.annot-head {
+  font-family: var(--data);
+  font-size: .64rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding: .55rem 0 .5rem;
+  border-bottom: 1px solid var(--rule-soft);
+  margin-bottom: .4rem;
+}
+
+.annot dt { padding: .4rem 0 .1rem; }
+.annot dt code { background: none; padding: 0; color: var(--accent); font-weight: 700; }
+.annot dd {
+  margin: 0 0 .4rem;
+  color: var(--ink-soft);
+  font-size: .94rem;
+  border-bottom: 1px solid var(--rule-soft);
+  padding-bottom: .5rem;
+}
+.annot dd:last-of-type { border-bottom: 0; }
+
+pre:has(+ .annot) { margin-bottom: 0; }
+
+blockquote {
+  margin: 0 0 1rem;
+  padding: .2rem 0 .2rem 1.1rem;
+  border-left: 3px solid var(--rule);
+  color: var(--ink-soft);
+  font-style: italic;
+  max-width: var(--measure);
+}
+
+/* --------------------------------------------------------------- tablas */
+
+.table-wrap { overflow-x: auto; margin: 0 0 1.2rem; }
+
+table {
+  border-collapse: collapse;
+  width: auto;
+  max-width: 100%;
+  font-size: .92rem;
+}
+
+th, td {
+  padding: .5rem .9rem .5rem 0;
+  border-bottom: 1px solid var(--rule-soft);
+  vertical-align: top;
+}
+
+th {
+  font-family: var(--data);
+  font-size: .7rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--ink-faint);
+  border-bottom: 1px solid var(--rule);
+  white-space: nowrap;
+}
+
+/* -------------------------------------------------------------- repaso */
+
+details {
+  border-bottom: 1px solid var(--rule-soft);
+  padding: .2rem 0;
+  max-width: var(--measure);
+}
+
+summary {
+  cursor: pointer;
+  list-style: none;
+  padding: .7rem 0 .7rem 1.5rem;
+  position: relative;
+  font-weight: 700;
+}
+
+summary::-webkit-details-marker { display: none; }
+
+summary::before {
+  content: '+';
+  position: absolute;
+  left: 0;
+  font-family: var(--data);
+  color: var(--accent);
+  font-weight: 700;
+}
+
+details[open] summary::before { content: '\2212'; }
+details[open] summary { color: var(--accent); }
+details > *:not(summary) { color: var(--ink-soft); }
+details > *:last-child { padding-bottom: .8rem; }
+
+/* -------------------------------------------------------------- figuras */
+
+figure.fig {
+  margin: 0 0 1.4rem;
+  max-width: 100%;
+  border: 1px solid var(--rule);
+  background: #fff;
+  padding: .6rem;
+}
+
+figure.fig img { width: 100%; height: auto; display: block; }
+
+figure.fig figcaption {
+  margin-top: .6rem;
+  padding-top: .5rem;
+  border-top: 1px solid var(--rule-soft);
+  font-family: var(--data);
+  font-size: .7rem;
+  letter-spacing: .04em;
+  color: var(--ink-faint);
+}
+
+.gone {
+  font-family: var(--data);
+  font-size: .76rem;
+  color: var(--accent);
+  border: 1px dashed var(--accent);
+  padding: .5rem .8rem;
+}
+
+/* ------------------------------------------------------- pie y navegación */
+
+.pager {
+  max-width: var(--wide);
+  margin: 0 auto;
+  padding: 0 2rem 3rem;
+  display: flex;
+  gap: 1.4rem;
+  justify-content: space-between;
+  font-family: var(--data);
+  font-size: .78rem;
+}
+
+.pager a { max-width: 46%; text-decoration: none; border-bottom: 1px solid var(--rule); padding-bottom: .3rem; }
+.pager a:hover { border-bottom-color: var(--accent); }
+.pager .dir { display: block; font-size: .64rem; letter-spacing: .13em; text-transform: uppercase; color: var(--ink-faint); }
+.pager .next { text-align: right; margin-left: auto; }
+
+.footer {
+  border-top: 1px solid var(--rule);
+  padding: 1.4rem 2rem 2.4rem;
+  font-family: var(--data);
+  font-size: .72rem;
+  letter-spacing: .06em;
+  color: var(--ink-faint);
+}
+
+.footer-inner { max-width: var(--wide); margin: 0 auto; display: flex; gap: 1.4rem; flex-wrap: wrap; }
+
+/* ------------------------------------------------------------- índice */
+
+.toc { list-style: none; margin: 0; padding: 0; max-width: 100%; }
+
+.toc li {
+  border-top: 1px solid var(--rule-soft);
+  max-width: 100%;
+}
+
+.toc li:last-child { border-bottom: 1px solid var(--rule-soft); }
+
+.toc a, .toc .pending {
+  display: grid;
+  grid-template-columns: 3rem minmax(0, 1fr) auto;
+  gap: 1.2rem;
+  align-items: baseline;
+  padding: 1rem .4rem;
+  text-decoration: none;
+  color: inherit;
+}
+
+.toc a:hover { background: var(--bench); }
+.toc .pending { color: var(--ink-faint); }
+.toc .num { font-family: var(--data); font-size: .82rem; font-weight: 700; }
+.toc .name { font-size: 1.05rem; }
+.toc .name small { display: block; font-family: var(--prose); font-size: .86rem; color: var(--ink-soft); margin-top: .2rem; }
+.toc .mark { font-family: var(--data); font-size: .82rem; font-weight: 700; white-space: nowrap; }
+.toc .tag { font-family: var(--data); font-size: .66rem; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-faint); }
+
+/* ---------------------------------------------------------- responsive */
+
+@media (max-width: 900px) {
+  .block { grid-template-columns: minmax(0, 1fr); }
+  .block > :not(.kicker) { grid-column: 1; }
+  .kicker { grid-column: 1; padding-top: 0; margin-bottom: .7rem; }
+  .thread { grid-auto-flow: row; grid-template-columns: repeat(5, 1fr); gap: 6px 4px; }
+  .thread .starts-part { margin-left: 0; }
+  .thread .starts-part::after { display: none; }
+  .toc a, .toc .pending { grid-template-columns: 2.2rem minmax(0, 1fr); }
+  .toc .mark { grid-column: 2; }
+}
+
+@media (max-width: 620px) {
+  body { font-size: 16px; }
+  .masthead-inner, .container, .pager, .footer { padding-left: 1.2rem; padding-right: 1.2rem; }
+  .is-result { margin: 0; padding: 2rem 1rem; }
+  .block p, .block li { text-align: left; }
+}
+
+@media print {
+  .thread, .pager { display: none; }
+  body { font-size: 11pt; }
+  .masthead { background: none; }
+  .block { break-inside: avoid; }
+}
+
+/* -------------------------------------------------- resumen y plegables */
+
+/* El resumen de entrada: la cifra, la trampa y la decision, en cinco vinetas.
+   Se lee en 30 segundos o se sigue leyendo. */
+.is-brief {
+  border-top: 0;
+  padding-top: .4rem;
+}
+
+.is-brief .kicker { color: var(--accent); }
+
+.is-brief ul {
+  list-style: none;
+  padding-left: 0;
+  max-width: var(--measure);
+  border-left: 3px solid var(--accent);
+  padding: .2rem 0 .2rem 1.1rem;
+}
+
+.is-brief li { margin-bottom: .7rem; text-align: left; }
+.is-brief li:last-child { margin-bottom: 0; }
+
+/* Los plegables de contenido denso: el glosario y la anotacion del codigo.
+   Cerrados por defecto, para que la pagina no sea un muro. */
+details.fold {
+  border: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+  background: transparent;
+  margin: 0 0 1.2rem;
+  padding: 0;
+  max-width: 100%;
+}
+
+details.fold > summary {
+  font-family: var(--data);
+  font-size: .68rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  font-weight: 400;
+  color: var(--ink-faint);
+  padding: .55rem .9rem .55rem 2rem;
+}
+
+details.fold > summary::before { left: .9rem; }
+details.fold[open] > summary {
+  color: var(--accent);
+  border-bottom: 1px solid var(--rule-soft);
+  margin-bottom: 0;
+}
+
+details.fold > *:not(summary) { padding: .8rem .9rem; color: inherit; }
+details.fold ul { margin-bottom: 0; }
+details.fold .annot { border: 0; padding: 0; margin: 0; }
+details.fold .annot dd { max-width: var(--measure); }
+
+/* Un bloque de codigo seguido de su plegable van pegados. */
+pre:has(+ details.fold) { margin-bottom: 0; border-bottom: 0; }
+
+/* The course exists in Spanish only; an English reader gets an honest way out, to the
+   project's summary on the portfolio, instead of a language switch that does not exist. */
+.portfolio-link {
+  float: right;
+  margin: 0 0 .6rem 1.2rem;
+  font-family: var(--data);
+  font-size: .7rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: inherit;
+  opacity: .72;
+  text-decoration: none;
+  border-bottom: 1px solid currentColor;
+}
+.portfolio-link:hover { opacity: 1; }
+
+:root { --accent: #5f2f33; }
+</style>
+</head>
+<body>
+<header class="masthead">
+  <div class="masthead-inner">
+    <a class="portfolio-link" href="m08_donde_aporta_el_ml.html" hreflang="es" rel="alternate">Español</a>
+    <div class="eyebrow"><a href="index.en.html">Silica</a> / Module <b>8</b> of 14</div>
+    <h1>Where does ML really add value?</h1>
+    <p class="standfirst">The missing experiment: model against persistence at 1, 3, 6 and 12 hours, and the verdict of the project</p>
+    <div class="figure-mark">
+      <span class="figure-value">0 of 4</span>
+      <span class="figure-label">horizons where ML adds value</span>
+    </div>
+    <nav class="thread" aria-label="The arc of the project"><a href="m01_radiografia_del_dataset.en.html" title="1. An X-ray of the dataset"><span class="n">1</span> <span class="v">737,453</span></a><a href="m02_el_primer_modelo_y_el_techo.en.html" title="2. The first model, and the ceiling that appeared at once"><span class="n">2</span> <span class="v">R² 0.04</span></a><a href="m03_como_aprende_un_modelo.en.html" title="3. How a model learns on the inside"><span class="n">3</span> <span class="v">R² 0.06</span></a><a href="m04_preprocesar_y_validar.en.html" title="4. Preprocessing and validating without cheating"><span class="n">4</span> <span class="v">R² −0.13</span></a><a href="m05_darle_memoria_al_modelo.en.html" title="5. Giving the model a memory"><span class="n">5</span> <span class="v">R² 0.64</span></a><a href="m06_clasificar_fuera_de_spec.en.html" title="6. Classifying: in or out of specification"><span class="n">6</span> <span class="v">0.62 vs 0.77</span></a><a href="m07_contra_que_se_compara.en.html" title="7. What a model is compared against"><span class="n">7</span> <span class="v">+0.009</span></a><span aria-current="page" title="8. Where does ML really add value?"><span class="n">8</span> <span class="v">0 of 4</span></span><a href="m09_los_tres_estados_de_la_planta.en.html" title="9. The three states of the plant"><span class="n">9</span> <span class="v">k = 3</span></a><a href="m10_redes_producto_y_cierre.en.html" title="10. Networks, product and closing"><span class="n">10</span> <span class="v">0.76</span></a><a class="starts-part" href="m11_modelos_de_secuencia.en.html" title="11. Sequence models: LSTM, GRU and causal convolution"><span class="n">11</span> <span class="v">+0.215</span></a><a href="m12_practica_de_pronostico.en.html" title="12. The forecasting practice that was missing"><span class="n">12</span> <span class="v">0.52 vs 0.63</span></a><a href="m13_incertidumbre.en.html" title="13. Uncertainty: from the point to the interval"><span class="n">13</span> <span class="v">92.0%</span></a><a href="m14_lectura_causal.en.html" title="14. A causal reading of the control loop"><span class="n">14</span> <span class="v">+0.16</span></a></nav>
+    <div class="assay"><span><b>1</b> source notes</span><span><b>1</b> figures</span><span><b>3</b> scripts</span></div>
+  </div>
+</header>
+<main class="container">
+<section class="block is-brief"><span class="kicker">Summary</span><h2 class="block-title">In 30 seconds</h2><ul><li><strong>0 of 4.</strong> At none of the four horizons tried does machine learning give a deployable model.</li><li><strong>Persistence sinks on its own.</strong> It is worth 0.632 at one hour, 0.271 at three, and turns negative from five onwards.</li><li><strong>At 12 hours the level model makes things worse</strong>, with R² −0.851 against persistence&#x27;s −0.613.</li><li><strong>There is an own signal and it is real</strong>: predicting the <strong>change</strong> gives R² +0.175 at 12 hours. Real, and still insufficient.</li><li><strong>Three more attempts to topple the verdict</strong>, and all three fail. Retraining, splitting by regime and turning the question into a warning.</li></ul></section>
+<section class="block "><span class="kicker">Context</span><h2 class="block-title">What this module solves</h2><p>Module 7 left one way out open. At one hour persistence is unbeatable because the process has barely moved. At longer horizons that advantage has to disappear.</p><p>Here it is checked. The measurement is repeated at 1, 3, 6 and 12 hours. And changing the question is tried: instead of predicting how much silica there will be, predicting how much it is going to rise or fall.</p><p>And since the verdict is strong, the module ends by trying to break it three more ways.</p></section>
+<section class="block is-toy"><span class="kicker">By hand</span><h2 class="block-title">Before the theory: a toy example</h2><p>Five hours of a plant rising two at a time.</p><div class="table-wrap"><table><thead><tr><th>Hour</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th></tr></thead><tbody><tr><td><strong>% SiO₂</strong></td><td>2</td><td>4</td><td>6</td><td>8</td><td>10</td></tr></tbody></table></div><p>The mean is 6, and the variation around that mean is:</p><pre><code>error of always predicting the mean = [(2−6)² + (4−6)² + (6−6)² + (8−6)² + (10−6)²] / 5
+                                    = (16 + 4 + 0 + 4 + 16) / 5
+                                    = 40 / 5
+                                    = 8</code></pre><p>That 8 is the reference. R² compares against it.</p><h3 class="sub">Step 1. Persistence one hour ahead</h3><p>Predict each hour with the previous hour&#x27;s value. Since the plant rises two at a time, each miss is worth 2.</p><pre><code>error = 2² = 4
+R² = 1 − (4 / 8) = 0.50</code></pre><h3 class="sub">Step 2. Persistence two hours ahead</h3><p>Now the answer has to be given two hours in advance, so the last value available is the one from two hours ago. Each miss is worth 4.</p><pre><code>error = 4² = 16
+R² = 1 − (16 / 8) = −1.00</code></pre><p><strong>Already negative.</strong> Two hours in advance, repeating the last value is worse than saying the mean.</p><h3 class="sub">Step 3. Persistence three hours ahead</h3><pre><code>error = 6² = 36
+R² = 1 − (36 / 8) = −3.50</code></pre><h3 class="sub">Step 4. See the fall together</h3><div class="table-wrap"><table><thead><tr><th>Lead</th><th>Typical miss</th><th>Error</th><th>R²</th></tr></thead><tbody><tr><td>1 hour</td><td>2</td><td>4</td><td><strong>0.50</strong></td></tr><tr><td>2 hours</td><td>4</td><td>16</td><td>−1.00</td></tr><tr><td>3 hours</td><td>6</td><td>36</td><td>−3.50</td></tr></tbody></table></div><p>Persistence&#x27;s advantage <strong>collapses with the horizon</strong>, and it does so fast: the error grows with the square of the lead.</p><h3 class="sub">Step 5. What just happened</h3><p>Two different questions appear, and they have to be separated.</p><p>The first is whether machine learning <strong>beats persistence</strong>. At a long horizon that is easy, because persistence sinks on its own.</p><p>The second is whether machine learning <strong>is any use</strong>. For that, beating a rival that is already worse than the mean is not enough. You have to beat the mean, that is, have a positive R². That is the real bar, and the module applies it at all four horizons.</p></section>
+<section class="block is-terms"><span class="kicker">Terms</span><h2 class="block-title">Glossary</h2><details class="fold"><summary>7 terms, in plain words</summary><ul><li><strong>Prediction horizon.</strong> How far in advance the answer has to be given. Here 1, 3, 6 and 12 hours are tried.</li><li><strong>Level model.</strong> The one that predicts the value of the silica.</li><li><strong>Change model.</strong> The one that predicts the difference from the last known value. Its target is a different one.</li><li><strong>Persistence plus change.</strong> The combination: the last known value plus the change the model predicts.</li><li><strong>Rolling retraining.</strong> Training again every so often with all the past available, as would be done in the plant.</li><li><strong>Moving window.</strong> Training only with the last N days, discarding the old.</li><li><strong>Per-regime model.</strong> A different one for each operating state, instead of a single one for everything.</li></ul></details></section>
+<section class="block is-method"><span class="kicker">Method</span><h2 class="block-title">Step by step</h2><h3 class="sub">Step 1. Build the shifted target</h3><p>For a three-hour horizon, the target of the 10:00 row is the silica at 13:00. And the input variables can only be those of 10:00 or earlier.</p><p>That makes the lags of module 5 lose their strength. 12 hours ahead, the most recent silica available is already 12 hours old.</p><h3 class="sub">Step 2. Measure four competitors at each horizon</h3><ul><li>predicting the mean,</li><li>persistence,</li><li>the level model,</li><li>the change model, added to the last known value.</li></ul><h3 class="sub">Step 3. Apply the right bar</h3><p>Beating persistence stops being enough as soon as persistence is negative. The bar becomes zero, which is predicting the mean.</p><h3 class="sub">Step 4. Try the alternative question</h3><p>Persistence, by construction, always predicts zero change. If a model manages to predict the change with a positive R², that is signal persistence cannot have.</p><h3 class="sub">Step 5. Try to break the verdict</h3><p>A strong verdict has to be attacked. Three ways: retraining as would be done in the plant, training one model per operating regime, and turning the question into an out-of-specification warning.</p></section>
+<section class="block is-code"><span class="kicker">Code</span><h2 class="block-title">The code, in parts</h2><h3 class="sub">Step 1. Shift the target and measure the four competitors</h3><pre><code class="language-python">for lead in (1, 3, 6, 12):
+    objetivo = data[TARGET].shift(-lead)
+    ultimo_conocido = data[TARGET]
+    cambio = objetivo - ultimo_conocido
+    print(lead, r2_score(y_test, ultimo_conocido[test_idx]))</code></pre><details class="fold"><summary>line by line, 2 entries</summary><dl class="annot"><dt><code>.shift(-lead)</code></dt><dd>Shifts upwards. The 10:00 row receives the value of 13:00, which is what has to be predicted three hours in advance.</dd><dt><code>objetivo - ultimo_conocido</code></dt><dd>The change. Predicting this is a different question, even though the data are the same.</dd></dl></details><div class="output"><span class="output-tag">prints</span><pre><code> lead_h  baseline_media  persistencia  modelo_nivel  modelo_cambio  persist+cambio
+      1          -0.000        +0.632        +0.641         +0.047          +0.649
+      3          -0.000        +0.271        +0.273         -0.003          +0.269
+      6          -0.000        -0.145        -0.147         +0.029          -0.112
+     12          -0.000        -0.613        -0.851         +0.175          -0.330</code></pre></div><figure class="fig"><img src="../figuras/fig_m8_horizontes.c478ab19.png" alt="Left: the R² on the silica level by lead time. Right: the R² of the change model, the project&amp;#x27;s only own signal." loading="lazy"><figcaption>Left: the R² on the silica level by lead time. Right: the R² of the change model, the project&amp;#x27;s only own signal.</figcaption></figure><h3 class="sub">Step 2. Retrain as would be done in the plant</h3><pre><code class="language-python">for dias in (28, 14, 7, 3, 1):
+    puntuacion = rolling_retrain(data, feats, dias)
+    print(f&quot;cada {dias} dias  R2 {puntuacion:+.4f}  aporte {puntuacion - r2_persistencia:+.4f}&quot;)</code></pre><details class="fold"><summary>line by line, 1 entry</summary><dl class="annot"><dt><code>rolling_retrain(...)</code></dt><dd>Walks forward through time retraining every N days, always with data strictly earlier than the window it is about to predict.</dd></dl></details><div class="output"><span class="output-tag">prints</span><pre><code>Persistencia (repetir la hora anterior): R2 +0.6323
+Lo que hizo el proyecto, un modelo congelado dos meses: R2 +0.6413 (+0.0090)
+
+1. ¿Y si se reentrena, como se haría en planta?
+  cada 28 días   R2 +0.6352   aporte +0.0029
+  cada 14 días   R2 +0.6316   aporte -0.0008
+  cada  7 días   R2 +0.6408   aporte +0.0085
+  cada  3 días   R2 +0.6329   aporte +0.0006
+  cada  1 días   R2 +0.6340   aporte +0.0016</code></pre></div><h3 class="sub">Step 3. One model per operating state, and the question as a warning</h3><pre><code class="language-python">puntuacion = per_regime(train, test, base, feats)
+as_warning(train, test, feats)</code></pre><details class="fold"><summary>line by line, 2 entries</summary><dl class="annot"><dt><code>per_regime(...)</code></dt><dd>Groups the training set into three states with k-means and fits one model inside each.</dd><dt><code>as_warning(...)</code></dt><dd>Turns the problem into an out-of-specification warning and compares three rules.</dd></dl></details><div class="output"><span class="output-tag">prints</span><pre><code>2. ¿Y si se entrena un modelo por estado operativo?
+  uno por estado  R2 +0.6014   aporte -0.0310
+  modelo único    R2 +0.6413   aporte +0.0090
+
+3. ¿Y si la pregunta era avisar, en vez de predecir el valor?
+  aviso               acierto  precisión   atrapa  falsas  se escapan
+  siempre en spec       0.810          -        0       0         182
+  persistencia          0.912      0.769      140      42          42
+  clasificador          0.901      0.813      113      26          69</code></pre></div></section>
+<section class="block is-result"><span class="kicker">Result</span><h2 class="block-title">The result, measured</h2><p><strong>What we expected.</strong> That at long horizons the model would pull away from persistence and a useful window would appear, perhaps at three or six hours.</p><p><strong>What came out.</strong> The model pulls away, but downwards.</p><div class="table-wrap"><table><thead><tr><th>Lead</th><th>Predicting the mean</th><th>Persistence</th><th>Level model</th><th>Persistence + change</th></tr></thead><tbody><tr><td>1 hour</td><td>0.000</td><td>0.632</td><td>0.641</td><td>0.649</td></tr><tr><td>3 hours</td><td>0.000</td><td>0.271</td><td>0.273</td><td>0.269</td></tr><tr><td>6 hours</td><td>0.000</td><td>−0.145</td><td>−0.147</td><td>−0.112</td></tr><tr><td>12 hours</td><td>0.000</td><td>−0.613</td><td><strong>−0.851</strong></td><td>−0.330</td></tr></tbody></table></div><p><strong>What it means.</strong> From five or six hours on, nobody wins any more. Neither persistence nor the model beats saying the mean, which is having no model.</p><p>And at 12 hours the level model is <strong>the worst of all</strong>, with −0.851. Trained on some conditions, applied to others and without the anchor of the last assay, it does active harm.</p><h3 class="sub">The project&#x27;s only own signal</h3><p>The change model&#x27;s column tells another story:</p><div class="table-wrap"><table><thead><tr><th>Lead</th><th>R² of the change model</th></tr></thead><tbody><tr><td>1 hour</td><td>+0.047</td></tr><tr><td>3 hours</td><td>−0.003</td></tr><tr><td>6 hours</td><td>+0.029</td></tr><tr><td><strong>12 hours</strong></td><td><strong>+0.175</strong></td></tr></tbody></table></div><p>At 12 hours, the model predicts the change with R² +0.175. <strong>That is signal persistence cannot have</strong>, because persistence predicts zero change by definition.</p><p>It is the project&#x27;s positive finding and it has to be reported whole. It also has to be reported that it is not enough: added to the last known value, the result at 12 hours is still −0.330.</p><h3 class="sub">Three more attempts to break the verdict</h3><p>If the verdict is &quot;do not deploy&quot;, it is worth attacking it before signing it.</p><div class="table-wrap"><table><thead><tr><th>Suspicion</th><th>What was measured</th><th>Result</th></tr></thead><tbody><tr><td>The model had been frozen for two months</td><td>Retraining every 1, 3, 7, 14 and 28 days</td><td>Contribution between −0.001 and +0.009. Nothing changes</td></tr><tr><td>Training only on recent data would help</td><td>Windows of 30, 60 and 90 days</td><td><strong>Worse</strong>, from −0.012 to −0.040</td></tr><tr><td>The model fights against two regimes</td><td>One model per operating state</td><td><strong>Worse</strong>: 0.601 against 0.641</td></tr><tr><td>The question was to warn, not to predict</td><td>Classifier against persistence as an alarm</td><td>Persistence catches 140 of 182 and the classifier 113</td></tr></tbody></table></div><p>All four fail. The verdict comes out reinforced, not weakened.</p><h3 class="sub">The verdict</h3><p><strong>With these data, machine learning adds no operational value at any horizon, and the reasoned recommendation is not to deploy it.</strong></p><p>That is not a failure of the project. It is its deliverable. A recommendation not to invest, held up by measurements that can be reproduced, is worth more than a mediocre model put into production.</p><h3 class="sub">What this module leaves open</h3><p>One question remains unanswered: <strong>why</strong>. Modules 2 to 8 have measured that it cannot be done, but they have not explained the cause.</p><p>Module 9 looks for it without using the target, with unsupervised learning, and finds that the plant changed the way it operated halfway through the history.</p></section>
+<section class="block is-warning"><span class="kicker">Traps</span><h2 class="block-title">Watch out</h2><ul><li><strong>Beating persistence stops meaning anything when persistence is negative.</strong> At 6 hours, the right rival is the mean again.</li><li><strong>A large negative R² is a warning, not a detail.</strong> The −0.851 means the model does active harm compared with doing nothing.</li><li><strong>The change model and the level model are not directly comparable.</strong> They have different targets, and their R² are computed against different variances.</li><li><strong>A long horizon is not automatically more useful.</strong> At 12 hours the plant has already changed state, and the prediction arrives too late for everything.</li><li><strong>Retraining is not a magic fix.</strong> Here it changes nothing, and with a moving window it gets worse.</li><li><strong>Splitting the data by regime can cost more than it fixes.</strong> Here each model is left with a third of the data and performs worse.</li></ul></section>
+<section class="block is-bridge"><span class="kicker">Analogy</span><h2 class="block-title">Metallurgical bridge</h2><p>The horizon is the <strong>response time of the circuit</strong>. A change in dosing takes time to show: there is residence time in each cell, transport and sampling. Predicting one hour ahead is predicting within the same transient, which is why the last assay is enough. Twelve hours later a whole shift has passed, and with it changes of ore, operator and setpoint.</p><p>The fall of R² with the horizon is the <strong>loss of representativeness of a sample over time</strong>. A composite sample from an hour ago describes the pulp of now well. One from twelve hours ago describes another campaign.</p><p>And the verdict has a precedent in any plant. When three reagent schemes, two mills and a change of cell give the same result, <strong>the honest recommendation is not to invest in a fourth scheme</strong>. That is what this module does, with numbers instead of intuition.</p></section>
+<section class="block is-review"><span class="kicker">Review</span><h2 class="block-title">Review</h2><details><summary>At 6 hours persistence gives −0.145. What do you compare against then?</summary><p>Against the mean, which is the zero of R².</p><p>While persistence is positive, it is the demanding rival and the right reference. As soon as it turns negative, beating it stops proving anything: a model can beat it and still be worse than having no model. From five or six hours on the bar becomes zero again, and no competitor clears it.</p></details><details><summary>The level model at 12 hours gives −0.851, worse than persistence. How is that explained?</summary><p>Because it predicts with conviction using patterns that no longer hold.</p><p>Persistence is wrong in a bounded way: it repeats the last known value, which even twelve hours old is still within the plant&#x27;s normal range. The model, instead, combines process variables with relationships learned in another operating regime, and produces predictions that go far in the wrong direction. A self-assured, out-of-date model is worse than a dumb rule.</p></details><details><summary>The change model gives +0.175 at 12 hours. Why does it not save the project?</summary><p>Because it is real and insufficient signal at the same time, and both things have to be said.</p><p>It is real because persistence cannot achieve it: it always predicts zero change, so its R² on the change is zero by construction. That a model reaches +0.175 means that something in the process variables anticipates the direction of the movement. It is insufficient because, when that change is added to the last known value, the result at 12 hours is still −0.330, far below having no model.</p></details><details><summary>Retraining every day improves nothing. What does that say about the problem?</summary><p>That the model is not out of date. There is simply nothing more to learn.</p><p>If the degradation came from the plant moving and the model getting old, retraining daily would fix it. Five cadences were tried, from 28 days to 1 day, and the contribution stays between −0.001 and +0.009 in all of them. Training only with recent data makes it worse, because it reduces the data without gaining useful freshness. The conclusion is that the predictable information is already in the laboratory&#x27;s last assay.</p></details><details><summary>How do you defend this result before a committee that expected a model?</summary><p>By presenting it as what it is: an investment decision held up by reproducible measurements.</p><p>The argument has three parts. First, the free rival already achieves R² 0.632 at one hour, and all of machine learning adds +0.009. Second, from five hours on nobody beats predicting the mean, so there is no useful operating window. Third, the verdict was attacked four different ways, including retraining daily and turning the question into a warning, and none moved it. The deliverable is not a model. It is the measured certainty that the model would not have worked, plus the list of conditions needed to try again.</p></details></section>
+</main>
+<nav class="pager"><a class="prev" href="m07_contra_que_se_compara.en.html"><span class="dir">Previous</span>7. What a model is compared against</a><a class="next" href="m09_los_tres_estados_de_la_planta.en.html"><span class="dir">Next</span>9. The three states of the plant</a></nav>
+<footer class="footer">
+  <div class="footer-inner">
+    <span>Silica / Module 8</span>
+    <span>generated on 2026-08-22</span>
+    <span>source: the 31 original notes, their scripts and the plant CSV</span>
+  </div>
+</footer>
+</body>
+</html>
