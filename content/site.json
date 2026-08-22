@@ -335,6 +335,10 @@
       "open_href": {
         "en": "geostat/curso/en/index.html",
         "es": "geostat/curso/es/index.html"
+      },
+      "inline_figure": {
+        "en": "Geoestadistica/out/en/c06_variografia.html",
+        "es": "Geoestadistica/out/es/c06_variografia.html"
       }
     },
     {

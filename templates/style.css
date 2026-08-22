@@ -1046,7 +1046,39 @@ p, .assay-tagline, .cred-detail, .streams dd { text-wrap: pretty; }
     grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
     align-items: start;
   }
-  .hero .meta { margin-top: 0.35rem; }
+  .hero .lede { grid-column: 1; grid-row: 1 / span 2; }
+  .hero-art { grid-column: 2; grid-row: 1; }
+  .hero .meta { grid-column: 2; grid-row: 2; margin-top: 0.35rem; }
+}
+
+/* --- the hero's living piece ---------------------------------------------- */
+
+/* Measured points and the curve fitted through them, drawn once every twelve seconds:
+   it appears, holds, and leaves. The path carries its own length (--hero-len), so the
+   dash that draws it fits exactly. Without JavaScript the curve is simply complete;
+   with reduced motion it never moves. */
+.hero-art { margin: 0; max-width: 32rem; }
+.hero-art-svg { width: 100%; height: auto; display: block; }
+.hero-grid { stroke: var(--rule); stroke-width: 1; }
+.hero-axis { stroke: var(--rule-firm); stroke-width: 1; }
+.hero-dot { fill: var(--ink-faint); }
+.hero-curve {
+  fill: none;
+  stroke: var(--hi);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: var(--hero-len, 700);
+  stroke-dashoffset: 0;
+}
+@media (prefers-reduced-motion: no-preference) {
+  html.js .hero-curve { animation: hero-draw 12s cubic-bezier(0.4, 0, 0.2, 1) infinite; }
+}
+@keyframes hero-draw {
+  0%   { stroke-dashoffset: var(--hero-len, 700); }
+  32%  { stroke-dashoffset: 0; }
+  80%  { stroke-dashoffset: 0; }
+  100% { stroke-dashoffset: calc(-1 * var(--hero-len, 700)); }
 }
 
 .hero .lede { max-width: 62ch; margin: 0; }
@@ -1202,7 +1234,25 @@ p, .assay-tagline, .cred-detail, .streams dd { text-wrap: pretty; }
   transition: opacity 0.4s ease;
 }
 .index-pane.on { opacity: 1; }
-.index-pane img { width: 100%; height: 100%; object-fit: cover; object-position: top center; }
+.index-pane img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+  transform: translate(var(--dx), var(--dy)) scale(1.04);
+  transition: transform 0.5s ease;
+}
+/* --dx/--dy are written by the script from the cursor position; zero until then. */
+.index-panel { --dx: 0px; --dy: 0px; transition: border-color 0.4s ease; }
+.index-panel[data-accent="amber"] { border-color: var(--froth); }
+.index-panel[data-accent="iron"]  { border-color: var(--iron); }
+.index-panel[data-accent="mint"]  { border-color: var(--mint); }
+.index-panel[data-accent="slate"] { border-color: var(--slate); }
+.index-panel[data-accent="gold"]  { border-color: var(--gold); }
+@media (prefers-reduced-motion: reduce) {
+  .index-pane img { transition: none; transform: none; }
+  .index-panel { transition: none; }
+}
 
 /* Below the two column breakpoint the panel has nowhere to sit, so the picture moves
    inside the row. Dropping images on a phone would gut a portfolio on the device most
@@ -1247,6 +1297,72 @@ p, .assay-tagline, .cred-detail, .streams dd { text-wrap: pretty; }
 .archive-name { font-weight: 600; color: var(--ink); }
 .archive-area { color: var(--ink-soft); font-size: 0.9375rem; }
 .archive-year { font-family: var(--mono); font-size: 0.8125rem; color: var(--ink-faint); }
+
+/* --- the variogram lifted from the geostatistics course --------------------- */
+
+/* The figure arrives with the course's own class names; here they are mapped onto this
+   site's tokens, and the drawing rules are the course's, verbatim. --largo and --avance
+   are written per path by the script; the defaults below make the curve complete
+   whenever the script is absent. */
+.variograma-embed { margin: clamp(2rem, 5vw, 3.5rem) 0 clamp(2rem, 5vw, 3rem); max-width: var(--measure); }
+.variograma {
+  --oro: var(--gold);
+  --tinta: var(--ink);
+  --tinta-suave: var(--ink-soft);
+  --tinta-tenue: var(--ink-faint);
+  --regla: var(--rule-firm);
+  --panel: var(--surface);
+  --largo: 1000;
+  --avance: 1;
+  margin: 0;
+}
+.variograma svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  background: var(--panel);
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+}
+.variograma figcaption {
+  font-family: var(--mono);
+  font-size: 0.8125rem;
+  color: var(--ink-soft);
+  margin-top: 0.75rem;
+  line-height: 1.5;
+}
+.vario-eje   { stroke: var(--tinta-tenue); stroke-width: 1; }
+.vario-malla { stroke: var(--regla); stroke-width: 1; }
+.vario-guia  { stroke: var(--tinta-suave); stroke-width: 1; stroke-dasharray: 5 5; fill: none; }
+.vario-curva { stroke: var(--oro); stroke-width: 3; fill: none;
+               stroke-linecap: round; stroke-linejoin: round; }
+.vario-pepita { fill: var(--oro); }
+.vario-texto    { font-family: var(--mono); font-size: 12px; fill: var(--tinta-tenue); }
+.vario-etiqueta { font-family: var(--mono); font-size: 13px; fill: var(--tinta); }
+@media (max-width: 40rem) {
+  .vario-texto { display: none; }
+  .vario-etiqueta { font-size: 20px; }
+}
+.dibujar {
+  stroke-dasharray: var(--largo);
+  stroke-dashoffset: calc(var(--largo) * (1 - var(--avance)));
+}
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    html.js .dibujar {
+      animation: trazar linear both;
+      animation-timeline: view();
+      animation-range: entry 20% cover 60%;
+    }
+  }
+}
+@keyframes trazar {
+  from { stroke-dashoffset: var(--largo); }
+  to   { stroke-dashoffset: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dibujar { stroke-dashoffset: 0 !important; animation: none !important; }
+}
 
 /* --- get in touch ---------------------------------------------------------- */
 
