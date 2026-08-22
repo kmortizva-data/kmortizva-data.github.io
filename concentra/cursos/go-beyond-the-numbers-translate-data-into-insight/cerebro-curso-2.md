@@ -123,6 +123,21 @@ usó.
 - **El dato agregado ya perdió información.** Si te dan medias por grupo, no puedes
   recuperar la dispersión que había dentro.
 
+## Casos de referencia, con números reales
+
+Sirven para calibrar qué es normal, qué es extremo y qué es imposible. Son exploraciones
+propias sobre los mismos tres archivos que usan los cursos siguientes, y todos los números
+salen de `projects/curso2/<caso>/04_reports/model_results.json`.
+
+| Caso | El archivo | Lo que encontró la exploración | Lección |
+|---|---|---|---|
+| **Waze** | 14.999 usuarios, 13 columnas, 700 sin etiqueta (4,67 %) | **461 usuarios conducen más de 24 horas en un solo día**, hasta 172 horas; 1.994 pasan de 1.000 km por día conducido; 1.024 condujeron cero días | Lo imposible no lo encuentra ninguna regla estadística: el archivo pasa las comprobaciones de rutina y aun así una columna no mide lo que dice medir |
+| **TikTok** | 19.382 vídeos, 298 incompletos (1,54 %) con las siete columnas ausentes a la vez | Una reclamación se ve **101,1 veces** más que una opinión: 501.029,5 vistas medias frente a 4.956,4, y las dos montañas no se solapan en escala logarítmica | El hallazgo estaba en el reparto, sin prueba estadística; y la regla del IQR no marcó ni un candidato en la columna más extrema del archivo |
+| **Automatidata** | 22.699 viajes, sin ausentes ni duplicados, fechas leídas como texto | **197 viajes imposibles** (148 de distancia cero, 33 sin pasajeros, 27 que acaban antes de empezar, 20 de tarifa cero o negativa); el **29,5 % del día** ocurre entre las 17 y las 21 (6.695 viajes), con 6,2 veces más carreras a las 19 que a las 4 | Los 514 viajes de 52,00 $ exactos no eran atípicos: 513 llevan el código de tarifa plana del aeropuerto. Un filtro automático los habría borrado por caros |
+
+Los tres se exploraron con las mismas seis pasadas: forma, ausentes, tipos, categorías,
+candidatos a atípico e imposibles, que los declara quien conoce el dominio.
+
 ## Vocabulario, español e inglés
 
 | Español | Inglés |
