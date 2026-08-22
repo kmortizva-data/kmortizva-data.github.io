@@ -102,7 +102,9 @@ generales.
 
 - **Comprueba si la variable existirá cuando haya que predecir.** En el modelo de tarifas de
   taxi, la distancia recorrida explicaba casi todo y no existe al reservar. Quitarla bajó el
-  R² de 0,95 a 0,67, y ese 0,67 es el número real.
+  R² de 0,95 a 0,67, y ese 0,67 es el número real: sobre la prueba, **RMSE de 5,93 $** y
+  error absoluto medio de 3,21 $, con cuatro variables (distancia y duración medias de la
+  ruta, hora punta y tarifa plana de aeropuerto).
 - **La fuga de información se mide, no se discute.** Calcular medias por grupo sobre todos
   los datos en vez de solo sobre el entrenamiento infló el R² en **0,2101** y escondió 2,40
   dólares de error.

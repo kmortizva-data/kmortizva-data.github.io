@@ -492,7 +492,7 @@ figure.fig figcaption {
   <div class="brain">
     <div class="brain-bar">
       <span class="name">cerebro-curso-5.md</span>
-      <span class="size">7.7 KB</span>
+      <span class="size">9.7 KB</span>
       <span class="spacer"></span>
       <button id="copy" type="button">Copiar todo</button>
       <a class="btn" href="cerebro-curso-5.md" download>Descargar</a>
@@ -628,6 +628,22 @@ los datos y quién falta**; **qué cuesta cada tipo de error y a quién le cuest
 afectado puede saber por qué se decidió eso**. Un modelo que no puede contestar la tercera
 no debería decidir solo.
 
+## Casos de referencia, con números reales
+
+Tres proyectos propios sobre los mismos archivos de los cursos anteriores, y los tres
+enseñan lo mismo desde ángulos distintos: **la comparación contra algo simple decide el
+proyecto**. Todos los números salen de `projects/curso5/&lt;caso&gt;/04_reports/model_results.json`,
+y la prueba se miró una sola vez.
+
+| Caso | El control, fijado antes | El campeón sobre la prueba | Veredicto |
+|---|---|---|---|
+| **Automatidata**, ¿quién deja propina generosa? | Contestar siempre «no generoso»: exactitud 0,7688, sensibilidad 0, AUC 0,5. Generosos = 23,11 % | Refuerzo ajustado (36 combinaciones): exactitud 0,7708, **sensibilidad 0,0128**, AUC 0,6104. La logística y el bosque decidieron **exactamente como el perezoso** | No hay señal: el archivo describe el viaje y la propina es una decisión personal. Decirlo con pruebas fue el entregable |
+| **TikTok**, ¿reclamación u opinión? | Un árbol de **una pregunta sobre una columna** (más de 10.031 vistas): exactitud 0,9961 en validación | Bosque ajustado de 300 árboles con nueve variables: exactitud **0,9958**, la misma, AUC 0,9986 frente a 0,9958 | Nueve variables y trescientos árboles aportaron **+0,0000** de exactitud. La opinión más vista tiene 9.998 visualizaciones y la reclamación menos vista 1.049: las clases están separadas por una línea, y eso es una marca de datos sintéticos |
+| **Waze**, ¿le gana un árbol a la logística? | El modelo del Curso 4 sobre los mismos 3.575 usuarios de prueba: AUC 0,7368, sensibilidad 0,0820 | Logística 0,7379; bosque ajustado 0,7318; refuerzo 0,7348. 88 combinaciones en total. Ajustar el bosque le dio +0,0276 en validación y se quedó a 0,0019 de la logística | Los árboles no ganan. Y k-medias sobre los mismos usuarios dio la mejor silueta en 0,2588 con dos grupos que abandonan al 17,29 % y al 19,05 %: un continuo, no segmentos |
+
+Las tres particiones fueron 60/20/20 estratificadas, con la prueba apartada desde el
+principio y las perillas elegidas solo contra validación.
+
 ## Vocabulario español e inglés
 
 | Español | Inglés |
@@ -654,7 +670,7 @@ no debería decidir solo.
 </section>
 </main>
 <footer class="footer">
-  Concentra / 2026-08-20
+  Concentra / 2026-08-22
 </footer>
 <script>
 const button = document.getElementById('copy');

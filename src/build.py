@@ -486,8 +486,10 @@ def main() -> int:
         if not source.exists():
             print(f"  ! embedded source missing, not copied: {source_rel}")
             continue
-        shutil.copytree(source, ROOT / target_rel, dirs_exist_ok=True,
-                        ignore=shutil.ignore_patterns("*.md"))
+        # Every file travels, .md included: the Silice course index links its own
+        # cerebro, and the Concentra case pages link report .md files as material.
+        # Excluding them broke a link the gate caught. The cerebros are up to date now.
+        shutil.copytree(source, ROOT / target_rel, dirs_exist_ok=True)
 
         # The Concentra case pages link to files on Kevin's machine (scripts, cheatsheets
         # under 03_Data Analysis Coursera). Published, every one would 404 and the paths
