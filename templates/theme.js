@@ -67,9 +67,28 @@
   if (panel) {
     var panes = panel.querySelectorAll(".index-pane");
 
-    function showPane(slug) {
+    function showPane(slug, accent) {
       Array.prototype.forEach.call(panes, function (pane) {
         pane.classList.toggle("on", pane.getAttribute("data-slug") === slug);
+      });
+      if (accent) panel.setAttribute("data-accent", accent);
+    }
+
+    /* The picture leans a few pixels towards the cursor. Pointer devices only: on a
+       phone there is no cursor to follow, and with reduced motion nothing drifts. */
+    var hoverable = window.matchMedia && window.matchMedia("(hover: hover)").matches;
+    var layout = panel.closest(".index-layout");
+    if (hoverable && !reduced && layout) {
+      layout.addEventListener("mousemove", function (event) {
+        var box = panel.getBoundingClientRect();
+        var dx = (event.clientX - (box.left + box.width / 2)) / box.width * 12;
+        var dy = (event.clientY - (box.top + box.height / 2)) / box.height * 12;
+        panel.style.setProperty("--dx", Math.max(-6, Math.min(6, dx)).toFixed(1) + "px");
+        panel.style.setProperty("--dy", Math.max(-6, Math.min(6, dy)).toFixed(1) + "px");
+      });
+      layout.addEventListener("mouseleave", function () {
+        panel.style.setProperty("--dx", "0px");
+        panel.style.setProperty("--dy", "0px");
       });
     }
 
@@ -77,8 +96,9 @@
       var slug = row.getAttribute("data-slug");
       /* mouseenter for the cursor, focusin for the keyboard: the panel has to follow
          both or tabbing through the list shows the wrong picture. */
-      row.addEventListener("mouseenter", function () { showPane(slug); });
-      row.addEventListener("focusin", function () { showPane(slug); });
+      var accent = row.getAttribute("data-accent");
+      row.addEventListener("mouseenter", function () { showPane(slug, accent); });
+      row.addEventListener("focusin", function () { showPane(slug, accent); });
     });
   }
 
@@ -98,6 +118,17 @@
           copy.textContent = copyLabel;
           copy.classList.remove("done");
         }, 2000);
+      }).catch(function () {
+        /* Clipboard refused (no permission, or no user gesture): select the address
+           instead, so a plain Ctrl+C finishes the job. */
+        var address = document.querySelector(".contact-address");
+        if (address && window.getSelection) {
+          var range = document.createRange();
+          range.selectNodeContents(address);
+          var selection = window.getSelection();
+          selection.removeAllRanges();
+          selection.addRange(range);
+        }
       });
     });
   }
@@ -121,6 +152,35 @@
         .catch(function () { status.textContent = status.getAttribute("data-error"); })
         .then(function () { button.disabled = false; });
     });
+  }
+
+  /* ------------------------------------------------------ self-drawing curves */
+
+  /* The variogram lifted from the geostatistics course draws itself as it scrolls into
+     view. Browsers with scroll-driven animations get that from the stylesheet; the rest
+     get --avance written here from the scroll position. Either way the path needs its
+     real length, and with reduced motion it is simply complete. */
+  var curves = document.querySelectorAll(".dibujar");
+  Array.prototype.forEach.call(curves, function (path) {
+    if (path.getTotalLength) path.style.setProperty("--largo", Math.ceil(path.getTotalLength()));
+  });
+  var cssDrives = window.CSS && CSS.supports && CSS.supports("animation-timeline: view()");
+  if (curves.length && !reduced && !cssDrives) {
+    var drawing = false;
+    function placeCurves() {
+      Array.prototype.forEach.call(curves, function (path) {
+        var box = path.closest("svg").getBoundingClientRect();
+        var progress = (window.innerHeight - box.top) / (window.innerHeight * 0.6 + box.height * 0.4);
+        path.style.setProperty("--avance", Math.max(0, Math.min(1, progress)).toFixed(3));
+      });
+      drawing = false;
+    }
+    function onCurveScroll() {
+      if (!drawing) { drawing = true; requestAnimationFrame(placeCurves); }
+    }
+    window.addEventListener("scroll", onCurveScroll, { passive: true });
+    window.addEventListener("resize", onCurveScroll, { passive: true });
+    placeCurves();
   }
 
   var reveals = document.querySelectorAll(".reveal");

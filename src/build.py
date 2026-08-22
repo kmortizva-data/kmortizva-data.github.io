@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import html
 import json
+import math
 import re
 import shutil
 from urllib.parse import unquote
@@ -78,6 +79,77 @@ LOGO = ('<svg class="mark-logo" viewBox="0 0 26 26" width="22" height="22" '
         '<path d="M13 1.5v5.5M13 19v5.5M1.5 13H7M19 13h5.5" '
         'stroke="currentColor" stroke-width="2" stroke-linecap="round"/>'
         '</svg>')
+
+
+def hero_art() -> str:
+    """Measured points and the curve fitted through them: the site's own line, drawn.
+
+    Sixteen points scattered around a rising curve (the shape of a variogram, which is
+    also the shape of most things that get measured and then modelled), and the fitted
+    curve drawn through them. The path carries its own length so the CSS animation can
+    draw it exactly once per cycle; the points are deterministic, so every build draws
+    the same picture.
+    """
+    width, height = 520, 220
+    left, right, top, bottom = 24, 500, 22, 196
+    seed = 20260822
+
+    def noise() -> float:
+        nonlocal seed
+        seed = (seed * 1103515245 + 12345) % (2 ** 31)
+        return seed / 2 ** 31 - 0.5
+
+    def curve(t: float) -> float:
+        return 1 - math.exp(-3 * t * t)
+
+    def sx(t: float) -> float:
+        return left + (right - left) * t
+
+    def sy(v: float) -> float:
+        return bottom - (bottom - top) * v
+
+    parts = [f'<svg class="hero-art-svg" viewBox="0 0 {width} {height}" '
+             f'aria-hidden="true" focusable="false">']
+    for i in range(1, 6):
+        x = sx(i / 6)
+        parts.append(f'<line class="hero-grid" x1="{x:.1f}" y1="{top}" x2="{x:.1f}" y2="{bottom}"/>')
+    for j in range(1, 4):
+        y = sy(j / 4)
+        parts.append(f'<line class="hero-grid" x1="{left}" y1="{y:.1f}" x2="{right}" y2="{y:.1f}"/>')
+    parts.append(f'<line class="hero-axis" x1="{left}" y1="{bottom}" x2="{right}" y2="{bottom}"/>')
+    for i in range(16):
+        t = (i + 0.5) / 16
+        parts.append(f'<circle class="hero-dot" cx="{sx(t):.1f}" '
+                     f'cy="{sy(curve(t)) + noise() * 30:.1f}" r="3.2"/>')
+    samples = [(sx(i / 80), sy(curve(i / 80))) for i in range(81)]
+    length = sum(math.hypot(x2 - x1, y2 - y1)
+                 for (x1, y1), (x2, y2) in zip(samples, samples[1:]))
+    path = "M " + " L ".join(f"{x:.1f} {y:.1f}" for x, y in samples)
+    parts.append(f'<path class="hero-curve" style="--hero-len: {length:.0f}" d="{path}"/>')
+    parts.append("</svg>")
+    return f'<div class="hero-art" aria-hidden="true">{"".join(parts)}</div>'
+
+
+def inline_figure(project: dict, lang: str) -> str:
+    """A figure another build already computed, lifted into this page.
+
+    The geostatistics course draws its variogram from three numbers at build time; the
+    project page shows that same figure rather than a screenshot of it. The source is
+    named per language in site.json (inline_figure), relative to the Portafolio folder.
+    """
+    sources = project.get("inline_figure")
+    if not sources:
+        return ""
+    source = ROOT.parent / sources[lang]
+    if not source.exists():
+        print(f"  ! inline figure missing, skipped: {sources[lang]}")
+        return ""
+    html = source.read_text(encoding="utf-8")
+    match = re.search(r'<figure class="variograma"[^>]*>.*?</figure>', html, re.S)
+    if not match:
+        print(f"  ! no variograma figure in {sources[lang]}")
+        return ""
+    return f'<div class="variograma-embed reveal">{match.group(0)}</div>'
 
 
 def shell(*, title: str, desc: str, lang: str, depth: int, switch_href: str,
@@ -413,6 +485,7 @@ def home_page(data: dict, lang: str) -> str:
   <h1 class="split">{split_words(hero["headline"])}</h1>
   <div class="hero-foot">
     <p class="lede">{esc(hero["lede"])}</p>
+    {hero_art()}
     <p class="meta">{esc(fill_counts(hero["meta"], live_count, lang))}</p>
   </div>
   <p class="hero-actions">
@@ -489,6 +562,8 @@ def project_page(project: dict, data: dict, lang: str) -> str:
       {assay_figure(project, lang, ui)}
     </div>
   </div>
+
+  {inline_figure(project, lang)}
 
   <div class="prose">{paragraphs}</div>
 
