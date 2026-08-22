@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cleaning and integrity · Gold under the noise</title>
+<meta name="description" content="Inconsistent coordinates, censored data, spatial redundancy. Duplicates aggregated by arithmetic mean.">
+<link rel="alternate" hreflang="es" href="../es/c02_limpieza.html">
+<script>document.documentElement.className="js"</script>
+<link rel="stylesheet" href="../estilo.css">
+</head>
+<body>
+<header class="cabecera">
+  <a class="marca" href="index.html">Gold under the noise</a>
+  <nav>
+    <a href="index.html">Index</a>
+    <a class="idioma" href="../es/c02_limpieza.html" rel="alternate" hreflang="es">Español</a>
+  </nav>
+</header>
+<main>
+<article class="capitulo">
+  <p class="miga">Chapter 2 · <span class="cifra">1,333 → 1,020 locations · &gt;99% censoring in some variables</span></p>
+  <h1>Cleaning and integrity</h1>
+  <p class="resumen">Inconsistent coordinates, censored data, spatial redundancy. Duplicates aggregated by arithmetic mean.</p>
+<p>From <strong>1,333 records</strong> to <strong>1,020 unique locations</strong>. That is the balance sheet of the cleaning, and the difference is not errors deleted: it is samples that were counted several times at the same point on the map. Before any statistics, the file had to pass through four phases in order, and each one changes what the next ones can see.</p>
+<p>In this chapter: how the coordinates arrived, what it means for a variable to be more than 99% missing, why 86 samples at a single point bias the whole analysis, and how much file is actually left at the end.</p>
+<h2>First: make the numbers numbers</h2>
+<p>The file <code>Rock_geochemical_data.csv</code> merges several independent sampling campaigns, and it shows. The coordinates mixed conventions: some in international format, others in the European one with dots as thousands separators, of the kind <code>1.394.927</code>. Read blindly, those are not coordinates, they are text. Custom functions had to be written to parse them and convert them to floating point numbers before a single point could be drawn.</p>
+<p>Along the way, headers such as <code>&quot;Au (ppb)&quot;</code> were normalised to <code>Au_ppb</code>: names a program can handle without tripping over spaces and brackets.</p>
+<h2>What is missing, and how much</h2>
+<p>The technical word is <strong>censoring</strong>: values that are not there, almost always because that campaign did not measure that element. The table of the ten worst says it all:</p>
+<ul><li><code>F_ppm</code>: <strong>100% missing</strong>. Zero valid values.</li><li><code>Cl_ppm</code>, <code>B_ppm</code>, <code>Fe_ppm</code>: 99.92% missing, <strong>a single valid value</strong> each.</li><li><code>S_ppm</code>: 99.77%, three values.</li><li><code>Cr_ppm</code>, <code>Ba_ppm</code>, <code>Sr_ppm</code>: 98.79%, sixteen values.</li><li><code>Hg_ppm</code>: 98.72%, seventeen. <code>Pd_ppb</code>: 98.42%, twenty-one.</li></ul>
+<p>And at the other end, the most complete: <code>Cu_ppb</code> with <strong>69.56%</strong> valid (923 values), <code>Co_ppm</code> 65.03%, <code>Zn_ppm</code> and <code>Th_ppm</code> 64.66%, <code>Pb_ppm</code> 64.13%, <code>U3O8_ppm</code> 63.07%, <code>Ni_ppm</code> 58.33%, <code>V_ppm</code> 58.18%, <code>Sn_ppm</code> 56.59% and <code>Y_ppm</code> 53.5%. The most complete variable in the file is missing from almost a third of the samples.</p>
+<figure><img src="../figuras/obj0245_1086x868.5bffef26.jpg" alt="Each sample coloured by how many elements it has measured, out of a maximum of 42. Look at the spread: whole corridors in violet, with fewer than five elements, and yellow clusters with more than thirty. The richness of the data is not uniform across the map, and that will weigh on everything that follows." loading="eager"><figcaption>Each sample coloured by how many elements it has measured, out of a maximum of 42. Look at the spread: whole corridors in violet, with fewer than five elements, and yellow clusters with more than thirty. The richness of the data is not uniform across the map, and that will weigh on everything that follows.</figcaption></figure>
+<p>The global completeness of the final subset is <strong>35.88%</strong>. At least 13 of the 80 geochemical variables exceed 97% missing. And the precious metals, which are the question: <strong>gold 43% valid, silver 44%</strong>. They were deemed sufficient for modelling, on the condition, written down from here, that everything be interpreted with statistical caution.</p>
+<h2>The same point, 86 times</h2>
+<p>The spatial check revealed something no table of missing values shows: distinct records with identical coordinates. The extreme case, a single coordinate pair (139.288, −30.176) tied to <strong>86 distinct samples</strong>. The five most repeated points carried 86, 60, 8, 4 and 4 records.</p>
+<p>Left as is, that point would weigh 86 times more than any other in every average, every variogram and every map. That is what is called <strong>oversampling bias</strong>. The fix took two steps: group the records that share coordinates, and summarise each chemical variable with its <strong>arithmetic mean</strong> within the group. That also consolidated scattered information: cases where one record carried the gold and another, at the same spot, carried the copper.</p>
+<aside class="ojo"><p>Averaging is not innocent. If the same point holds a 2 ppb sample and an 80 ppb one, the point becomes 41 and the local variability leaves the file. It is an acceptable price against weighing one spot 86 times, but it is a price, and worth remembering when the variogram later shows a moderate nugget.</p></aside>
+<p>Result: <strong>1,020 unique locations</strong>, without oversampling bias and without losing spatial representativeness.</p>
+<h2>Putting geology underneath</h2>
+<p>With the points clean, each sample was turned into a geometric object and joined to the regional geological map to receive its lithostratigraphic unit: the rock it fell on. And everything was clipped strictly to the study area. That join is what will make it possible, three chapters from now, to ask whether gold prefers certain rocks.</p>
+<h2>What stands established</h2>
+<p>Coordinates converted, names normalised, censoring measured variable by variable, spatial duplicates averaged, and every sample tagged with its geological unit. The file went from 1,333 records to 1,020 points, and gold is measured in only 43% of them. The next chapter finally opens the distribution of gold, and finds it looks nothing like a bell.</p>
+  <nav class="pie-nav">
+    <a class="nav-ant" href="c01_encargo-y-terreno.html"><small>Previous</small>The brief and the terrane</a>
+    <a class="nav-indice" href="index.html">Back to the index</a>
+    <a class="nav-sig" href="c03_eda.html"><small>Next</small>Gold is not normal</a>
+  </nav>
+</article>
+</main>
+<script src="../motor.js" defer></script>
+</body>
+</html>

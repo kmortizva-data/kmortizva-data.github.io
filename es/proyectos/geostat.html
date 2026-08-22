@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Oro bajo el ruido - Kevin Ortiz</title>
+<meta name="description" content="Nueve capítulos bilingües de geoestadística real: 1.333 registros sucios de oro en South Australia se convierten en un mapa de kriging que declara su propia incertidumbre.">
+<meta property="og:title" content="Oro bajo el ruido - Kevin Ortiz">
+<meta property="og:description" content="Nueve capítulos bilingües de geoestadística real: 1.333 registros sucios de oro en South Australia se convierten en un mapa de kriging que declara su propia incertidumbre.">
+<meta property="og:type" content="website">
+<link rel="alternate" hreflang="en" href="../../work/geostat.html">
+<script>document.documentElement.className="js"</script>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<a class="skip" href="#main">Ir al contenido</a>
+<header class="wrap masthead">
+  <a class="mark" href="../../es/index.html">Kevin Ortiz <b>/</b> datageeksunited.com</a>
+  <nav>
+    <a href="../../es/index.html#about">Quién soy</a>
+    <a href="../../es/index.html#work">Proyectos</a>
+    <a href="../../work/geostat.html" rel="alternate" hreflang="en">English</a>
+    <a class="cta" href="mailto:kmortizva@datageeksunited.com">Escríbeme</a>
+  </nav>
+</header>
+<main id="main">
+<article class="wrap section">
+  <a class="back" href="../../es/index.html#work">Todos los proyectos</a>
+  <p class="eyebrow">9 capítulos, español e inglés, publicados.</p>
+  <h1 class="project-title">Oro bajo el ruido</h1>
+  <p class="project-tagline">Nueve capítulos bilingües de geoestadística real: 1.333 registros sucios de oro en South Australia se convierten en un mapa de kriging que declara su propia incertidumbre.</p>
+
+  <figure class="figure"><img src="../../assets/shots/geostat-index.png" alt="El índice de Oro bajo el ruido: nueve capítulos, cada uno con su cifra de cabecera" width="1440" height="900" decoding="async"><figcaption>El índice de Oro bajo el ruido: nueve capítulos, cada uno con su cifra de cabecera</figcaption></figure>
+
+  <div class="assay assay-solo" data-accent="gold">
+    <div class="assay-body">
+      <dl class="streams"><div><dt>El problema</dt><dd>Un archivo geoquímico público: 1.333 registros, 79 variables, 62.000 km² de terreno proterozoico. Coordenadas en formatos mezclados, el 35,88 % de las celdas con dato, y oro medible en solo 425 muestras, agrupadas a lo largo del rumbo regional.</dd></div><div><dt>Cómo lo resolví</dt><dd>Limpiar y agregar los duplicados a 1.020 localizaciones, pasar a log10, leer los acompañantes del oro (el Gd lo sigue, el La se aleja), probar los dominios geológicos y descartarlos por tamaño de muestra, construir el variograma (lag de 240 m, un gaussiano con alcance de 4.470 m), y krigear dos veces, simple y ordinario, validando los dos.</dd></div><div><dt>El resultado</dt><dd>Un mapa de blancos de exploración con su mapa de varianza al lado, un RMSE de 0,230 en log10 (un factor de 1,70 en ppb), y los límites por escrito: suavizado, colas pesadas, una anisotropía que el modelo omnidireccional no recoge.</dd></div></dl>
+      <div class="assay-figure">
+        <p class="eyebrow">Medido</p>
+        <q>Las perillas movieron el error en milésimas</q>
+        <p>Tres modelos de variograma cambiaron el RMSE de validación cruzada en 0,0064; los vecindarios de 5 a 40, en 0,0093. La restricción son las 425 muestras, no el kriging, y las dos validaciones salieron idénticas punto por punto, cosa que el capítulo dice en voz alta en vez de coronar a un ganador.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="prose"><p>El oro es la variable más difícil con la que he trabajado: asimétrica, censurada en la mayor parte del archivo, agrupada donde los geólogos ya sospechaban. Quería recorrer el camino entero sobre datos reales, de un archivo sucio a un mapa que admite cuánto no sabe, y escribirlo para que alguien que nunca ha visto un variograma pueda seguir cada número.</p><p>Cada cifra se cita literal del análisis. El capítulo de kriging resuelve a mano un sistema de tres muestras con el variograma del propio proyecto antes de mencionar ningún programa, y la curva del variograma que aparece en la página se calcula al construir el sitio a partir de sus tres parámetros, pepita, meseta y alcance, no se calca de una imagen.</p><p>El sitio es bilingüe de nacimiento, español e inglés como gemelos, y tres verificadores corren antes de cada commit: las dos ediciones comparten las mismas figuras y los mismos pasos de scrollytelling, nada enlaza a un PDF, y cada imagen en disco está entera. Todo es librería estándar de Python, HTML, CSS y un poco de JavaScript del que las páginas no dependen.</p><p>Lo que haría después está en el último capítulo: co-kriging con las tierras raras que viajan con el oro, y simulación para cambiar un mapa suavizado por cien mapas probables.</p></div>
+
+  <p class="eyebrow stack-label">Hecho con</p>
+  <ul class="stack"><li>Python standard library</li><li>HTML</li><li>CSS</li><li>SVG</li><li>scroll-driven animations</li></ul>
+
+  <p class="assay-links"><a class="cta" href="../../geostat/curso/es/index.html" target="_blank" rel="noopener">Abrir los capítulos</a></p>
+</article>
+</main>
+<footer class="wrap foot">
+  <span>&copy; 2026 Kevin Ortiz</span>
+  <span><a href="mailto:kmortizva@datageeksunited.com">kmortizva@datageeksunited.com</a></span>
+  <span><a href="https://github.com/kmortizva-data">github.com/kmortizva-data</a></span>
+</footer>
+<div class="curtain" aria-hidden="true"></div>
+<script src="../../assets/lenis.min.js" defer></script>
+<script src="../../theme.js" defer></script>
+</body>
+</html>

@@ -21,6 +21,7 @@ import shutil
 import subprocess
 import sys
 import urllib.error
+import urllib.parse
 import urllib.request
 from pathlib import Path
 
@@ -57,6 +58,11 @@ PROJECTS = {
                   "Concentra. Arranca con la config 'concentra'."),
     "bg-remover": ("http://127.0.0.1:8000/", "bg-remover.png",
                    "bg-remover. Arranca con .\\run.ps1 en su carpeta."),
+    # Read straight from disk: the geostatistics site is static and its pages use
+    # relative links, so no server is needed, only its own build_site.py having run.
+    "geostat": ((ROOT.parent / "Geoestadistica" / "out" / "en" / "index.html").as_uri(),
+                "geostat-index.png",
+                "Oro bajo el ruido. Corre python src/build_site.py en Geoestadistica."),
 }
 
 
@@ -72,6 +78,8 @@ def find_browser() -> str:
 
 
 def is_up(url: str) -> bool:
+    if url.startswith("file://"):
+        return Path(urllib.request.url2pathname(urllib.parse.urlparse(url).path)).exists()
     try:
         with urllib.request.urlopen(url, timeout=4) as response:
             return response.status < 400

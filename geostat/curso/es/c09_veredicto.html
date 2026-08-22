@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Estrictamente preliminar · Oro bajo el ruido</title>
+<meta name="description" content="Sirve para elegir blancos de exploración, no para clasificar reservas. Co-kriging con Gd/La y simulación secuencial como caminos siguientes, con sus riesgos.">
+<link rel="alternate" hreflang="en" href="../en/c09_veredicto.html">
+<script>document.documentElement.className="js"</script>
+<link rel="stylesheet" href="../estilo.css">
+</head>
+<body>
+<header class="cabecera">
+  <a class="marca" href="index.html">Oro bajo el ruido</a>
+  <nav>
+    <a href="index.html">Índice</a>
+    <a class="idioma" href="../en/c09_veredicto.html" rel="alternate" hreflang="en">English</a>
+  </nav>
+</header>
+<main>
+<article class="capitulo">
+  <p class="miga">Capítulo 9 · <span class="cifra">425 de 1.333 con oro medible · co-kriging y simulación como salida</span></p>
+  <h1>Estrictamente preliminar</h1>
+  <p class="resumen">Sirve para elegir blancos de exploración, no para clasificar reservas. Co-kriging con Gd/La y simulación secuencial como caminos siguientes, con sus riesgos.</p>
+<p>De <strong>1.333 registros</strong> quedaron <strong>425 muestras con oro medible</strong>, el 41,6 %. Todo lo que este análisis afirma descansa sobre esas 425, y por eso el veredicto es <strong>estrictamente preliminar</strong>: los mapas sirven para elegir dónde explorar, no para clasificar reservas. Este capítulo cierra con lo que el mapa puede hacer, lo que no, las cuatro cautelas, y las dos salidas que usarían la información que el kriging dejó sobre la mesa.</p>
+<h2>Lo que el mapa puede hacer</h2>
+<p>Señalar blancos. El núcleo del noreste, por encima de 1,4 en log10, y el del suroeste, entre 1,2 y 1,4, aparecen con los dos métodos de kriging, coinciden con los racimos del análisis exploratorio y con las unidades de basamento del capítulo 5. Y la varianza de kriging dice dónde hace falta muestrear antes de creerse nada: por encima de 0,20, en esquinas y bordes, y en el kriging ordinario sobre todo en la esquina suroeste y los márgenes del noroeste.</p>
+<figure><img src="../figuras/obj0370_864x691.aa0e9bed.jpg" alt="La varianza del kriging ordinario es el mapa de la siguiente campaña: donde está amarillo, por encima de 0,20, la estimación extrapola y el sondeo de relleno es prioridad." loading="eager"><figcaption>La varianza del kriging ordinario es el mapa de la siguiente campaña: donde está amarillo, por encima de 0,20, la estimación extrapola y el sondeo de relleno es prioridad.</figcaption></figure>
+<h2>Lo que no puede hacer</h2>
+<p>Clasificar reservas. Tres razones, todas medidas en los capítulos anteriores:</p>
+<ul><li><strong>El suavizado.</strong> Los dos métodos regresan los extremos hacia la media: las leyes altas se subestiman y el estéril se sobreestima. Para programar producción o modelar geometalurgia, eso es un defecto grave.</li><li><strong>Las colas.</strong> Los errores estandarizados llegan a 6 cuando más allá de 3 deberían ser rarísimos: en sitios concretos el error real es mucho mayor que el que la varianza de kriging promete.</li><li><strong>La base.</strong> 425 muestras en 62.000 km², agrupadas, con el 73 % de ellas a menos de 0,22 km de su vecina: la incertidumbre de partida es alta hagas lo que hagas.</li></ul>
+<h2>Las cuatro cautelas</h2>
+<ul><li><strong>Integridad.</strong> La limpieza de duplicados fue necesaria para no fabricar varianza a corta escala, y costó dos tercios del archivo: de 1.333 registros a 1.020 localizaciones y a 425 con oro.</li><li><strong>Modelo global.</strong> El oro está controlado por la litología (Nxcal, Nhunt, Nhuyb), pero los dominios tenían menos de 50 muestras cada uno. El modelo global es estable y, a cambio, alisa las fronteras geológicas: poblaciones distintas se fundieron por robustez.</li><li><strong>Variografía.</strong> El gaussiano implica una continuidad muy alta a distancias cortas, que en oro suele ser optimista; la dirección sureste fue inestable por muestreo escaso. El alcance de 4,5 km es un techo, y la variabilidad local es probablemente mayor.</li><li><strong>Estimación.</strong> El kriging ordinario con 10 vecinos se prefiere por adaptarse a la tendencia, pero el RMSE de 0,230 no lo distingue del simple, y las perillas apenas lo mueven.</li></ul>
+<h2>Salida 1: co-kriging, porque el oro no viaja solo</h2>
+<p>El co-kriging estima la variable principal combinando sus propias muestras con las de una o más variables secundarias correlacionadas con ella en el espacio. Además del variograma de cada variable usa <strong>variogramas cruzados</strong>, y para que el conjunto sea coherente se ajusta un modelo lineal de corregionalización. Es especialmente útil con datos <strong>heterotópicos</strong>, cuando la secundaria está medida en muchos más sitios que la principal: aprovecha esa abundancia en vez de tirarla.</p>
+<p>Aquí tiene sentido por lo que enseñó el capítulo 4: el oro se asocia al <strong>gadolinio</strong> (r ≈ +0,472, n = 45) y se aleja del <strong>lantano</strong> (r ≈ −0,338, n = 90), y las tierras raras están medidas en muchas más muestras que el oro (la relación Gd-Pr se midió con 203). Donde el oro es escaso, las tierras raras podrían aportar señal. El riesgo, en la misma frase: una correlación cruzada mal modelada mete ruido en vez de información, y con n = 45 para el par Au-Gd la correlación se tiene que validar antes de usarla.</p>
+<h2>Salida 2: simulación, para dejar de mirar un solo mapa</h2>
+<p>El kriging es un filtro de paso bajo: da la mejor media local y, a cambio, borra la variabilidad real del depósito. La <strong>simulación geoestadística</strong> genera muchas realizaciones igual de probables que reproducen el histograma y el variograma de los datos, con su rugosidad y sus extremos. Pasar de un mapa promedio a un conjunto de 50 o 100 escenarios permite calcular, bloque a bloque, la probabilidad de superar una ley de corte, que es la pregunta que una decisión minera hace de verdad.</p>
+<aside class="ojo"><p>Recomendación, si se hiciera: cautela extrema con los valores altos atípicos, que pueden sesgar las realizaciones y sobreestimar el recurso; validar que las simulaciones reproducen las tendencias de los datos en vez de aceptar la salida del programa; y no decidir con un mapa sino con la dispersión entre simulaciones, que es la que separa zonas de confianza de zonas de duda.</p></aside>
+<h2>Veredicto</h2>
+<p>Los mapas identifican blancos de exploración válidos, y los identifican con su incertidumbre al lado. Pero con 425 muestras utilizables de 1.333, estas estimaciones no deben usarse para clasificar reservas sin una campaña de relleno que baje la incertidumbre espacial donde la varianza lo pide. Eso es lo que significa preliminar, y decirlo es parte del resultado.</p>
+  <nav class="pie-nav">
+    <a class="nav-ant" href="c08_perillas.html"><small>Anterior</small>Las perillas que no importaron</a>
+    <a class="nav-indice" href="index.html">Volver al índice</a>
+    <span class="nav-sig vacio"></span>
+  </nav>
+</article>
+</main>
+<script src="../motor.js" defer></script>
+</body>
+</html>

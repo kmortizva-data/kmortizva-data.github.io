@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The brief and the terrane · Gold under the noise</title>
+<meta name="description" content="Gold in a Proterozoic terrane. What is asked, what the file holds, and why the analysis is modular.">
+<link rel="alternate" hreflang="es" href="../es/c01_encargo-y-terreno.html">
+<script>document.documentElement.className="js"</script>
+<link rel="stylesheet" href="../estilo.css">
+</head>
+<body>
+<header class="cabecera">
+  <a class="marca" href="index.html">Gold under the noise</a>
+  <nav>
+    <a href="index.html">Index</a>
+    <a class="idioma" href="../es/c01_encargo-y-terreno.html" rel="alternate" hreflang="es">Español</a>
+  </nav>
+</header>
+<main>
+<article class="capitulo">
+  <p class="miga">Chapter 1 · <span class="cifra">1,333 records · 79 variables · 62,000 km²</span></p>
+  <h1>The brief and the terrane</h1>
+  <p class="resumen">Gold in a Proterozoic terrane. What is asked, what the file holds, and why the analysis is modular.</p>
+<p>A file of <strong>1,333 records</strong> carrying the geochemistry of <strong>79 variables</strong>, elements and oxides, from gold to <code>SiO2</code>, each with a longitude and a latitude. That is everything there is at the start. The question this project puts to that file: where is the gold, and how far can the map we draw be trusted?</p>
+<p>This chapter introduces the terrane, the file and the architecture of the analysis. The chapters after it drag in reality: censored data, duplicates, a distribution that is anything but normal, and finally a kriging map that confesses its own uncertainty.</p>
+<h2>The terrane</h2>
+<p>The data comes from a <strong>Proterozoic terrane</strong> in eastern South Australia, Proterozoic meaning rocks between 2,500 and 541 million years old, ancient even by a geologist&#x27;s standards. The area covers roughly <strong>62,000 km²</strong>, about the size of Lithuania, and is known for its metallogenic variety: copper, uranium, thorium. This analysis commits to a single question, the one about <strong>gold (Au)</strong>.</p>
+<figure><img src="../figuras/obj0237_1379x1386.e3d1ccc4.jpg" alt="The area&#x27;s 166 geological units with the sample points on top, coloured by gold grade on a log scale. The map already hints at the whole problem: the samples do not cover the terrane evenly, they crowd into corridors." loading="eager"><figcaption>The area&#x27;s 166 geological units with the sample points on top, coloured by gold grade on a log scale. The map already hints at the whole problem: the samples do not cover the terrane evenly, they crowd into corridors.</figcaption></figure>
+<p>The map above deserves a minute. The background colours are geological units, 166 of them, and the dots are samples, coloured by their gold content in <strong>ppb</strong>: parts per billion, grams of gold per thousand tonnes of rock. Two things stand out before knowing any geostatistics at all: the red dots (more gold) do not fall just anywhere, and the sampling concentrates along corridors rather than a regular grid. Both observations will chase us through the whole project.</p>
+<h2>The architecture: modular on purpose</h2>
+<p>The analysis was built as a <strong>sequential modular structure</strong>: cleaning, exploration, variography and kriging are separate pieces chained together. That is not cosmetics. It means the target element can be swapped, from <code>Au</code> to <code>Pr</code> or <code>Nd</code>, say, without rewriting the analysis, and that when something breaks, it breaks inside a named piece rather than somewhere in a thousand-line monolith.</p>
+<ul><li><strong>Clean first</strong>: inconsistent coordinates, censored data, spatial duplicates.</li><li><strong>Explore next</strong>: how gold is distributed and what it travels with.</li><li><strong>Model last</strong>: spatial continuity (the variogram) and estimation (kriging).</li></ul>
+<aside class="ojo"><p>Order matters. Every cleaning decision changes what the variography can see, and every variography decision changes what kriging can estimate. A mistake in the first link reaches the final map dressed up as geology.</p></aside>
+<h2>What stands established</h2>
+<p>A file of 1,333 records and 79 variables over 62,000 km² of Proterozoic rock, one question (where is the gold?) and a piecewise architecture to answer it. The next chapter opens the file and finds that, before mapping anything, something must be done about what is missing, because in some variables, <strong>more than 99%</strong> is.</p>
+  <nav class="pie-nav">
+    <span class="nav-ant vacio"></span>
+    <a class="nav-indice" href="index.html">Back to the index</a>
+    <a class="nav-sig" href="c02_limpieza.html"><small>Next</small>Cleaning and integrity</a>
+  </nav>
+</article>
+</main>
+<script src="../motor.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>El oro no es normal · Oro bajo el ruido</title>
+<meta name="description" content="Asimetría fuerte, transformación log10, y la bimodalidad que luego resultará ser geología.">
+<link rel="alternate" hreflang="en" href="../en/c03_eda.html">
+<script>document.documentElement.className="js"</script>
+<link rel="stylesheet" href="../estilo.css">
+</head>
+<body>
+<header class="cabecera">
+  <a class="marca" href="index.html">Oro bajo el ruido</a>
+  <nav>
+    <a href="index.html">Índice</a>
+    <a class="idioma" href="../en/c03_eda.html" rel="alternate" hreflang="en">English</a>
+  </nav>
+</header>
+<main>
+<article class="capitulo">
+  <p class="miga">Capítulo 3 · <span class="cifra">log10 · bimodal · P95 = 1,57 log ≈ 37,5 ppb</span></p>
+  <h1>El oro no es normal</h1>
+  <p class="resumen">Asimetría fuerte, transformación log10, y la bimodalidad que luego resultará ser geología.</p>
+<p>El oro no se reparte como una campana. Su histograma crudo está aplastado contra la izquierda, con una cola larguísima a la derecha, y hasta que no se transforma con <strong>log10</strong> no enseña su forma de verdad: <strong>dos poblaciones</strong>, y un umbral de anomalía en <strong>P95 = 1,57 en escala logarítmica, unos 37,5 ppb</strong>.</p>
+<p>Este capítulo mira los datos antes de modelar nada: dónde se muestreó, cómo se reparte el oro, qué es una anomalía y dónde caen. Y termina con la decisión de transformar solo lo que hace falta transformar.</p>
+<h2>Dónde se muestreó, y dónde no</h2>
+<p>Las muestras no están en una malla regular. Siguen una <strong>alineación noroeste-sureste</strong>, coherente con el rumbo geológico regional, y se apiñan donde hubo interés: es una campaña dirigida a blancos, con zonas potencialmente relevantes sin una sola muestra.</p>
+<p>Eso se puede medir. El análisis del vecino más cercano pregunta, para cada muestra, a qué distancia está la muestra más próxima. La media salió en <strong>0,22 km</strong>, cuando un reparto al azar sobre la misma área daría <strong>0,75 km</strong>. Y el <strong>73 %</strong> de las muestras tiene su vecina a menos de 0,22 km.</p>
+<figure><img src="../figuras/obj0258_1378x546.49a5cbb6.png" alt="A la izquierda, el histograma de distancias al vecino más cercano: casi todo apilado bajo los 0,5 km, con la media observada (rojo) muy por debajo de la esperada (verde). A la derecha, la curva acumulada: el 73 % de las muestras ya está dentro de 0,22 km. Un patrón agrupado, con R = 0,30." loading="eager"><figcaption>A la izquierda, el histograma de distancias al vecino más cercano: casi todo apilado bajo los 0,5 km, con la media observada (rojo) muy por debajo de la esperada (verde). A la derecha, la curva acumulada: el 73 % de las muestras ya está dentro de 0,22 km. Un patrón agrupado, con R = 0,30.</figcaption></figure>
+<aside class="ojo"><p>Un muestreo agrupado no es un defecto del dato, es una decisión de quien muestreó. Pero tiene una consecuencia directa en todo lo que sigue: los racimos pesan más que los huecos, y el mapa va a saber mucho de unos corredores y casi nada del resto.</p></aside>
+<h2>Un ejemplo de juguete antes de la teoría</h2>
+<p>Imagina cuatro muestras con 1, 10, 100 y 1.000 ppb de oro. En un histograma de valores crudos, tres de ellas caen en el primer centímetro del eje y la cuarta se va sola al otro extremo: la escala la manda el valor grande. Ahora toma el logaritmo en base 10: 0, 1, 2 y 3. Cada <strong>multiplicar por diez</strong> se vuelve <strong>sumar uno</strong>. Las cuatro muestras quedan equiespaciadas y el histograma, por fin, se puede leer.</p>
+<p>Eso es lo único que hace la transformación log10. No cambia los datos: cambia la regla con la que se miran.</p>
+<h2>El oro crudo, y el oro en logaritmos</h2>
+<p>En crudo, la distribución del oro muestra una <strong>asimetría positiva fuerte</strong>: muchísimas muestras con valores bajos y unas pocas muy altas que esconden la estructura de las poblaciones mineralizadas. El histograma aplastado, el diagrama de caja con exceso de atípicos: no se puede interpretar directo.</p>
+<p>Transformado, el histograma revela una <strong>bimodalidad</strong> clara: una población de fondo, que es la línea base geoquímica local, y una población enriquecida, atribuible a eventos de mineralización de alta ley.</p>
+<figure><img src="../figuras/obj0263_1378x376.033fe4c0.png" alt="El oro en log10, en tres vistas: el histograma con sus dos jorobas, el diagrama de caja ya legible, y la distribución acumulada. La línea roja es el percentil 95, en 1,57: lo que queda a su derecha es anomalía." loading="lazy"><figcaption>El oro en log10, en tres vistas: el histograma con sus dos jorobas, el diagrama de caja ya legible, y la distribución acumulada. La línea roja es el percentil 95, en 1,57: lo que queda a su derecha es anomalía.</figcaption></figure>
+<p>Con esa estructura bimodal y el punto de inflexión de la curva acumulada, el <strong>percentil 95</strong> se eligió como umbral robusto para separar anomalías: <strong>1,57 en log10, unos 37,5 ppb</strong>, que coincide con el quiebre entre la distribución principal y la cola alta.</p>
+<h2>Las anomalías, en el mapa</h2>
+<p>El siguiente paso fue proyectar esas anomalías en el espacio con <strong>polígonos de Voronoi</strong>: a cada muestra se le asigna el área del mapa que le queda más cerca que a cualquier otra, y el polígono se colorea con su ley. Así se ve si los valores altos aparecen aislados o agrupados.</p>
+<figure><img src="../figuras/obj0265_1153x1024.e253081b.png" alt="Los polígonos de Voronoi coloreados por ley de oro. Los rojizos superan el P95 (marcado en la barra como 37,2) y no están dispersos al azar: forman dominios espaciales coherentes y continuos. Fíjate también en los polígonos enormes de las esquinas: una sola muestra manda sobre un área gigantesca porque no hay otra cerca." loading="lazy"><figcaption>Los polígonos de Voronoi coloreados por ley de oro. Los rojizos superan el P95 (marcado en la barra como 37,2) y no están dispersos al azar: forman dominios espaciales coherentes y continuos. Fíjate también en los polígonos enormes de las esquinas: una sola muestra manda sobre un área gigantesca porque no hay otra cerca.</figcaption></figure>
+<p>Los polígonos de alta ley se agrupan en dominios continuos, y esa continuidad geométrica es un indicador geoestadístico potente de que la mineralización responde a <strong>controles estructurales</strong> definidos, posiblemente sistemas de vetas o zonas de alteración extensas, y no a dispersión superficial errática.</p>
+<p>Al superponer el mapa geológico, las anomalías se confinan a unidades de basamento (los tonos rosados y verdosos, probablemente complejos intrusivos o secuencias metamórficas), mientras la cobertura sedimentaria en grises pálidos queda casi vacía de anomalías: una sobrecarga estéril. Y contra los depósitos conocidos de tierras raras, las muestras más enriquecidas se agrupan cerca de los <strong>depósitos 3, 4 y 7</strong>.</p>
+<h2>Más allá del oro: el resto de la química</h2>
+<p>Para validar el modelo metalogénico, el análisis se extendió a toda la suite geoquímica con un enriquecimiento proximal contra distal, el llamado gráfico de elementos guía. Las tierras raras pesadas, <strong>Ho, Lu, Tb y Dy</strong>, salen enriquecidas cerca de los depósitos con razones por encima de 2,0. Y un detalle interesante: el enriquecimiento <em>relativo</em> del oro, el cobre y el zinc en la zona proximal es menor que el de las tierras raras; el oro queda cerca de 1,0 y el cobre aparece deprimido.</p>
+<p>El barrido univariante de todos los elementos mostró la dicotomía esperable: los óxidos mayores como el <code>Al2O3</code> se reparten en dos jorobas, y los elementos económicos traen la asimetría positiva típica de las distribuciones hidrotermales. El <strong>itrio</strong> es bimodal incluso en crudo. Para el cerio y el lantano, los umbrales de alta ley quedaron en <strong>199,90 ppm</strong> y <strong>155,00 ppm</strong>.</p>
+<h2>Transformar solo lo que hace falta</h2>
+<p>La transformación log10 se aplicó, pero <strong>selectivamente</strong>: donde la asimetría superaba 1,5. Una regla de talla única habría sido un error, porque transformar una distribución que ya es razonablemente normal puede inducir asimetría negativa artificial. Las que venían bien se quedaron en sus unidades originales, ppm o porcentaje, para conservar su sentido geológico.</p>
+<h2>Lo que queda establecido</h2>
+<p>Muestreo agrupado (0,22 km contra 0,75 esperados), oro con asimetría fuerte que en log10 se vuelve bimodal, umbral de anomalía en P95 = 1,57 log (~37,5 ppb), anomalías que forman dominios continuos en unidades de basamento, y transformación solo donde la asimetría la pide. La pregunta que abre el siguiente capítulo es con quién se junta el oro: qué elementos lo acompañan y cuáles lo evitan.</p>
+  <nav class="pie-nav">
+    <a class="nav-ant" href="c02_limpieza.html"><small>Anterior</small>Limpieza e integridad</a>
+    <a class="nav-indice" href="index.html">Volver al índice</a>
+    <a class="nav-sig" href="c04_geoquimica.html"><small>Siguiente</small>Los acompañantes del oro</a>
+  </nav>
+</article>
+</main>
+<script src="../motor.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Limpieza e integridad · Oro bajo el ruido</title>
+<meta name="description" content="Coordenadas inconsistentes, datos censurados, redundancia espacial. Los duplicados se agregan por media aritmética.">
+<link rel="alternate" hreflang="en" href="../en/c02_limpieza.html">
+<script>document.documentElement.className="js"</script>
+<link rel="stylesheet" href="../estilo.css">
+</head>
+<body>
+<header class="cabecera">
+  <a class="marca" href="index.html">Oro bajo el ruido</a>
+  <nav>
+    <a href="index.html">Índice</a>
+    <a class="idioma" href="../en/c02_limpieza.html" rel="alternate" hreflang="en">English</a>
+  </nav>
+</header>
+<main>
+<article class="capitulo">
+  <p class="miga">Capítulo 2 · <span class="cifra">1.333 → 1.020 localizaciones · censura &gt;99% en algunas variables</span></p>
+  <h1>Limpieza e integridad</h1>
+  <p class="resumen">Coordenadas inconsistentes, datos censurados, redundancia espacial. Los duplicados se agregan por media aritmética.</p>
+<p>De <strong>1.333 registros</strong> a <strong>1.020 localizaciones únicas</strong>. Ese es el saldo de la limpieza, y la diferencia no son errores borrados: son muestras que estaban contadas varias veces en el mismo punto del mapa. Antes de cualquier estadística, el archivo tuvo que pasar por cuatro fases en orden, y cada una cambia lo que las siguientes pueden ver.</p>
+<p>En este capítulo: cómo llegaron las coordenadas, qué significa que a una variable le falte más del 99 %, por qué 86 muestras en un solo punto sesgan todo el análisis, y con cuánto archivo de verdad se queda uno al final.</p>
+<h2>Lo primero: que los números sean números</h2>
+<p>El archivo <code>Rock_geochemical_data.csv</code> junta varias campañas de muestreo independientes, y se nota. Las coordenadas mezclaban convenciones: unas con formato internacional y otras con el europeo, con puntos como separadores de miles, del tipo <code>1.394.927</code>. Leídas a ciegas, esas no son coordenadas, son texto. Hubo que escribir funciones propias para interpretarlas y convertirlas a números de coma flotante antes de poder dibujar un solo punto.</p>
+<p>De paso, los encabezados como <code>&quot;Au (ppb)&quot;</code> se normalizaron a <code>Au_ppb</code>: nombres que un programa puede manipular sin tropezar con espacios y paréntesis.</p>
+<h2>Lo que falta, y cuánto</h2>
+<p>La palabra técnica es <strong>censura</strong>: valores que no están, casi siempre porque esa campaña no midió ese elemento. La tabla de los diez peores lo dice todo:</p>
+<ul><li><code>F_ppm</code>: <strong>100 % ausente</strong>. Cero valores válidos.</li><li><code>Cl_ppm</code>, <code>B_ppm</code>, <code>Fe_ppm</code>: 99,92 % ausente, <strong>un solo valor válido</strong> cada una.</li><li><code>S_ppm</code>: 99,77 %, tres valores.</li><li><code>Cr_ppm</code>, <code>Ba_ppm</code>, <code>Sr_ppm</code>: 98,79 %, dieciséis valores.</li><li><code>Hg_ppm</code>: 98,72 %, diecisiete. <code>Pd_ppb</code>: 98,42 %, veintiuno.</li></ul>
+<p>Y en el otro extremo, las más completas: <code>Cu_ppb</code> con el <strong>69,56 %</strong> válido (923 valores), <code>Co_ppm</code> 65,03 %, <code>Zn_ppm</code> y <code>Th_ppm</code> 64,66 %, <code>Pb_ppm</code> 64,13 %, <code>U3O8_ppm</code> 63,07 %, <code>Ni_ppm</code> 58,33 %, <code>V_ppm</code> 58,18 %, <code>Sn_ppm</code> 56,59 % y <code>Y_ppm</code> 53,5 %. La variable más completa del archivo le falta a casi un tercio de las muestras.</p>
+<figure><img src="../figuras/obj0245_1086x868.5bffef26.jpg" alt="Cada muestra coloreada por cuántos elementos tiene medidos, de un máximo de 42. Mira el reparto: hay corredores enteros en violeta, con menos de cinco elementos, y racimos amarillos con más de treinta. La riqueza del dato no es uniforme en el mapa, y eso va a pesar en todo lo que sigue." loading="eager"><figcaption>Cada muestra coloreada por cuántos elementos tiene medidos, de un máximo de 42. Mira el reparto: hay corredores enteros en violeta, con menos de cinco elementos, y racimos amarillos con más de treinta. La riqueza del dato no es uniforme en el mapa, y eso va a pesar en todo lo que sigue.</figcaption></figure>
+<p>La completitud global del subconjunto final es del <strong>35,88 %</strong>. Al menos 13 de las 80 variables geoquímicas superan el 97 % de ausencia. Y los metales preciosos, que son la pregunta: <strong>oro con el 43 % válido, plata con el 44 %</strong>. Se consideraron suficientes para modelar, con la condición, escrita desde aquí, de interpretar todo con cautela estadística.</p>
+<h2>El mismo punto, 86 veces</h2>
+<p>La comprobación espacial reveló algo que ninguna tabla de ausentes enseña: registros distintos con coordenadas idénticas. El caso extremo, un solo par de coordenadas (139,288; −30,176) asociado a <strong>86 muestras distintas</strong>. Los cinco puntos más repetidos acumulaban 86, 60, 8, 4 y 4 registros.</p>
+<p>Si se dejara así, ese punto pesaría 86 veces más que cualquier otro en cada promedio, cada variograma y cada mapa. Es lo que se llama <strong>sesgo de sobremuestreo</strong>. La solución tuvo dos pasos: agrupar los registros que comparten coordenadas, y resumir cada variable química con su <strong>media aritmética</strong> dentro del grupo. Eso además consolidó información dispersa: casos en que un registro traía el oro y otro, en el mismo sitio, traía el cobre.</p>
+<aside class="ojo"><p>Agregar por la media no es inocente. Si en un mismo punto hay una muestra de 2 ppb y otra de 80, el punto pasa a valer 41 y la variabilidad local desaparece del archivo. Es un precio aceptable contra pesar 86 veces un mismo sitio, pero es un precio, y conviene recordarlo cuando más adelante el variograma muestre una pepita moderada.</p></aside>
+<p>Resultado: <strong>1.020 localizaciones únicas</strong>, sin sesgo de sobremuestreo y sin perder representatividad espacial.</p>
+<h2>Ponerle geología debajo</h2>
+<p>Con los puntos ya limpios, cada muestra se convirtió en un objeto geométrico y se cruzó con el mapa geológico regional para asignarle su unidad litoestratigráfica: la roca en la que cayó. Y se recortó estrictamente al área de estudio. Ese cruce es el que permitirá, tres capítulos más adelante, preguntar si el oro prefiere ciertas rocas.</p>
+<h2>Lo que queda establecido</h2>
+<p>Coordenadas convertidas, nombres normalizados, censura medida variable por variable, duplicados espaciales agregados por la media, y cada muestra con su unidad geológica. El archivo pasó de 1.333 registros a 1.020 puntos, y el oro solo está medido en el 43 % de ellos. El siguiente capítulo abre por fin la distribución del oro, y descubre que no se parece en nada a una campana.</p>
+  <nav class="pie-nav">
+    <a class="nav-ant" href="c01_encargo-y-terreno.html"><small>Anterior</small>El encargo y el terreno</a>
+    <a class="nav-indice" href="index.html">Volver al índice</a>
+    <a class="nav-sig" href="c03_eda.html"><small>Siguiente</small>El oro no es normal</a>
+  </nav>
+</article>
+</main>
+<script src="../motor.js" defer></script>
+</body>
+</html>

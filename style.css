@@ -31,6 +31,7 @@
   --iron:      #D08A63;          /* iron oxide */
   --mint:      #8CAE79;          /* olive */
   --slate:     #A79DB4;          /* grey violet */
+  --gold:      #C9A55A;          /* native gold */
 
   /* Chosen by measuring how far each space has to stretch to reach the right margin,
      not by the usual reading advice. Kevin asked for wider text than the 84 characters
@@ -263,6 +264,7 @@ a { color: inherit; }
 .assay[data-accent="iron"]  { --tint: var(--iron); }
 .assay[data-accent="mint"]  { --tint: var(--mint); }
 .assay[data-accent="slate"] { --tint: var(--slate); }
+.assay[data-accent="gold"]  { --tint: var(--gold); }
 
 .assay:hover { border-color: var(--tint); transform: translateY(-3px); }
 
@@ -1172,6 +1174,7 @@ p, .assay-tagline, .cred-detail, .streams dd { text-wrap: pretty; }
 .index-row[data-accent="iron"]  { --tint: var(--iron); }
 .index-row[data-accent="mint"]  { --tint: var(--mint); }
 .index-row[data-accent="slate"] { --tint: var(--slate); }
+.index-row[data-accent="gold"]  { --tint: var(--gold); }
 
 /* --- the preview panel ---------------------------------------------------- */
 

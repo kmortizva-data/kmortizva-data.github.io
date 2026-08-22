@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Oro bajo el ruido</title>
+<meta name="description" content="Geoestadística real sobre 62.000 km² de South Australia: de 1.333 registros sucios a un mapa de kriging que confiesa su incertidumbre.">
+<link rel="alternate" hreflang="en" href="../en/index.html">
+<script>document.documentElement.className="js"</script>
+<link rel="stylesheet" href="../estilo.css">
+</head>
+<body>
+<header class="cabecera">
+  <a class="marca" href="index.html">Oro bajo el ruido</a>
+  <nav>
+    <a href="index.html">Índice</a>
+    <a class="idioma" href="../en/index.html" rel="alternate" hreflang="en">English</a>
+  </nav>
+</header>
+<main>
+<section class="portada">
+  <h1>Oro bajo el ruido</h1>
+  <p class="resumen">Geoestadística real sobre 62.000 km² de South Australia: de 1.333 registros sucios a un mapa de kriging que confiesa su incertidumbre.</p>
+  <ol class="indice"><li><span class="num">01</span><div><a href="c01_encargo-y-terreno.html">El encargo y el terreno</a><p class="cifra">1.333 registros · 79 variables · 62.000 km²</p><p>Oro en un terreno proterozoico. Qué se pide, qué hay en el archivo, y por qué la estructura del análisis es modular.</p></div></li><li><span class="num">02</span><div><a href="c02_limpieza.html">Limpieza e integridad</a><p class="cifra">1.333 → 1.020 localizaciones · censura &gt;99% en algunas variables</p><p>Coordenadas inconsistentes, datos censurados, redundancia espacial. Los duplicados se agregan por media aritmética.</p></div></li><li><span class="num">03</span><div><a href="c03_eda.html">El oro no es normal</a><p class="cifra">log10 · bimodal · P95 = 1,57 log ≈ 37,5 ppb</p><p>Asimetría fuerte, transformación log10, y la bimodalidad que luego resultará ser geología.</p></div></li><li><span class="num">04</span><div><a href="c04_geoquimica.html">Los acompañantes del oro</a><p class="cifra">Au-Gd r≈+0,47 · Au-La r≈−0,34 · CoDa</p><p>Bivariante y composicional: el Gd acompaña, el La se aleja: fraccionamiento hidrotermal en los datos.</p></div></li><li><span class="num">05</span><div><a href="c05_controles-geologicos.html">La geología manda, la estadística limita</a><p class="cifra">corte 15,0 ppb · Nxcal/Nhunt/Nhuyb · ~48 muestras → modelo global</p><p>Las anomalías viven en unidades de basamento concretas, pero estratificar con n&lt;50 destruiría la variografía: se elige el modelo global sabiendo lo que cuesta.</p></div></li><li><span class="num">06</span><div><a href="c06_variografia.html">La firma espacial</a><p class="cifra">gaussiano · alcance 4.470 m · pepita 0,105 · anisotropía 045°</p><p>Del variograma experimental (lag 240 m) al modelo: continuidad máxima NE-SO y anisotropía mixta, geométrica y zonal.</p></div></li><li><span class="num">07</span><div><a href="c07_kriging.html">Kriging: la mejor estimación honesta</a><p class="cifra">SK y OK · RMSE 0,230 log · z hasta ±6</p><p>EL CAPÍTULO REFORZADO. Qué es kriging de verdad (sistema de 3 muestras resuelto a mano con el variograma del proyecto), SK vs OK sin trampas (la CV no los distingue), la varianza de kriging y sus colas pesadas, y las facetas del vecindario móvil explicadas.</p></div></li><li><span class="num">08</span><div><a href="c08_perillas.html">Las perillas que no importaron</a><p class="cifra">modelos ±0,006 RMSE · vecinos ±0,009</p><p>Esférico 0,2371 / exponencial 0,2430 / gaussiano 0,2435; n=5→0,2388 … n=40→0,2295. Que las perillas muevan tan poco ES el hallazgo: la restricción real son las 425 muestras.</p></div></li><li><span class="num">09</span><div><a href="c09_veredicto.html">Estrictamente preliminar</a><p class="cifra">425 de 1.333 con oro medible · co-kriging y simulación como salida</p><p>Sirve para elegir blancos de exploración, no para clasificar reservas. Co-kriging con Gd/La y simulación secuencial como caminos siguientes, con sus riesgos.</p></div></li></ol>
+</section>
+</main>
+<script src="../motor.js" defer></script>
+</body>
+</html>

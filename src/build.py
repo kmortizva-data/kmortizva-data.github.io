@@ -178,13 +178,20 @@ def fill_counts(text: str, count: int, lang: str) -> str:
     return text.replace("{n}", word).replace("{N}", word[0].upper() + word[1:])
 
 
-def open_href(project: dict, depth: int) -> str:
+def open_target(project: dict, lang: str) -> str:
+    """The raw open destination: one string for both editions, or {en, es} twins."""
+    href = project.get("open_href", "")
+    return href.get(lang, "") if isinstance(href, dict) else href
+
+
+def open_href(project: dict, depth: int, lang: str = "en") -> str:
     """Resolve a project's open destination for a page `depth` folders down.
 
     External URLs pass through; site-relative ones get the same ../ prefix every other
-    internal link uses, so the button works from the root and from /es/ alike.
+    internal link uses, so the button works from the root and from /es/ alike. A project
+    that is itself bilingual opens its own edition in each language.
     """
-    href = project.get("open_href", "")
+    href = open_target(project, lang)
     if href.startswith(("http://", "https://")):
         return href
     return rel(depth) + href
@@ -218,7 +225,7 @@ def work_index(data: dict, lang: str, ui: dict, depth: int) -> str:
             f'<span class="index-assay">{esc(p["mark"])}</span>'
             f'<span class="index-area">{esc(p["area"])}</span>'
             f'</a>'
-            + (f'<a class="index-open" href="{esc(open_href(project, depth))}" '
+            + (f'<a class="index-open" href="{esc(open_href(project, depth, lang))}" '
                f'target="_blank" rel="noopener">'
                f'{esc(p["open_label"])} ↗</a>' if project.get("open_href") else "")
             + '</li>')
@@ -409,9 +416,15 @@ def project_page(project: dict, data: dict, lang: str) -> str:
     # The open action leads the links, unless it IS the repo (Froth), where one link is
     # honest and two would be the same door twice.
     open_link = ""
-    if project.get("open_href") and project["open_href"] != project["repo"]:
-        open_link = (f'<a class="cta" href="{esc(open_href(project, depth))}" '
+    repo = project.get("repo", "")
+    if project.get("open_href") and open_target(project, lang) != repo:
+        open_link = (f'<a class="cta" href="{esc(open_href(project, depth, lang))}" '
                      f'target="_blank" rel="noopener">{esc(p["open_label"])}</a>')
+
+    # A project without a public repository (the geostatistics site lives only inside
+    # this portfolio) simply has no repository link, rather than a dead one.
+    repo_link = (f'<a href="{esc(repo)}" target="_blank" rel="noopener">'
+                 f'{esc(ui["view_repo"])}</a>' if repo else "")
 
     body = f"""<article class="wrap section">
   <a class="back" href="{home_href(lang, depth)}#work">{esc(ui["back"])}</a>
@@ -433,7 +446,7 @@ def project_page(project: dict, data: dict, lang: str) -> str:
   <p class="eyebrow stack-label">{esc(ui["stack"])}</p>
   <ul class="stack">{stack_of(project)}</ul>
 
-  <p class="assay-links">{open_link}<a href="{esc(project["repo"])}" target="_blank" rel="noopener">{esc(ui["view_repo"])}</a></p>
+  <p class="assay-links">{open_link}{repo_link}</p>
 </article>"""
 
     return shell(title=f"{p['name']} - {data['author']}", desc=p["tagline"], lang=lang,
@@ -479,6 +492,7 @@ def main() -> int:
         ("Exc-1-Learn Machine Learning/2_Curso/figuras", "silice/figuras"),
         ("Concentra/out",     "concentra/cursos"),
         ("Concentra/figures", "concentra/figures"),
+        ("Geoestadistica/out", "geostat/curso"),
     ]
     neutralised = 0
     for source_rel, target_rel in EMBEDDED:
@@ -490,6 +504,9 @@ def main() -> int:
         # cerebro, and the Concentra case pages link report .md files as material.
         # Excluding them broke a link the gate caught. The cerebros are up to date now.
         shutil.copytree(source, ROOT / target_rel, dirs_exist_ok=True)
+        # Engine test pages never ship: the geostatistics build writes an unlinked one.
+        for stray in (ROOT / target_rel).rglob("prueba_scrolly.html"):
+            stray.unlink()
 
         # The Concentra case pages link to files on Kevin's machine (scripts, cheatsheets
         # under 03_Data Analysis Coursera). Published, every one would 404 and the paths
