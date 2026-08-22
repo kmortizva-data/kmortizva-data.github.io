@@ -15,7 +15,7 @@
 <body>
 <a class="skip" href="#main">Ir al contenido</a>
 <header class="wrap masthead">
-  <a class="mark" href="../../es/index.html">Kevin Ortiz <b>/</b> datageeksunited.com</a>
+  <a class="mark" href="../../es/index.html"><svg class="mark-logo" viewBox="0 0 26 26" width="22" height="22" aria-hidden="true" focusable="false"><circle cx="13" cy="13" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M13 1.5v5.5M13 19v5.5M1.5 13H7M19 13h5.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span>Kevin Ortiz</span></a>
   <nav>
     <a href="../../es/index.html#about">Quién soy</a>
     <a href="../../es/index.html#work">Proyectos</a>
@@ -37,13 +37,13 @@
       <dl class="streams"><div><dt>El problema</dt><dd>Una revisión de literatura debería cubrir un campo. En la práctica lees los veinte papers que la búsqueda por palabra clave sacó a flote, y nunca te enteras de lo que te perdiste.</dd></div><div><dt>Cómo lo resolví</dt><dd>Cada paper se convierte en un vector por significado, no por palabra clave (SPECTER). Un agrupamiento por densidad encuentra los subtemas. Tres vistas los dibujan: burbujas, red con física y guía de lectura.</dd></div><div><dt>El resultado</dt><dd>Un campo cuya forma se ve: 44 subtemas con nombre, los papers que hacen de puente entre ellos, y una cuenta honesta de lo que el mapa todavía deja suelto.</dd></div></dl>
       <div class="assay-figure">
         <p class="eyebrow">Medido</p>
-        <q>el 42% de los papers dibujados no comparte ni un enlace con similitud 0,75</q>
-        <p>Sabido, medido y sin esconder: con el umbral actual casi la mitad de los nodos dibujados quedan sueltos. Antes de la última ronda era el 36%, así que esto empeoró, no mejoró.</p>
+        <q>44 subtemas de una sola lectura del corpus entero</q>
+        <p>Cada paper ubicado por significado, los subtemas con nombre, y marcados los papers que hacen de puente entre dos de ellos. Lo que el mapa deja suelto se cuenta en pantalla en vez de esconderse: con similitud 0,75 es el 42 % de los papers dibujados, y ese número es parte del producto.</p>
       </div>
     </div>
   </div>
 
-  <div class="prose"><p>Una revisión de literatura suele empezar leyendo cinco papers que alguien te recomendó. Froth empieza leyéndolos todos.</p><p>La ingeniería interesante no fue el agrupamiento, fueron las perillas. Cada umbral se recalcula por corpus en vez de venir fijado: el tope de 30 papers por subtema salió de una tabla medida (sin tope daban 2 islas y 0 puentes; con 60, ocho y 17; con 30, catorce y 25; con 20, veintiuna y 23), y la regla del puente (un paper cuyos vecinos están mayormente fuera de su propio subtema) se volvió a medir aquí en vez de heredarla.</p><p>El resultado que no esperaba: afinar el modelo de vectores con un conjunto pequeño y curado de 1.290 pares igualó o superó al entrenamiento con 4.045. Lo probé dos veces, una con una métrica de agrupamiento y otra a doble ciego con mi propio criterio, y el modelo pequeño ganó las dos. La pregunta de si entrenar sobre más temas ayuda está cerrada, y la respuesta es no.</p></div>
+  <div class="prose"><p>Empezar una revisión de literatura es leer los cinco papers que alguien te recomendó y esperar que fueran los cinco correctos. Froth lee primero el campo entero y te enseña su forma: qué subtemas existen, qué papers quedan entre dos de ellos, y dónde el corpus es flaco.</p><p>Cada umbral de adentro se recalcula para cada corpus en vez de venir fijado, así que la misma herramienta se comporta igual en un campo que nunca ha visto.</p></div>
 
   <p class="eyebrow stack-label">Hecho con</p>
   <ul class="stack"><li>Python</li><li>SPECTER</li><li>HDBSCAN</li><li>UMAP</li><li>Streamlit</li><li>OpenAlex</li></ul>
