@@ -18,6 +18,7 @@ The generated files are overwritten every run. Edit content/ and templates/.
 from __future__ import annotations
 
 import html
+import hashlib
 import json
 import math
 import re
@@ -79,6 +80,17 @@ LOGO = ('<svg class="mark-logo" viewBox="0 0 26 26" width="22" height="22" '
         '<path d="M13 1.5v5.5M13 19v5.5M1.5 13H7M19 13h5.5" '
         'stroke="currentColor" stroke-width="2" stroke-linecap="round"/>'
         '</svg>')
+
+
+def asset_version(name: str) -> str:
+    """Eight hex characters of the template's content, appended as ?v= to its URL.
+
+    GitHub Pages serves with a ten minute max-age and the preview server with none at
+    all, and both kept handing out yesterday's theme.js after a deploy: the panel did not
+    follow the cursor because the browser never asked for the new script. A content hash
+    in the URL makes every deploy a new file as far as caches are concerned.
+    """
+    return hashlib.md5((TEMPLATES / name).read_bytes()).hexdigest()[:8]
 
 
 def hero_art() -> str:
@@ -171,7 +183,7 @@ def shell(*, title: str, desc: str, lang: str, depth: int, switch_href: str,
 <meta property="og:type" content="website">
 <link rel="alternate" hreflang="{other_lang}" href="{switch}">
 <script>document.documentElement.className="js"</script>
-<link rel="stylesheet" href="{up}style.css">
+<link rel="stylesheet" href="{up}style.css?v={asset_version("style.css")}">
 </head>
 <body>
 <a class="skip" href="#main">{esc(ui["skip"])}</a>
@@ -194,7 +206,7 @@ def shell(*, title: str, desc: str, lang: str, depth: int, switch_href: str,
 </footer>
 <div class="curtain" aria-hidden="true"></div>
 <script src="{up}assets/lenis.min.js" defer></script>
-<script src="{up}theme.js" defer></script>
+<script src="{up}theme.js?v={asset_version("theme.js")}" defer></script>
 </body>
 </html>
 """
