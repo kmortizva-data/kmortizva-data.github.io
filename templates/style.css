@@ -151,7 +151,14 @@ a { color: inherit; }
   text-decoration: none;
   color: var(--ink);
 }
-.mark b { font-weight: 700; color: var(--hi); }
+.mark {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+.mark-logo { color: var(--hi); flex: none; transition: transform 0.4s ease; }
+.mark:hover .mark-logo { transform: rotate(90deg); }
+@media (prefers-reduced-motion: reduce) { .mark-logo { transition: none; } }
 
 .masthead nav {
   display: flex;
@@ -1070,24 +1077,23 @@ p, .assay-tagline, .cred-detail, .streams dd { text-wrap: pretty; }
    showed it) and a word that does not fit must move down whole. The declared cost is
    slightly wider justified gaps on browsers that would have hyphenated.
 
-   Ragged is the default, so a browser without container queries gets the safe one. */
+   2026-08-22: Kevin asked for justified text on the phone as well, so the width gate is
+   gone and the rule below applies everywhere; the measurements above stay as the
+   record of what that costs on a narrow column. */
 .about-body, .prose { container-type: inline-size; }
 
 .about-body p {
   max-width: var(--measure);
 }
 
+/* Justified at every width, phones included (Kevin, 2026-08-22: the phone was the one
+   place the text was still ragged). Without hyphenation a narrow column can open
+   rivers; the gaps are measured in the pane at 375 px and reported, never hidden. */
 .about-body p,
 .prose p {
-}
-
-@container (min-width: 33rem) {
-  .about-body p,
-  .prose p {
-    text-align: justify;
-    text-wrap: initial;          /* pretty and justify fight; justify wins here */
-    text-align-last: start;      /* never stretch the last line of a paragraph */
-  }
+  text-align: justify;
+  text-wrap: initial;          /* pretty and justify fight; justify wins here */
+  text-align-last: start;      /* never stretch the last line of a paragraph */
 }
 
 /* ===========================================================================
@@ -1254,11 +1260,10 @@ p, .assay-tagline, .cred-detail, .streams dd { text-wrap: pretty; }
    past the width where justifying starts producing rivers. */
 .section-head p { max-width: var(--measure); }
 
-@media (min-width: 60rem) {
-  .section-head p {
-    text-align: justify;
-    text-align-last: start;
-  }
+.section-head p {
+  text-align: justify;
+  text-wrap: initial;
+  text-align-last: start;
 }
 
 /* "Who I am" runs its text the full width of the page under its heading, rather than

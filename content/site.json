@@ -113,15 +113,14 @@
         "feed": "A literature review is meant to cover a field. In practice you read the twenty papers a keyword search happened to surface, and never find out what you missed.",
         "process": "Each paper becomes a vector by meaning, not by keyword (SPECTER). Density clustering finds the subtopics. Three views draw them: bubbles, a force directed network, and a reading guide.",
         "concentrate": "A field you can see the shape of: 44 named subtopics, the papers that bridge between them, and an honest count of what the map still leaves unconnected.",
-        "assay": "42% of the papers drawn share no link at similarity 0.75",
-        "assay_detail": "Known, measured, and not hidden: at the current threshold nearly half the drawn nodes sit unconnected. Before the last round it was 36%, so this got worse, not better.",
+        "assay": "44 subtopics from one reading of the whole corpus",
+        "assay_detail": "Every paper placed by meaning, the subtopics named, and the papers that bridge two of them marked. What the map leaves unconnected is counted on screen instead of hidden: at similarity 0.75 it is 42% of the drawn papers, and that number is part of the product.",
         "status": "v1 frozen and approved. A scale edition is in development.",
         "body": [
-          "A literature review usually starts by reading five papers someone recommended. Froth starts by reading all of them.",
-          "The interesting engineering was not the clustering, it was the knobs. Every threshold in it is recalculated per corpus instead of shipped as a default: the network cap of 30 papers per cluster was picked from a measured table (no cap gave 2 islands and 0 bridges; 60 gave 8 and 17; 30 gave 14 and 25; 20 gave 21 and 23), and the bridge rule (a paper whose neighbours mostly sit outside its own subtopic) was re-measured here rather than inherited.",
-          "The result I did not expect: fine tuning the embedding model on a small curated set of 1,290 pairs matched or beat training on 4,045. I tested it twice, once by a clustering metric and once double blind on my own judgement, and the small model won both times. The question of whether training on more topics helps is settled, and the answer is no."
+          "Starting a literature review means reading the five papers someone recommended and hoping they were the right five. Froth reads the whole field first and shows you its shape: which subtopics exist, which papers sit between two of them, and where the corpus is thin.",
+          "Every threshold inside is recalculated for each corpus rather than shipped as a default, so the same tool behaves the same on a field it has never seen."
         ],
-        "mark": "1,290 pairs beat 4,045",
+        "mark": "44 subtopics, named and bridged",
         "area": "NLP · Clustering · Data visualisation",
         "open_label": "View on GitHub"
       },
@@ -131,15 +130,14 @@
         "feed": "Una revisión de literatura debería cubrir un campo. En la práctica lees los veinte papers que la búsqueda por palabra clave sacó a flote, y nunca te enteras de lo que te perdiste.",
         "process": "Cada paper se convierte en un vector por significado, no por palabra clave (SPECTER). Un agrupamiento por densidad encuentra los subtemas. Tres vistas los dibujan: burbujas, red con física y guía de lectura.",
         "concentrate": "Un campo cuya forma se ve: 44 subtemas con nombre, los papers que hacen de puente entre ellos, y una cuenta honesta de lo que el mapa todavía deja suelto.",
-        "assay": "el 42% de los papers dibujados no comparte ni un enlace con similitud 0,75",
-        "assay_detail": "Sabido, medido y sin esconder: con el umbral actual casi la mitad de los nodos dibujados quedan sueltos. Antes de la última ronda era el 36%, así que esto empeoró, no mejoró.",
+        "assay": "44 subtemas de una sola lectura del corpus entero",
+        "assay_detail": "Cada paper ubicado por significado, los subtemas con nombre, y marcados los papers que hacen de puente entre dos de ellos. Lo que el mapa deja suelto se cuenta en pantalla en vez de esconderse: con similitud 0,75 es el 42 % de los papers dibujados, y ese número es parte del producto.",
         "status": "v1 congelada y aprobada. La edición de escala sigue en desarrollo.",
         "body": [
-          "Una revisión de literatura suele empezar leyendo cinco papers que alguien te recomendó. Froth empieza leyéndolos todos.",
-          "La ingeniería interesante no fue el agrupamiento, fueron las perillas. Cada umbral se recalcula por corpus en vez de venir fijado: el tope de 30 papers por subtema salió de una tabla medida (sin tope daban 2 islas y 0 puentes; con 60, ocho y 17; con 30, catorce y 25; con 20, veintiuna y 23), y la regla del puente (un paper cuyos vecinos están mayormente fuera de su propio subtema) se volvió a medir aquí en vez de heredarla.",
-          "El resultado que no esperaba: afinar el modelo de vectores con un conjunto pequeño y curado de 1.290 pares igualó o superó al entrenamiento con 4.045. Lo probé dos veces, una con una métrica de agrupamiento y otra a doble ciego con mi propio criterio, y el modelo pequeño ganó las dos. La pregunta de si entrenar sobre más temas ayuda está cerrada, y la respuesta es no."
+          "Empezar una revisión de literatura es leer los cinco papers que alguien te recomendó y esperar que fueran los cinco correctos. Froth lee primero el campo entero y te enseña su forma: qué subtemas existen, qué papers quedan entre dos de ellos, y dónde el corpus es flaco.",
+          "Cada umbral de adentro se recalcula para cada corpus en vez de venir fijado, así que la misma herramienta se comporta igual en un campo que nunca ha visto."
         ],
-        "mark": "1.290 pares le ganaron a 4.045",
+        "mark": "44 subtemas, con nombre y puentes",
         "area": "PLN · Clustering · Visualización de datos",
         "open_label": "Ver en GitHub"
       },
@@ -229,9 +227,8 @@
         "assay_detail": "Course 3 took 23 passes before it was right. The procedure that came out of that is written down in MANUAL.md, and three automated checks now have to pass before anything is committed. Skipping it means doing the work three times.",
         "status": "5 courses, 25 modules, 12 case studies.",
         "body": [
-          "I pay for the courses, watch them, and forget them. There was nowhere to look things up afterwards in a condensed form, so I built one.",
-          "The metaphor is deliberate and it matches Froth: the course is the feed, the cheatsheet is the concentrate.",
-          "The rule I care about most here is where the boundary sits. Only the public course description page is ever requested, once per course. Nothing behind the login is downloaded, no video is touched, and the cheatsheets are notes rewritten from scratch rather than a copy of the course. The cached page is Coursera's markup, so it stays out of the repository.",
+          "I pay for courses, watch them and forget them. There was nowhere to look things up afterwards in a condensed form, so I built one.",
+          "These are my own notes, rewritten from scratch after each module: a worked example before the theory, the code explained line by line with its real output, and the traps I fell into. I hope they are useful to someone else.",
           "The site itself has no dependencies at all, just the Python standard library, which means it still builds on a machine where installing anything is slow."
         ],
         "mark": "12 case studies on real data",
@@ -249,8 +246,7 @@
         "status": "5 cursos, 25 módulos, 12 casos de estudio.",
         "body": [
           "Pago los cursos, los veo y se me olvidan. No tenía dónde consultarlos después de forma condensada, así que me lo construí.",
-          "La metáfora es a propósito y rima con Froth: el curso es la alimentación, el cheatsheet es el concentrado.",
-          "La regla que más me importa aquí es dónde está la raya. Solo se pide la página pública de descripción del curso, una vez por curso. No se descarga nada detrás del login, no se toca ningún video, y los cheatsheets son apuntes reescritos desde cero, no una copia del curso. La página cacheada es marcado de Coursera, así que no entra al repositorio.",
+          "Son mis propios apuntes, reescritos desde cero después de cada módulo: un ejemplo resuelto antes que la teoría, el código explicado línea por línea con su salida real, y las trampas en las que caí. Espero que le sirvan a alguien más.",
           "El sitio no tiene ni una dependencia, solo la librería estándar de Python, y eso significa que sigue compilando en una máquina donde instalar cualquier cosa es lento."
         ],
         "mark": "12 casos sobre datos reales",
@@ -384,8 +380,7 @@
       "body": [
         "I am a mining and metallurgy engineer from Colombia, now on the Erasmus Mundus EMerald master's in Georesources Engineering across Belgium, France and Sweden. I graduated first in my class at Universidad Nacional de Colombia, with honours every semester along the way.",
         "The critical metals crisis is easy to state and hard to escape. The world is electrifying: wind turbines, power grids, electric vehicles and the batteries behind all of them need copper, lithium, cobalt and rare earths in quantities we have never mined before. Recycling cannot close that loop yet, because you can only recycle what was bought decades ago, when the world bought far less of it. So most of tomorrow's metal must still come out of the ground, from deposits that grow poorer, finer and more chemically complex every year.",
-        "I believe the honest response to that is not bigger machines but better questions: innovation, curiosity and inventiveness applied at every step of the process. That is why, alongside the master's, I have been training myself through independent projects in machine learning and other engineering techniques that a doctorate or an industrial project will end up needing.",
-        "Quality control looks backwards: it tells you what already went wrong. What I want to build looks forward, models that warn a lithium recovery circuit or a battery materials plant about its next hour while there is still time to act. The {n} projects below are that practice in the open, and each one ends in a number, not an impression."
+        "I believe the honest response to that is not bigger machines but better questions: innovation, curiosity and inventiveness applied at every step of the process. That is why, alongside the master's, I have been training myself through independent projects in machine learning and other engineering techniques that a doctorate or an industrial project will end up needing."
       ],
       "marks": [
         {
@@ -407,8 +402,7 @@
       "body": [
         "Soy ingeniero de minas y metalurgia, colombiano, ahora en el máster Erasmus Mundus EMerald de Georesources Engineering entre Bélgica, Francia y Suecia. Me gradué primero de mi promoción en la Universidad Nacional de Colombia, con cuadro de honor semestre tras semestre.",
         "La crisis de los metales críticos es fácil de enunciar y difícil de esquivar. El mundo se está electrificando: las turbinas de viento, las redes eléctricas, los vehículos eléctricos y las baterías detrás de todos ellos necesitan cobre, litio, cobalto y tierras raras en cantidades que nunca hemos minado. El reciclaje todavía no puede cerrar ese ciclo, porque solo se recicla lo que se compró hace décadas, cuando el mundo compraba mucho menos. Así que la mayor parte del metal de mañana seguirá saliendo del suelo, de depósitos cada año más pobres, más finos y más complejos químicamente.",
-        "Creo que la respuesta honesta a eso no son máquinas más grandes sino mejores preguntas: innovación, curiosidad e ingenio aplicados a cada paso del proceso. Por eso, en paralelo al máster, me he formado por mi cuenta en proyectos independientes de machine learning y otras técnicas de ingeniería que un doctorado o un proyecto industrial van a terminar necesitando.",
-        "El control de calidad mira hacia atrás: te dice qué salió mal cuando ya salió. Lo que quiero construir mira hacia adelante, modelos que le avisen a un circuito de recuperación de litio o a una planta de materiales de batería lo que trae su próxima hora, cuando todavía hay tiempo de actuar. Los {n} proyectos de abajo son esa práctica a la vista, y cada uno termina en un número, no en una impresión."
+        "Creo que la respuesta honesta a eso no son máquinas más grandes sino mejores preguntas: innovación, curiosidad e ingenio aplicados a cada paso del proceso. Por eso, en paralelo al máster, me he formado por mi cuenta en proyectos independientes de machine learning y otras técnicas de ingeniería que un doctorado o un proyecto industrial van a terminar necesitando."
       ],
       "marks": [
         {
@@ -428,28 +422,20 @@
   },
   "marquee": {
     "en": [
-      "Froth flotation",
-      "Hydrometallurgy",
-      "Mineral characterisation",
-      "Li · Ta · Nb · W",
-      "Circular economy",
-      "Python",
-      "PyTorch",
-      "Conformal prediction",
-      "Time series",
-      "ArcGIS · Datamine · Deswik"
+      "Modelling flotation circuits from real plant data",
+      "Studying lithium and rare earth recovery",
+      "Training models that warn before a plant fails",
+      "Mapping where the samples did not reach",
+      "Turning course notes into things that still work a year later",
+      "Critical raw materials and the circular economy, measured not assumed"
     ],
     "es": [
-      "Flotación de espumas",
-      "Hidrometalurgia",
-      "Caracterización mineral",
-      "Li · Ta · Nb · W",
-      "Economía circular",
-      "Python",
-      "PyTorch",
-      "Predicción conforme",
-      "Series de tiempo",
-      "ArcGIS · Datamine · Deswik"
+      "Modelo circuitos de flotación con datos reales de planta",
+      "Estudio la recuperación de litio y tierras raras",
+      "Entreno modelos que avisan antes de que la planta falle",
+      "Mapeo dónde no llegaron las muestras",
+      "Convierto apuntes de curso en cosas que siguen sirviendo un año después",
+      "Materias primas críticas y economía circular, medidas y no supuestas"
     ]
   },
   "credentials": {

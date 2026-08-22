@@ -15,7 +15,7 @@
 <body>
 <a class="skip" href="#main">Skip to content</a>
 <header class="wrap masthead">
-  <a class="mark" href="../index.html">Kevin Ortiz <b>/</b> datageeksunited.com</a>
+  <a class="mark" href="../index.html"><svg class="mark-logo" viewBox="0 0 26 26" width="22" height="22" aria-hidden="true" focusable="false"><circle cx="13" cy="13" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M13 1.5v5.5M13 19v5.5M1.5 13H7M19 13h5.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span>Kevin Ortiz</span></a>
   <nav>
     <a href="../index.html#about">About</a>
     <a href="../index.html#work">Work</a>
@@ -37,13 +37,13 @@
       <dl class="streams"><div><dt>The problem</dt><dd>A literature review is meant to cover a field. In practice you read the twenty papers a keyword search happened to surface, and never find out what you missed.</dd></div><div><dt>How I solved it</dt><dd>Each paper becomes a vector by meaning, not by keyword (SPECTER). Density clustering finds the subtopics. Three views draw them: bubbles, a force directed network, and a reading guide.</dd></div><div><dt>The result</dt><dd>A field you can see the shape of: 44 named subtopics, the papers that bridge between them, and an honest count of what the map still leaves unconnected.</dd></div></dl>
       <div class="assay-figure">
         <p class="eyebrow">Measured</p>
-        <q>42% of the papers drawn share no link at similarity 0.75</q>
-        <p>Known, measured, and not hidden: at the current threshold nearly half the drawn nodes sit unconnected. Before the last round it was 36%, so this got worse, not better.</p>
+        <q>44 subtopics from one reading of the whole corpus</q>
+        <p>Every paper placed by meaning, the subtopics named, and the papers that bridge two of them marked. What the map leaves unconnected is counted on screen instead of hidden: at similarity 0.75 it is 42% of the drawn papers, and that number is part of the product.</p>
       </div>
     </div>
   </div>
 
-  <div class="prose"><p>A literature review usually starts by reading five papers someone recommended. Froth starts by reading all of them.</p><p>The interesting engineering was not the clustering, it was the knobs. Every threshold in it is recalculated per corpus instead of shipped as a default: the network cap of 30 papers per cluster was picked from a measured table (no cap gave 2 islands and 0 bridges; 60 gave 8 and 17; 30 gave 14 and 25; 20 gave 21 and 23), and the bridge rule (a paper whose neighbours mostly sit outside its own subtopic) was re-measured here rather than inherited.</p><p>The result I did not expect: fine tuning the embedding model on a small curated set of 1,290 pairs matched or beat training on 4,045. I tested it twice, once by a clustering metric and once double blind on my own judgement, and the small model won both times. The question of whether training on more topics helps is settled, and the answer is no.</p></div>
+  <div class="prose"><p>Starting a literature review means reading the five papers someone recommended and hoping they were the right five. Froth reads the whole field first and shows you its shape: which subtopics exist, which papers sit between two of them, and where the corpus is thin.</p><p>Every threshold inside is recalculated for each corpus rather than shipped as a default, so the same tool behaves the same on a field it has never seen.</p></div>
 
   <p class="eyebrow stack-label">Built with</p>
   <ul class="stack"><li>Python</li><li>SPECTER</li><li>HDBSCAN</li><li>UMAP</li><li>Streamlit</li><li>OpenAlex</li></ul>

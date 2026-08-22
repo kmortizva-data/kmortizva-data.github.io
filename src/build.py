@@ -68,6 +68,18 @@ def counterpart(lang: str, kind: str, slug: str = "") -> str:
     return f"{LANGS[other]['work']}/{slug}.html"
 
 
+# The brand mark: a bubble with a crosshair, the site's own line in one glyph (you cannot
+# recover what you cannot measure). Inline SVG, so it costs no request and takes the
+# accent colour from CSS. It replaces the domain in the masthead: the domain is not paid
+# for, and a mark that leads home is what every project page needed anyway.
+LOGO = ('<svg class="mark-logo" viewBox="0 0 26 26" width="22" height="22" '
+        'aria-hidden="true" focusable="false">'
+        '<circle cx="13" cy="13" r="9" fill="none" stroke="currentColor" stroke-width="2"/>'
+        '<path d="M13 1.5v5.5M13 19v5.5M1.5 13H7M19 13h5.5" '
+        'stroke="currentColor" stroke-width="2" stroke-linecap="round"/>'
+        '</svg>')
+
+
 def shell(*, title: str, desc: str, lang: str, depth: int, switch_href: str,
           ui: dict, site: dict, body: str) -> str:
     up = rel(depth)
@@ -92,7 +104,7 @@ def shell(*, title: str, desc: str, lang: str, depth: int, switch_href: str,
 <body>
 <a class="skip" href="#main">{esc(ui["skip"])}</a>
 <header class="wrap masthead">
-  <a class="mark" href="{home}">{author} <b>/</b> {esc(site["domain"])}</a>
+  <a class="mark" href="{home}">{LOGO}<span>{author}</span></a>
   <nav>
     <a href="{home}#about">{esc(ui["nav_about"])}</a>
     <a href="{home}#work">{esc(ui["nav_work"])}</a>
