@@ -486,7 +486,8 @@ def main() -> int:
         if not source.exists():
             print(f"  ! embedded source missing, not copied: {source_rel}")
             continue
-        shutil.copytree(source, ROOT / target_rel, dirs_exist_ok=True)
+        shutil.copytree(source, ROOT / target_rel, dirs_exist_ok=True,
+                        ignore=shutil.ignore_patterns("*.md"))
 
         # The Concentra case pages link to files on Kevin's machine (scripts, cheatsheets
         # under 03_Data Analysis Coursera). Published, every one would 404 and the paths
@@ -565,11 +566,19 @@ def main() -> int:
     # folders whose names start with an underscore. Nothing here does today, but
     # the file costs nothing and removes a whole class of "it worked locally" bug.
     (ROOT / ".nojekyll").write_text("", encoding="utf-8")
-    (ROOT / "CNAME").write_text(data["domain"] + "\n", encoding="utf-8")
+    # CNAME only once the domain's DNS points at GitHub. With the file present and the
+    # DNS not set, Pages fails its domain check and the github.io URL redirects to a dead
+    # domain, so the first publication lives on github.io and the domain comes later.
+    cname = ROOT / "CNAME"
+    if data.get("publish_domain"):
+        cname.write_text(data["domain"] + "\n", encoding="utf-8")
+    elif cname.exists():
+        cname.unlink()
 
     missing = [p["slug"] for p in data["projects"]
                if not (ASSETS / "shots" / (p.get("shot") or "_")).exists()]
-    print(f"  {pages} pages written, CNAME -> {data['domain']}")
+    where = data["domain"] if data.get("publish_domain") else "github.io (CNAME off)"
+    print(f"  {pages} pages written, domain -> {where}")
     if missing:
         print(f"  ! still no screenshot for: {', '.join(missing)}")
     return 0
