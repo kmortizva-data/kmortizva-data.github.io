@@ -220,7 +220,10 @@
       },
       "year": "2026",
       "archive": false,
-      "open_href": "silice/curso/index.html"
+      "open_href": {
+        "en": "silice/curso/index.en.html",
+        "es": "silice/curso/index.html"
+      }
     },
     {
       "slug": "concentra",
