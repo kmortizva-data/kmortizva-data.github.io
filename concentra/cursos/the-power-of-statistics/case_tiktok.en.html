@@ -1,0 +1,495 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TikTok · The Power of Statistics</title>
+<link rel="alternate" hreflang="es" href="case_tiktok.html">
+<style>
+/* ============================================================================
+   Concentra — design tokens and shared components.
+   Inlined into every generated page by load_style(), so pages stay self-contained
+   and work offline from file:// with no external requests.
+
+   Direction: an assay lab, not a tech dashboard. The palette is taken from ore
+   and lab materials (chalcopyrite brass, malachite, hematite, quartz) on warm
+   graphite rather than the blue-black + neon of a generic dark UI. Type is
+   Bahnschrift, the DIN-descended grotesque that Windows ships and that lives on
+   machinery plates and technical drawings, over Corbel for reading.
+   ========================================================================== */
+
+:root {
+  /* Ground and surfaces: warm graphite, the colour of rock dust, not blue-black */
+  --rock: #1a1714;
+  --bench: #221e19;
+  --core: #2b251f;
+  --seam: #3d352c;
+
+  /* Ore palette. No blue and no purple anywhere: those are the tones that make a
+     page read as generated, and this palette comes from the ores instead. */
+  --brass: #c9a227;      /* chalcopyrite, the primary accent */
+  --malachite: #5d9b7a;  /* verified output, results that came out right */
+  --hematite: #b04a35;   /* iron oxide, pitfalls and warnings */
+
+  /* Text */
+  --quartz: #ece7de;
+  --dust: #9a9186;
+  --shadowed: #6f675c;
+
+  --display: Bahnschrift, 'DIN Alternate', 'Segoe UI Semibold', system-ui, sans-serif;
+  --body: Corbel, Candara, 'Segoe UI', system-ui, sans-serif;
+  --data: Consolas, 'Cascadia Mono', ui-monospace, monospace;
+
+  /* In px, not ch: ch scales with font-size, so a heading ended up wider than a
+     paragraph and the page had four different right edges instead of two. */
+  --measure: 640px;
+  --wide: 900px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--rock);
+  color: var(--quartz);
+  font-family: var(--body);
+  font-size: 16px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection { background: var(--brass); color: var(--rock); }
+
+:focus-visible {
+  outline: 2px solid var(--brass);
+  outline-offset: 3px;
+}
+
+/* --------------------------------------------------------------- the signature
+   A sieve series: ticks that get finer from left to right, coarse feed to fine
+   concentrate. It is the one ornament on the page and appears exactly twice —
+   under the wordmark and under a page title. */
+.mesh {
+  height: 10px;
+  background-image:
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 16px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 9px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 5px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 3px);
+  background-size: 25% 100%;
+  background-position: 0 0, 25% 0, 50% 0, 75% 0;
+  background-repeat: no-repeat;
+  opacity: .8;
+  transform-origin: left center;
+  animation: sieve .55s cubic-bezier(.2, .8, .3, 1) both;
+}
+@keyframes sieve { from { transform: scaleX(0); opacity: 0; } to { transform: scaleX(1); opacity: .8; } }
+@media (prefers-reduced-motion: reduce) {
+  .mesh { animation: none; }
+  * { transition: none !important; }
+}
+
+/* ------------------------------------------------------------------ page head */
+.header {
+  border-bottom: 1px solid var(--seam);
+  padding: 3.2rem 2rem 0;
+  background: linear-gradient(180deg, #221d16 0%, var(--rock) 100%);
+}
+.header-content { max-width: 1080px; margin: 0 auto; }
+
+.eyebrow {
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--brass);
+  margin-bottom: 1rem;
+  display: flex; flex-wrap: wrap; align-items: center;
+  justify-content: space-between; gap: .6rem 1rem;
+}
+.eyebrow a { color: inherit; text-decoration: none; border-bottom: 1px solid transparent; }
+.eyebrow a:hover { border-bottom-color: var(--brass); }
+/* The way to the other edition of this page. It targets the shell, not the bare
+   page, so the sidebar follows the language too. */
+.eyebrow .lang-switch {
+  margin-left: auto; border: 1px solid var(--seam); border-radius: 2px;
+  padding: .22rem .6rem; color: var(--dust); font-size: .68rem; letter-spacing: .1em;
+}
+.eyebrow .lang-switch:hover { color: var(--brass); border-color: var(--brass); }
+
+.header h1 {
+  font-family: var(--display);
+  font-size: clamp(2rem, 4.5vw, 3.1rem);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -.015em;
+  color: var(--quartz);
+  max-width: 20ch;
+}
+.header .subtitle {
+  color: var(--dust);
+  max-width: var(--measure);
+  margin-top: 1rem;
+  font-size: 1.02rem;
+}
+.header .mesh { margin: 1.8rem 0 0; }
+
+/* An assay line: the real composition of the module, in lab-report shorthand. */
+.assay {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.4rem;
+  font-family: var(--data);
+  font-size: .78rem;
+  color: var(--shadowed);
+  padding: .9rem 0 1.6rem;
+  letter-spacing: .04em;
+}
+.assay b { color: var(--dust); font-weight: 400; }
+
+/* --------------------------------------------------------------------- layout */
+/* The container hugs the widest block, so there is no orphan edge past the content. */
+.container { max-width: var(--wide); margin: 3rem auto 5rem; padding: 0 2rem; }
+
+/* Two deliberate right edges and no more: prose stops at the reading measure, and
+   only the things that genuinely need room (code, output, figures, big tables) run
+   out to the full column. */
+.section-block {
+  border-top: 1px solid var(--seam);
+  padding: 2rem 0 2.4rem;
+}
+.section-block > p,
+.section-block > ul,
+.section-block > ol,
+.section-block h3.sub,
+.section-block h4.sub,
+.section-block blockquote,
+details > *:not(summary) { max-width: var(--measure); }
+.section-block:first-child { border-top: 0; padding-top: .5rem; }
+
+/* The kicker names what kind of content follows: context, method, pitfalls.
+   It replaces decorative icons with something that actually classifies. */
+.kicker {
+  font-family: var(--data);
+  font-size: .68rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  display: block;
+  margin-bottom: .5rem;
+}
+.section-title {
+  font-family: var(--display);
+  font-size: 1.55rem;
+  font-weight: 600;
+  letter-spacing: -.01em;
+  line-height: 1.2;
+  margin-bottom: 1.2rem;
+  color: var(--quartz);
+}
+.is-warning .kicker { color: var(--hematite); }
+.is-warning .section-title { color: #e8c4b8; }
+.is-bridge .kicker, .is-decision .kicker { color: var(--malachite); }
+.is-toy .kicker, .is-result .kicker, .is-question .kicker { color: var(--brass); }
+
+/* ---------------------------------------------------------------------- prose */
+/* Justified with hyphenation. In Spanish, justifying without hyphens opens rivers of
+   white space and reads worse than ragged right; lang="es" is what feeds the
+   dictionary. Tables, code, captions and summaries stay ragged on purpose. */
+.section-block p,
+.section-block li,
+details > *:not(summary) {
+  text-align: justify;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+}
+.section-block p { margin-bottom: 1rem; }
+.section-block p:last-child { margin-bottom: 0; }
+/* Indent with padding, not margin, so the bullet sits inside the measure instead of
+   pushing the list 1.2rem past the right edge of the paragraphs. */
+.section-block ul, .section-block ol { margin: 0 0 1rem; padding-left: 1.2rem; }
+.section-block li { margin-bottom: .55rem; padding-left: .2rem; }
+.section-block li::marker { color: var(--brass); }
+td, th, figcaption, .res li, .assay { text-align: left; hyphens: manual; }
+a { color: var(--brass); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+a:hover { text-decoration-thickness: 2px; }
+strong { color: #fff; font-weight: 700; }
+em { color: var(--dust); font-style: italic; }
+
+h3.sub {
+  font-family: var(--display);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--brass);
+  margin: 2rem 0 .7rem;
+  letter-spacing: -.005em;
+}
+h3.sub:first-child { margin-top: 0; }
+h4.sub {
+  font-family: var(--display);
+  font-size: .98rem;
+  font-weight: 600;
+  color: var(--dust);
+  margin: 1.3rem 0 .5rem;
+}
+
+code {
+  font-family: var(--data);
+  font-size: .9em;
+  background: var(--core);
+  border-radius: 3px;
+  padding: .08rem .32rem;
+  color: var(--brass);
+}
+pre {
+  background: #14110e;
+  border: 1px solid var(--seam);
+  border-left: 2px solid var(--seam);
+  border-radius: 2px;
+  padding: 1.1rem 1.2rem;
+  overflow-x: auto;
+  margin-bottom: 1rem;
+}
+pre code {
+  background: none; padding: 0; color: var(--quartz);
+  font-size: .87rem; line-height: 1.6;
+}
+
+/* What the code prints. Malachite: the material that came out of the process. */
+.output {
+  position: relative;
+  border: 1px solid rgba(93, 155, 122, .32);
+  border-left: 2px solid var(--malachite);
+  border-radius: 2px;
+  background: rgba(93, 155, 122, .06);
+  padding: 1.7rem 1.2rem 1rem;
+  margin-bottom: 1rem;
+  overflow-x: auto;
+}
+.output-tag {
+  position: absolute; top: .5rem; left: 1.2rem;
+  font-family: var(--data); font-size: .64rem;
+  letter-spacing: .18em; text-transform: uppercase; color: var(--malachite);
+}
+.output pre {
+  background: none; border: 0; padding: 0; margin: 0;
+  font-family: var(--data); font-size: .85rem;
+  color: var(--quartz); white-space: pre-wrap;
+}
+
+/* Line by line explanation of a code block, for a reader new to programming.
+   Two columns: the fragment of code, and what it does. */
+.annot {
+  display: grid;
+  grid-template-columns: minmax(9rem, auto) 1fr;
+  gap: .1rem 1.2rem;
+  align-items: baseline;
+  max-width: var(--wide);
+  margin: -.4rem 0 1.4rem;
+  padding: .9rem 1.1rem 1rem;
+  border: 1px solid var(--seam);
+  border-top: 0;
+  border-radius: 0 0 2px 2px;
+  background: rgba(201, 162, 39, .04);
+}
+.annot-head {
+  grid-column: 1 / -1;
+  font-family: var(--data);
+  font-size: .64rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  margin-bottom: .5rem;
+}
+.annot dt { padding: .35rem 0; }
+.annot dt code {
+  background: var(--core);
+  color: var(--brass);
+  font-size: .82rem;
+  white-space: nowrap;
+}
+.annot dd {
+  padding: .35rem 0;
+  margin: 0;
+  color: var(--dust);
+  font-size: .93rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(61, 53, 44, .5);
+}
+.annot dt { border-bottom: 1px solid rgba(61, 53, 44, .5); }
+.annot dt:last-of-type, .annot dd:last-of-type { border-bottom: 0; }
+/* The code block sits directly on top of its annotation, as one unit. */
+pre:has(+ .annot) { margin-bottom: 0; border-radius: 2px 2px 0 0; }
+
+@media (max-width: 640px) {
+  .annot { grid-template-columns: 1fr; gap: 0; }
+  .annot dt { border-bottom: 0; padding-bottom: 0; }
+  .annot dd { padding-top: .15rem; }
+}
+
+blockquote {
+  border-left: 2px solid var(--brass);
+  padding: .3rem 0 .3rem 1.3rem;
+  margin: 0 0 1rem;
+  font-family: var(--display);
+  font-size: 1.2rem;
+  font-weight: 400;
+  line-height: 1.4;
+  color: var(--quartz);
+}
+
+/* Tables read as assay data: mono figures, hairline rules, no zebra fill.
+   They take the width they need instead of being stretched to the full column,
+   which is what left a two-column table floating in empty space. */
+.table-wrap { overflow-x: auto; margin-bottom: 1rem; }
+table { border-collapse: collapse; width: auto; max-width: 100%; font-size: .93rem; }
+th, td {
+  border-bottom: 1px solid var(--seam);
+  padding: .55rem .8rem .55rem 0;
+  text-align: left;
+  vertical-align: top;
+}
+th {
+  font-family: var(--data);
+  font-size: .7rem;
+  font-weight: 400;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  border-bottom-color: var(--brass);
+}
+td:first-child { color: var(--quartz); }
+
+/* Review questions: closed by default, so they work as recall practice. */
+details {
+  border-top: 1px solid var(--seam);
+  padding: .9rem 0;
+}
+details:last-child { border-bottom: 1px solid var(--seam); }
+summary {
+  cursor: pointer;
+  font-family: var(--display);
+  font-size: 1.02rem;
+  font-weight: 600;
+  color: var(--quartz);
+  list-style: none;
+  display: flex;
+  gap: .7rem;
+  align-items: baseline;
+}
+summary::-webkit-details-marker { display: none; }
+summary::before {
+  content: '+';
+  font-family: var(--data);
+  color: var(--brass);
+  font-size: .95rem;
+}
+details[open] summary::before { content: '−'; }
+details[open] summary { color: var(--brass); margin-bottom: .7rem; }
+details > *:not(summary) { color: var(--dust); }
+
+figure.fig {
+  margin: 1.6rem 0;
+  border: 1px solid var(--seam);
+  padding: .7rem;
+  background: var(--bench);
+}
+figure.fig img { width: 100%; height: auto; display: block; }
+/* The interactive twin of a figure. Its aspect matches the still one, 10 by 4.4, so a
+   case sheet keeps the same rhythm whichever kind of figure comes next. */
+figure.fig.is-live iframe {
+  width: 100%;
+  /* Matches INTERACTIVE_HEIGHT in src/make_figures.py. It used to be an aspect ratio, and
+     that made the figure's height depend on the window: the caption and the legend are
+     placed at fractions of the plot area, so on a wide screen they were pushed past the
+     bottom margin, clipping the caption and covering the x-axis title. */
+  height: 520px;
+  border: 0;
+  display: block;
+}
+figure.fig figcaption {
+  font-family: var(--data);
+  font-size: .72rem;
+  color: var(--shadowed);
+  margin-top: .6rem;
+  letter-spacing: .04em;
+}
+
+/* File listings on a case sheet */
+.res { list-style: none; margin-left: 0 !important; }
+.res li {
+  display: flex; align-items: baseline; gap: .8rem; flex-wrap: wrap;
+  padding: .5rem 0; border-bottom: 1px solid var(--seam); margin-bottom: 0;
+}
+.res .path { font-family: var(--data); font-size: .74rem; color: var(--shadowed); }
+.res .size { font-family: var(--data); font-size: .74rem; color: var(--shadowed); margin-left: auto; }
+.res .gone { font-family: var(--data); font-size: .74rem; color: var(--hematite); }
+
+.footer {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 2rem 4rem;
+  color: var(--shadowed);
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .03em;
+}
+
+@media (max-width: 640px) {
+  body { font-size: 15px; }
+  .header { padding: 2rem 1.2rem 0; }
+  .container { padding: 0 1.2rem; margin-top: 2rem; }
+  .footer { padding: 0 1.2rem 3rem; }
+}
+
+@media print {
+  body { background: #fff; color: #16130f; }
+  .header { background: none; border-bottom: 1px solid #bbb; padding-top: 0; }
+  .header h1, .section-title, summary { color: #16130f; }
+  .mesh { animation: none; }
+  .section-block { break-inside: avoid; max-width: none; }
+  pre, .output { background: #f6f4f0; border-color: #ccc; }
+  details:not([open]) > *:not(summary) { display: block; }
+  a { color: #16130f; }
+}
+
+</style>
+</head>
+<body>
+<header class="header">
+  <div class="header-content">
+    <div class="eyebrow"><span>Course 3 · The Power of Statistics / Case study</span><a class="lang-switch" href="../index.html#the-power-of-statistics/case_tiktok" target="_top" hreflang="es" lang="es" title="Leer esta página en español">Español</a></div>
+    <h1>TikTok</h1>
+    <p class="subtitle">Do videos from verified accounts get more views? The result contradicts intuition, and the secondary finding turned out more useful than the main one.</p>
+    <div class="mesh" role="presentation"></div>
+    <div class="assay"><span>19,084 videos</span><span>2 groups</span><span>Welch + Mann-Whitney</span><span>α = 0.05</span></div>
+  </div>
+</header>
+<main class="container">
+<section class="section-block "><span class="kicker">Brief</span><h2 class="section-title">The brief</h2><p>You work as a data analyst for <strong>TikTok</strong>. The platform receives thousands of user reports every day flagging videos as problematic, and the human moderation team cannot keep up with reviewing them all.</p><p>The idea is to build, in the future, a system that automatically prioritises which videos to review first. But before building anything, the team needs to understand the terrain: <strong>what sets some videos apart from others in terms of reach?</strong> Specifically, there is a suspicion about verified accounts, and it has to be checked with data before designing anything on top of it.</p></section>
+<section class="section-block is-question"><span class="kicker">Question</span><h2 class="section-title">The question</h2><blockquote>Do videos published by <strong>verified</strong> accounts receive a different number of views from videos by <strong>unverified</strong> accounts?</blockquote><p>It looks like a trivial question: the two averages are calculated and compared to see which is higher. But an average that came out of a sample proves nothing on its own: it could be chance of this particular sample. To claim that the difference is real, a <strong>hypothesis test</strong> is needed, which is exactly what module 5 of this course teaches.</p></section>
+<section class="section-block is-toy"><span class="kicker">Hypotheses</span><h2 class="section-title">The hypotheses</h2><p>Before touching the data, the two competing claims are written down. This is done <strong>first</strong>: if they are formulated after seeing the results, the test loses validity.</p><ul><li><strong>Null hypothesis (H₀).</strong> The conservative position, the &quot;nothing is going on here&quot; one: there is no difference between the mean number of views of videos from verified and unverified accounts.</li><li><strong>Alternative hypothesis (Hₐ).</strong> What is suspected: there is a real difference.</li></ul><p>The <strong>significance level</strong> is set at <strong>α = 0.05</strong>. It means that at most a 5% probability of shouting &quot;there is a difference!&quot; when in fact there was none is accepted.</p></section>
+<section class="section-block is-data"><span class="kicker">Data</span><h2 class="section-title">The data</h2><ul><li><strong>19,084 videos</strong> analysed in total.</li><li>The variable measured (<strong>the target metric</strong>) is <code>video_view_count</code>: how many times each video was viewed.</li><li>The variable that separates the groups is <code>verified_status</code>: verified or unverified.</li></ul><p>And here the first important finding appears, even before starting:</p><div class="table-wrap"><table><thead><tr><th>Group</th><th>How many videos</th></tr></thead><tbody><tr><td>Unverified</td><td>17,884</td></tr><tr><td>Verified</td><td>1,200</td></tr></tbody></table></div><p>The groups are <strong>very unbalanced</strong>: for every video from a verified account there are almost 15 from ordinary accounts. That does not invalidate the analysis, but it conditions which test can be used and has to be kept in mind until the end.</p></section>
+<section class="section-block is-figures"><span class="kicker">Exploration</span><h2 class="section-title">What the exploration showed</h2><p>Before any statistical test you have to look at the data. One panel per group, and what each one teaches.</p><figure class="fig"><img src="../../figures/tiktok/01_no-verificada.55704744.png" alt="01_no-verificada" loading="lazy"><figcaption>01_no-verificada.png</figcaption></figure><h3 class="sub h3">Panel 1. The unverified accounts</h3><p>The columns count how many videos fall in each band of views, and the axis runs on a logarithmic scale because the values go from a few views to more than a million.</p><p>The three blocks at the top split the group into named bands, and there is the finding: <strong>48% of these videos are barely watched and 47% are watched enormously</strong>, with only 5% in between. It is not one mountain with a long tail, it is <strong>two mountains separated by a void</strong>.</p><p>And notice where the median falls, at 46,723: <strong>right in the void</strong>. Only 1.1% of the videos in this group are within 20% of that value. It is a statistic that describes almost no real video.</p><figure class="fig"><img src="../../figures/tiktok/01_verificada.6b04c838.png" alt="01_verificada" loading="lazy"><figcaption>01_verificada.png</figcaption></figure><h3 class="sub h3">Panel 2. The verified accounts</h3><p>The same axis, the same split into three bands, and a different story. Here <strong>83% of the videos live in the low-reach band</strong> and only 16% make it to the high-reach one.</p><p>Mind one thing before comparing: <strong>the vertical scale of this panel is not the previous one&#x27;s</strong>, because this group has 1,200 videos and the other 17,884. That is why the figures go separately, so that each is read on its own scale without the smaller one being flattened.</p><h3 class="sub h3">What shows when the two splits are put in a table</h3><div class="table-wrap"><table><thead><tr><th>Band</th><th>Unverified</th><th>Verified</th></tr></thead><tbody><tr><td>Low reach (up to 10 thousand)</td><td>48.0%</td><td><strong>82.6%</strong></td></tr><tr><td>The empty zone (10 thousand to 100 thousand)</td><td>4.9%</td><td>1.7%</td></tr><tr><td>High reach (more than 100 thousand)</td><td><strong>47.1%</strong></td><td>15.8%</td></tr></tbody></table></div><p>Here is the real conclusion, and it is more precise than comparing means. The two groups have the same two populations; what changes is <strong>what fraction of each group reaches the high-reach population</strong>: almost half in the ordinary accounts, one in six in the verified ones.</p><p>Said in product language: it is not that a video from a verified account is watched less, it is that <strong>it has a much lower probability of taking off</strong>.</p><figure class="fig"><img src="../../figures/tiktok/02_efecto.8f68331f.png" alt="02_efecto" loading="lazy"><figcaption>02_efecto.png</figcaption></figure><h3 class="sub h3">How to read this figure</h3><p>The dot is the observed difference between the two groups and the bar is its <strong>95% confidence interval</strong>, the range where the real difference can be. The vertical line marks zero, the position of &quot;no difference&quot;.</p><p>Here the bar is <strong>miles away from zero</strong>, and that distance is the whole result of the analysis in a single image. Compare it with the same figure in the Waze case, where the bar goes through zero: they are two opposite answers drawn the same way.</p><div class="table-wrap"><table><thead><tr><th>Group</th><th>Mean views</th><th>Standard deviation</th></tr></thead><tbody><tr><td>Unverified</td><td><strong>265,664</strong></td><td>325,682</td></tr><tr><td>Verified</td><td><strong>91,439</strong></td><td>221,139</td></tr></tbody></table></div><p>Videos from unverified accounts receive on average almost three times more views, a <strong>65.6%</strong> relative difference. It is the opposite of what intuition would expect, and that is why it deserves a formal test before believing it.</p><h3 class="sub h3">The secondary finding, which turned out stronger</h3><p>There is a second variable in the dataset: whether the video contains a <strong>claim</strong> or an <strong>opinion</strong>. The contrast is of another order:</p><div class="table-wrap"><table><thead><tr><th>Kind of video</th><th>Mean views</th></tr></thead><tbody><tr><td>Claim</td><td><strong>501,029</strong></td></tr><tr><td>Opinion</td><td><strong>4,956</strong></td></tr></tbody></table></div><p>About <strong>100 times</strong> more views. This secondary finding turned out much more powerful than the main one, and it is the one that really serves the original goal of prioritising moderation.</p></section>
+<section class="section-block is-recipe"><span class="kicker">Method</span><h2 class="section-title">The test, and why this test</h2><p>The mean of two independent groups is compared, so the right family is the <strong>two-sample t-test</strong>. But within that family a choice has to be made, and the choice is justified by checking an assumption.</p><h3 class="sub h3">First, check whether the variances are equal</h3><p>The classic t-test (Student&#x27;s) assumes that both groups have the same spread. That is verified with <strong>Levene&#x27;s test</strong>:</p><div class="output"><span class="output-tag">prints</span><pre>Levene: estadístico = 392.01     p = 2.22e-86</pre></div><p>That p-value is a number with 85 zeros before the first significant decimal. It is overwhelmingly smaller than 0.05, so it is concluded that <strong>the variances are not equal</strong>, something that could already be seen in the table above: 325,682 against 221,139.</p><h3 class="sub h3">That is why Welch is used, not Student</h3><p>Since the equal-variances assumption does not hold, <strong>Welch&#x27;s t-test</strong> (<code>equal_var=False</code>) is used, which does not require it. Using Student here would have given a result with a pretend precision.</p><p>And the normality assumption, if the distributions were so skewed? Here enters the <strong>central limit theorem</strong> of module 3: with 17,884 and 1,200 observations, the distribution of the <strong>means</strong> is approximately normal even if the individual values are not. That is why the test is valid despite the skew the two panels show.</p></section>
+<section class="section-block is-result"><span class="kicker">Result</span><h2 class="section-title">The result, translated</h2><div class="output"><span class="output-tag">prints</span><pre>Welch t = 25.4994          p = 2.61e-120
+IC 95% de la diferencia = [-187.626 , -160.823]
+Cohen&#x27;s d = -0.544
+Mann-Whitney U: p = 1.93e-91</pre></div><p>And this is what each line means:</p><ul><li><strong>t = 25.50.</strong> The means of the two groups are separated by about 25 standard errors. As a reference, from 2 upwards it is usually considered a notable separation: 25 is enormous.</li><li><strong>p = 2.61 × 10⁻¹²⁰.</strong> The probability of seeing a difference this big **if in fact there were no difference at all**. Written in decimals it would be a 0 followed by 119 zeros before the 261. It is, for practical purposes, zero. <strong>H₀ is rejected.</strong></li><li><strong>95% confidence interval = [−187,626, −160,823].</strong> The real difference is somewhere in that range. Notice that <strong>it does not include zero</strong>: it is another way of seeing the same result, and it connects directly with module 4.</li><li><strong>Cohen&#x27;s d = −0.544.</strong> The <strong>effect size</strong>. It is the piece that stops &quot;significant&quot; being confused with &quot;important&quot;: a value around 0.5 is considered a <strong>medium</strong> effect. That is, the difference is very real, but moderate in magnitude, not colossal.</li><li><strong>Mann-Whitney U: p = 1.93 × 10⁻⁹¹.</strong> A second, backup test, which compares ranks instead of means and does <strong>not</strong> assume any distribution shape. It reaches the same conclusion, which rules out the result being an artefact of the skew or the outliers.</li></ul></section>
+<section class="section-block is-decision"><span class="kicker">Decision</span><h2 class="section-title">What gets decided with this</h2><p><strong>The difference is real: videos from unverified accounts receive significantly more views</strong>, with a medium-sized effect.</p><p>But the operational recommendation comes from the <strong>secondary</strong> finding, which turned out much more powerful: the variable that really predicts a video&#x27;s reach is not the verification status but <strong>whether the video contains a claim</strong> (501,029 against 4,956 mean views).</p><p>Translated into action: a future moderation-prioritisation system should lean on <code>claim_status</code> as its main signal, not on <code>verified_status</code>. This analysis has served to discard an intuitive hypothesis and find a better signal, which is exactly what a hypothesis test is for.</p></section>
+<section class="section-block is-warning"><span class="kicker">Limits</span><h2 class="section-title">Limitations</h2><ul><li><strong>The groups are very unbalanced</strong> (17,884 against 1,200). Welch handles it correctly, but the estimate for the verified group rests on far fewer data points and is therefore less precise.</li><li><strong>A sample ratio mismatch (SRM) was detected</strong>: the check gave <code>chi² = 14,586</code> with <code>p ≈ 0</code>. In a real A/B experiment this would be a red flag forcing a review of the assignment mechanism. Here it is to be expected, because the groups were not assigned at random: they are a pre-existing characteristic of the accounts.</li><li><strong>This is an observational study, not an experiment.</strong> One can claim that an association exists between verification and views, but <strong>not</strong> that verification causes fewer views. There could be background factors (kind of content, age of the account, behaviour of the algorithm) that explain both things at once.</li><li><strong>The outliers were not removed</strong>, a deliberate and correct decision for this domain, but it implies that the means are influenced by the viral videos. The validation with Mann-Whitney is precisely the defence against that objection.</li><li><strong>The distribution is bimodal, and that weakens the comparison of means.</strong> When the data has two separate populations, the mean falls between them and represents neither. The test remains valid (the central limit theorem does not demand normality), but the interesting question stops being &quot;which group has more views on average?&quot; and becomes <strong>&quot;what proportion of each group falls in the high-reach population?&quot;</strong>. That analysis is not done and would be the natural next step.</li><li><strong>The void between the two populations is suspicious.</strong> A cut that clean around 10,000 views may be a real effect of the distribution algorithm, or an artefact of how this teaching dataset was generated. With the data available the two cannot be told apart, and it is worth saying so before building anything on top of it.</li></ul></section><section class="section-block is-material"><span class="kicker">Files</span><h2 class="section-title">Full material</h2><p>Everything above comes out of these files, which are still in the course folder exactly as they were.</p><h3 class="sub">Extended guide</h3><ul class="res"><li><span class="local-ref">tiktok_project_cheatsheet.html</span> <span class="path">05_cheatsheets/tiktok_project_cheatsheet.html</span> <span class="size">29.0 KB</span></li><li><span class="local-ref">executive_summary.html</span> <span class="path">04_reports/executive_summary.html</span> <span class="size">11.8 KB</span></li></ul><h3 class="sub">Reports and notes</h3><ul class="res"><li><span class="local-ref">ab_test_plan_pace.md</span> <span class="path">04_reports/ab_test_plan_pace.md</span> <span class="size">3.1 KB</span></li><li><span class="local-ref">executive_summary.md</span> <span class="path">04_reports/executive_summary.md</span> <span class="size">2.1 KB</span></li><li><span class="local-ref">stats_summary.json</span> <span class="path">04_reports/stats_summary.json</span> <span class="size">2.1 KB</span></li></ul><h3 class="sub">Code</h3><ul class="res"><li><span class="local-ref">main_pipeline.py</span> <span class="path">02_scripts/main_pipeline.py</span> <span class="size">24.1 KB</span></li><li><span class="local-ref">01_eda_and_diagnostics.py</span> <span class="path">02_scripts/01_eda_and_diagnostics.py</span> <span class="size">7.6 KB</span></li><li><span class="local-ref">02_ab_test_execution.py</span> <span class="path">02_scripts/02_ab_test_execution.py</span> <span class="size">5.5 KB</span></li></ul><h3 class="sub">Data</h3><ul class="res"><li><strong>tiktok_dataset_raw.csv</strong> <span class="path">01_data/tiktok_dataset_raw.csv</span> <span class="size">2.9 MB</span></li><li><strong>tiktok_dataset_processed.csv</strong> <span class="path">01_data/tiktok_dataset_processed.csv</span> <span class="size">3.1 MB</span></li></ul><h3 class="sub">Slides</h3><ul class="res"><li><strong>Exemplar_-TikTok-Course-3-executive-summary.pptx</strong> <span class="path">Exemplar_-TikTok-Course-3-executive-summary.pptx</span> <span class="size">5.7 MB</span></li></ul></section>
+</main>
+<footer class="footer">
+  Concentra / this sheet links the files where they already were / 2026-08-22
+</footer>
+<script>
+// Same-frame links replace the current entry instead of pushing a new one, so the
+// browser's back button keeps following the sidebar routes of the shell.
+document.querySelectorAll('a.lead-link').forEach(link => {
+  link.addEventListener('click', event => {
+    event.preventDefault();
+    location.replace(link.getAttribute('href'));
+  });
+});
+</script>
+</body>
+</html>

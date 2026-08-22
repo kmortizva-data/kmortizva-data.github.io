@@ -1,0 +1,505 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sampling · The Power of Statistics</title>
+<link rel="alternate" hreflang="es" href="m03_sampling.html">
+<style>
+/* ============================================================================
+   Concentra — design tokens and shared components.
+   Inlined into every generated page by load_style(), so pages stay self-contained
+   and work offline from file:// with no external requests.
+
+   Direction: an assay lab, not a tech dashboard. The palette is taken from ore
+   and lab materials (chalcopyrite brass, malachite, hematite, quartz) on warm
+   graphite rather than the blue-black + neon of a generic dark UI. Type is
+   Bahnschrift, the DIN-descended grotesque that Windows ships and that lives on
+   machinery plates and technical drawings, over Corbel for reading.
+   ========================================================================== */
+
+:root {
+  /* Ground and surfaces: warm graphite, the colour of rock dust, not blue-black */
+  --rock: #1a1714;
+  --bench: #221e19;
+  --core: #2b251f;
+  --seam: #3d352c;
+
+  /* Ore palette. No blue and no purple anywhere: those are the tones that make a
+     page read as generated, and this palette comes from the ores instead. */
+  --brass: #c9a227;      /* chalcopyrite, the primary accent */
+  --malachite: #5d9b7a;  /* verified output, results that came out right */
+  --hematite: #b04a35;   /* iron oxide, pitfalls and warnings */
+
+  /* Text */
+  --quartz: #ece7de;
+  --dust: #9a9186;
+  --shadowed: #6f675c;
+
+  --display: Bahnschrift, 'DIN Alternate', 'Segoe UI Semibold', system-ui, sans-serif;
+  --body: Corbel, Candara, 'Segoe UI', system-ui, sans-serif;
+  --data: Consolas, 'Cascadia Mono', ui-monospace, monospace;
+
+  /* In px, not ch: ch scales with font-size, so a heading ended up wider than a
+     paragraph and the page had four different right edges instead of two. */
+  --measure: 640px;
+  --wide: 900px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--rock);
+  color: var(--quartz);
+  font-family: var(--body);
+  font-size: 16px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection { background: var(--brass); color: var(--rock); }
+
+:focus-visible {
+  outline: 2px solid var(--brass);
+  outline-offset: 3px;
+}
+
+/* --------------------------------------------------------------- the signature
+   A sieve series: ticks that get finer from left to right, coarse feed to fine
+   concentrate. It is the one ornament on the page and appears exactly twice —
+   under the wordmark and under a page title. */
+.mesh {
+  height: 10px;
+  background-image:
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 16px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 9px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 5px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 3px);
+  background-size: 25% 100%;
+  background-position: 0 0, 25% 0, 50% 0, 75% 0;
+  background-repeat: no-repeat;
+  opacity: .8;
+  transform-origin: left center;
+  animation: sieve .55s cubic-bezier(.2, .8, .3, 1) both;
+}
+@keyframes sieve { from { transform: scaleX(0); opacity: 0; } to { transform: scaleX(1); opacity: .8; } }
+@media (prefers-reduced-motion: reduce) {
+  .mesh { animation: none; }
+  * { transition: none !important; }
+}
+
+/* ------------------------------------------------------------------ page head */
+.header {
+  border-bottom: 1px solid var(--seam);
+  padding: 3.2rem 2rem 0;
+  background: linear-gradient(180deg, #221d16 0%, var(--rock) 100%);
+}
+.header-content { max-width: 1080px; margin: 0 auto; }
+
+.eyebrow {
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--brass);
+  margin-bottom: 1rem;
+  display: flex; flex-wrap: wrap; align-items: center;
+  justify-content: space-between; gap: .6rem 1rem;
+}
+.eyebrow a { color: inherit; text-decoration: none; border-bottom: 1px solid transparent; }
+.eyebrow a:hover { border-bottom-color: var(--brass); }
+/* The way to the other edition of this page. It targets the shell, not the bare
+   page, so the sidebar follows the language too. */
+.eyebrow .lang-switch {
+  margin-left: auto; border: 1px solid var(--seam); border-radius: 2px;
+  padding: .22rem .6rem; color: var(--dust); font-size: .68rem; letter-spacing: .1em;
+}
+.eyebrow .lang-switch:hover { color: var(--brass); border-color: var(--brass); }
+
+.header h1 {
+  font-family: var(--display);
+  font-size: clamp(2rem, 4.5vw, 3.1rem);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -.015em;
+  color: var(--quartz);
+  max-width: 20ch;
+}
+.header .subtitle {
+  color: var(--dust);
+  max-width: var(--measure);
+  margin-top: 1rem;
+  font-size: 1.02rem;
+}
+.header .mesh { margin: 1.8rem 0 0; }
+
+/* An assay line: the real composition of the module, in lab-report shorthand. */
+.assay {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.4rem;
+  font-family: var(--data);
+  font-size: .78rem;
+  color: var(--shadowed);
+  padding: .9rem 0 1.6rem;
+  letter-spacing: .04em;
+}
+.assay b { color: var(--dust); font-weight: 400; }
+
+/* --------------------------------------------------------------------- layout */
+/* The container hugs the widest block, so there is no orphan edge past the content. */
+.container { max-width: var(--wide); margin: 3rem auto 5rem; padding: 0 2rem; }
+
+/* Two deliberate right edges and no more: prose stops at the reading measure, and
+   only the things that genuinely need room (code, output, figures, big tables) run
+   out to the full column. */
+.section-block {
+  border-top: 1px solid var(--seam);
+  padding: 2rem 0 2.4rem;
+}
+.section-block > p,
+.section-block > ul,
+.section-block > ol,
+.section-block h3.sub,
+.section-block h4.sub,
+.section-block blockquote,
+details > *:not(summary) { max-width: var(--measure); }
+.section-block:first-child { border-top: 0; padding-top: .5rem; }
+
+/* The kicker names what kind of content follows: context, method, pitfalls.
+   It replaces decorative icons with something that actually classifies. */
+.kicker {
+  font-family: var(--data);
+  font-size: .68rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  display: block;
+  margin-bottom: .5rem;
+}
+.section-title {
+  font-family: var(--display);
+  font-size: 1.55rem;
+  font-weight: 600;
+  letter-spacing: -.01em;
+  line-height: 1.2;
+  margin-bottom: 1.2rem;
+  color: var(--quartz);
+}
+.is-warning .kicker { color: var(--hematite); }
+.is-warning .section-title { color: #e8c4b8; }
+.is-bridge .kicker, .is-decision .kicker { color: var(--malachite); }
+.is-toy .kicker, .is-result .kicker, .is-question .kicker { color: var(--brass); }
+
+/* ---------------------------------------------------------------------- prose */
+/* Justified with hyphenation. In Spanish, justifying without hyphens opens rivers of
+   white space and reads worse than ragged right; lang="es" is what feeds the
+   dictionary. Tables, code, captions and summaries stay ragged on purpose. */
+.section-block p,
+.section-block li,
+details > *:not(summary) {
+  text-align: justify;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+}
+.section-block p { margin-bottom: 1rem; }
+.section-block p:last-child { margin-bottom: 0; }
+/* Indent with padding, not margin, so the bullet sits inside the measure instead of
+   pushing the list 1.2rem past the right edge of the paragraphs. */
+.section-block ul, .section-block ol { margin: 0 0 1rem; padding-left: 1.2rem; }
+.section-block li { margin-bottom: .55rem; padding-left: .2rem; }
+.section-block li::marker { color: var(--brass); }
+td, th, figcaption, .res li, .assay { text-align: left; hyphens: manual; }
+a { color: var(--brass); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+a:hover { text-decoration-thickness: 2px; }
+strong { color: #fff; font-weight: 700; }
+em { color: var(--dust); font-style: italic; }
+
+h3.sub {
+  font-family: var(--display);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--brass);
+  margin: 2rem 0 .7rem;
+  letter-spacing: -.005em;
+}
+h3.sub:first-child { margin-top: 0; }
+h4.sub {
+  font-family: var(--display);
+  font-size: .98rem;
+  font-weight: 600;
+  color: var(--dust);
+  margin: 1.3rem 0 .5rem;
+}
+
+code {
+  font-family: var(--data);
+  font-size: .9em;
+  background: var(--core);
+  border-radius: 3px;
+  padding: .08rem .32rem;
+  color: var(--brass);
+}
+pre {
+  background: #14110e;
+  border: 1px solid var(--seam);
+  border-left: 2px solid var(--seam);
+  border-radius: 2px;
+  padding: 1.1rem 1.2rem;
+  overflow-x: auto;
+  margin-bottom: 1rem;
+}
+pre code {
+  background: none; padding: 0; color: var(--quartz);
+  font-size: .87rem; line-height: 1.6;
+}
+
+/* What the code prints. Malachite: the material that came out of the process. */
+.output {
+  position: relative;
+  border: 1px solid rgba(93, 155, 122, .32);
+  border-left: 2px solid var(--malachite);
+  border-radius: 2px;
+  background: rgba(93, 155, 122, .06);
+  padding: 1.7rem 1.2rem 1rem;
+  margin-bottom: 1rem;
+  overflow-x: auto;
+}
+.output-tag {
+  position: absolute; top: .5rem; left: 1.2rem;
+  font-family: var(--data); font-size: .64rem;
+  letter-spacing: .18em; text-transform: uppercase; color: var(--malachite);
+}
+.output pre {
+  background: none; border: 0; padding: 0; margin: 0;
+  font-family: var(--data); font-size: .85rem;
+  color: var(--quartz); white-space: pre-wrap;
+}
+
+/* Line by line explanation of a code block, for a reader new to programming.
+   Two columns: the fragment of code, and what it does. */
+.annot {
+  display: grid;
+  grid-template-columns: minmax(9rem, auto) 1fr;
+  gap: .1rem 1.2rem;
+  align-items: baseline;
+  max-width: var(--wide);
+  margin: -.4rem 0 1.4rem;
+  padding: .9rem 1.1rem 1rem;
+  border: 1px solid var(--seam);
+  border-top: 0;
+  border-radius: 0 0 2px 2px;
+  background: rgba(201, 162, 39, .04);
+}
+.annot-head {
+  grid-column: 1 / -1;
+  font-family: var(--data);
+  font-size: .64rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  margin-bottom: .5rem;
+}
+.annot dt { padding: .35rem 0; }
+.annot dt code {
+  background: var(--core);
+  color: var(--brass);
+  font-size: .82rem;
+  white-space: nowrap;
+}
+.annot dd {
+  padding: .35rem 0;
+  margin: 0;
+  color: var(--dust);
+  font-size: .93rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(61, 53, 44, .5);
+}
+.annot dt { border-bottom: 1px solid rgba(61, 53, 44, .5); }
+.annot dt:last-of-type, .annot dd:last-of-type { border-bottom: 0; }
+/* The code block sits directly on top of its annotation, as one unit. */
+pre:has(+ .annot) { margin-bottom: 0; border-radius: 2px 2px 0 0; }
+
+@media (max-width: 640px) {
+  .annot { grid-template-columns: 1fr; gap: 0; }
+  .annot dt { border-bottom: 0; padding-bottom: 0; }
+  .annot dd { padding-top: .15rem; }
+}
+
+blockquote {
+  border-left: 2px solid var(--brass);
+  padding: .3rem 0 .3rem 1.3rem;
+  margin: 0 0 1rem;
+  font-family: var(--display);
+  font-size: 1.2rem;
+  font-weight: 400;
+  line-height: 1.4;
+  color: var(--quartz);
+}
+
+/* Tables read as assay data: mono figures, hairline rules, no zebra fill.
+   They take the width they need instead of being stretched to the full column,
+   which is what left a two-column table floating in empty space. */
+.table-wrap { overflow-x: auto; margin-bottom: 1rem; }
+table { border-collapse: collapse; width: auto; max-width: 100%; font-size: .93rem; }
+th, td {
+  border-bottom: 1px solid var(--seam);
+  padding: .55rem .8rem .55rem 0;
+  text-align: left;
+  vertical-align: top;
+}
+th {
+  font-family: var(--data);
+  font-size: .7rem;
+  font-weight: 400;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  border-bottom-color: var(--brass);
+}
+td:first-child { color: var(--quartz); }
+
+/* Review questions: closed by default, so they work as recall practice. */
+details {
+  border-top: 1px solid var(--seam);
+  padding: .9rem 0;
+}
+details:last-child { border-bottom: 1px solid var(--seam); }
+summary {
+  cursor: pointer;
+  font-family: var(--display);
+  font-size: 1.02rem;
+  font-weight: 600;
+  color: var(--quartz);
+  list-style: none;
+  display: flex;
+  gap: .7rem;
+  align-items: baseline;
+}
+summary::-webkit-details-marker { display: none; }
+summary::before {
+  content: '+';
+  font-family: var(--data);
+  color: var(--brass);
+  font-size: .95rem;
+}
+details[open] summary::before { content: '−'; }
+details[open] summary { color: var(--brass); margin-bottom: .7rem; }
+details > *:not(summary) { color: var(--dust); }
+
+figure.fig {
+  margin: 1.6rem 0;
+  border: 1px solid var(--seam);
+  padding: .7rem;
+  background: var(--bench);
+}
+figure.fig img { width: 100%; height: auto; display: block; }
+/* The interactive twin of a figure. Its aspect matches the still one, 10 by 4.4, so a
+   case sheet keeps the same rhythm whichever kind of figure comes next. */
+figure.fig.is-live iframe {
+  width: 100%;
+  /* Matches INTERACTIVE_HEIGHT in src/make_figures.py. It used to be an aspect ratio, and
+     that made the figure's height depend on the window: the caption and the legend are
+     placed at fractions of the plot area, so on a wide screen they were pushed past the
+     bottom margin, clipping the caption and covering the x-axis title. */
+  height: 520px;
+  border: 0;
+  display: block;
+}
+figure.fig figcaption {
+  font-family: var(--data);
+  font-size: .72rem;
+  color: var(--shadowed);
+  margin-top: .6rem;
+  letter-spacing: .04em;
+}
+
+/* File listings on a case sheet */
+.res { list-style: none; margin-left: 0 !important; }
+.res li {
+  display: flex; align-items: baseline; gap: .8rem; flex-wrap: wrap;
+  padding: .5rem 0; border-bottom: 1px solid var(--seam); margin-bottom: 0;
+}
+.res .path { font-family: var(--data); font-size: .74rem; color: var(--shadowed); }
+.res .size { font-family: var(--data); font-size: .74rem; color: var(--shadowed); margin-left: auto; }
+.res .gone { font-family: var(--data); font-size: .74rem; color: var(--hematite); }
+
+.footer {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 2rem 4rem;
+  color: var(--shadowed);
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .03em;
+}
+
+@media (max-width: 640px) {
+  body { font-size: 15px; }
+  .header { padding: 2rem 1.2rem 0; }
+  .container { padding: 0 1.2rem; margin-top: 2rem; }
+  .footer { padding: 0 1.2rem 3rem; }
+}
+
+@media print {
+  body { background: #fff; color: #16130f; }
+  .header { background: none; border-bottom: 1px solid #bbb; padding-top: 0; }
+  .header h1, .section-title, summary { color: #16130f; }
+  .mesh { animation: none; }
+  .section-block { break-inside: avoid; max-width: none; }
+  pre, .output { background: #f6f4f0; border-color: #ccc; }
+  details:not([open]) > *:not(summary) { display: block; }
+  a { color: #16130f; }
+}
+
+</style>
+</head>
+<body>
+<header class="header">
+  <div class="header-content">
+    <div class="eyebrow"><span><a href="https://www.coursera.org/learn/the-power-of-statistics">The Power of Statistics</a> / Module 3</span><a class="lang-switch" href="../index.html#the-power-of-statistics/m03_sampling" target="_top" hreflang="es" lang="es" title="Leer esta página en español">Español</a></div>
+    <h1>Sampling</h1>
+    <p class="subtitle">The hinge module of the course. With six drill holes and all their possible pairs you watch the central limit theorem being born without a single formula, and why the only way to fix a biased sample is not to make it bigger.</p>
+    <div class="mesh" role="presentation"></div>
+    <div class="assay"><span><b>5 h</b> course time</span><span><b>11</b> videos</span><span><b>7</b> readings</span><span><b>4</b> assignments</span><span><b>3</b> practice</span><span><b>2</b> interactive</span></div>
+  </div>
+</header>
+<main class="container">
+<section class="section-block "><span class="kicker">Context</span><h2 class="section-title">What this module solves</h2><p>Here the probability of module 2 connects with the real inference of modules 4 and 5. The underlying question is the one that holds up all of applied statistics: <strong>how can a small sample speak on behalf of an enormous population?</strong></p><p>There are two answers and both matter. One is mathematical, the <strong>central limit theorem</strong>, which explains why averages behave predictably even when the data does not. The other is not fixed with mathematics: <strong>how you chose the sample</strong>. If the selection method is biased, no later calculation saves it.</p></section>
+<section class="section-block is-toy"><span class="kicker">Example</span><h2 class="section-title">Before the theory: a toy example</h2><p>A tiny deposit with <strong>six drill holes</strong>, and their copper grades in percent:</p><pre><code>1   2   3   4   5   6</code></pre><p>Look at the shape of this population: <strong>it is flat</strong>. Each value appears exactly once. There is no bell, no prominent centre, nothing at all like a normal distribution.</p><p>The mean of the population is easy:</p><pre><code>(1 + 2 + 3 + 4 + 5 + 6) / 6 = 21 / 6 = 3.5</code></pre><h3 class="sub h3">Step 1. Now draw samples of two holes, all the possible ones</h3><p>We are going to take samples of size 2, putting the hole back each time. That gives 6 × 6 = <strong>36 possible pairs</strong>. For each one we calculate its mean. For example, the pair (1, 6) has mean 3.5; the pair (2, 2) has mean 2.</p><p>Count how many pairs give each mean and this comes out:</p><div class="table-wrap"><table><thead><tr><th>Mean of the pair</th><th>How many pairs</th><th></th></tr></thead><tbody><tr><td>1.0</td><td>1</td><td>▇</td></tr><tr><td>1.5</td><td>2</td><td>▇▇</td></tr><tr><td>2.0</td><td>3</td><td>▇▇▇</td></tr><tr><td>2.5</td><td>4</td><td>▇▇▇▇</td></tr><tr><td>3.0</td><td>5</td><td>▇▇▇▇▇</td></tr><tr><td><strong>3.5</strong></td><td><strong>6</strong></td><td>▇▇▇▇▇▇</td></tr><tr><td>4.0</td><td>5</td><td>▇▇▇▇▇</td></tr><tr><td>4.5</td><td>4</td><td>▇▇▇▇</td></tr><tr><td>5.0</td><td>3</td><td>▇▇▇</td></tr><tr><td>5.5</td><td>2</td><td>▇▇</td></tr><tr><td>6.0</td><td>1</td><td>▇</td></tr></tbody></table></div><h3 class="sub h3">Step 2. Look at what just happened</h3><p>The population was <strong>flat</strong>. The means of the samples form <strong>a peak</strong>.</p><p>Without doing anything more than averaging two at a time, a shape with a centre and tails appeared. That is the central limit theorem, and you have just watched it happen with primary-school arithmetic. With samples of 5 or of 30 instead of 2, that peak would look more and more like the normal bell.</p><p>Why does it happen? Because for the mean to come out 1.0 two extremes have to coincide (1 and 1), and there is only one way to get that. For it to come out 3.5 there are six different combinations (1 and 6, 2 and 5, 3 and 4, and their reverses). <strong>The extreme values cancel each other out and the central ones pile up.</strong></p><h3 class="sub h3">Step 3. Two more things that come out of the same table</h3><p><strong>The mean of the means is exactly the mean of the population.</strong> If you average the 36 means, you get 3.5. No more, no less. The sample mean is not biased: on average it gets it right.</p><p><strong>But the means spread less than the data.</strong> The population stretches from 1 to 6, while the means crowd around 3.5. Putting numbers on that spread:</p><pre><code>desviación de la población  = 1.7078
+desviación de las medias    = 1.2076</code></pre><p>And now the beautiful part. That second figure does not need to be calculated by counting the 36 pairs, because there is a formula that gives it directly:</p><pre><code>1.7078 / √2 = 1.7078 / 1.4142 = 1.2076</code></pre><p><strong>It matches exactly.</strong> That formula, the deviation of the population divided by the root of the sample size, is called the <strong>standard error</strong>, and it is the piece on which the whole of module 4 is built.</p><h3 class="sub h3">Step 4. Why sampling more stops paying off</h3><p>Since the formula divides by the <strong>root</strong> of n, and not by n, the benefit runs out:</p><div class="table-wrap"><table><thead><tr><th>Sample size</th><th>Standard error</th></tr></thead><tbody><tr><td>2</td><td>1.208</td></tr><tr><td>8</td><td>0.604</td></tr><tr><td>32</td><td>0.302</td></tr><tr><td>128</td><td>0.151</td></tr></tbody></table></div><p>To cut the error in half you have to <strong>quadruple</strong> the sample. Going from 2 to 8 is well worth it; going from 32 to 128 costs four times as much and only improves by the same amount again. In a drilling campaign that is the difference between a sensible budget and an absurd one.</p></section>
+<section class="section-block "><span class="kicker">Terms</span><h2 class="section-title">Glossary</h2><ul><li><strong>Population.</strong> The complete set you care about. Our six drill holes, or the millions of users of an app.</li><li><strong>Sample.</strong> The subset you actually measure.</li><li><strong>Parameter.</strong> A number that describes the population, like its real mean. It is almost never known.</li><li><strong>Statistic.</strong> The same number calculated on the sample. It is the estimate you do have.</li><li><strong>Probability sampling.</strong> Every element has a known, non-zero probability of being chosen. It is what allows generalising with rigour.</li><li><strong>Non-probability sampling.</strong> The selection does not follow controlled chance, like surveying whoever walks past. Cheaper, and it does not generalise the same way.</li><li><strong>Simple random sampling.</strong> Everyone has the same probability, with no further structure.</li><li><strong>Stratified sampling.</strong> The population is divided into subgroups and sampled within each one, guaranteeing that none is left out.</li><li><strong>Cluster sampling.</strong> Whole groups are chosen at random and everything inside the chosen ones is sampled.</li><li><strong>Sampling bias.</strong> When the method systematically favours a certain kind of element. It is not corrected with more data, only with a better method.</li><li><strong>Sampling distribution.</strong> The distribution the statistics form when the sampling is repeated many times. Our table of 36 means is exactly that.</li><li><strong>Central limit theorem.</strong> The sampling distribution of the mean approaches a normal as the sample size grows, <strong>regardless of the shape of the population</strong>.</li><li><strong>Standard error.</strong> The standard deviation of the sampling distribution. It is calculated as the deviation of the population divided by the root of the sample size.</li></ul></section>
+<section class="section-block is-recipe"><span class="kicker">Method</span><h2 class="section-title">Step by step</h2><h3 class="sub h3">Step 1. The sampling process has five stages, and they go in order</h3><p>Before the details, the complete sequence. Each stage rests on the previous one, and skipping one gives no error: it gives a result that answers another question.</p><div class="table-wrap"><table><thead><tr><th>Stage</th><th>What gets decided</th><th>Where it is explained</th></tr></thead><tbody><tr><td>1. <strong>Identify the target population</strong></td><td>Who you want to talk about in the end</td><td>Right below</td></tr><tr><td>2. <strong>Define the sampling frame</strong></td><td>Where you can really draw from</td><td>Step 3</td></tr><tr><td>3. <strong>Choose the method</strong></td><td>How the individuals get selected</td><td>Step 2</td></tr><tr><td>4. <strong>Determine the size</strong></td><td>How many are needed</td><td>Step 5</td></tr><tr><td>5. <strong>Draw the sample and check it</strong></td><td>That what was asked for came out</td><td>Right below</td></tr></tbody></table></div><p><strong>The first stage is the one most taken for granted and the one most often got wrong.</strong> &quot;The deposit&quot; is not a population: you have to say whether it is all the blocks of the model, only the ones in the oxide zone, or only the ones going into the plant this year. Everything else depends on that sentence, and if it changes halfway through the analysis, the sampling stops being valid.</p><p><strong>And the fifth is not a formality.</strong> Once the sample is drawn, you check that it looks like what was asked for: that the strata came out in the planned proportion, that no whole zone is missing, that the final size is the one calculated and not the one left after discarding. It is the practice of <strong>validating</strong> from the previous course, applied to sampling.</p><h3 class="sub h3">Step 2. Choose the method before touching a single data point</h3><div class="table-wrap"><table><thead><tr><th>Method</th><th>When it makes sense</th></tr></thead><tbody><tr><td>Simple random</td><td>Homogeneous population with a complete list available</td></tr><tr><td>Stratified</td><td>There are subgroups you cannot afford to lose, by zone or by type</td></tr><tr><td>Cluster</td><td>The population is scattered and visiting every point is expensive</td></tr><tr><td>Non-probability</td><td>Quick exploration, knowing you will not be able to generalise</td></tr></tbody></table></div><h3 class="sub h3">Step 3. Ask yourself who is NOT in your sample</h3><p>This is the question that saves analyses. An internet survey excludes whoever has no internet. A satisfaction survey answered voluntarily excludes whoever was so unhappy they did not even reply. Surface sampling excludes the fresh rock at depth.</p><p>And the important part: <strong>that is not fixed by sampling more</strong>. A million online surveys still do not include whoever has no internet.</p><h3 class="sub h3">Step 4. Lean on the central limit theorem for the rest</h3><p>You have already seen it works. The practical consequence is enormous: <strong>you do not need to know what shape your variable has</strong> to make inferences about its mean. It can be skewed, it can have two peaks, it does not matter; with enough sample, the distribution of the means behaves like a normal and you can use the formulas that assume it.</p><p>The practical rule is n ≥ 30, with a caveat: very skewed populations need more.</p><h3 class="sub h3">Step 5. Calculate the standard error to know what your estimate is worth</h3><p>It is the translation of &quot;how firm is this average?&quot; into a number. And remember the lesson of step 4 of the example: to improve it by half you have to quadruple the effort.</p></section>
+<section class="section-block is-recipe"><span class="kicker">Code</span><h2 class="section-title">The code, in parts</h2><h3 class="sub h3">Step 1. Manufacture a deliberately ugly population</h3><p>In the toy example the population was flat, which was already quite un-normal. Now the extreme case: many small values and a long tail upwards, which is how incomes, waiting times or the views of a video behave.</p><pre><code class="language-python">import numpy as np
+
+rng = np.random.default_rng(42)
+population = rng.exponential(scale=1000, size=100_000)
+
+print(f&quot;media de la poblacion   = {population.mean():.1f}&quot;)
+print(f&quot;mediana de la poblacion = {np.median(population):.1f}&quot;)</code></pre><dl class="annot"><div class="annot-head">line by line</div><dt><code>np.random.default_rng(42)</code></dt><dd>Creates a <strong>random number generator</strong>. The name <code>rng</code> comes from <em>random number generator</em> and is the convention.</dd><dt><code>42</code></dt><dd>It is the <strong>seed</strong>. Fixing it makes the randomness always the same: if you run this tomorrow the same numbers come out. Without a seed, each run gives different results and your analysis stops being reproducible. The 42 has nothing special about it, it is an old programmers&#x27; joke.</dd><dt><code>rng.exponential(...)</code></dt><dd>Manufactures numbers following an exponential distribution, which is among the most skewed there are. We are inventing them on purpose to put the theorem to the test.</dd><dt><code>scale=1000</code></dt><dd>The average of that distribution. A population that hovers around 1,000 comes out.</dd><dt><code>size=100_000</code></dt><dd>How many values to manufacture: one hundred thousand.</dd><dt><code>100_000</code></dt><dd>Python allows underscores inside numbers to read them better. <code>100_000</code> and <code>100000</code> are exactly the same, but the first is read at a glance.</dd></dl><div class="output"><span class="output-tag">prints</span><pre>media de la poblacion   = 1003.5
+mediana de la poblacion = 694.7</pre></div><p>Mean and median separated by 300 units. This population has nothing of a bell about it, which is exactly what we want for the test.</p><h3 class="sub h3">Step 2. Draw a thousand samples and compare them with the formula</h3><p>Here is the densest line of the course, so we take it apart completely.</p><pre><code class="language-python">means = [rng.choice(population, size=30, replace=False).mean() for _ in range(1000)]</code></pre><dl class="annot"><div class="annot-head">line by line</div><dt><code>[ ... for ... ]</code></dt><dd>It is called a <strong>list comprehension</strong>. It is the short way of writing &quot;do this many times and store each result in a list&quot;. It reads from right to left: first the <code>for</code>, then what is in front.</dd><dt><code>range(1000)</code></dt><dd>Generates the numbers from 0 to 999, that is a thousand repetitions.</dd><dt><code>for _ in range(1000)</code></dt><dd>The underscore is a variable name that means <strong>&quot;I do not care about the value&quot;</strong>. Here we only want to repeat a thousand times, not use the loop number.</dd><dt><code>rng.choice(population, ...)</code></dt><dd>Picks values at random from the population. It is drawing a sample, literally.</dd><dt><code>size=30</code></dt><dd>Each sample has 30 elements, which is the practical rule of the theorem.</dd><dt><code>replace=False</code></dt><dd>Without replacement: within one sample it does not repeat the same element twice.</dd><dt><code>.mean()</code></dt><dd>Each freshly drawn sample gets its mean calculated on the fly. What gets stored in the list is not the data, it is the thousand means.</dd><dt><code>means =</code></dt><dd>The result is a list of a thousand numbers, and that list <strong>is</strong> the sampling distribution the theorem talks about.</dd></dl><p>And now they are compared with what the formula predicts:</p><pre><code class="language-python">print(f&quot;media de las medias  = {np.mean(means):.1f}&quot;)
+print(f&quot;desviacion observada = {np.std(means):.1f}&quot;)
+print(f&quot;formula sigma/raiz(n)= {population.std() / np.sqrt(30):.1f}&quot;)</code></pre><dl class="annot"><div class="annot-head">line by line</div><dt><code>np.mean(means)</code></dt><dd>The mean of the thousand means. It should resemble the real mean of the population.</dd><dt><code>np.std(means)</code></dt><dd>How much those thousand means spread among themselves. This is the standard error, measured the brute-force way.</dd><dt><code>population.std() / np.sqrt(30)</code></dt><dd>The same standard error, but calculated with the formula: deviation of the population divided by the root of 30.</dd><dt><code>np.sqrt(30)</code></dt><dd>Square root. The name comes from <em>square root</em>.</dd></dl><div class="output"><span class="output-tag">prints</span><pre>media de las medias  = 994.4
+desviacion observada = 189.5
+formula sigma/raiz(n)= 183.5</pre></div><p>Two things at once. The mean of the means (994.4) lands very close to the real one (1003.5), as it should. And the spread measured by brute force (189.5) almost matches the one the formula predicts (183.5), <strong>even though the population has nothing normal about it</strong>. They are not identical because they are a thousand samples and not infinite, but the difference is 3%.</p><h3 class="sub h3">Step 3. Build a pretend deposit with three zones</h3><p>To see stratified sampling you need a population with structure.</p><pre><code class="language-python">import pandas as pd
+
+df = pd.DataFrame({
+    &quot;zona&quot;: [&quot;norte&quot;] * 600 + [&quot;sur&quot;] * 300 + [&quot;este&quot;] * 100,
+    &quot;ley&quot;: rng.normal(2.4, 0.3, 1000),
+})</code></pre><dl class="annot"><div class="annot-head">line by line</div><dt><code>pd.DataFrame({...})</code></dt><dd>Creates a table. What goes inside, between braces, is a <strong>dictionary</strong>: pairs of name and content separated by a colon.</dd><dt><code>&quot;zona&quot;: [...]</code></dt><dd>The column name on the left, and its values on the right. Two columns get created here, <code>zona</code> and <code>ley</code>.</dd><dt><code>[&quot;norte&quot;] * 600</code></dt><dd>Multiplying a list by a number <strong>repeats</strong> it. This produces a list with the word norte six hundred times. It is a much-used shortcut for manufacturing test data.</dd><dt><code>+</code></dt><dd>Adding lists <strong>glues them one after another</strong>. That leaves 600 plus 300 plus 100, that is a thousand rows.</dd><dt><code>rng.normal(2.4, 0.3, 1000)</code></dt><dd>A thousand random grades following a bell centred on 2.4 with deviation 0.3. The three numbers go in order: centre, spread and how many.</dd></dl><h3 class="sub h3">Step 4. Sample respecting the zones, and compare with not doing so</h3><pre><code class="language-python">sample = df.groupby(&quot;zona&quot;, group_keys=False).sample(frac=0.10, random_state=42)
+print(sample[&quot;zona&quot;].value_counts().sort_index())</code></pre><dl class="annot"><div class="annot-head">line by line</div><dt><code>.groupby(&quot;zona&quot;)</code></dt><dd>Splits the table into piles, one for each distinct value of that column. Three piles remain here.</dd><dt><code>.sample(frac=0.10)</code></dt><dd>From <strong>each pile</strong> separately it takes a fraction. <code>frac=0.10</code> is 10%.</dd><dt><code>random_state=42</code></dt><dd>The seed again, now in pandas. Same purpose: that the result be reproducible.</dd><dt><code>group_keys=False</code></dt><dd>A setting so that the result comes out as a normal table and not with an odd index by groups.</dd><dt><code>sample[&quot;zona&quot;]</code></dt><dd>Square brackets with a text inside select <strong>one column</strong> of the table.</dd><dt><code>.value_counts()</code></dt><dd>Counts how many times each value appears. It is the fastest way to see the split of a column.</dd><dt><code>.sort_index()</code></dt><dd>Sorts the result alphabetically, so that the output always comes out the same and can be compared.</dd></dl><div class="output"><span class="output-tag">prints</span><pre>zona
+este      10
+norte     60
+sur       30</pre></div><p>Exactly 10% of each zone. Now the same but taking 100 at random without looking at which zone they are from:</p><pre><code class="language-python">print(df.sample(n=100, random_state=42)[&quot;zona&quot;].value_counts().sort_index())</code></pre><dl class="annot"><div class="annot-head">line by line</div><dt><code>df.sample(n=100)</code></dt><dd>Without <code>groupby</code> in front, it takes 100 rows from the whole table without telling zones apart.</dd><dt><code>n=100</code></dt><dd>An exact number of rows, instead of a fraction. Both forms coexist.</dd></dl><div class="output"><span class="output-tag">prints</span><pre>zona
+este       9
+norte     61
+sur       30</pre></div><p>It looks similar, and with a thousand elements it almost always will. Stratified wins when a stratum is small: if the east had 10 elements instead of 100, simple random sampling could take none and you would lose that whole zone from the analysis.</p></section>
+<section class="section-block is-warning"><span class="kicker">Traps</span><h2 class="section-title">Watch out</h2><ul><li><strong>More sample does not fix bias.</strong> It is the trap that costs the most. If the selection method excludes a group, enlarging the sample only produces more data from the same wrong group.</li><li><strong>The theorem talks about the mean, not about the data.</strong> The individual values stay as skewed as ever. What becomes normal is the distribution of the repeated means, which is something else.</li><li><strong>The n ≥ 30 rule is a guide, not a law.</strong> Very skewed populations or ones with extreme values need more for the approximation to be reasonable.</li><li><strong>The standard error and the standard deviation are not the same thing.</strong> One talks about how much the data varies, the other about how much your average would vary. Confusing them produces absurdly wide confidence intervals in module 4.</li><li><strong>Convenience sampling is tempting and almost always biased.</strong> Taking the material that is closest to hand, or surveying whoever answers first, favours whoever is most available, who rarely represents the whole.</li><li><strong>Quadrupling the sample only halves the error.</strong> There is a point where continuing to sample no longer pays for what it costs, and it is worth knowing how to calculate it before presenting the budget.</li></ul></section>
+<section class="section-block is-bridge"><span class="kicker">Analogy</span><h2 class="section-title">Metallurgical bridge</h2><p>This whole module is <strong>the theory of mine sampling</strong>, and even the names match.</p><div class="table-wrap"><table><thead><tr><th>In statistics</th><th>In the deposit</th></tr></thead><tbody><tr><td>Simple random sampling</td><td>Random aliquots from a homogeneous stream</td></tr><tr><td>Stratified sampling</td><td>Sampling by geological domain or by lithology, so as not to average zones that are chemically different</td></tr><tr><td>Cluster sampling</td><td>Choosing a few benches at random and sampling everything inside, when visiting every point of the pit is hugely expensive</td></tr><tr><td>Sampling bias</td><td>A probe that only reaches the shallow oxidised zone, or a badly placed stream cutter that always grabs the coarse fraction</td></tr></tbody></table></div><p>And that last case is the one that hurts most, because <strong>drilling twice as much does not fix it</strong>. If the cutter is badly placed, a thousand badly taken samples are a thousand bad samples. The cutter has to be moved. It is exactly the trap of the previous section, said in plant language.</p><p>The central limit theorem, for its part, is the mathematical justification of something you do without thinking: <strong>compositing</strong>. An individual drill sample is erratic and not very reliable, but the composite of several behaves predictably and allows putting a confidence interval on the mean grade. That is what makes it possible to declare reserves under JORC or NI 43-101, and it is literally the table of 36 means of the toy example, applied to a real deposit.</p></section>
+<section class="section-block is-review"><span class="kicker">Review</span><h2 class="section-title">Review</h2><details><summary>What exactly does the central limit theorem say?</summary><p>That the distribution of the means of many samples approaches a normal as the size of each sample grows, regardless of what shape the original population has. It does not say the individual values become normal: it says their averages do. In the toy example it shows in a single pass, because a perfectly flat population produces, when averaged two at a time, a distribution with a central peak and tails.</p></details><details><summary>Why is it so important that the population does not have to be normal?</summary><p>Because almost no real variable is. Incomes, waiting times, the views of a video or the grades of a deposit are skewed. If inference demanded normality of the data, it could almost never be applied. Since the theorem moves the demand to the distribution of the means, which does become normal, the formulas based on the bell work on data that has nothing of a bell about it.</p></details><details><summary>A company surveys only whoever answers its satisfaction email. Is it enough to send more emails?</summary><p>No. The problem is not in the size but in the method: whoever answers voluntarily does not represent the whole customer base, because the very satisfied and the very annoyed tend to reply, while the indifferent majority stays out. Sending more emails produces more responses of the same biased kind. The fix goes through a probability method, like selecting at random whom to contact and following up actively to raise the response rate.</p></details><details><summary>Why does quadrupling the sample not cut the error to a quarter?</summary><p>Because the standard error divides by the root of the sample size, and the root grows more slowly than the number. Multiplying n by four multiplies its root by two, so the error is cut to half, not to a quarter. The practical consequence is that past a certain size each new data point adds less and less precision, and in a drilling campaign that determines when to stop drilling.</p></details><details><summary>What is the difference between standard deviation and standard error?</summary><p>The standard deviation describes how much the individual values vary around their mean. The standard error describes how much the mean itself would vary if you repeated the sampling. In the toy example, the population spread 1.7078 while the means of the pairs only 1.2076, and that second figure comes from dividing the first by the root of 2. The whole of module 4 is built on the standard error, never on the standard deviation.</p></details></section>
+</main>
+<footer class="footer">
+  Concentra / distilled from the public syllabus of the course / 2026-08-22
+</footer>
+</body>
+</html>
