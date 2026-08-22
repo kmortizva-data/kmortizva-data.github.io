@@ -1248,6 +1248,77 @@ p, .assay-tagline, .cred-detail, .streams dd { text-wrap: pretty; }
 .archive-area { color: var(--ink-soft); font-size: 0.9375rem; }
 .archive-year { font-family: var(--mono); font-size: 0.8125rem; color: var(--ink-faint); }
 
+/* --- get in touch ---------------------------------------------------------- */
+
+/* The address is the product here: large, mono, selectable, with a copy button beside it
+   that only appears when the script can actually copy. */
+.contact-ways { margin-top: 1.5rem; }
+.contact-email {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1.25rem;
+  margin: 0 0 1rem;
+}
+.contact-address {
+  font-family: var(--mono);
+  font-size: clamp(1.05rem, 0.9rem + 0.8vw, 1.5rem);
+  color: var(--ink);
+  text-decoration: none;
+  border-bottom: 1px solid var(--hi);
+  padding-bottom: 2px;
+  overflow-wrap: anywhere;
+}
+.contact-address:hover { border-bottom-color: var(--hi-bright); }
+
+.copy-email {
+  display: none;
+  font: inherit;
+  font-family: var(--mono);
+  font-size: 0.8125rem;
+  letter-spacing: 0.06em;
+  color: var(--ink);
+  background: transparent;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  padding: 0.4rem 0.9rem;
+  cursor: pointer;
+  transition: border-color 0.3s ease, color 0.3s ease;
+}
+html.js .copy-email { display: inline-block; }
+.copy-email:hover, .copy-email:focus-visible { border-color: var(--hi); }
+.copy-email.done { color: var(--hi); border-color: var(--hi); }
+
+.contact-form {
+  margin-top: 2.5rem;
+  max-width: var(--measure);
+  display: grid;
+  gap: 1rem;
+}
+.contact-form label { display: grid; gap: 0.4rem; }
+.contact-form label span {
+  font-family: var(--mono);
+  font-size: 0.8125rem;
+  letter-spacing: 0.06em;
+  color: var(--ink-soft);
+}
+.contact-form input,
+.contact-form textarea {
+  font: inherit;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  padding: 0.7rem 0.85rem;
+  width: 100%;
+}
+.contact-form input:focus-visible,
+.contact-form textarea:focus-visible { outline: 2px solid var(--hi); outline-offset: 2px; }
+.contact-form textarea { resize: vertical; min-height: 8rem; }
+.contact-form .gotcha { position: absolute; left: -9999px; width: 1px; height: 1px; }
+.form-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem; margin: 0.25rem 0 0; }
+.form-status { font-family: var(--mono); font-size: 0.8125rem; color: var(--ink-soft); }
+
 /* --- the section intros ---------------------------------------------------- */
 
 /* Notes, Get in touch and The work each open with a line of intro that never got the

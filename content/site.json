@@ -26,7 +26,17 @@
       "cta": "Get in touch",
       "see_work": "See the work",
       "archive_title": "Archive",
-      "archive_note": "Earlier work, kept where it can be found."
+      "archive_note": "Earlier work, kept where it can be found.",
+      "copy_email": "Copy address",
+      "copied": "Copied",
+      "linkedin_label": "LinkedIn",
+      "form_title": "Or write from here",
+      "form_name": "Your name",
+      "form_email": "Your email",
+      "form_message": "Message",
+      "form_send": "Send",
+      "form_sent": "Sent. I reply from my inbox.",
+      "form_error": "It did not go through. Copy the address and write directly."
     },
     "es": {
       "lang_name": "Español",
@@ -48,7 +58,17 @@
       "cta": "Escríbeme",
       "see_work": "Ver los proyectos",
       "archive_title": "Archivo",
-      "archive_note": "Trabajo anterior, donde se puede encontrar."
+      "archive_note": "Trabajo anterior, donde se puede encontrar.",
+      "copy_email": "Copiar dirección",
+      "copied": "Copiada",
+      "linkedin_label": "LinkedIn",
+      "form_title": "O escribe desde aquí",
+      "form_name": "Tu nombre",
+      "form_email": "Tu correo",
+      "form_message": "Mensaje",
+      "form_send": "Enviar",
+      "form_sent": "Enviado. Te respondo desde mi correo.",
+      "form_error": "No salió. Copia la dirección y escríbeme directo."
     }
   },
   "hero": {
@@ -492,5 +512,7 @@
       ]
     }
   },
-  "publish_domain": false
+  "publish_domain": false,
+  "linkedin": "",
+  "form_endpoint": ""
 }
