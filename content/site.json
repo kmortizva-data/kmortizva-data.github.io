@@ -278,7 +278,10 @@
       },
       "year": "2026",
       "archive": false,
-      "open_href": "concentra/cursos/index.html"
+      "open_href": {
+        "en": "concentra/cursos/index.en.html",
+        "es": "concentra/cursos/index.html"
+      }
     },
     {
       "slug": "geostat",

@@ -3,7 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>AI in Advanced Data Analytics — Google Advanced Data Analytics Capstone</title>
+<title>AI in Advanced Data Analytics · Google Advanced Data Analytics Capstone</title>
+<link rel="alternate" hreflang="en" href="m02_ai-in-advanced-data-analytics.en.html">
 <style>
 /* ============================================================================
    Concentra — design tokens and shared components.
@@ -102,9 +103,18 @@ body {
   text-transform: uppercase;
   color: var(--brass);
   margin-bottom: 1rem;
+  display: flex; flex-wrap: wrap; align-items: center;
+  justify-content: space-between; gap: .6rem 1rem;
 }
 .eyebrow a { color: inherit; text-decoration: none; border-bottom: 1px solid transparent; }
 .eyebrow a:hover { border-bottom-color: var(--brass); }
+/* The way to the other edition of this page. It targets the shell, not the bare
+   page, so the sidebar follows the language too. */
+.eyebrow .lang-switch {
+  margin-left: auto; border: 1px solid var(--seam); border-radius: 2px;
+  padding: .22rem .6rem; color: var(--dust); font-size: .68rem; letter-spacing: .1em;
+}
+.eyebrow .lang-switch:hover { color: var(--brass); border-color: var(--brass); }
 
 .header h1 {
   font-family: var(--display);
@@ -447,7 +457,7 @@ figure.fig figcaption {
 <body>
 <header class="header">
   <div class="header-content">
-    <div class="eyebrow"><a href="https://www.coursera.org/learn/google-advanced-data-analytics-capstone">Google Advanced Data Analytics Capstone</a> / Módulo 2</div>
+    <div class="eyebrow"><span><a href="https://www.coursera.org/learn/google-advanced-data-analytics-capstone">Google Advanced Data Analytics Capstone</a> / Módulo 2</span><a class="lang-switch" href="../index.en.html#google-advanced-data-analytics-capstone/m02_ai-in-advanced-data-analytics" target="_top" hreflang="en" lang="en" title="Read this page in English">English</a></div>
     <h1>AI in Advanced Data Analytics</h1>
     <p class="subtitle">Cinco tareas con su aritmética delante, para decidir cuándo un modelo generativo ahorra tiempo y cuándo lo cuesta. Y una fecha de tu propio archivo que sale como 1 de septiembre o como 9 de enero según qué fechas tenga al lado, sin dar ni un error.</p>
     <div class="mesh" role="presentation"></div>
@@ -489,7 +499,7 @@ formato declarado        falla en 0 de 3  []</pre></div><p>Tres casos y dos minu
 <section class="section-block is-review"><span class="kicker">Repaso</span><h2 class="section-title">Repaso</h2><details><summary>¿Por qué usar el modelo para calcular una mediana sale con ahorro negativo?</summary><p>Porque para comprobar que la mediana que te dio es correcta tienes que calcular la mediana, y en cuanto la comprobación es el trabajo entero el modelo no puede ahorrar nada. La cuenta lo deja claro: un minuto de espera más un minuto de comprobación contra el minuto que costaba hacerlo, o sea un minuto de pérdida. Es la misma razón por la que preguntarle si una diferencia es significativa tampoco compensa. Y al revés, escribir un parser de fechas se comprueba en dos minutos ejecutándolo sobre casos conocidos frente a los veinte de escribirlo, y ahí el ahorro son diecisiete minutos reales.</p></details><details><summary>¿Qué probabilidad de acierto haría falta para justificar no comprobar?</summary><p>Un 97,9 %. Sale de comparar los dos costes: comprobar cuesta 5 minutos y un número equivocado dentro de un informe entregado cuesta unos 240 entre rehacerlo y la credibilidad perdida, así que no comprobar solo compensa si la probabilidad de fallo es menor que 5 partido por 240, o sea un 2,08 %. Lo interesante del cálculo es que no hace falta discutir cuánto alucina un modelo: con un coste de error tan asimétrico, basta con que falle una de cada cincuenta veces para que saltarse la comprobación sea la peor opción de la tabla.</p></details><details><summary>La misma fecha sale como 1 de septiembre o como 9 de enero. ¿Qué está pasando y por qué es peligroso?</summary><p>Pandas no sabe si el mes va primero o el día, así que lo deduce mirando el resto de la columna y aplica esa deducción a todos los valores. Con <code>03/25/2017</code> al lado solo cabe el mes primero, porque no hay mes 25, y la ambigua sale 1 de septiembre; con <code>25/03/2017</code> al lado la deducción se invierte y sale 9 de enero. Es peligroso porque <strong>no da ningún error</strong>: el programa sigue, el análisis se hace, y la equivocación aparece meses después o no aparece nunca. El arreglo es declarar el formato en vez de dejar que se adivine.</p></details><details><summary>Un modelo describe correctamente un gráfico. ¿Se puede usar esa descripción en un informe?</summary><p>La descripción sí, con revisión: decir que hay dos montañas separadas por un hueco o que la cola se estira a la derecha es leer la imagen, y eso se comprueba mirándola. La conclusión no. Por qué hay dos montañas no está en la imagen, está en el proceso que generó los datos, y el modelo no lo conoce, así que lo va a inventar con la misma seguridad. En la práctica sirve para acelerar el pie de figura y nunca para escribir la sección de resultados.</p></details><details><summary>¿Por qué un practicante en su primera semana es mejor analogía que una calculadora?</summary><p>Porque una calculadora se equivoca poco y avisa cuando no puede hacer algo, y un modelo hace lo contrario: es tremendamente capaz en general y <strong>no distingue no saber de saber</strong>. Un practicante que no conoce la recuperación del turno te dirá que no la sabe; el modelo te dará una cifra verosímil con dos decimales y el mismo tono seguro que usó en la respuesta buena de antes. Por eso el reparto de tareas es el mismo que con una persona nueva: se le encarga lo que se comprueba mirándolo, y nunca un dato concreto de tu proceso.</p></details></section>
 </main>
 <footer class="footer">
-  Concentra / destilado del temario público del curso / 2026-08-20
+  Concentra / destilado del temario público del curso / 2026-08-22
 </footer>
 </body>
 </html>

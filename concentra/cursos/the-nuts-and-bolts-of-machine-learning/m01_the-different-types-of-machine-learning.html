@@ -3,7 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>The different types of machine learning — The Nuts and Bolts of Machine Learning</title>
+<title>The different types of machine learning · The Nuts and Bolts of Machine Learning</title>
+
 <style>
 /* ============================================================================
    Concentra — design tokens and shared components.
@@ -102,9 +103,18 @@ body {
   text-transform: uppercase;
   color: var(--brass);
   margin-bottom: 1rem;
+  display: flex; flex-wrap: wrap; align-items: center;
+  justify-content: space-between; gap: .6rem 1rem;
 }
 .eyebrow a { color: inherit; text-decoration: none; border-bottom: 1px solid transparent; }
 .eyebrow a:hover { border-bottom-color: var(--brass); }
+/* The way to the other edition of this page. It targets the shell, not the bare
+   page, so the sidebar follows the language too. */
+.eyebrow .lang-switch {
+  margin-left: auto; border: 1px solid var(--seam); border-radius: 2px;
+  padding: .22rem .6rem; color: var(--dust); font-size: .68rem; letter-spacing: .1em;
+}
+.eyebrow .lang-switch:hover { color: var(--brass); border-color: var(--brass); }
 
 .header h1 {
   font-family: var(--display);
@@ -447,7 +457,7 @@ figure.fig figcaption {
 <body>
 <header class="header">
   <div class="header-content">
-    <div class="eyebrow"><a href="https://www.coursera.org/learn/the-nuts-and-bolts-of-machine-learning">The Nuts and Bolts of Machine Learning</a> / Módulo 1</div>
+    <div class="eyebrow"><span><a href="https://www.coursera.org/learn/the-nuts-and-bolts-of-machine-learning">The Nuts and Bolts of Machine Learning</a> / Módulo 1</span></div>
     <h1>The different types of machine learning</h1>
     <p class="subtitle">Seis lotes de mineral, una sola columna de ley, y dos formas completamente distintas de trabajarlos según exista o no la columna que quieres predecir. Aquí se fija el mapa del curso, se ve por qué un modelo hereda el pasado que le des, y se monta la caja de herramientas de Python.</p>
     <div class="mesh" role="presentation"></div>
@@ -486,7 +496,7 @@ no supervisado responde: 0</pre></div><p><strong>Dos respuestas distintas para e
 <section class="section-block is-review"><span class="kicker">Repaso</span><h2 class="section-title">Repaso</h2><details><summary>¿Qué decide si un problema es de aprendizaje supervisado o no supervisado?</summary><p>Si existe o no, dentro de tus datos, la columna que quieres predecir. No lo decide el algoritmo ni el tamaño del conjunto: lo decide la información disponible. Con los seis lotes del ejemplo, tener anotado cuáles fueron rentables permite aprender la regla &quot;rentable si la ley pasa de 13&quot; y contar que acierta seis de seis. Tapando esa columna, los mismos seis números solo permiten preguntar si hay grupos, y sale que hay dos, con centros en 4 y 22, pero sin poder decir cuál de los dos es el rentable.</p></details><details><summary>El agrupamiento encontró la misma división que la etiqueta escondida. ¿Significa que da igual tener etiquetas?</summary><p>No, y este ejemplo está construido para que se vea. El agrupamiento encontró <strong>la misma frontera</strong>, pero devolvió dos cajas numeradas 0 y 1 sin ningún significado, y de hecho llamó 1 al grupo pobre y 0 al rico, al revés de la etiqueta. Puede decirte que hay dos familias; no puede decirte que una sea rentable, porque esa palabra no estaba en los datos. Además, aquí coincidieron porque la separación era enorme y la única variable era la relevante. Con diez variables, el agrupamiento puede partir por algo que a ti no te importa.</p></details><details><summary>El árbol eligió cortar en 13. ¿Por qué ese número y qué dice sobre el modelo?</summary><p>Porque es el punto medio entre el lote más rico de los pobres, 6, y el más pobre de los ricos, 20. Cualquier corte en ese hueco acierta los seis igual, así que <strong>los datos no contienen información para elegir</strong> y el algoritmo parte la diferencia. Eso es una señal de fragilidad, no de precisión: con solo seis lotes y un hueco tan grande, el modelo tiene mucha libertad, y un lote nuevo de ley 12 recibirá una respuesta que no está respaldada por ninguna observación parecida.</p></details><details><summary>¿Por qué la ética entra en un módulo técnico y no en un apéndice?</summary><p>Porque un modelo aprende de lo que pasó y por tanto repite lo que pasó, aplicándolo más rápido, a más gente y con apariencia de objetividad. Si los datos históricos recogen una decisión que trataba peor a un grupo, el modelo la hereda sin que nadie la haya escrito. Las tres preguntas del paso 4 son parte del diseño y no de la revisión final: de quién son los datos y quién falta en ellos, cuánto cuesta cada tipo de error y a quién le cuesta, y si el afectado puede saber por qué se decidió eso. Esa última convierte la elección entre una regresión y un bosque en una decisión con consecuencias, no solo en una cuestión de acierto.</p></details><details><summary>¿Qué significa que una variable sea continua y por qué importa en la práctica?</summary><p>Que puede tomar cualquier valor dentro de un rango, así que sus valores posibles son infinitos: entre 20 y 21 gramos por tonelada caben 20,5 y 20,53 y 20,531. Una categórica, en cambio, tiene una lista cerrada de valores que se pueden contar. Importa por dos razones muy concretas. La primera es que el tipo de la columna que quieres predecir decide la tarea: número es regresión, etiqueta es clasificación. La segunda es que casi ningún modelo entiende texto, así que una columna categórica hay que convertirla en números antes de entrenar, y la forma de convertirla cambia el resultado.</p></details></section>
 </main>
 <footer class="footer">
-  Concentra / destilado del temario público del curso / 2026-08-20
+  Concentra / destilado del temario público del curso / 2026-08-22
 </footer>
 </body>
 </html>

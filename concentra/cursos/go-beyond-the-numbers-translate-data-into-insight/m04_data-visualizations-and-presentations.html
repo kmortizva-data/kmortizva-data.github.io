@@ -3,7 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Data visualizations and presentations — Go Beyond the Numbers: Translate Data into Insights</title>
+<title>Data visualizations and presentations · Go Beyond the Numbers: Translate Data into Insights</title>
+
 <style>
 /* ============================================================================
    Concentra — design tokens and shared components.
@@ -102,9 +103,18 @@ body {
   text-transform: uppercase;
   color: var(--brass);
   margin-bottom: 1rem;
+  display: flex; flex-wrap: wrap; align-items: center;
+  justify-content: space-between; gap: .6rem 1rem;
 }
 .eyebrow a { color: inherit; text-decoration: none; border-bottom: 1px solid transparent; }
 .eyebrow a:hover { border-bottom-color: var(--brass); }
+/* The way to the other edition of this page. It targets the shell, not the bare
+   page, so the sidebar follows the language too. */
+.eyebrow .lang-switch {
+  margin-left: auto; border: 1px solid var(--seam); border-radius: 2px;
+  padding: .22rem .6rem; color: var(--dust); font-size: .68rem; letter-spacing: .1em;
+}
+.eyebrow .lang-switch:hover { color: var(--brass); border-color: var(--brass); }
 
 .header h1 {
   font-family: var(--display);
@@ -447,7 +457,7 @@ figure.fig figcaption {
 <body>
 <header class="header">
   <div class="header-content">
-    <div class="eyebrow"><a href="https://www.coursera.org/learn/go-beyond-the-numbers-translate-data-into-insight">Go Beyond the Numbers: Translate Data into Insights</a> / Módulo 4</div>
+    <div class="eyebrow"><span><a href="https://www.coursera.org/learn/go-beyond-the-numbers-translate-data-into-insight">Go Beyond the Numbers: Translate Data into Insights</a> / Módulo 4</span></div>
     <h1>Data visualizations and presentations</h1>
     <p class="subtitle">Cuatro conjuntos de datos con la misma media, la misma desviación, la misma correlación y la misma recta, y cuatro formas que no se parecen en nada. Es el cuarteto de Anscombe, y es la mejor razón que existe para dibujar antes de resumir. Además, el ciclo de vida de un gráfico y qué se puede y qué no se puede hacer con Tableau.</p>
     <div class="mesh" role="presentation"></div>
@@ -507,7 +517,7 @@ fig.savefig(&quot;anscombe.png&quot;, dpi=200, bbox_inches=&quot;tight&quot;)</c
 <section class="section-block is-review"><span class="kicker">Repaso</span><h2 class="section-title">Repaso</h2><details><summary>¿Qué demuestra el cuarteto de Anscombe y por qué importa?</summary><p>Que cuatro conjuntos de datos pueden coincidir en todos los resúmenes habituales, media de x de 9,00, media de y de 7,50, desviación de 2,03, correlación de 0,816 y la misma recta ajustada, y aun así tener formas completamente distintas: una nube en línea, una curva, una recta con un punto disparado y una sola x con un único punto lejano. Importa porque significa que un informe apoyado solo en esos números no distingue esos cuatro casos, y tres de ellos exigen decisiones diferentes. Por eso se dibuja antes de resumir y no después.</p></details><details><summary>¿Por qué es obligatorio compartir los ejes al comparar grupos en varios paneles?</summary><p>Porque cuando cada panel escala su eje a sus propios datos, las alturas dejan de ser comparables: dos grupos con magnitudes muy distintas se dibujan igual de altos y parecen iguales, y dos grupos parecidos pueden verse muy diferentes. El lector compara formas y tamaños sin leer los ejes, así que un eje independiente por panel es una forma silenciosa de inducir a error. Con ejes compartidos, lo que se ve corresponde a lo que hay.</p></details><details><summary>¿Qué significa que el número de barras de un histograma es una decisión analítica?</summary><p>Que la elección cambia la conclusión, no solo el aspecto. Las mismas doce recuperaciones con tres barras dan un reparto plano de [4, 4, 4], que no cuenta nada, y con seis barras dan [4, 0, 2, 2, 0, 4], donde aparecen tres grupos separados por huecos. Pocas barras funden grupos distintos y demasiadas convierten el ruido en picos. La costumbre correcta es probar varios cortes antes de afirmar nada sobre la forma, y si el dibujo enseña grupos, reportarlos por separado en vez de resumirlos con una media que solo describe a una parte.</p></details><details><summary>¿Cuál es la diferencia entre un gráfico exploratorio y uno explicativo?</summary><p>El destinatario, y de ahí todo lo demás. El exploratorio es para uno mismo durante el análisis: se hacen muchos, rápidos y feos, y sirven para ver. El explicativo es para quien va a decidir: es uno solo, limpio, sin nada que no ayude, y lleva el hallazgo escrito en el título en vez de una descripción de los ejes. Confundirlos produce los dos errores típicos, que son perder horas puliendo un gráfico de trabajo o presentar uno de trabajo en una reunión.</p></details><details><summary>¿Qué hay que tener en cuenta antes de publicar en Tableau Public?</summary><p>Que es público de verdad: lo que se sube queda en un perfil web abierto y accesible por cualquiera. Sirve muy bien para portafolio, que es justamente para lo que lo usa el certificado, y no sirve para datos de empresa, datos personales ni nada bajo acuerdo de confidencialidad. Y como la publicación es el paso final, la comprobación de qué contiene el archivo, incluidos los campos que no se muestran pero viajan con él, se hace antes de subir y no después.</p></details></section>
 </main>
 <footer class="footer">
-  Concentra / destilado del temario público del curso / 2026-08-20
+  Concentra / destilado del temario público del curso / 2026-08-22
 </footer>
 </body>
 </html>

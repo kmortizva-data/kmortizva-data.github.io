@@ -1,0 +1,511 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Capstone Project · Google Advanced Data Analytics Capstone</title>
+<link rel="alternate" hreflang="es" href="m01_capstone-project.html">
+<style>
+/* ============================================================================
+   Concentra — design tokens and shared components.
+   Inlined into every generated page by load_style(), so pages stay self-contained
+   and work offline from file:// with no external requests.
+
+   Direction: an assay lab, not a tech dashboard. The palette is taken from ore
+   and lab materials (chalcopyrite brass, malachite, hematite, quartz) on warm
+   graphite rather than the blue-black + neon of a generic dark UI. Type is
+   Bahnschrift, the DIN-descended grotesque that Windows ships and that lives on
+   machinery plates and technical drawings, over Corbel for reading.
+   ========================================================================== */
+
+:root {
+  /* Ground and surfaces: warm graphite, the colour of rock dust, not blue-black */
+  --rock: #1a1714;
+  --bench: #221e19;
+  --core: #2b251f;
+  --seam: #3d352c;
+
+  /* Ore palette. No blue and no purple anywhere: those are the tones that make a
+     page read as generated, and this palette comes from the ores instead. */
+  --brass: #c9a227;      /* chalcopyrite, the primary accent */
+  --malachite: #5d9b7a;  /* verified output, results that came out right */
+  --hematite: #b04a35;   /* iron oxide, pitfalls and warnings */
+
+  /* Text */
+  --quartz: #ece7de;
+  --dust: #9a9186;
+  --shadowed: #6f675c;
+
+  --display: Bahnschrift, 'DIN Alternate', 'Segoe UI Semibold', system-ui, sans-serif;
+  --body: Corbel, Candara, 'Segoe UI', system-ui, sans-serif;
+  --data: Consolas, 'Cascadia Mono', ui-monospace, monospace;
+
+  /* In px, not ch: ch scales with font-size, so a heading ended up wider than a
+     paragraph and the page had four different right edges instead of two. */
+  --measure: 640px;
+  --wide: 900px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--rock);
+  color: var(--quartz);
+  font-family: var(--body);
+  font-size: 16px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection { background: var(--brass); color: var(--rock); }
+
+:focus-visible {
+  outline: 2px solid var(--brass);
+  outline-offset: 3px;
+}
+
+/* --------------------------------------------------------------- the signature
+   A sieve series: ticks that get finer from left to right, coarse feed to fine
+   concentrate. It is the one ornament on the page and appears exactly twice —
+   under the wordmark and under a page title. */
+.mesh {
+  height: 10px;
+  background-image:
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 16px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 9px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 5px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 3px);
+  background-size: 25% 100%;
+  background-position: 0 0, 25% 0, 50% 0, 75% 0;
+  background-repeat: no-repeat;
+  opacity: .8;
+  transform-origin: left center;
+  animation: sieve .55s cubic-bezier(.2, .8, .3, 1) both;
+}
+@keyframes sieve { from { transform: scaleX(0); opacity: 0; } to { transform: scaleX(1); opacity: .8; } }
+@media (prefers-reduced-motion: reduce) {
+  .mesh { animation: none; }
+  * { transition: none !important; }
+}
+
+/* ------------------------------------------------------------------ page head */
+.header {
+  border-bottom: 1px solid var(--seam);
+  padding: 3.2rem 2rem 0;
+  background: linear-gradient(180deg, #221d16 0%, var(--rock) 100%);
+}
+.header-content { max-width: 1080px; margin: 0 auto; }
+
+.eyebrow {
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--brass);
+  margin-bottom: 1rem;
+  display: flex; flex-wrap: wrap; align-items: center;
+  justify-content: space-between; gap: .6rem 1rem;
+}
+.eyebrow a { color: inherit; text-decoration: none; border-bottom: 1px solid transparent; }
+.eyebrow a:hover { border-bottom-color: var(--brass); }
+/* The way to the other edition of this page. It targets the shell, not the bare
+   page, so the sidebar follows the language too. */
+.eyebrow .lang-switch {
+  margin-left: auto; border: 1px solid var(--seam); border-radius: 2px;
+  padding: .22rem .6rem; color: var(--dust); font-size: .68rem; letter-spacing: .1em;
+}
+.eyebrow .lang-switch:hover { color: var(--brass); border-color: var(--brass); }
+
+.header h1 {
+  font-family: var(--display);
+  font-size: clamp(2rem, 4.5vw, 3.1rem);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -.015em;
+  color: var(--quartz);
+  max-width: 20ch;
+}
+.header .subtitle {
+  color: var(--dust);
+  max-width: var(--measure);
+  margin-top: 1rem;
+  font-size: 1.02rem;
+}
+.header .mesh { margin: 1.8rem 0 0; }
+
+/* An assay line: the real composition of the module, in lab-report shorthand. */
+.assay {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.4rem;
+  font-family: var(--data);
+  font-size: .78rem;
+  color: var(--shadowed);
+  padding: .9rem 0 1.6rem;
+  letter-spacing: .04em;
+}
+.assay b { color: var(--dust); font-weight: 400; }
+
+/* --------------------------------------------------------------------- layout */
+/* The container hugs the widest block, so there is no orphan edge past the content. */
+.container { max-width: var(--wide); margin: 3rem auto 5rem; padding: 0 2rem; }
+
+/* Two deliberate right edges and no more: prose stops at the reading measure, and
+   only the things that genuinely need room (code, output, figures, big tables) run
+   out to the full column. */
+.section-block {
+  border-top: 1px solid var(--seam);
+  padding: 2rem 0 2.4rem;
+}
+.section-block > p,
+.section-block > ul,
+.section-block > ol,
+.section-block h3.sub,
+.section-block h4.sub,
+.section-block blockquote,
+details > *:not(summary) { max-width: var(--measure); }
+.section-block:first-child { border-top: 0; padding-top: .5rem; }
+
+/* The kicker names what kind of content follows: context, method, pitfalls.
+   It replaces decorative icons with something that actually classifies. */
+.kicker {
+  font-family: var(--data);
+  font-size: .68rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  display: block;
+  margin-bottom: .5rem;
+}
+.section-title {
+  font-family: var(--display);
+  font-size: 1.55rem;
+  font-weight: 600;
+  letter-spacing: -.01em;
+  line-height: 1.2;
+  margin-bottom: 1.2rem;
+  color: var(--quartz);
+}
+.is-warning .kicker { color: var(--hematite); }
+.is-warning .section-title { color: #e8c4b8; }
+.is-bridge .kicker, .is-decision .kicker { color: var(--malachite); }
+.is-toy .kicker, .is-result .kicker, .is-question .kicker { color: var(--brass); }
+
+/* ---------------------------------------------------------------------- prose */
+/* Justified with hyphenation. In Spanish, justifying without hyphens opens rivers of
+   white space and reads worse than ragged right; lang="es" is what feeds the
+   dictionary. Tables, code, captions and summaries stay ragged on purpose. */
+.section-block p,
+.section-block li,
+details > *:not(summary) {
+  text-align: justify;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+}
+.section-block p { margin-bottom: 1rem; }
+.section-block p:last-child { margin-bottom: 0; }
+/* Indent with padding, not margin, so the bullet sits inside the measure instead of
+   pushing the list 1.2rem past the right edge of the paragraphs. */
+.section-block ul, .section-block ol { margin: 0 0 1rem; padding-left: 1.2rem; }
+.section-block li { margin-bottom: .55rem; padding-left: .2rem; }
+.section-block li::marker { color: var(--brass); }
+td, th, figcaption, .res li, .assay { text-align: left; hyphens: manual; }
+a { color: var(--brass); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+a:hover { text-decoration-thickness: 2px; }
+strong { color: #fff; font-weight: 700; }
+em { color: var(--dust); font-style: italic; }
+
+h3.sub {
+  font-family: var(--display);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--brass);
+  margin: 2rem 0 .7rem;
+  letter-spacing: -.005em;
+}
+h3.sub:first-child { margin-top: 0; }
+h4.sub {
+  font-family: var(--display);
+  font-size: .98rem;
+  font-weight: 600;
+  color: var(--dust);
+  margin: 1.3rem 0 .5rem;
+}
+
+code {
+  font-family: var(--data);
+  font-size: .9em;
+  background: var(--core);
+  border-radius: 3px;
+  padding: .08rem .32rem;
+  color: var(--brass);
+}
+pre {
+  background: #14110e;
+  border: 1px solid var(--seam);
+  border-left: 2px solid var(--seam);
+  border-radius: 2px;
+  padding: 1.1rem 1.2rem;
+  overflow-x: auto;
+  margin-bottom: 1rem;
+}
+pre code {
+  background: none; padding: 0; color: var(--quartz);
+  font-size: .87rem; line-height: 1.6;
+}
+
+/* What the code prints. Malachite: the material that came out of the process. */
+.output {
+  position: relative;
+  border: 1px solid rgba(93, 155, 122, .32);
+  border-left: 2px solid var(--malachite);
+  border-radius: 2px;
+  background: rgba(93, 155, 122, .06);
+  padding: 1.7rem 1.2rem 1rem;
+  margin-bottom: 1rem;
+  overflow-x: auto;
+}
+.output-tag {
+  position: absolute; top: .5rem; left: 1.2rem;
+  font-family: var(--data); font-size: .64rem;
+  letter-spacing: .18em; text-transform: uppercase; color: var(--malachite);
+}
+.output pre {
+  background: none; border: 0; padding: 0; margin: 0;
+  font-family: var(--data); font-size: .85rem;
+  color: var(--quartz); white-space: pre-wrap;
+}
+
+/* Line by line explanation of a code block, for a reader new to programming.
+   Two columns: the fragment of code, and what it does. */
+.annot {
+  display: grid;
+  grid-template-columns: minmax(9rem, auto) 1fr;
+  gap: .1rem 1.2rem;
+  align-items: baseline;
+  max-width: var(--wide);
+  margin: -.4rem 0 1.4rem;
+  padding: .9rem 1.1rem 1rem;
+  border: 1px solid var(--seam);
+  border-top: 0;
+  border-radius: 0 0 2px 2px;
+  background: rgba(201, 162, 39, .04);
+}
+.annot-head {
+  grid-column: 1 / -1;
+  font-family: var(--data);
+  font-size: .64rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  margin-bottom: .5rem;
+}
+.annot dt { padding: .35rem 0; }
+.annot dt code {
+  background: var(--core);
+  color: var(--brass);
+  font-size: .82rem;
+  white-space: nowrap;
+}
+.annot dd {
+  padding: .35rem 0;
+  margin: 0;
+  color: var(--dust);
+  font-size: .93rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(61, 53, 44, .5);
+}
+.annot dt { border-bottom: 1px solid rgba(61, 53, 44, .5); }
+.annot dt:last-of-type, .annot dd:last-of-type { border-bottom: 0; }
+/* The code block sits directly on top of its annotation, as one unit. */
+pre:has(+ .annot) { margin-bottom: 0; border-radius: 2px 2px 0 0; }
+
+@media (max-width: 640px) {
+  .annot { grid-template-columns: 1fr; gap: 0; }
+  .annot dt { border-bottom: 0; padding-bottom: 0; }
+  .annot dd { padding-top: .15rem; }
+}
+
+blockquote {
+  border-left: 2px solid var(--brass);
+  padding: .3rem 0 .3rem 1.3rem;
+  margin: 0 0 1rem;
+  font-family: var(--display);
+  font-size: 1.2rem;
+  font-weight: 400;
+  line-height: 1.4;
+  color: var(--quartz);
+}
+
+/* Tables read as assay data: mono figures, hairline rules, no zebra fill.
+   They take the width they need instead of being stretched to the full column,
+   which is what left a two-column table floating in empty space. */
+.table-wrap { overflow-x: auto; margin-bottom: 1rem; }
+table { border-collapse: collapse; width: auto; max-width: 100%; font-size: .93rem; }
+th, td {
+  border-bottom: 1px solid var(--seam);
+  padding: .55rem .8rem .55rem 0;
+  text-align: left;
+  vertical-align: top;
+}
+th {
+  font-family: var(--data);
+  font-size: .7rem;
+  font-weight: 400;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  border-bottom-color: var(--brass);
+}
+td:first-child { color: var(--quartz); }
+
+/* Review questions: closed by default, so they work as recall practice. */
+details {
+  border-top: 1px solid var(--seam);
+  padding: .9rem 0;
+}
+details:last-child { border-bottom: 1px solid var(--seam); }
+summary {
+  cursor: pointer;
+  font-family: var(--display);
+  font-size: 1.02rem;
+  font-weight: 600;
+  color: var(--quartz);
+  list-style: none;
+  display: flex;
+  gap: .7rem;
+  align-items: baseline;
+}
+summary::-webkit-details-marker { display: none; }
+summary::before {
+  content: '+';
+  font-family: var(--data);
+  color: var(--brass);
+  font-size: .95rem;
+}
+details[open] summary::before { content: '−'; }
+details[open] summary { color: var(--brass); margin-bottom: .7rem; }
+details > *:not(summary) { color: var(--dust); }
+
+figure.fig {
+  margin: 1.6rem 0;
+  border: 1px solid var(--seam);
+  padding: .7rem;
+  background: var(--bench);
+}
+figure.fig img { width: 100%; height: auto; display: block; }
+/* The interactive twin of a figure. Its aspect matches the still one, 10 by 4.4, so a
+   case sheet keeps the same rhythm whichever kind of figure comes next. */
+figure.fig.is-live iframe {
+  width: 100%;
+  /* Matches INTERACTIVE_HEIGHT in src/make_figures.py. It used to be an aspect ratio, and
+     that made the figure's height depend on the window: the caption and the legend are
+     placed at fractions of the plot area, so on a wide screen they were pushed past the
+     bottom margin, clipping the caption and covering the x-axis title. */
+  height: 520px;
+  border: 0;
+  display: block;
+}
+figure.fig figcaption {
+  font-family: var(--data);
+  font-size: .72rem;
+  color: var(--shadowed);
+  margin-top: .6rem;
+  letter-spacing: .04em;
+}
+
+/* File listings on a case sheet */
+.res { list-style: none; margin-left: 0 !important; }
+.res li {
+  display: flex; align-items: baseline; gap: .8rem; flex-wrap: wrap;
+  padding: .5rem 0; border-bottom: 1px solid var(--seam); margin-bottom: 0;
+}
+.res .path { font-family: var(--data); font-size: .74rem; color: var(--shadowed); }
+.res .size { font-family: var(--data); font-size: .74rem; color: var(--shadowed); margin-left: auto; }
+.res .gone { font-family: var(--data); font-size: .74rem; color: var(--hematite); }
+
+.footer {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 2rem 4rem;
+  color: var(--shadowed);
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .03em;
+}
+
+@media (max-width: 640px) {
+  body { font-size: 15px; }
+  .header { padding: 2rem 1.2rem 0; }
+  .container { padding: 0 1.2rem; margin-top: 2rem; }
+  .footer { padding: 0 1.2rem 3rem; }
+}
+
+@media print {
+  body { background: #fff; color: #16130f; }
+  .header { background: none; border-bottom: 1px solid #bbb; padding-top: 0; }
+  .header h1, .section-title, summary { color: #16130f; }
+  .mesh { animation: none; }
+  .section-block { break-inside: avoid; max-width: none; }
+  pre, .output { background: #f6f4f0; border-color: #ccc; }
+  details:not([open]) > *:not(summary) { display: block; }
+  a { color: #16130f; }
+}
+
+</style>
+</head>
+<body>
+<header class="header">
+  <div class="header-content">
+    <div class="eyebrow"><span><a href="https://www.coursera.org/learn/google-advanced-data-analytics-capstone">Google Advanced Data Analytics Capstone</a> / Module 1</span><a class="lang-switch" href="../index.html#google-advanced-data-analytics-capstone/m01_capstone-project" target="_top" hreflang="es" lang="es" title="Leer esta página en español">Español</a></div>
+    <h1>Capstone Project</h1>
+    <p class="subtitle">The same Waze finding written at five sizes, measured in your own library: from the 69 numbers the script saved to the single sentence someone is going to read. Out of that comes how a project gets packaged and what a résumé has to say.</p>
+    <div class="mesh" role="presentation"></div>
+    <div class="assay"><span><b>4 h</b> course time</span><span><b>7</b> videos</span><span><b>6</b> readings</span><span><b>3</b> assignments</span><span><b>2</b> practice</span></div>
+  </div>
+</header>
+<main class="container">
+<section class="section-block "><span class="kicker">Context</span><h2 class="section-title">What this module solves</h2><p>The five previous courses taught how to <strong>obtain</strong> a result. This one teaches how to make that result <strong>reach someone</strong>, which is a different problem and one where a lot of good work gets lost.</p><p>The module brings two things: what is expected of a Capstone project, and how a finished analysis becomes something a stranger reads in two minutes and wants to ask you more about.</p><p>And a clarification from the page itself, because it changes how you approach it: <strong>the Capstone project is optional</strong>, and it brings together concepts from the six previous courses on a new scenario, Salifort Motors. Its lab lives behind the login, so that one you do on the platform. What gets built here is the other half: the packaging.</p></section>
+<section class="section-block is-toy"><span class="kicker">Example</span><h2 class="section-title">Before the theory: a toy example</h2><p>No need to invent one: it is in your library. We take <strong>a single finding</strong>, the one from the Waze project of Course 5, and measure what it turns into depending on the size of the document.</p><h3 class="sub h3">Step 1. Count what there is</h3><p>The script wrote a results file. Inside it there are:</p><pre><code>numbers saved by the script   =  69</code></pre><p>Sixty-nine figures: partition sizes, metrics of every model, chosen knobs, search times, importances of nine variables. All verified, all publishable.</p><h3 class="sub h3">Step 2. Count what survives at each size</h3><p>Now the four documents that tell that same finding, measured:</p><div class="table-wrap"><table><thead><tr><th>Document</th><th>Words</th><th>Figures it quotes</th></tr></thead><tbody><tr><td>One sentence</td><td><strong>11</strong></td><td><strong>1</strong></td></tr><tr><td>Executive summary</td><td>804</td><td>35</td></tr><tr><td>Case sheet</td><td>1,200</td><td>28</td></tr><tr><td>PACE report</td><td>706</td><td><strong>0</strong></td></tr><tr><td>The results file</td><td><em>(not prose)</em></td><td><strong>69</strong></td></tr></tbody></table></div><h3 class="sub h3">Step 3. Read the table, which says three things</h3><p><strong>The first: from 69 to 1.</strong> The funnel is brutal, and it is not a flaw. If the sentence quoted all sixty-nine, it would not be a sentence.</p><p><strong>The second: the sheet is longer than the summary and quotes fewer figures.</strong> 1,200 words against 804, and 28 figures against 35. It is not carelessness: <strong>they do different jobs</strong>. The summary is dense because whoever reads it wants the numbers; the sheet is long because whoever reads it wants to understand <strong>why</strong> those numbers, and that is told with sentences, not with data.</p><p><strong>The third, and it is the best one: the PACE plan quotes zero figures.</strong> Not one, in 706 words. And it cannot be any other way, because <strong>it is written before there are results</strong>. It is the document that says what you expect to find, and an expectation written after seeing the result is not an expectation.</p><h3 class="sub h3">Step 4. The 11-word sentence</h3><blockquote><em>Tuning the forest almost closes the gap and does not close it.</em></blockquote><p>Eleven words and one implied figure. That is what someone is going to remember from a project that cost three grid searches, 88 combinations of knobs and five figures.</p><p><strong>If that sentence does not exist, the project is not finished.</strong> It has stopped.</p></section>
+<section class="section-block "><span class="kicker">Terms</span><h2 class="section-title">Glossary</h2><ul><li><strong>Capstone project.</strong> The final project of the certificate, optional, which brings together concepts from the six previous courses on a new scenario.</li><li><strong>Portfolio.</strong> The collection of work you show so that someone decides whether to talk to you. It is not a repository: it is a selection.</li><li><strong>Executive summary.</strong> One or two pages with the result, the decision and the limits. Read by whoever pays.</li><li><strong>Case sheet.</strong> The story of the analysis: what was asked, what was found and why it can be believed. Read by whoever doubts.</li><li><strong>PACE plan.</strong> The strategy document, written <strong>before</strong> analysing. Plan, Analyze, Construct, Execute.</li><li><strong>Results file.</strong> The JSON the code writes with every publishable number. It is the only source the figures of the other documents can come from.</li><li><strong>Résumé.</strong> A one- or two-page document whose job is to get a conversation, not to describe your life.</li><li><strong>Applicant tracking system.</strong> The program that reads your résumé before a person does. ATS for short.</li></ul></section>
+<section class="section-block is-recipe"><span class="kicker">Method</span><h2 class="section-title">Step by step</h2><h3 class="sub h3">Step 1. Write the sentence before anything else</h3><p>When the analysis is finished, the first thing written is <strong>the sentence</strong>. If it does not come out, or comes out convoluted, the analysis has not reached a conclusion yet.</p><p>Three tests to know whether the sentence works:</p><ol><li><strong>Does it fit on one line?</strong> Eleven words is a good target.</li><li><strong>Does it change a decision?</strong> &quot;The forest does not win&quot; changes what gets deployed. &quot;The hyperparameters were tuned&quot; changes nothing.</li><li><strong>Is it understood without the rest of the document?</strong> If it needs context, it is not the sentence.</li></ol><h3 class="sub h3">Step 2. Build the layers outwards</h3><p>From the sentence you work outwards, not the other way round:</p><div class="table-wrap"><table><thead><tr><th>Layer</th><th>Who reads it</th><th>What you give them</th></tr></thead><tbody><tr><td>One sentence</td><td>Whoever decides</td><td>The result</td></tr><tr><td>Executive summary</td><td>Whoever pays</td><td>The numbers and the decision</td></tr><tr><td>Case sheet</td><td>Whoever doubts</td><td>Why it can be believed</td></tr><tr><td>PACE plan</td><td>Whoever audits</td><td>What you expected before looking</td></tr><tr><td>Script and notebook</td><td>Whoever reproduces</td><td>Everything</td></tr></tbody></table></div><p><strong>All five tell the same story.</strong> If the sentence and the report do not agree, the problem is not one of format.</p><h3 class="sub h3">Step 3. The rule that makes contradiction impossible</h3><p><strong>No document quotes a figure that is not in the results file.</strong> That rule is what prevents the summary from saying 0.7379 and the sheet 0.7348 because someone re-tuned something and forgot a paragraph.</p><p>It is not bureaucracy: it is the difference between a portfolio that survives being looked at and one that falls over at the second question.</p><h3 class="sub h3">Step 4. What makes a portfolio project good</h3><p>It is not the model. It is this, and in this order:</p><ol><li><strong>A question someone had.</strong> &quot;Predict churn so we can act before it happens&quot; is a question; &quot;apply random forest&quot; is an exercise.</li><li><strong>A decision that changes with the answer.</strong></li><li><strong>A defensible number</strong>, with its test set looked at exactly once.</li><li><strong>What did not work</strong>, in the same detail as what did.</li><li><strong>The limits</strong>, written by you before someone else finds them.</li></ol><p>Look at the fourth one. A project without a single dead end does not look flawless, <strong>it looks incomplete</strong>, and whoever interviews you notices.</p><h3 class="sub h3">Step 5. Communicating what you can do, which is not the same as listing it</h3><p>Before the résumé there is a step the module treats separately: <strong>knowing how to say what you can do</strong>. And the trap is that the list of tools does not say it.</p><p>&quot;Python, SQL, scikit-learn&quot; is an inventory. What someone needs to know is <strong>what problem you solve with that</strong>, and that is told in three pieces:</p><div class="table-wrap"><table><thead><tr><th>Piece</th><th>What it is</th><th>Your example</th></tr></thead><tbody><tr><td>The skill</td><td>What you know how to do</td><td>Comparing a model against an honest baseline</td></tr><tr><td>The edge</td><td>Why you</td><td>You come from operating processes, so you ask where the data came from</td></tr><tr><td>The proof</td><td>Where it shows</td><td>The project where one question tied with three hundred trees</td></tr></tbody></table></div><p><strong>Without the third, the first two are a claim.</strong> With it they are a verifiable fact, and the conversation stops being about whether you know and turns to what you did.</p><p>And there is an edge of yours worth not hiding: <strong>you do not come from computer science</strong>. Someone who has run a plant knows that an impossible value exists and that an average hides a drift. That, in this library, already produced the finding of the 461 users who drive the impossible, which no later course had flagged.</p><h3 class="sub h3">Step 6. The résumé, which is another document with the same logic</h3><p>A résumé does not describe your life: <strong>it gets a conversation</strong>. And a program reads it first, so there are two readers with different needs.</p><div class="table-wrap"><table><thead><tr><th>For the program</th><th>For the person</th></tr></thead><tbody><tr><td>The words of the job ad, verbatim</td><td>A result with a number</td></tr><tr><td>Plain text, no columns or odd tables</td><td>A sentence that gets remembered</td></tr><tr><td>A format it knows how to read</td><td>Readable in seven seconds</td></tr></tbody></table></div><p>And the rule that orders the content: <strong>every line is a result, not a task</strong>. &quot;Responsible for the churn analysis&quot; is a task. &quot;Churn model on 14,299 users that identified the threshold as the real cause of the 8% detection rate&quot; is a result.</p><p>Yours are already measured and written. It is a matter of lifting them out of the report.</p></section>
+<section class="section-block is-recipe"><span class="kicker">Code</span><h2 class="section-title">The code, in parts</h2><h3 class="sub h3">Step 1. Measure the funnel of your own project</h3><p>The toy example, done by the machine.</p><pre><code class="language-python">import json
+import re
+from pathlib import Path
+
+report = Path(&quot;projects/curso5/waze/04_reports/model_results.json&quot;)
+summary = Path(&quot;projects/curso5/waze/04_reports/executive_summary.md&quot;)
+
+def stored(node):
+    &quot;&quot;&quot;Every number the script wrote, however deep it sits.&quot;&quot;&quot;
+    if isinstance(node, dict):
+        return set().union(*(stored(v) for v in node.values())) if node else set()
+    if isinstance(node, list):
+        return set().union(*(stored(v) for v in node)) if node else set()
+    if isinstance(node, bool) or not isinstance(node, (int, float)):
+        return set()
+    return {float(node)}
+
+numbers = stored(json.loads(report.read_text(encoding=&quot;utf-8&quot;)))
+cited = set(re.findall(r&quot;0,\d{3,4}&quot;, summary.read_text(encoding=&quot;utf-8&quot;)))
+print(f&quot;guardados por el guion: {len(numbers)}&quot;)
+print(f&quot;citados en el resumen:  {len(cited)}&quot;)</code></pre><dl class="annot"><div class="annot-head">line by line</div><dt><code>def stored(node):</code></dt><dd>A <strong>recursive</strong> function: it calls itself. It is needed because the JSON has dictionaries inside dictionaries and there is no knowing in advance how many levels there are.</dd><dt><code>set().union(*(...))</code></dt><dd>The asterisk unpacks: it turns a list of sets into separate arguments for <code>union</code>. Without it you would pass <strong>one</strong> argument that is a list, and it would fail.</dd><dt><code>if ... else set()</code></dt><dd>The guard for an empty dictionary. <code>union()</code> with no arguments raises an error, so an empty node returns the empty set.</dd><dt><code>isinstance(node, bool)</code></dt><dd>Checked <strong>before</strong> the number, because in Python <code>True</code> is an integer worth 1. Without this line, every <code>true</code> in the JSON would count as the number 1.</dd><dt><code>re.findall(r&quot;0,\d{3,4}&quot;, ...)</code></dt><dd>Looks for figures written the Spanish way, with a comma. <code>\d{3,4}</code> is three or four digits. The <code>r</code> in front saves writing the backslash twice.</dd><dt><code>set(...)</code></dt><dd>Turns the list into a set, so a figure repeated in two paragraphs counts once. That is what we want: it measures <strong>how many distinct figures</strong> are quoted.</dd></dl><div class="output"><span class="output-tag">prints</span><pre>guardados por el guion: 69
+citados en el resumen:  35</pre></div><p>Sixty-nine saved, thirty-five quoted. <strong>Half of the measured work does not appear in the summary</strong>, and it is right that it does not: it is there for when someone asks.</p><h3 class="sub h3">Step 2. See which courses touched each scenario</h3><p>The raw material for this course&#x27;s deliverable.</p><pre><code class="language-python">courses = {&quot;curso2&quot;: &quot;Curso 2&quot;, &quot;curso4&quot;: &quot;Curso 4&quot;, &quot;curso5&quot;: &quot;Curso 5&quot;}
+
+for case in (&quot;waze&quot;, &quot;tiktok&quot;, &quot;automatidata&quot;):
+    row = []
+    for folder, label in courses.items():
+        path = Path(f&quot;projects/{folder}/{case}/04_reports/model_results.json&quot;)
+        row.append(label if path.exists() else &quot;  -   &quot;)
+    print(f&quot;{case:14} {&#x27; &#x27;.join(row)}&quot;)</code></pre><dl class="annot"><div class="annot-head">line by line</div><dt><code>courses = {...}</code></dt><dd>A dictionary acting as a translation table, from folder name to readable label. Keeping that pair together avoids scattering the correspondence across the code.</dd><dt><code>for folder, label in courses.items()</code></dt><dd><code>items()</code> walks key and value at once. Without it you would have to look up the value inside the loop.</dd><dt><code>path.exists()</code></dt><dd>Asks the disk whether the file is there. It is what turns &quot;which courses touched this case&quot; into something checked instead of remembered.</dd><dt><code>row.append(label if path.exists() else &quot;  -   &quot;)</code></dt><dd>A one-line conditional. The spaces around the dash are there so the columns line up when printed.</dd><dt><code>&#x27; &#x27;.join(row)</code></dt><dd>Glues the elements of the list with a space between them. It is the normal way to print a row.</dd></dl><div class="output"><span class="output-tag">prints</span><pre>waze           Curso 2 Curso 4 Curso 5
+tiktok         Curso 2 Curso 4 Curso 5
+automatidata   Curso 2 Curso 4 Curso 5</pre></div><p>Three scenarios times three courses with a project of their own, plus Course 3, which used your files: <strong>twelve analyses on three files</strong>. That is what no portfolio from this certificate usually has, and it is what module 3 turns into the deliverable.</p></section>
+<section class="section-block is-warning"><span class="kicker">Traps</span><h2 class="section-title">Watch out</h2><ul><li><strong>If you cannot write the sentence, the analysis is not finished.</strong> It is not a writing problem.</li><li><strong>A portfolio that only shows successes looks incomplete.</strong> What did not work is what proves you can tell the difference.</li><li><strong>Nobody is going to read your notebook.</strong> It is the support, not the deliverable.</li><li><strong>A figure that appears in two documents with two values destroys trust</strong> in both. That is why everything comes out of a single file.</li><li><strong>The PACE plan is written before.</strong> Writing it afterwards is inventing an expectation you already know came true.</li><li><strong>Repeating the tutorial is not a project.</strong> If you use the course datasets, ask a question the exemplar did not ask.</li><li><strong>Metrics without a decision say nothing.</strong> An AUC of 0.86 is not a result; &quot;we contact the 20% at highest risk and recover 62%&quot; is.</li></ul></section>
+<section class="section-block is-bridge"><span class="kicker">Analogy</span><h2 class="section-title">Metallurgical bridge</h2><p>The report of a test campaign has exactly these layers, and you have already seen them ordered this way.</p><div class="table-wrap"><table><thead><tr><th>In the certificate</th><th>In the campaign report</th></tr></thead><tbody><tr><td>One sentence</td><td>The recommendation, on the cover</td></tr><tr><td>Executive summary</td><td>The summary for the committee</td></tr><tr><td>Case sheet</td><td>The body, with the conditions and why they were chosen</td></tr><tr><td>PACE plan</td><td>The test program, signed before starting</td></tr><tr><td>Script and notebook</td><td>The annexes with the balances and the test sheets</td></tr></tbody></table></div><p>And the parallel holds down to the uncomfortable detail. <strong>The test program is signed before the tests are run</strong>, just as the PACE plan quotes not a single figure. A program written at the end, with the winning conditions already set down as if they had been foreseen, fools nobody who has run a campaign.</p><p>And the tests that went wrong go in the body, they are not thrown away. A report that only shows the winning conditions leaves the reader without knowing <strong>what was tried and did not work</strong>, which is half of the useful information for whoever comes next.</p><p>The difference is in who reads. At the plant the committee knows the process; in a portfolio the reader does not know you, so the sentence on the cover has to work even harder.</p></section>
+<section class="section-block is-review"><span class="kicker">Review</span><h2 class="section-title">Review</h2><details><summary>Why does the PACE plan of the Waze project quote zero figures in 706 words?</summary><p>Because it is written <strong>before</strong> analysing. Its job is to set down in writing what is going to be done and what is expected to be found, and at that moment there are no results to quote. That is exactly what gives it value afterwards: when the project ends, you can check whether what happened resembles what was expected, and that check is only worth something if the expectation was written beforehand. A plan drafted at the end, with the conclusions already known, is not a plan but a rationalisation.</p></details><details><summary>The executive summary has 804 words and quotes 35 figures; the sheet has 1,200 and quotes 28. Why does the longer one quote fewer?</summary><p>Because they do different jobs. The summary is read by whoever decides and wants the numbers, so it is short and dense. The sheet is read by whoever doubts and wants to understand <strong>why</strong> those numbers are credible, and that is explained with sentences: how the data was split, what was discarded and why, what did not work. More words per figure is not padding, it is the explanation that turns a number into something defensible.</p></details><details><summary>What separates a résumé line that works from one that does not?</summary><p>That it describes a result instead of a task. &quot;Responsible for the churn analysis&quot; says what you were assigned; &quot;churn model on 14,299 users that identified the threshold as the real reason only 8% were detected&quot; says what you achieved, with a figure that can be asked about. And there is a second reader before the person: the program that filters résumés, which needs the words of the job ad verbatim and a plain format it knows how to read.</p></details><details><summary>Why is a project that only shows what went well worse than one that shows the failures?</summary><p>Because real work produces dead ends, and a portfolio without any can only mean two things: that the project was trivial or that they have been hidden. Both count against you. Telling what did not work proves you can tell a result from an artefact, which is the skill being evaluated. In the projects of this library that is half of the content: a segmentation that found no groups, a model that ties with a single question, a brief that cannot be fulfilled with the data available.</p></details><details><summary>Why do all published figures have to come out of a single results file?</summary><p>So that it is mechanically impossible for two documents to contradict each other. If the summary says 0.7379 and the sheet says 0.7348 because someone re-tuned something and updated one file but not the other, whoever reads them stops trusting both, and rightly so. By writing the code so that it saves everything publishable in one place, and forbidding yourself from quoting anything that is not there, the problem disappears instead of depending on remembering.</p></details></section>
+</main>
+<footer class="footer">
+  Concentra / distilled from the public syllabus of the course / 2026-08-22
+</footer>
+</body>
+</html>

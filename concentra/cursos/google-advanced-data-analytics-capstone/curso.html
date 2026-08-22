@@ -3,7 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Google Advanced Data Analytics Capstone — el curso</title>
+<title>Google Advanced Data Analytics Capstone · el curso</title>
+<link rel="alternate" hreflang="en" href="curso.en.html">
 <style>
 /* ============================================================================
    Concentra — design tokens and shared components.
@@ -102,9 +103,18 @@ body {
   text-transform: uppercase;
   color: var(--brass);
   margin-bottom: 1rem;
+  display: flex; flex-wrap: wrap; align-items: center;
+  justify-content: space-between; gap: .6rem 1rem;
 }
 .eyebrow a { color: inherit; text-decoration: none; border-bottom: 1px solid transparent; }
 .eyebrow a:hover { border-bottom-color: var(--brass); }
+/* The way to the other edition of this page. It targets the shell, not the bare
+   page, so the sidebar follows the language too. */
+.eyebrow .lang-switch {
+  margin-left: auto; border: 1px solid var(--seam); border-radius: 2px;
+  padding: .22rem .6rem; color: var(--dust); font-size: .68rem; letter-spacing: .1em;
+}
+.eyebrow .lang-switch:hover { color: var(--brass); border-color: var(--brass); }
 
 .header h1 {
   font-family: var(--display);
@@ -473,7 +483,7 @@ figure.fig figcaption {
 <body>
 <header class="header">
   <div class="header-content">
-    <div class="eyebrow">Curso 6 / <a href="https://www.coursera.org/learn/google-advanced-data-analytics-capstone">ver en Coursera</a></div>
+    <div class="eyebrow"><span>Curso 6 / <a href="https://www.coursera.org/learn/google-advanced-data-analytics-capstone">ver en Coursera</a></span><a class="lang-switch" href="../index.en.html#google-advanced-data-analytics-capstone/curso" target="_top" hreflang="en" lang="en" title="Read this page in English">English</a></div>
     <h1>Google Advanced Data Analytics Capstone</h1>
     <p class="subtitle"></p>
     <div class="mesh" role="presentation"></div>
@@ -495,7 +505,7 @@ figure.fig figcaption {
       <span class="name">cerebro-curso-6.md</span>
       <span class="size">5.8 KB</span>
       <span class="spacer"></span>
-      <button id="copy" type="button">Copiar todo</button>
+      <button id="copy" type="button" data-copy="Copiar todo" data-copied="Copiado" data-selected="Seleccionado: pulsa Ctrl+C">Copiar todo</button>
       <a class="btn" href="cerebro-curso-6.md" download>Descargar</a>
     </div>
     <pre><code id="brain"># Cerebro: empaquetar el trabajo y trabajar con IA generativa
@@ -669,11 +679,11 @@ button.addEventListener('click', async () => {
     selectSource();
     try { copied = document.execCommand('copy'); } catch { copied = false; }
   }
-  button.textContent = copied ? 'Copiado' : 'Seleccionado: pulsa Ctrl+C';
+  button.textContent = copied ? button.dataset.copied : button.dataset.selected;
   button.classList.toggle('done', copied);
   if (!copied) selectSource();
   setTimeout(() => {
-    button.textContent = 'Copiar todo';
+    button.textContent = button.dataset.copy;
     button.classList.remove('done');
   }, 2600);
 });

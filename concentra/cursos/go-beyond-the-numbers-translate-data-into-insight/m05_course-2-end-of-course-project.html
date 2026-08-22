@@ -3,7 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Course 2 end-of-course project — Go Beyond the Numbers: Translate Data into Insights</title>
+<title>Course 2 end-of-course project · Go Beyond the Numbers: Translate Data into Insights</title>
+
 <style>
 /* ============================================================================
    Concentra — design tokens and shared components.
@@ -102,9 +103,18 @@ body {
   text-transform: uppercase;
   color: var(--brass);
   margin-bottom: 1rem;
+  display: flex; flex-wrap: wrap; align-items: center;
+  justify-content: space-between; gap: .6rem 1rem;
 }
 .eyebrow a { color: inherit; text-decoration: none; border-bottom: 1px solid transparent; }
 .eyebrow a:hover { border-bottom-color: var(--brass); }
+/* The way to the other edition of this page. It targets the shell, not the bare
+   page, so the sidebar follows the language too. */
+.eyebrow .lang-switch {
+  margin-left: auto; border: 1px solid var(--seam); border-radius: 2px;
+  padding: .22rem .6rem; color: var(--dust); font-size: .68rem; letter-spacing: .1em;
+}
+.eyebrow .lang-switch:hover { color: var(--brass); border-color: var(--brass); }
 
 .header h1 {
   font-family: var(--display);
@@ -447,7 +457,7 @@ figure.fig figcaption {
 <body>
 <header class="header">
   <div class="header-content">
-    <div class="eyebrow"><a href="https://www.coursera.org/learn/go-beyond-the-numbers-translate-data-into-insight">Go Beyond the Numbers: Translate Data into Insights</a> / Módulo 5</div>
+    <div class="eyebrow"><span><a href="https://www.coursera.org/learn/go-beyond-the-numbers-translate-data-into-insight">Go Beyond the Numbers: Translate Data into Insights</a> / Módulo 5</span></div>
     <h1>Course 2 end-of-course project</h1>
     <p class="subtitle">La entrega del curso son tres archivos explorados y descritos. Los tres están hechos, y los tres enseñaron lo mismo desde sitios distintos: el defecto que importa no lo encuentra una regla automática, lo encuentra alguien que sabe qué es imposible.</p>
     <div class="mesh" role="presentation"></div>
@@ -481,7 +491,7 @@ full_report(
 <section class="section-block is-review"><span class="kicker">Repaso</span><h2 class="section-title">Repaso</h2><details><summary>¿Qué diferencia hay entre un valor atípico y un valor imposible?</summary><p>Un atípico es un valor lejano del resto que <strong>puede ser real</strong>, y por eso la regla del rango intercuartílico solo lo marca como candidato: hay que investigarlo y decidir entre mantenerlo, recortarlo o eliminarlo. Un valor imposible es uno que el fenómeno medido no admite, como 172 horas de conducción dentro de un día de 24, una tarifa negativa o una recuperación del 103 %. Ahí no hay decisión que tomar, es un defecto. La distinción importa porque ninguna regla estadística encuentra lo imposible: hace falta saber cómo funciona lo que se está midiendo.</p></details><details><summary>¿Por qué el archivo de Waze pasa todas las comprobaciones de rutina y aun así está roto?</summary><p>Porque las comprobaciones de rutina miran las columnas de una en una, y el defecto está en la relación entre dos de ellas. No hay duplicados, no hay ausentes salvo en la etiqueta, las categorías están limpias y los candidatos a atípico rondan un 3 a 5 % perfectamente normal. El problema solo aparece al construir una variable derivada, kilómetros entre días conducidos, que el archivo no trae: entonces salen 1.994 usuarios por encima de 1.000 km diarios y 461 por encima de 24 horas al volante en un día. La lección es que las variables derivadas hay que construirlas pronto, porque son donde se ven las incoherencias entre columnas.</p></details><details><summary>¿Qué se aprende mirando la forma de los huecos y no solo contándolos?</summary><p>De dónde vienen. En TikTok hay 298 valores ausentes en cada una de siete columnas, lo que podrían ser 2.086 casillas repartidas al azar por el archivo. No lo son: son 298 filas a las que les faltan las siete columnas a la vez. Eso descarta un fallo de medición columna a columna y apunta a un registro creado vacío o a una carga interrumpida, que es una causa distinta y con una solución distinta. Contar da un número; mirar la forma da una hipótesis sobre el origen.</p></details><details><summary>¿Por qué la regla del rango intercuartílico no marcó ningún atípico en las visualizaciones de TikTok?</summary><p>Porque esa regla mide la dispersión con la mitad central de los datos, y en esa columna la mitad central ya es enorme: el primer cuartil está en 4.942 y el tercero en 504.327, así que el rango intercuartílico vale casi medio millón y la valla alta se va a 1.253.404, por encima del máximo real del archivo. En columnas con varios órdenes de magnitud de recorrido, la regla no tiene nada que señalar, y hay que cambiar de criterio: mirar el dibujo en escala logarítmica o partir los datos en tramos con nombre.</p></details><details><summary>¿Qué debe incluir el entregable de un proyecto de exploración, además de las estadísticas?</summary><p>Lo que el archivo no permite hacer todavía, y qué haría falta para poder hacerlo. En el proyecto de Waze la conclusión entregable no es una cifra sino una pregunta concreta para el equipo que genera el archivo, sobre qué mide exactamente la columna de días conduciendo, más la recomendación de no usar dos columnas hasta tener la respuesta. Un informe que solo lista medias, mínimos y máximos deja el trabajo a medias: quien lo recibe no sabe de qué fiarse ni qué preguntar.</p></details></section>
 </main>
 <footer class="footer">
-  Concentra / destilado del temario público del curso / 2026-08-20
+  Concentra / destilado del temario público del curso / 2026-08-22
 </footer>
 </body>
 </html>

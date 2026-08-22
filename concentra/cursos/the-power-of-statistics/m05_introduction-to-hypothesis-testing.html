@@ -3,7 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Introduction to hypothesis testing — The Power of Statistics</title>
+<title>Introduction to hypothesis testing · The Power of Statistics</title>
+
 <style>
 /* ============================================================================
    Concentra — design tokens and shared components.
@@ -102,9 +103,18 @@ body {
   text-transform: uppercase;
   color: var(--brass);
   margin-bottom: 1rem;
+  display: flex; flex-wrap: wrap; align-items: center;
+  justify-content: space-between; gap: .6rem 1rem;
 }
 .eyebrow a { color: inherit; text-decoration: none; border-bottom: 1px solid transparent; }
 .eyebrow a:hover { border-bottom-color: var(--brass); }
+/* The way to the other edition of this page. It targets the shell, not the bare
+   page, so the sidebar follows the language too. */
+.eyebrow .lang-switch {
+  margin-left: auto; border: 1px solid var(--seam); border-radius: 2px;
+  padding: .22rem .6rem; color: var(--dust); font-size: .68rem; letter-spacing: .1em;
+}
+.eyebrow .lang-switch:hover { color: var(--brass); border-color: var(--brass); }
 
 .header h1 {
   font-family: var(--display);
@@ -447,7 +457,7 @@ figure.fig figcaption {
 <body>
 <header class="header">
   <div class="header-content">
-    <div class="eyebrow"><a href="https://www.coursera.org/learn/the-power-of-statistics">The Power of Statistics</a> / Módulo 5</div>
+    <div class="eyebrow"><span><a href="https://www.coursera.org/learn/the-power-of-statistics">The Power of Statistics</a> / Módulo 5</span></div>
     <h1>Introduction to hypothesis testing</h1>
     <p class="subtitle">Donde converge todo el curso. Dos turnos de planta con cinco mediciones cada uno enseñan por qué mirar la diferencia de medias no basta, y por qué un efecto grande puede salir no significativo mientras uno diminuto sale significativísimo.</p>
     <div class="mesh" role="presentation"></div>
@@ -503,7 +513,7 @@ z = -1.9630   p = 0.0496</pre></div><p>Fíjate en el resultado: <code>p = 0.0496
 <section class="section-block is-review"><span class="kicker">Repaso</span><h2 class="section-title">Repaso</h2><details><summary>¿Qué es exactamente el valor p?</summary><p>Es la probabilidad de observar un resultado tan extremo como el obtenido, o más, asumiendo que la hipótesis nula es verdadera. No es la probabilidad de que la hipótesis nula sea cierta ni la probabilidad de que el resultado sea casualidad en un sentido general: es una afirmación condicional muy concreta sobre los datos bajo el supuesto de que no hay efecto. Un valor p pequeño significa que ese resultado sería raro en un mundo sin diferencia, lo cual es evidencia en contra de ese supuesto.</p></details><details><summary>En el ejemplo de los turnos hay una diferencia de 2 puntos y un efecto grande, pero p sale 0,08. ¿Qué se concluye?</summary><p>Que con cinco mediciones por turno no hay evidencia suficiente para afirmar que difieren, y nada más. No se concluye que sean iguales. De hecho el tamaño del efecto, d de 1,26, es grande, y el intervalo de confianza va de −0,31 a 4,31, lo que deja mucho margen para una diferencia real. La lectura correcta es que el estudio está falto de poder estadístico y lo que procede es tomar más mediciones, no descartar la sospecha.</p></details><details><summary>¿Cómo pueden convivir un valor p diminuto y un efecto irrelevante?</summary><p>Porque el valor p depende del tamaño de muestra además del tamaño del efecto. Con 22.532 viajes, la diferencia de 1,22 dólares del caso Automatidata produce un p de 6,8 por diez elevado a menos doce, y sin embargo su d de Cohen es 0,09, un efecto despreciable. El test solo responde a si la diferencia es distinguible del azar, no a si vale la pena actuar sobre ella. Por eso el tamaño del efecto es obligatorio en cualquier reporte serio.</p></details><details><summary>¿Por qué no se dice nunca &quot;aceptamos la hipótesis nula&quot;?</summary><p>Porque no rechazarla no equivale a demostrar que es cierta. Solo significa que los datos disponibles no bastaron para descartarla, y eso es compatible tanto con que no haya efecto como con que exista uno que no se pudo detectar. El ejemplo de los turnos muestra el segundo caso con claridad: el efecto era grande y aun así no se detectó. La formulación correcta, &quot;no hay evidencia suficiente&quot;, deja abierta esa posibilidad en lugar de cerrarla de forma indebida.</p></details><details><summary>Vas a comparar la recuperación de dos reactivos en planta. ¿Qué haces antes de tocar los datos?</summary><p>Escribo la hipótesis nula, que ambos reactivos dan la misma recuperación media, y la alternativa, junto con el nivel de significancia, todo antes de ver ningún resultado. Decido también el tamaño de muestra pensando en qué diferencia me interesaría detectar, que es justo el error que cometió el ejemplo de juguete al quedarse en cinco mediciones. Y verifico que la asignación no esté confundida con otra variable, por ejemplo que un reactivo no se haya probado solo en el turno de noche o solo con mineral de una zona concreta, porque entonces no sabría si estoy midiendo el reactivo o el turno.</p></details></section>
 </main>
 <footer class="footer">
-  Concentra / destilado del temario público del curso / 2026-08-20
+  Concentra / destilado del temario público del curso / 2026-08-22
 </footer>
 </body>
 </html>

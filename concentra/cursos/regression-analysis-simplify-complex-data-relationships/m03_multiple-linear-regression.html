@@ -3,7 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Multiple linear regression — Regression Analysis: Simplify Complex Data Relationships</title>
+<title>Multiple linear regression · Regression Analysis: Simplify Complex Data Relationships</title>
+
 <style>
 /* ============================================================================
    Concentra — design tokens and shared components.
@@ -102,9 +103,18 @@ body {
   text-transform: uppercase;
   color: var(--brass);
   margin-bottom: 1rem;
+  display: flex; flex-wrap: wrap; align-items: center;
+  justify-content: space-between; gap: .6rem 1rem;
 }
 .eyebrow a { color: inherit; text-decoration: none; border-bottom: 1px solid transparent; }
 .eyebrow a:hover { border-bottom-color: var(--brass); }
+/* The way to the other edition of this page. It targets the shell, not the bare
+   page, so the sidebar follows the language too. */
+.eyebrow .lang-switch {
+  margin-left: auto; border: 1px solid var(--seam); border-radius: 2px;
+  padding: .22rem .6rem; color: var(--dust); font-size: .68rem; letter-spacing: .1em;
+}
+.eyebrow .lang-switch:hover { color: var(--brass); border-color: var(--brass); }
 
 .header h1 {
   font-family: var(--display);
@@ -447,7 +457,7 @@ figure.fig figcaption {
 <body>
 <header class="header">
   <div class="header-content">
-    <div class="eyebrow"><a href="https://www.coursera.org/learn/regression-analysis-simplify-complex-data-relationships">Regression Analysis: Simplify Complex Data Relationships</a> / Módulo 3</div>
+    <div class="eyebrow"><span><a href="https://www.coursera.org/learn/regression-analysis-simplify-complex-data-relationships">Regression Analysis: Simplify Complex Data Relationships</a> / Módulo 3</span></div>
     <h1>Multiple linear regression</h1>
     <p class="subtitle">Qué pasa cuando el resultado depende de varias cosas a la vez. Con cuatro números se ve una relación positiva convertirse en negativa por ignorar una variable, y luego se arregla metiéndola en el modelo. También: variables categóricas, multicolinealidad, sobreajuste y por qué el R² deja de servir.</p>
     <div class="mesh" role="presentation"></div>
@@ -499,7 +509,7 @@ for k, r2 in [(3, r2_three), (4, r2_four)]:
 <section class="section-block is-review"><span class="kicker">Repaso</span><h2 class="section-title">Repaso</h2><details><summary>¿Qué es la paradoja de Simpson y qué la produce?</summary><p>Es que la relación entre dos variables cambie de signo al separar los datos en grupos. En el ejemplo, mirando las cuatro pruebas juntas la dosis parece bajar la recuperación, con una pendiente de −0,26, mientras que dentro de cada tipo de mineral la sube, con una pendiente de +0,4 en los dos. La produce una variable de confusión que afecta a la vez al resultado y a la variable que se está midiendo: aquí el mineral duro recupera menos por sí mismo y además recibe más dosis, así que el castigo del mineral se le atribuye al reactivo. La solución es meter esa variable en el modelo, que es la razón de existir de la regresión múltiple.</p></details><details><summary>¿Cómo se interpreta correctamente un coeficiente de una regresión múltiple?</summary><p>Como el cambio en Y por cada unidad de esa X <strong>manteniendo constantes las demás variables del modelo</strong>. Esa condición forma parte del significado del número, no es un matiz que se pueda omitir al redactar. En el ejemplo, el +0,4 dice que comparando dos pruebas del mismo tipo de mineral, la que lleva un gramo por tonelada más recupera 0,4 puntos más; y el −22 dice que comparando dos pruebas con la misma dosis, la de mineral duro recupera 22 puntos menos que la de mineral fácil, que es la categoría de referencia.</p></details><details><summary>¿Por qué una variable categórica de tres niveles se codifica con dos columnas y no con tres?</summary><p>Porque con dos columnas la información ya está completa: si un caso no es duro y no es mixto, solo puede ser fácil. Añadir la tercera columna crearía una redundancia perfecta entre las columnas y el intercepto, y el sistema dejaría de tener una solución única. El nivel que se queda sin columna es la categoría de referencia: el intercepto le corresponde a él y los demás coeficientes se leen como diferencias respecto de él. Lo que no se debe hacer nunca es codificar los niveles como 1, 2 y 3, porque eso impone un orden y unas distancias iguales entre categorías que nadie ha comprobado.</p></details><details><summary>Añades una variable a un modelo y el R² sube de 0,800 a 0,805. ¿Merece la pena?</summary><p>Casi con seguridad no, y el R² a secas no puede responder porque <strong>siempre</strong> sube al añadir variables, incluso si son ruido puro. Hay que mirar el R² ajustado, que penaliza cada variable nueva: con veinte observaciones, pasar de tres a cuatro variables con esa subida lleva el ajustado de 0,7625 a 0,7530, o sea que baja. La variable aportó menos de lo que cuesta en grados de libertad, y dejarla dentro solo acerca el modelo al sobreajuste.</p></details><details><summary>¿Qué es la multicolinealidad, cómo se detecta y por qué importa?</summary><p>Es que dos o más variables independientes digan casi lo mismo, de forma que el modelo no puede repartir el efecto entre ellas de manera estable. Se detecta con el factor de inflación de la varianza, que se calcula por variable como 1 dividido entre 1 menos el R² de esa variable explicada por las demás, y que suele preocupar a partir de 5 y desde luego a partir de 10. El síntoma sin calcular nada es muy reconocible: el modelo predice bien pero ningún coeficiente sale significativo por separado. Importa porque destruye la interpretación individual de los coeficientes, que es justo lo que se busca en una regresión múltiple, aunque la capacidad de predicción del conjunto pueda seguir siendo buena.</p></details></section>
 </main>
 <footer class="footer">
-  Concentra / destilado del temario público del curso / 2026-08-20
+  Concentra / destilado del temario público del curso / 2026-08-22
 </footer>
 </body>
 </html>
