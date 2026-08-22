@@ -29,11 +29,9 @@ python src/build.py && python src/check_site.py
    habladas («Modelling flotation circuits from real plant data»), nunca «Li · Ta · Nb · W».
 3. **Números literales**: cada cifra de un proyecto sale de su medición; no se redondea ni
    se adorna. Los «marks» del índice son positivos y verificables.
-4. **Texto justificado en todos los anchos**, móvil incluido (pedido literal: «en celular el
-   texto no está justificado»). Medido el 2026-08-22 a 375 px: huecos de hasta 7,65× el
-   espacio normal y 5 de 6 líneas con río en el primer párrafo de «Who I am». La cifra y la
-   captura se le enseñaron; si decide volver al rasgado en móvil, es una regla en
-   `templates/style.css` (`.about-body p, .prose p` y `.section-head p`).
+4. **Justificado desde 33rem de columna; rasgado en celular.** Kevin pidió justificado en
+   móvil, vio la medición (huecos de 7,65× y ríos en 5 de 6 líneas a 375 px) y eligió
+   «celular quede bien, estilizado» (2026-08-22). Nada de `hyphens`.
 5. **Sin Coursera** ni nombres de plataformas en Concentra; son «mis apuntes, espero que le
    sirvan a alguien más».
 6. Froth se vende como necesidad cumplida, sin exagerar; el 42 % sin enlazar se queda dentro
@@ -58,10 +56,8 @@ python src/build.py && python src/check_site.py
 
 ## Huecos que solo Kevin puede llenar
 
-- `site.json` → `"linkedin": ""` (URL completa).
 - `site.json` → `"form_endpoint": ""` (`https://formspree.io/f/<ID>`; crear la cuenta
   gratuita y **apuntar el límite mensual**, que no se pudo leer desde aquí).
-- Decidir sobre el justificado en móvil con la evidencia de arriba.
 - Confirmar el mark nuevo de Froth («44 subtopics, named and bridged») o volver al de
   1.290 vs 4.045.
 
