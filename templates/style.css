@@ -1118,14 +1118,16 @@ p, .assay-tagline, .cred-detail, .streams dd { text-wrap: pretty; }
   max-width: var(--measure);
 }
 
-/* Justified at every width, phones included (Kevin, 2026-08-22: the phone was the one
-   place the text was still ragged). Without hyphenation a narrow column can open
-   rivers; the gaps are measured in the pane at 375 px and reported, never hidden. */
-.about-body p,
-.prose p {
-  text-align: justify;
-  text-wrap: initial;          /* pretty and justify fight; justify wins here */
-  text-align-last: start;      /* never stretch the last line of a paragraph */
+/* Justified from 33rem of column up; ragged below. Kevin asked for justified text on the
+   phone too, saw the measured result (gaps of 7.65x the normal space, rivers in 5 of 6
+   lines at 375 px) and chose the phone looking right over the rule: 2026-08-22. */
+@container (min-width: 33rem) {
+  .about-body p,
+  .prose p {
+    text-align: justify;
+    text-wrap: initial;          /* pretty and justify fight; justify wins here */
+    text-align-last: start;      /* never stretch the last line of a paragraph */
+  }
 }
 
 /* ===========================================================================
@@ -1447,10 +1449,12 @@ html.js .copy-email { display: inline-block; }
    past the width where justifying starts producing rivers. */
 .section-head p { max-width: var(--measure); }
 
-.section-head p {
-  text-align: justify;
-  text-wrap: initial;
-  text-align-last: start;
+@media (min-width: 60rem) {
+  .section-head p {
+    text-align: justify;
+    text-wrap: initial;
+    text-align-last: start;
+  }
 }
 
 /* "Who I am" runs its text the full width of the page under its heading, rather than
