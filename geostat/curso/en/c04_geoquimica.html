@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gold&#x27;s companions · Gold under the noise</title>
+<meta name="description" content="Bivariate and compositional: Gd follows gold, La walks away: hydrothermal fractionation in the data.">
+<link rel="alternate" hreflang="es" href="../es/c04_geoquimica.html">
+<script>document.documentElement.className="js"</script>
+<link rel="stylesheet" href="../estilo.css">
+</head>
+<body>
+<header class="cabecera">
+  <a class="marca" href="index.html">Gold under the noise</a>
+  <nav>
+    <a href="index.html">Index</a>
+    <a class="idioma" href="../es/c04_geoquimica.html" rel="alternate" hreflang="es">Español</a>
+  </nav>
+</header>
+<main>
+<article class="capitulo">
+  <p class="miga">Chapter 4 · <span class="cifra">Au-Gd r≈+0.47 · Au-La r≈−0.34 · CoDa</span></p>
+  <h1>Gold&#x27;s companions</h1>
+  <p class="resumen">Bivariate and compositional: Gd follows gold, La walks away: hydrothermal fractionation in the data.</p>
+<p>Gold keeps company, and not the company one would expect. Against gadolinium, <strong>r = +0.472</strong>; against lanthanum, <strong>r = −0.338</strong>. Two rare earths, neighbours on the periodic table, and gold moves towards one and away from the other. That asymmetric pattern is the central finding of the bivariate geochemistry, and compositional analysis then confirms it by another route.</p>
+<p>In this chapter: what a correlation measures, the rare earth block that behaves as a single body, how gold breaks that uniformity, and why with data that are parts of a whole you have to look at ratios rather than raw values.</p>
+<h2>A toy example before the theory</h2>
+<p>Correlation, <strong>r</strong>, measures how much a cloud of points resembles a straight line. It is 1 if when one variable rises the other rises in exact proportion; −1 if it falls in proportion; 0 if there is no linear relationship. And its square, <strong>r²</strong>, says what fraction of one variable&#x27;s variation the other explains: with r = 0.472, r² = 0.222, so gold explains 22% of the variation in gadolinium. The remaining 78% is explained by other things.</p>
+<p>Two cautions the chapter will use. First: r measures straight lines, so a curved relationship can give r near zero while being real; that is why <strong>Spearman</strong> correlation was also computed, which measures whether one variable rises when the other does, without demanding a straight line. Second: with values spanning several orders of magnitude, a few extremes dominate the line; that is why the correlations were computed on <strong>log10</strong> data.</p>
+<h2>The rare earth block</h2>
+<p>In both matrices, Pearson and Spearman on log10, the most striking feature is a <strong>continuous block of strong positive correlations</strong> among all the rare earths, from the light ones (La, Ce, Pr, Nd) through the medium ones (Sm, Eu, Gd, Tb, Dy) to the heavy ones (Yb, Lu). The coefficients commonly exceed <strong>0.70</strong> and locally approach <strong>0.90</strong>. That is what to expect: similar ionic radii, similar behaviour during mantle melting, magmatic differentiation and hydrothermal overprints.</p>
+<p>That Pearson and Spearman draw nearly the same pattern says those relationships are fundamentally linear after transformation and do not hang on a few influential points. And in raw, untransformed space the same block is visible but fainter and noisier: it confirms that working in log10 invents nothing, it removes noise.</p>
+<h2>Where gold breaks the uniformity</h2>
+<p>Along the gold row, correlations with the light rare earths are weak or negative, while with the medium and heavy ones they turn moderately positive.</p>
+<figure><img src="../figuras/obj0294_1379x1342.4fc47dc1.png" alt="Four key relationships, in log10 and coloured by distance to the nearest rare earth deposit. Top left, Au against Gd rises; top right, Au against La falls; bottom left, Gd against Pr is almost a perfect line; bottom right, the LREE/HREE ratio against Au is flat. Notice how the red points, the ones closest to a deposit, are the ones that best draw the gold to gadolinium trend." loading="eager"><figcaption>Four key relationships, in log10 and coloured by distance to the nearest rare earth deposit. Top left, Au against Gd rises; top right, Au against La falls; bottom left, Gd against Pr is almost a perfect line; bottom right, the LREE/HREE ratio against Au is flat. Notice how the red points, the ones closest to a deposit, are the ones that best draw the gold to gadolinium trend.</figcaption></figure>
+<p>The four relationships, with their numbers:</p>
+<ul><li><strong>Au against La</strong>: r = <strong>−0.338</strong>, r² = 0.114, n = 90. A weak but consistent negative trend: more gold, less lanthanum. A signature of <strong>light rare earth depletion</strong> within the gold-bearing domains, and both proximal and distal samples take part in it, so it is not a local effect.</li><li><strong>Au against Gd</strong>: r = <strong>+0.472</strong>, r² = 0.222, n = 45. Moderate and positive, with the points concentrated between 1.1 and 1.3 of gold and 1.3 to 1.7 of gadolinium in log10. Its clearest expression sits in the most mineralised zones. These are 45 of the 452 samples with gold present, and it must be read at that scale.</li><li><strong>Gd against Pr</strong>: r = <strong>0.923</strong>, r² = 0.852, n = 203. Almost perfect. This is the reference for what a coherent relationship looks like in this system: if the rare earth data were analytical noise, this relationship would not exist. So gold&#x27;s weaker relationships are not noise: they are different processes.</li><li><strong>LREE/HREE ratio against Au</strong>: r = <strong>0.046</strong>, r² = 0.002, n = 24. A horizontal line. Gold does not respond to the overall shape of the rare earth spectrum, but to specific aspects, such as the absolute content of medium rare earths in particular mineral phases.</li></ul>
+<aside class="ojo"><p>That gold is depleted in La and enriched in Gd, and at the same time indifferent to the LREE/HREE ratio, is not a contradiction: it says gold does not track total rare earth abundance, but mineralogical or fluid processes that split the light ones from the medium and heavy ones during mineralisation.</p></aside>
+<h2>The problem of everything summing to a hundred</h2>
+<p>Geochemical concentrations are <strong>parts of a whole</strong>: if one rises in proportion, another must fall, even with no geological process behind it. That is the <strong>closure problem</strong>, and it can manufacture false negative correlations that ordinary statistics reads as geology. <strong>Compositional data analysis</strong> exists for exactly that.</p>
+<p>The first step is to look at the data in their natural geometry, the <strong>simplex</strong>: a triangle with the light, medium and heavy rare earths at the vertices. The samples do not form a random cloud: they draw a compositional trend from the light vertex towards the medium-heavy axis, and the ones pushing that trend are the <strong>samples proximal to the deposit</strong>. The mineralisation is changing the relative proportions, the rock&#x27;s recipe, not just adding mass.</p>
+<figure><img src="../figuras/obj0308_1179x440.392c6783.png" alt="The chondrite-normalised patterns, which remove the effect of absolute abundance and let the shape show. Right, samples proximal to the deposit (red, under 2 km) against distal ones (green): notice the drop in the light La and Ce for the proximal ones and the relative stability of the heavy ones. The europium anomaly, the valley in the middle, shows in both groups." loading="lazy"><figcaption>The chondrite-normalised patterns, which remove the effect of absolute abundance and let the shape show. Right, samples proximal to the deposit (red, under 2 km) against distal ones (green): notice the drop in the light La and Ce for the proximal ones and the relative stability of the heavy ones. The europium anomaly, the valley in the middle, shows in both groups.</figcaption></figure>
+<p>The second step normalises each pattern against a common reference, chondritic meteorites, to compare shapes rather than heights. The drop in La and Ce in the proximal samples confirms that the light depletion the matrix suggested is a real change in the pattern&#x27;s shape.</p>
+<p>And the third, the most rigorous: work with <strong>log-ratios</strong>, which are invariant to the closure problem. The normalised (La/Yb) ratio is significantly lower in proximal samples than in distal ones: the hydrothermal system systematically fractionated the light rare earths from the heavy ones.</p>
+<figure><img src="../figuras/obj0310_1351x280.1884f978.png" alt="Fractionation indices by proximity: La/Yb, La/Sm, Gd/Yb and the LREE/HREE ratio, each with a box for proximal and distal samples. What to look at is the La/Yb box: clearly lower in the proximal ones, which is the fractionation confirmed by a route immune to closure." loading="lazy"><figcaption>Fractionation indices by proximity: La/Yb, La/Sm, Gd/Yb and the LREE/HREE ratio, each with a box for proximal and distal samples. What to look at is the La/Yb box: clearly lower in the proximal ones, which is the fractionation confirmed by a route immune to closure.</figcaption></figure>
+<h2>What stands established</h2>
+<p>The rare earths behave as a coherent block (r from 0.70 to 0.90), gold breaks it with an asymmetric pattern (La r = −0.338, Gd r = +0.472), the LREE/HREE ratio does not predict gold (r = 0.046), and compositional analysis confirms the fractionation by three routes that do not depend on closure. A more reliable exploration guide than raw gold grade: medium rare earth enrichment. The next chapter asks whether all this structure is, at bottom, geology: whether gold lives in particular rocks.</p>
+  <nav class="pie-nav">
+    <a class="nav-ant" href="c03_eda.html"><small>Previous</small>Gold is not normal</a>
+    <a class="nav-indice" href="index.html">Back to the index</a>
+    <a class="nav-sig" href="c05_controles-geologicos.html"><small>Next</small>Geology rules, statistics constrains</a>
+  </nav>
+</article>
+</main>
+<script src="../motor.js" defer></script>
+</body>
+</html>

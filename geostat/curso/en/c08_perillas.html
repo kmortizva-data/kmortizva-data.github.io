@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The knobs that did not matter · Gold under the noise</title>
+<meta name="description" content="Spherical 0.2371 / exponential 0.2430 / Gaussian 0.2435; n=5→0.2388 … n=40→0.2295. That the knobs barely move anything IS the finding: the real constraint is the 425 samples.">
+<link rel="alternate" hreflang="es" href="../es/c08_perillas.html">
+<script>document.documentElement.className="js"</script>
+<link rel="stylesheet" href="../estilo.css">
+</head>
+<body>
+<header class="cabecera">
+  <a class="marca" href="index.html">Gold under the noise</a>
+  <nav>
+    <a href="index.html">Index</a>
+    <a class="idioma" href="../es/c08_perillas.html" rel="alternate" hreflang="es">Español</a>
+  </nav>
+</header>
+<main>
+<article class="capitulo">
+  <p class="miga">Chapter 8 · <span class="cifra">models ±0.006 RMSE · neighbours ±0.009</span></p>
+  <h1>The knobs that did not matter</h1>
+  <p class="resumen">Spherical 0.2371 / exponential 0.2430 / Gaussian 0.2435; n=5→0.2388 … n=40→0.2295. That the knobs barely move anything IS the finding: the real constraint is the 425 samples.</p>
+<p>The variogram model was changed and the validation error moved by <strong>6 thousandths</strong>. The number of neighbours was changed from 5 to 40 and it moved by <strong>9 thousandths</strong>. Against an error of <strong>0.230</strong>, that is next to nothing, and next to nothing is the finding of this chapter: the kriging knobs are not where this deposit&#x27;s error lives.</p>
+<p>In this chapter: what a sensitivity test is, the model knob, the neighbourhood knob, the reconciliation with chapter 6, and the reading that matters.</p>
+<h2>What a sensitivity test is</h2>
+<p>Take one decision in the workflow, change only that one, keep everything else the same and measure with the usual yardstick: the <strong>cross-validation RMSE</strong>, the root mean squared error when each sample is estimated without itself, in log10 units. If the yardstick barely moves, the decision did not matter; if it moves a lot, there was a real knob there. Both tests were run with ordinary kriging, a moving neighbourhood and the <strong>240 m</strong> experimental variogram of chapter 6.</p>
+<h2>Knob 1: the variogram model</h2>
+<p>The three models of chapter 6 were fitted to the same experimental points and each was used to krige with <strong>10 neighbours</strong>:</p>
+<ul><li><strong>Spherical</strong>: RMSE <strong>0.2371</strong>.</li><li><strong>Exponential</strong>: RMSE <strong>0.2430</strong>.</li><li><strong>Gaussian</strong>: RMSE <strong>0.2435</strong>.</li></ul>
+<figure><img src="../figuras/obj0377_1350x375.297302fb.jpg" alt="The three ordinary kriging maps with 10 neighbours, one per model. The high zones (yellow) and low zones (purple) land in the same places in all three; the difference lies in how smooth the transitions are, and in the third decimal of the RMSE." loading="eager"><figcaption>The three ordinary kriging maps with 10 neighbours, one per model. The high zones (yellow) and low zones (purple) land in the same places in all three; the difference lies in how smooth the transitions are, and in the third decimal of the RMSE.</figcaption></figure>
+<p>The three maps are almost the same map: the high-grade and low-grade zones land in the same places, and what changes is how smoothly one passes into the other, a reflection of the slightly different weighting functions each shape implies. The largest RMSE difference is <strong>0.0064</strong>, 2.8 % of the total error.</p>
+<h2>The reconciliation with chapter 6</h2>
+<p>There is a tension here worth saying out loud. In chapter 6 the <strong>Gaussian</strong> won, for fitting the experimental points best (fit error 0.0125 against the spherical&#x27;s 0.0129). In this test the <strong>spherical</strong> wins, for predicting unseen samples best (0.2371 against 0.2435). That is not a contradiction: they are two different questions. Fitting a curve measures how closely the model traces the variogram points; validating measures how well the kriging built from that model hits the mark. A model can trace the points better and estimate a hair worse.</p>
+<aside class="ojo"><p>The gap between the two, 6 thousandths of RMSE in log10, is smaller than anything this file of 425 samples can tell apart. Choosing either is legitimate; what is not legitimate is selling the choice as if it changed the result. It does not.</p></aside>
+<h2>Knob 2: the neighbourhood</h2>
+<p>With the spherical fixed, kriging was repeated with a maximum of <strong>5, 10, 20 and 40 neighbours</strong> per point, with the same search ellipse and the same orientation, so that only the count changed:</p>
+<ul><li><strong>n = 5</strong>: RMSE <strong>0.2388</strong>.</li><li><strong>n = 10</strong>: RMSE <strong>0.2371</strong>.</li><li><strong>n = 20</strong>: RMSE <strong>0.2298</strong>.</li><li><strong>n = 40</strong>: RMSE <strong>0.2295</strong>.</li></ul>
+<figure><img src="../figuras/obj0379_1082x925.c91bf3aa.jpg" alt="The four ordinary kriging maps with the spherical, from 5 to 40 neighbours. With 5 neighbours the map is full of facets and jumps; with 40 it is the smoothest of the four. The RMSE drops from 0.2388 to 0.2295 and almost all of the drop happens between 10 and 20." loading="lazy"><figcaption>The four ordinary kriging maps with the spherical, from 5 to 40 neighbours. With 5 neighbours the map is full of facets and jumps; with 40 it is the smoothest of the four. The RMSE drops from 0.2388 to 0.2295 and almost all of the drop happens between 10 and 20.</figcaption></figure>
+<p>With 5 neighbours the surface shows more local variability and sharper transitions: few points rule each estimate, so every sample weighs a lot and changes in the neighbour set leave visible facets. Moving up to 10, 20 and 40 the surface smooths out and the patterns become more continuous. That is expected: more neighbours means more support and more averaging, which reduces local variance but can erase real short-scale variability, the <strong>conditional bias</strong> mentioned in the previous chapter.</p>
+<p>The RMSE reflects that trade: it drops from <strong>0.2388</strong> to <strong>0.2371</strong> going from 5 to 10, keeps dropping to <strong>0.2298</strong> with 20, and with 40 barely reaches <strong>0.2295</strong>. Almost all of the improvement lies in the step from very small neighbourhoods to a moderate one; beyond 20, diminishing returns. For this file the balance sits between <strong>10 and 20 neighbours</strong>: stable estimates without over-smoothing. The maps in the previous chapters use 10.</p>
+<aside class="ojo"><p>That 40 neighbours give the lowest RMSE does not make 40 the best choice: a smoother map hits the average better and the extremes worse, and in gold the extremes are what one is looking for. This is the kind of knob that is not chosen by the yardstick alone.</p></aside>
+<h2>The reading that matters</h2>
+<p>Put the two tests side by side. The model moves the RMSE by <strong>0.0064</strong>. The neighbourhood, from 5 to 40, moves it by <strong>0.0093</strong>. The RMSE stays at <strong>0.23</strong> whatever you do, which in ppb is a typical factor of <strong>1.70</strong> between estimate and truth. No knob lowers the error appreciably because the error is not in the knobs: it is in the <strong>425 samples</strong> with measurable gold spread over 62,000 km², in the anisotropy the omnidirectional model does not capture, and in the smoothing every linear kriging carries inside.</p>
+<p>That is the useful result of this chapter. It does not say &quot;the spherical with 20 neighbours&quot;; it says the next real improvement to this map will not come from tuning the kriging, but from more samples where the variance is high, or from methods that use other information, which is what the final chapter is about.</p>
+<h2>What is now established</h2>
+<p>Models and neighbourhoods were tested and barely moved the yardstick: 6 and 9 thousandths on 0.230. The map is as good as its 425 samples allow, and the last chapter says what it is good for and what it is not.</p>
+  <nav class="pie-nav">
+    <a class="nav-ant" href="c07_kriging.html"><small>Previous</small>Kriging: the best honest estimate</a>
+    <a class="nav-indice" href="index.html">Back to the index</a>
+    <a class="nav-sig" href="c09_veredicto.html"><small>Next</small>Strictly preliminary</a>
+  </nav>
+</article>
+</main>
+<script src="../motor.js" defer></script>
+</body>
+</html>

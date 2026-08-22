@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Las perillas que no importaron · Oro bajo el ruido</title>
+<meta name="description" content="Esférico 0,2371 / exponencial 0,2430 / gaussiano 0,2435; n=5→0,2388 … n=40→0,2295. Que las perillas muevan tan poco ES el hallazgo: la restricción real son las 425 muestras.">
+<link rel="alternate" hreflang="en" href="../en/c08_perillas.html">
+<script>document.documentElement.className="js"</script>
+<link rel="stylesheet" href="../estilo.css">
+</head>
+<body>
+<header class="cabecera">
+  <a class="marca" href="index.html">Oro bajo el ruido</a>
+  <nav>
+    <a href="index.html">Índice</a>
+    <a class="idioma" href="../en/c08_perillas.html" rel="alternate" hreflang="en">English</a>
+  </nav>
+</header>
+<main>
+<article class="capitulo">
+  <p class="miga">Capítulo 8 · <span class="cifra">modelos ±0,006 RMSE · vecinos ±0,009</span></p>
+  <h1>Las perillas que no importaron</h1>
+  <p class="resumen">Esférico 0,2371 / exponencial 0,2430 / gaussiano 0,2435; n=5→0,2388 … n=40→0,2295. Que las perillas muevan tan poco ES el hallazgo: la restricción real son las 425 muestras.</p>
+<p>Se cambió el modelo de variograma y el error de validación se movió <strong>6 milésimas</strong>. Se cambió el número de vecinos de 5 a 40 y se movió <strong>9 milésimas</strong>. Sobre un error de <strong>0,230</strong>, eso es casi nada, y que sea casi nada es el hallazgo de este capítulo: las perillas del kriging no son donde vive el error de este depósito.</p>
+<p>En este capítulo: qué es una prueba de sensibilidad, la perilla del modelo, la perilla del vecindario, la reconciliación con el capítulo 6, y la lectura que importa.</p>
+<h2>Qué es una prueba de sensibilidad</h2>
+<p>Se toma una decisión del flujo, se cambia solo esa, se deja todo lo demás igual y se mide la misma vara de siempre: el <strong>RMSE de validación cruzada</strong>, la raíz del error cuadrático medio al estimar cada muestra sin ella, en unidades de log10. Si la vara apenas se mueve, la decisión no importaba; si se mueve mucho, ahí había una perilla de verdad. Las dos pruebas se hicieron con kriging ordinario, vecindario móvil y el variograma experimental de <strong>240 m</strong> del capítulo 6.</p>
+<h2>Perilla 1: el modelo de variograma</h2>
+<p>Los tres modelos del capítulo 6 se ajustaron a los mismos puntos experimentales y cada uno se usó para krigear con <strong>10 vecinos</strong>:</p>
+<ul><li><strong>Esférico</strong>: RMSE <strong>0,2371</strong>.</li><li><strong>Exponencial</strong>: RMSE <strong>0,2430</strong>.</li><li><strong>Gaussiano</strong>: RMSE <strong>0,2435</strong>.</li></ul>
+<figure><img src="../figuras/obj0377_1350x375.297302fb.jpg" alt="Los tres mapas de kriging ordinario con 10 vecinos, uno por modelo. Las zonas altas (amarillo) y bajas (morado) caen en los mismos sitios en los tres; la diferencia está en la suavidad de las transiciones, y en el tercer decimal del RMSE." loading="eager"><figcaption>Los tres mapas de kriging ordinario con 10 vecinos, uno por modelo. Las zonas altas (amarillo) y bajas (morado) caen en los mismos sitios en los tres; la diferencia está en la suavidad de las transiciones, y en el tercer decimal del RMSE.</figcaption></figure>
+<p>Los tres mapas son casi el mismo mapa: las zonas de alta ley y de baja ley caen en los mismos sitios, y lo que cambia es la suavidad con la que se pasa de una a otra, reflejo de las funciones de peso ligeramente distintas que implica cada forma. La diferencia máxima de RMSE es de <strong>0,0064</strong>, un 2,8 % del error total.</p>
+<h2>La reconciliación con el capítulo 6</h2>
+<p>Aquí hay una tensión que conviene decir en voz alta. En el capítulo 6 ganó el <strong>gaussiano</strong>, por ajustarse mejor a los puntos experimentales (error de ajuste 0,0125 frente a 0,0129 del esférico). En esta prueba gana el <strong>esférico</strong>, por predecir mejor muestras que no ha visto (0,2371 frente a 0,2435). No es una contradicción: son dos preguntas distintas. Ajustar una curva mide cuánto se parece el modelo a los puntos del variograma; validar mide cuánto acierta el kriging que sale de ese modelo. Un modelo puede calcar mejor los puntos y estimar un pelo peor.</p>
+<aside class="ojo"><p>La diferencia entre los dos, 6 milésimas de RMSE en log10, es más pequeña que cualquier cosa que este archivo de 425 muestras pueda separar. Elegir uno u otro es legítimo; lo que no es legítimo es vender la elección como si cambiara el resultado. No lo cambia.</p></aside>
+<h2>Perilla 2: el vecindario</h2>
+<p>Con el esférico fijo, se repitió el kriging con un máximo de <strong>5, 10, 20 y 40 vecinos</strong> por punto, con la misma elipse de búsqueda y la misma orientación, de modo que solo cambiara el número:</p>
+<ul><li><strong>n = 5</strong>: RMSE <strong>0,2388</strong>.</li><li><strong>n = 10</strong>: RMSE <strong>0,2371</strong>.</li><li><strong>n = 20</strong>: RMSE <strong>0,2298</strong>.</li><li><strong>n = 40</strong>: RMSE <strong>0,2295</strong>.</li></ul>
+<figure><img src="../figuras/obj0379_1082x925.c91bf3aa.jpg" alt="Los cuatro mapas de kriging ordinario con el esférico, de 5 a 40 vecinos. Con 5 vecinos el mapa está lleno de facetas y de saltos; con 40 es el más liso de los cuatro. El RMSE baja de 0,2388 a 0,2295 y casi todo el descenso ocurre al pasar de 10 a 20." loading="lazy"><figcaption>Los cuatro mapas de kriging ordinario con el esférico, de 5 a 40 vecinos. Con 5 vecinos el mapa está lleno de facetas y de saltos; con 40 es el más liso de los cuatro. El RMSE baja de 0,2388 a 0,2295 y casi todo el descenso ocurre al pasar de 10 a 20.</figcaption></figure>
+<p>Con 5 vecinos, la superficie muestra más variabilidad local y transiciones más bruscas: pocos puntos mandan en cada estimación, así que cada muestra pesa mucho y los cambios de conjunto de vecinos dejan facetas visibles. Al subir a 10, 20 y 40 la superficie se alisa y los patrones se vuelven más continuos. Es lo esperado: más vecinos es más soporte y más promedio, lo que reduce la varianza local pero puede borrar variabilidad real a corta escala, el <strong>sesgo condicional</strong> del que se habló en el capítulo anterior.</p>
+<p>El RMSE refleja ese canje: baja de <strong>0,2388</strong> a <strong>0,2371</strong> al pasar de 5 a 10, sigue bajando hasta <strong>0,2298</strong> con 20, y con 40 apenas llega a <strong>0,2295</strong>. Casi toda la mejora está en el paso de vecindarios muy pequeños a uno moderado; a partir de 20, rendimientos decrecientes. Para este archivo el equilibrio está entre <strong>10 y 20 vecinos</strong>: estimaciones estables sin alisar de más. Los mapas de los capítulos anteriores usan 10.</p>
+<aside class="ojo"><p>Que 40 vecinos den el RMSE más bajo no significa que 40 sea la mejor elección: un mapa más liso acierta mejor el promedio y peor los extremos, y en oro los extremos son lo que se busca. Esta es la clase de perilla que no se elige solo por la vara.</p></aside>
+<h2>La lectura que importa</h2>
+<p>Pon las dos pruebas una al lado de la otra. El modelo mueve el RMSE <strong>0,0064</strong>. El vecindario, de 5 a 40, lo mueve <strong>0,0093</strong>. El RMSE se queda en <strong>0,23</strong> hagas lo que hagas, que en ppb es un factor de <strong>1,70</strong> típico entre lo estimado y lo real. Ninguna perilla baja el error de forma apreciable porque el error no está en las perillas: está en las <strong>425 muestras</strong> con oro medible repartidas en 62.000 km², en la anisotropía que el modelo omnidireccional no recoge, y en el suavizado que todo kriging lineal lleva dentro.</p>
+<p>Ese es el resultado útil de este capítulo. No dice «el esférico con 20 vecinos»; dice que la siguiente mejora real de este mapa no saldrá de ajustar el kriging, sino de más muestras donde la varianza es alta, o de métodos que usen otra información, que es de lo que trata el capítulo final.</p>
+<h2>Lo que queda establecido</h2>
+<p>Modelos y vecindarios se probaron y apenas movieron la vara: 6 y 9 milésimas sobre 0,230. El mapa es tan bueno como lo dejan sus 425 muestras, y el último capítulo dice para qué sirve y para qué no.</p>
+  <nav class="pie-nav">
+    <a class="nav-ant" href="c07_kriging.html"><small>Anterior</small>Kriging: la mejor estimación honesta</a>
+    <a class="nav-indice" href="index.html">Volver al índice</a>
+    <a class="nav-sig" href="c09_veredicto.html"><small>Siguiente</small>Estrictamente preliminar</a>
+  </nav>
+</article>
+</main>
+<script src="../motor.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gold under the noise - Kevin Ortiz</title>
+<meta name="description" content="Nine bilingual chapters of real geostatistics: 1,333 dirty gold records from South Australia become a kriging map that states its own uncertainty.">
+<meta property="og:title" content="Gold under the noise - Kevin Ortiz">
+<meta property="og:description" content="Nine bilingual chapters of real geostatistics: 1,333 dirty gold records from South Australia become a kriging map that states its own uncertainty.">
+<meta property="og:type" content="website">
+<link rel="alternate" hreflang="es" href="../es/proyectos/geostat.html">
+<script>document.documentElement.className="js"</script>
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="wrap masthead">
+  <a class="mark" href="../index.html">Kevin Ortiz <b>/</b> datageeksunited.com</a>
+  <nav>
+    <a href="../index.html#about">About</a>
+    <a href="../index.html#work">Work</a>
+    <a href="../es/proyectos/geostat.html" rel="alternate" hreflang="es">Español</a>
+    <a class="cta" href="mailto:kmortizva@datageeksunited.com">Get in touch</a>
+  </nav>
+</header>
+<main id="main">
+<article class="wrap section">
+  <a class="back" href="../index.html#work">All work</a>
+  <p class="eyebrow">9 chapters, Spanish and English, live.</p>
+  <h1 class="project-title">Gold under the noise</h1>
+  <p class="project-tagline">Nine bilingual chapters of real geostatistics: 1,333 dirty gold records from South Australia become a kriging map that states its own uncertainty.</p>
+
+  <figure class="figure"><img src="../assets/shots/geostat-index.png" alt="The index of Gold under the noise: nine chapters, each with its headline figure" width="1440" height="900" decoding="async"><figcaption>The index of Gold under the noise: nine chapters, each with its headline figure</figcaption></figure>
+
+  <div class="assay assay-solo" data-accent="gold">
+    <div class="assay-body">
+      <dl class="streams"><div><dt>The problem</dt><dd>A public geochemistry file: 1,333 records, 79 variables, 62,000 km² of Proterozoic terrane. Coordinates in mixed formats, 35.88 % of the cells filled, and measurable gold in only 425 samples, clustered along the regional strike.</dd></div><div><dt>How I solved it</dt><dd>Clean and aggregate the duplicates to 1,020 locations, take log10, read the companions of gold (Gd follows it, La walks away), test the geological domains and reject them for sample size, build the variogram (240 m lag, a Gaussian with a 4,470 m range), then krige twice, simple and ordinary, and cross-validate both.</dd></div><div><dt>The result</dt><dd>A map of exploration targets with its variance map beside it, an RMSE of 0.230 in log10 (a factor of 1.70 in ppb), and the limits written down: smoothing, heavy tails, an anisotropy the omnidirectional model does not capture.</dd></div></dl>
+      <div class="assay-figure">
+        <p class="eyebrow">Measured</p>
+        <q>The knobs moved the error by thousandths</q>
+        <p>Three variogram models changed the cross-validation RMSE by 0.0064; neighbourhoods from 5 to 40 changed it by 0.0093. The constraint is the 425 samples, not the kriging, and the two validation runs came out identical point for point, which the chapter says out loud instead of crowning a winner.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="prose"><p>Gold is the hardest variable I have worked with: skewed, censored in most of the file, clustered where the geologists already suspected it. I wanted to walk the whole path on real data, from a dirty file to a map that admits how much it does not know, and to write it so that someone who has never seen a variogram can follow every number.</p><p>Every figure is quoted literally from the analysis. The kriging chapter solves a three-sample system by hand with the project&#x27;s own variogram before any software is mentioned, and the variogram curve on the page is computed at build time from its three parameters, nugget, sill and range, not traced from an image.</p><p>The site is bilingual from birth, Spanish and English as twins, and three checks run before anything is committed: both editions share the same figures and the same scrollytelling steps, nothing links to a PDF, and every image on disk is whole. The whole thing is Python standard library, HTML, CSS and a little JavaScript the pages do not depend on.</p><p>What I would do next is in the last chapter: co-kriging on the rare earths that travel with gold, and simulation to replace one smoothed map with a hundred probable ones.</p></div>
+
+  <p class="eyebrow stack-label">Built with</p>
+  <ul class="stack"><li>Python standard library</li><li>HTML</li><li>CSS</li><li>SVG</li><li>scroll-driven animations</li></ul>
+
+  <p class="assay-links"><a class="cta" href="../geostat/curso/en/index.html" target="_blank" rel="noopener">Open the chapters</a></p>
+</article>
+</main>
+<footer class="wrap foot">
+  <span>&copy; 2026 Kevin Ortiz</span>
+  <span><a href="mailto:kmortizva@datageeksunited.com">kmortizva@datageeksunited.com</a></span>
+  <span><a href="https://github.com/kmortizva-data">github.com/kmortizva-data</a></span>
+</footer>
+<div class="curtain" aria-hidden="true"></div>
+<script src="../assets/lenis.min.js" defer></script>
+<script src="../theme.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>La geología manda, la estadística limita · Oro bajo el ruido</title>
+<meta name="description" content="Las anomalías viven en unidades de basamento concretas, pero estratificar con n&lt;50 destruiría la variografía: se elige el modelo global sabiendo lo que cuesta.">
+<link rel="alternate" hreflang="en" href="../en/c05_controles-geologicos.html">
+<script>document.documentElement.className="js"</script>
+<link rel="stylesheet" href="../estilo.css">
+</head>
+<body>
+<header class="cabecera">
+  <a class="marca" href="index.html">Oro bajo el ruido</a>
+  <nav>
+    <a href="index.html">Índice</a>
+    <a class="idioma" href="../en/c05_controles-geologicos.html" rel="alternate" hreflang="en">English</a>
+  </nav>
+</header>
+<main>
+<article class="capitulo">
+  <p class="miga">Capítulo 5 · <span class="cifra">corte 15,0 ppb · Nxcal/Nhunt/Nhuyb · ~48 muestras → modelo global</span></p>
+  <h1>La geología manda, la estadística limita</h1>
+  <p class="resumen">Las anomalías viven en unidades de basamento concretas, pero estratificar con n&lt;50 destruiría la variografía: se elige el modelo global sabiendo lo que cuesta.</p>
+<p>La geología decía «estratifica» y la estadística decía «no puedes». Tres unidades de basamento, <strong>Nxcal, Nhunt y Nhuyb</strong>, concentran el oro con medianas de 36 a 37 ppb frente a un corte de <strong>15,0 ppb</strong>. Y juntas suman <strong>unas 48 muestras</strong> por encima de ese corte, cuando un variograma fiable pide entre 50 y 100 pares como mínimo. Se eligió el <strong>modelo global</strong> sabiendo lo que costaba, y este capítulo es la historia de esa decisión.</p>
+<p>En este capítulo: la hipótesis de que la bimodalidad es geología, la validación que la confirmó, el argumento de tamaño de muestra que la volvió inutilizable para modelar, y lo que se salva de todo eso.</p>
+<h2>La hipótesis</h2>
+<p>La bimodalidad del capítulo 3 separaba dos poblaciones de oro alrededor de unos 15 ppb. La premisa de esta fase era sencilla y de consecuencias grandes: que esa separación no fuera un artefacto estadístico sino la expresión de una <strong>heterogeneidad geológica real</strong>. Unidades litoestratigráficas distintas tendrían comportamientos distintos del oro, y la firma bimodal serviría para <strong>estratificar por dominios</strong> antes de la variografía y el kriging.</p>
+<p>Tenía todo a su favor. En geología económica, las discontinuidades litológicas suelen coincidir con cambios de comportamiento geoquímico, y respetar las fronteras entre dominios es un principio fundacional de la estimación de recursos.</p>
+<h2>La validación: el oro sí vive en rocas concretas</h2>
+<p>De las <strong>1.024 muestras</strong> disponibles, se aislaron las <strong>425 con contenido de oro medible</strong>, el 41,5 %, y se superpusieron al mapa geológico.</p>
+<figure><img src="../figuras/obj0313_1297x1277.f5a9d5dd.jpg" alt="Los blancos de exploración ponderados sobre el mapa geológico, con los depósitos conocidos de tierras raras como estrellas. Mira cómo los puntos oscuros, de mayor ley, se concentran en unas pocas unidades con nombre, Nxcal, Nhunt, Nhuyb, y no en el gris de fondo." loading="eager"><figcaption>Los blancos de exploración ponderados sobre el mapa geológico, con los depósitos conocidos de tierras raras como estrellas. Mira cómo los puntos oscuros, de mayor ley, se concentran en unas pocas unidades con nombre, Nxcal, Nhunt, Nhuyb, y no en el gris de fondo.</figcaption></figure>
+<p>El resultado fue visualmente contundente: las muestras de alta ley se asocian a unidades concretas, en particular <strong>Nxcal, Nhunt y Nhuyb</strong>, con medianas muy por encima de los 15,0 ppb. Y la validación externa contra los depósitos conocidos apuntaba en la misma dirección.</p>
+<figure><img src="../figuras/obj0315_1350x810.2259a20b.png" alt="La bimodalidad, validada: el histograma global en gris y el dominio seleccionado de diez unidades en rojo, sobre escala logarítmica. Lo que hay que mirar es dónde se apila cada color: el gris tiene su torre alta por debajo de 10 ppb, el rojo vive a la derecha, con su mediana cerca de 23 ppb." loading="lazy"><figcaption>La bimodalidad, validada: el histograma global en gris y el dominio seleccionado de diez unidades en rojo, sobre escala logarítmica. Lo que hay que mirar es dónde se apila cada color: el gris tiene su torre alta por debajo de 10 ppb, el rojo vive a la derecha, con su mediana cerca de 23 ppb.</figcaption></figure>
+<p>El dominio restringido de diez unidades tiene una concentración marcadamente mayor de muestras de alta ley: <strong>mediana de unos 23 ppb</strong> para Nxcal, Nhunt y Nhuyb combinadas, mientras el resto queda centrado mucho más abajo.</p>
+<figure><img src="../figuras/obj0317_1351x772.e0f885b1.png" alt="El «acantilado de ley»: la mediana de oro por unidad de mapa, con el corte de 15,0 ppb como línea punteada. Nxcal, Nhunt y Nhuyb superan los 35 ppb, pero lee las etiquetas de arriba: n = 10, n = 11, n = 27. Ahí está el problema entero del capítulo." loading="lazy"><figcaption>El «acantilado de ley»: la mediana de oro por unidad de mapa, con el corte de 15,0 ppb como línea punteada. Nxcal, Nhunt y Nhuyb superan los 35 ppb, pero lee las etiquetas de arriba: n = 10, n = 11, n = 27. Ahí está el problema entero del capítulo.</figcaption></figure>
+<p>El análisis del «acantilado de ley» lo hizo aún más nítido: Nxcal, Nhunt y Nhuyb superan el corte con medianas de <strong>36 a 37 ppb</strong> y conteos de <strong>n = 10 a n = 27</strong>, mientras las demás unidades se agrupan entre 7 y 15 ppb con poblaciones mucho mayores. La separación parecía estadísticamente robusta.</p>
+<h2>Un ejemplo de juguete antes del argumento</h2>
+<p>Un variograma se construye con <strong>pares</strong> de muestras: cada par aporta una distancia y una diferencia de valores, y los pares se agrupan por distancia para ver cómo crece la diferencia con la separación. Con 10 muestras hay 45 pares posibles. Repártelos en intervalos de distancia de 240 m a lo largo de varios kilómetros y tocan a dos o tres pares por intervalo. Cada punto del variograma sería el promedio de dos o tres diferencias: eso no es una curva, es ruido con forma de curva.</p>
+<p>Por eso la práctica geoestadística convencional exige <strong>50 a 100 o más pares</strong> para estimar semivarianzas robustas, y por eso el kriging depende de una cobertura espacial adecuada para no sesgar ni inflar la varianza de los bloques.</p>
+<h2>El obstáculo: el tamaño de muestra</h2>
+<p>Los tres dominios de alta ley contenían, en conjunto, <strong>unas 48 muestras</strong> por encima de 15,0 ppb. Un número apenas adecuado para un variograma experimental con sentido, y menos aún para generar predicciones interpoladas por kriging sobre un dominio regional.</p>
+<p>La estratificación habría fragmentado las ya modestas <strong>425 muestras con oro medible</strong> en subpoblaciones de <strong>20 a 50 observaciones por dominio</strong>. Una reducción que compromete de raíz la potencia estadística y la representatividad espacial de cualquier variografía o kriging posterior. La ganancia en coherencia geológica se pagaría con una pérdida inaceptable de robustez analítica y fiabilidad predictiva.</p>
+<aside class="ojo"><p>Es la tensión clásica de la estimación de recursos: el realismo geológico contra las restricciones duras del conteo de muestras. Cuando las dos chocan, el que pierde es el que no se puede defender con números, y con 20 muestras por dominio no hay variograma que se defienda.</p></aside>
+<h2>La resolución: el modelo global</h2>
+<p>Se tomó la decisión de abandonar el enfoque estratificado por dominios, pese a su atractivo geológico, y proceder con el análisis geoestadístico integrado sobre la población completa de muestras medibles. Una priorización deliberada de la <strong>suficiencia estadística</strong> sobre la estratificación geológica, defendible en un contexto de evaluación exploratoria de recursos, donde las estimaciones preliminares equilibran geología y datos disponibles.</p>
+<p>El análisis de bimodalidad no se desperdició. Cumplió su función como validación: confirmó que las anomalías de oro tienen una coherencia espacial y geológica genuina, descartando que fueran puro azar. Pero en vez de usar ese hallazgo para partir el archivo, se conservó el marco global como la vía más defendible para caracterizar la mineralización regional a la escala que los datos permiten.</p>
+<h2>Una nota sobre el «sill global»</h2>
+<p>En las figuras de los próximos capítulos aparece una línea llamada <em>sill global</em>. No es un parámetro teórico de un modelo ajustado: es la <strong>varianza muestral</strong> del oro en log10, fijada en <strong>1,81</strong>, usada como referencia fija. En condiciones de estacionariedad el variograma debería estabilizarse cerca de ese valor; cuando lo supera con claridad a grandes distancias, mide cuánto se aparta el dato de esa expectativa y delata una tendencia regional que habrá que tratar.</p>
+<h2>Lo que queda establecido</h2>
+<p>El oro vive en rocas concretas, Nxcal, Nhunt y Nhuyb, y la bimodalidad es geología. Pero con unas 48 muestras repartidas en tres dominios no hay variograma que aguante, y el modelo global se eligió con el precio a la vista. El siguiente capítulo construye ese variograma global, y la tendencia regional que la línea de 1,81 va a delatar.</p>
+  <nav class="pie-nav">
+    <a class="nav-ant" href="c04_geoquimica.html"><small>Anterior</small>Los acompañantes del oro</a>
+    <a class="nav-indice" href="index.html">Volver al índice</a>
+    <a class="nav-sig" href="c06_variografia.html"><small>Siguiente</small>La firma espacial</a>
+  </nav>
+</article>
+</main>
+<script src="../motor.js" defer></script>
+</body>
+</html>

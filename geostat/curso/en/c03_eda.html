@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gold is not normal · Gold under the noise</title>
+<meta name="description" content="Strong skewness, the log10 transform, and a bimodality that will turn out to be geology.">
+<link rel="alternate" hreflang="es" href="../es/c03_eda.html">
+<script>document.documentElement.className="js"</script>
+<link rel="stylesheet" href="../estilo.css">
+</head>
+<body>
+<header class="cabecera">
+  <a class="marca" href="index.html">Gold under the noise</a>
+  <nav>
+    <a href="index.html">Index</a>
+    <a class="idioma" href="../es/c03_eda.html" rel="alternate" hreflang="es">Español</a>
+  </nav>
+</header>
+<main>
+<article class="capitulo">
+  <p class="miga">Chapter 3 · <span class="cifra">log10 · bimodal · P95 = 1.57 log ≈ 37.5 ppb</span></p>
+  <h1>Gold is not normal</h1>
+  <p class="resumen">Strong skewness, the log10 transform, and a bimodality that will turn out to be geology.</p>
+<p>Gold is not spread like a bell. Its raw histogram is crushed against the left, with a very long tail to the right, and until it is transformed with <strong>log10</strong> it does not show its real shape: <strong>two populations</strong>, and an anomaly threshold at <strong>P95 = 1.57 on the log scale, about 37.5 ppb</strong>.</p>
+<p>This chapter looks at the data before modelling anything: where the sampling happened, how gold is distributed, what an anomaly is and where they fall. And it ends with the decision to transform only what needs transforming.</p>
+<h2>Where the sampling happened, and where it did not</h2>
+<p>The samples do not sit on a regular grid. They follow a <strong>northwest to southeast alignment</strong>, consistent with the regional geological strike, and they crowd where there was interest: a target-oriented campaign, with potentially relevant areas left without a single sample.</p>
+<p>That can be measured. Nearest neighbour analysis asks, for every sample, how far the closest other sample is. The mean came out at <strong>0.22 km</strong>, where a random spread over the same area would give <strong>0.75 km</strong>. And <strong>73%</strong> of the samples have their neighbour within 0.22 km.</p>
+<figure><img src="../figuras/obj0258_1378x546.49a5cbb6.png" alt="Left, the histogram of nearest neighbour distances: nearly everything piled below 0.5 km, with the observed mean (red) far below the expected one (green). Right, the cumulative curve: 73% of the samples are already within 0.22 km. A clustered pattern, with R = 0.30." loading="eager"><figcaption>Left, the histogram of nearest neighbour distances: nearly everything piled below 0.5 km, with the observed mean (red) far below the expected one (green). Right, the cumulative curve: 73% of the samples are already within 0.22 km. A clustered pattern, with R = 0.30.</figcaption></figure>
+<aside class="ojo"><p>Clustered sampling is not a flaw in the data, it is a decision by whoever sampled. But it has a direct consequence for everything that follows: the clusters weigh more than the gaps, and the map will know a lot about a few corridors and almost nothing about the rest.</p></aside>
+<h2>A toy example before the theory</h2>
+<p>Picture four samples at 1, 10, 100 and 1,000 ppb of gold. On a raw histogram, three of them land in the first centimetre of the axis and the fourth goes off alone to the far end: the big value dictates the scale. Now take the base 10 logarithm: 0, 1, 2 and 3. Every <strong>multiply by ten</strong> becomes <strong>add one</strong>. The four samples sit evenly spaced and the histogram can finally be read.</p>
+<p>That is all the log10 transform does. It does not change the data: it changes the rule you look at it with.</p>
+<h2>Raw gold, and gold in logarithms</h2>
+<p>Raw, the gold distribution shows <strong>strong positive skewness</strong>: a great many samples with low values and a few very high ones that hide the structure of the mineralised populations. The crushed histogram, the boxplot with an excess of outliers: not directly interpretable.</p>
+<p>Transformed, the histogram reveals a clear <strong>bimodality</strong>: a background population, the local geochemical baseline, and an enriched population attributable to high-grade mineralisation events.</p>
+<figure><img src="../figuras/obj0263_1378x376.033fe4c0.png" alt="Gold in log10, three views: the histogram with its two humps, the boxplot now readable, and the cumulative distribution. The red line is the 95th percentile, at 1.57: whatever sits to its right is an anomaly." loading="lazy"><figcaption>Gold in log10, three views: the histogram with its two humps, the boxplot now readable, and the cumulative distribution. The red line is the 95th percentile, at 1.57: whatever sits to its right is an anomaly.</figcaption></figure>
+<p>With that bimodal structure and the inflection in the cumulative curve, the <strong>95th percentile</strong> was chosen as the robust threshold to separate anomalies: <strong>1.57 in log10, about 37.5 ppb</strong>, which coincides with the break between the main distribution and the upper tail.</p>
+<h2>The anomalies, on the map</h2>
+<p>The next step projected those anomalies into space with <strong>Voronoi polygons</strong>: each sample is assigned the area of the map closer to it than to any other sample, and the polygon is coloured by its grade. That shows whether high values appear isolated or grouped.</p>
+<figure><img src="../figuras/obj0265_1153x1024.e253081b.png" alt="The Voronoi polygons coloured by gold grade. The reddish ones exceed P95 (marked on the bar as 37.2) and are not scattered at random: they form coherent, continuous spatial domains. Notice also the enormous polygons in the corners: a single sample rules a gigantic area because there is no other nearby." loading="lazy"><figcaption>The Voronoi polygons coloured by gold grade. The reddish ones exceed P95 (marked on the bar as 37.2) and are not scattered at random: they form coherent, continuous spatial domains. Notice also the enormous polygons in the corners: a single sample rules a gigantic area because there is no other nearby.</figcaption></figure>
+<p>The high-grade polygons group into continuous domains, and that geometric continuity is a powerful geostatistical indicator that the mineralisation answers to defined <strong>structural controls</strong>, possibly vein systems or extensive alteration zones, rather than erratic surface dispersion.</p>
+<p>Overlaying the geological map, the anomalies confine themselves to basement units (the pink and greenish tones, likely intrusive complexes or metamorphic sequences), while the sedimentary cover in pale greys is nearly empty of anomalies: a sterile overburden. And against the known rare earth deposits, the most enriched samples cluster around <strong>deposits 3, 4 and 7</strong>.</p>
+<h2>Beyond gold: the rest of the chemistry</h2>
+<p>To validate the metallogenic model, the analysis was extended to the whole geochemical suite with a proximal versus distal enrichment comparison, the so-called pathfinder chart. The heavy rare earths, <strong>Ho, Lu, Tb and Dy</strong>, come out enriched near the deposits with ratios above 2.0. And an interesting detail: the <em>relative</em> enrichment of gold, copper and zinc in the proximal zone is lower than that of the rare earths; gold sits near 1.0 and copper appears depleted.</p>
+<p>The univariate sweep of every element showed the expected dichotomy: major oxides such as <code>Al2O3</code> split into two humps, and the economic elements carry the positive skewness typical of hydrothermal distributions. <strong>Yttrium</strong> is bimodal even raw. For cerium and lanthanum the high-grade thresholds landed at <strong>199.90 ppm</strong> and <strong>155.00 ppm</strong>.</p>
+<h2>Transform only what needs it</h2>
+<p>The log10 transform was applied, but <strong>selectively</strong>: where skewness exceeded 1.5. A one-size-fits-all rule would have been a mistake, because transforming a distribution that is already reasonably normal can induce artificial negative skewness. The ones that came in fine stayed in their original units, ppm or percent, to keep their geological meaning.</p>
+<h2>What stands established</h2>
+<p>Clustered sampling (0.22 km against 0.75 expected), gold with strong skewness that turns bimodal in log10, an anomaly threshold at P95 = 1.57 log (~37.5 ppb), anomalies forming continuous domains inside basement units, and transformation only where skewness asks for it. The question opening the next chapter is who gold keeps company with: which elements travel with it and which ones avoid it.</p>
+  <nav class="pie-nav">
+    <a class="nav-ant" href="c02_limpieza.html"><small>Previous</small>Cleaning and integrity</a>
+    <a class="nav-indice" href="index.html">Back to the index</a>
+    <a class="nav-sig" href="c04_geoquimica.html"><small>Next</small>Gold&#x27;s companions</a>
+  </nav>
+</article>
+</main>
+<script src="../motor.js" defer></script>
+</body>
+</html>

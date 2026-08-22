@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>El encargo y el terreno · Oro bajo el ruido</title>
+<meta name="description" content="Oro en un terreno proterozoico. Qué se pide, qué hay en el archivo, y por qué la estructura del análisis es modular.">
+<link rel="alternate" hreflang="en" href="../en/c01_encargo-y-terreno.html">
+<script>document.documentElement.className="js"</script>
+<link rel="stylesheet" href="../estilo.css">
+</head>
+<body>
+<header class="cabecera">
+  <a class="marca" href="index.html">Oro bajo el ruido</a>
+  <nav>
+    <a href="index.html">Índice</a>
+    <a class="idioma" href="../en/c01_encargo-y-terreno.html" rel="alternate" hreflang="en">English</a>
+  </nav>
+</header>
+<main>
+<article class="capitulo">
+  <p class="miga">Capítulo 1 · <span class="cifra">1.333 registros · 79 variables · 62.000 km²</span></p>
+  <h1>El encargo y el terreno</h1>
+  <p class="resumen">Oro en un terreno proterozoico. Qué se pide, qué hay en el archivo, y por qué la estructura del análisis es modular.</p>
+<p>Un archivo de <strong>1.333 registros</strong> con la geoquímica de <strong>79 variables</strong>, elementos y óxidos, del oro al <code>SiO2</code>, cada uno con su longitud y su latitud. Eso es todo lo que hay al empezar. La pregunta que este proyecto le hace a ese archivo: ¿dónde está el oro, y cuánto podemos fiarnos del mapa que dibujemos?</p>
+<p>Este capítulo presenta el terreno, el archivo y la arquitectura del análisis. Los siguientes lo ensucian todo con la realidad: datos censurados, duplicados, una distribución que no es normal, y al final un mapa de kriging que confiesa su propia incertidumbre.</p>
+<h2>El terreno</h2>
+<p>Los datos vienen de un <strong>terreno proterozoico</strong> del este de South Australia, proterozoico quiere decir rocas de entre 2.500 y 541 millones de años, viejas incluso para un geólogo. La zona cubre unos <strong>62.000 km²</strong>, más o menos como Lituania, y es célebre por su variedad metalogénica: cobre, uranio, torio. Este análisis se concentra en una sola pregunta, la del <strong>oro (Au)</strong>.</p>
+<figure><img src="../figuras/obj0237_1379x1386.e3d1ccc4.jpg" alt="Las 166 unidades geológicas del área con los puntos de muestreo encima, coloreados por su ley de oro en escala logarítmica. El mapa ya insinúa el problema entero: las muestras no cubren el terreno de manera uniforme, se apiñan en corredores." loading="eager"><figcaption>Las 166 unidades geológicas del área con los puntos de muestreo encima, coloreados por su ley de oro en escala logarítmica. El mapa ya insinúa el problema entero: las muestras no cubren el terreno de manera uniforme, se apiñan en corredores.</figcaption></figure>
+<p>El mapa de arriba merece un minuto. Los colores de fondo son unidades geológicas, 166 distintas, y los puntos son muestras, coloreadas por su contenido de oro en <strong>ppb</strong>: partes por billón, gramos de oro por cada mil toneladas de roca. Dos cosas saltan a la vista sin saber nada de geoestadística: los puntos rojos (más oro) no caen en cualquier parte, y el muestreo se concentra en franjas, no en una malla regular. Las dos observaciones van a perseguirnos todo el proyecto.</p>
+<h2>La arquitectura: modular a propósito</h2>
+<p>El análisis se construyó con una <strong>estructura secuencial modular</strong>: limpieza, exploración, variografía y kriging son piezas separadas que se encadenan. No es cosmética. Significa que el elemento objetivo se puede cambiar, de <code>Au</code> a <code>Pr</code> o <code>Nd</code>, por ejemplo, sin reescribir el análisis, y que cuando algo falla, falla en una pieza con nombre y no en un guion monolítico de mil líneas.</p>
+<ul><li><strong>Limpiar primero</strong>: coordenadas inconsistentes, datos censurados, duplicados espaciales.</li><li><strong>Explorar después</strong>: qué distribución tiene el oro y con quién se junta.</li><li><strong>Modelar al final</strong>: la continuidad espacial (variograma) y la estimación (kriging).</li></ul>
+<aside class="ojo"><p>El orden importa. Cada decisión de limpieza cambia lo que la variografía puede ver, y cada decisión de la variografía cambia lo que el kriging puede estimar. Un error en el primer eslabón llega al mapa final disfrazado de geología.</p></aside>
+<h2>Lo que queda establecido</h2>
+<p>Un archivo de 1.333 registros y 79 variables sobre 62.000 km² de rocas proterozoicas, una pregunta (¿dónde está el oro?) y una arquitectura por piezas para responderla. El siguiente capítulo abre el archivo y descubre que, antes de mapear nada, hay que decidir qué hacer con lo que falta, porque en algunas variables falta <strong>más del 99 %</strong>.</p>
+  <nav class="pie-nav">
+    <span class="nav-ant vacio"></span>
+    <a class="nav-indice" href="index.html">Volver al índice</a>
+    <a class="nav-sig" href="c02_limpieza.html"><small>Siguiente</small>Limpieza e integridad</a>
+  </nav>
+</article>
+</main>
+<script src="../motor.js" defer></script>
+</body>
+</html>

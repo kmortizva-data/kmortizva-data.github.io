@@ -262,6 +262,66 @@
       "open_href": "concentra/cursos/index.html"
     },
     {
+      "slug": "geostat",
+      "accent": "gold",
+      "shot": "geostat-index.png",
+      "shot_alt": {
+        "en": "The index of Gold under the noise: nine chapters, each with its headline figure",
+        "es": "El índice de Oro bajo el ruido: nueve capítulos, cada uno con su cifra de cabecera"
+      },
+      "stack": [
+        "Python standard library",
+        "HTML",
+        "CSS",
+        "SVG",
+        "scroll-driven animations"
+      ],
+      "en": {
+        "name": "Gold under the noise",
+        "tagline": "Nine bilingual chapters of real geostatistics: 1,333 dirty gold records from South Australia become a kriging map that states its own uncertainty.",
+        "feed": "A public geochemistry file: 1,333 records, 79 variables, 62,000 km² of Proterozoic terrane. Coordinates in mixed formats, 35.88 % of the cells filled, and measurable gold in only 425 samples, clustered along the regional strike.",
+        "process": "Clean and aggregate the duplicates to 1,020 locations, take log10, read the companions of gold (Gd follows it, La walks away), test the geological domains and reject them for sample size, build the variogram (240 m lag, a Gaussian with a 4,470 m range), then krige twice, simple and ordinary, and cross-validate both.",
+        "concentrate": "A map of exploration targets with its variance map beside it, an RMSE of 0.230 in log10 (a factor of 1.70 in ppb), and the limits written down: smoothing, heavy tails, an anisotropy the omnidirectional model does not capture.",
+        "assay": "The knobs moved the error by thousandths",
+        "assay_detail": "Three variogram models changed the cross-validation RMSE by 0.0064; neighbourhoods from 5 to 40 changed it by 0.0093. The constraint is the 425 samples, not the kriging, and the two validation runs came out identical point for point, which the chapter says out loud instead of crowning a winner.",
+        "status": "9 chapters, Spanish and English, live.",
+        "body": [
+          "Gold is the hardest variable I have worked with: skewed, censored in most of the file, clustered where the geologists already suspected it. I wanted to walk the whole path on real data, from a dirty file to a map that admits how much it does not know, and to write it so that someone who has never seen a variogram can follow every number.",
+          "Every figure is quoted literally from the analysis. The kriging chapter solves a three-sample system by hand with the project's own variogram before any software is mentioned, and the variogram curve on the page is computed at build time from its three parameters, nugget, sill and range, not traced from an image.",
+          "The site is bilingual from birth, Spanish and English as twins, and three checks run before anything is committed: both editions share the same figures and the same scrollytelling steps, nothing links to a PDF, and every image on disk is whole. The whole thing is Python standard library, HTML, CSS and a little JavaScript the pages do not depend on.",
+          "What I would do next is in the last chapter: co-kriging on the rare earths that travel with gold, and simulation to replace one smoothed map with a hundred probable ones."
+        ],
+        "mark": "a 4,470 m structure, cross-validated",
+        "area": "Geostatistics · Spatial estimation",
+        "open_label": "Open the chapters"
+      },
+      "es": {
+        "name": "Oro bajo el ruido",
+        "tagline": "Nueve capítulos bilingües de geoestadística real: 1.333 registros sucios de oro en South Australia se convierten en un mapa de kriging que declara su propia incertidumbre.",
+        "feed": "Un archivo geoquímico público: 1.333 registros, 79 variables, 62.000 km² de terreno proterozoico. Coordenadas en formatos mezclados, el 35,88 % de las celdas con dato, y oro medible en solo 425 muestras, agrupadas a lo largo del rumbo regional.",
+        "process": "Limpiar y agregar los duplicados a 1.020 localizaciones, pasar a log10, leer los acompañantes del oro (el Gd lo sigue, el La se aleja), probar los dominios geológicos y descartarlos por tamaño de muestra, construir el variograma (lag de 240 m, un gaussiano con alcance de 4.470 m), y krigear dos veces, simple y ordinario, validando los dos.",
+        "concentrate": "Un mapa de blancos de exploración con su mapa de varianza al lado, un RMSE de 0,230 en log10 (un factor de 1,70 en ppb), y los límites por escrito: suavizado, colas pesadas, una anisotropía que el modelo omnidireccional no recoge.",
+        "assay": "Las perillas movieron el error en milésimas",
+        "assay_detail": "Tres modelos de variograma cambiaron el RMSE de validación cruzada en 0,0064; los vecindarios de 5 a 40, en 0,0093. La restricción son las 425 muestras, no el kriging, y las dos validaciones salieron idénticas punto por punto, cosa que el capítulo dice en voz alta en vez de coronar a un ganador.",
+        "status": "9 capítulos, español e inglés, publicados.",
+        "body": [
+          "El oro es la variable más difícil con la que he trabajado: asimétrica, censurada en la mayor parte del archivo, agrupada donde los geólogos ya sospechaban. Quería recorrer el camino entero sobre datos reales, de un archivo sucio a un mapa que admite cuánto no sabe, y escribirlo para que alguien que nunca ha visto un variograma pueda seguir cada número.",
+          "Cada cifra se cita literal del análisis. El capítulo de kriging resuelve a mano un sistema de tres muestras con el variograma del propio proyecto antes de mencionar ningún programa, y la curva del variograma que aparece en la página se calcula al construir el sitio a partir de sus tres parámetros, pepita, meseta y alcance, no se calca de una imagen.",
+          "El sitio es bilingüe de nacimiento, español e inglés como gemelos, y tres verificadores corren antes de cada commit: las dos ediciones comparten las mismas figuras y los mismos pasos de scrollytelling, nada enlaza a un PDF, y cada imagen en disco está entera. Todo es librería estándar de Python, HTML, CSS y un poco de JavaScript del que las páginas no dependen.",
+          "Lo que haría después está en el último capítulo: co-kriging con las tierras raras que viajan con el oro, y simulación para cambiar un mapa suavizado por cien mapas probables."
+        ],
+        "mark": "una estructura de 4.470 m, validada",
+        "area": "Geoestadística · Estimación espacial",
+        "open_label": "Abrir los capítulos"
+      },
+      "year": "2026",
+      "archive": false,
+      "open_href": {
+        "en": "geostat/curso/en/index.html",
+        "es": "geostat/curso/es/index.html"
+      }
+    },
+    {
       "slug": "bg-remover",
       "repo": "https://github.com/kmortizva-data/bg-remover",
       "accent": "slate",

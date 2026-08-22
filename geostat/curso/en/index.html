@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gold under the noise</title>
+<meta name="description" content="Real geostatistics over 62,000 km² of South Australia: from 1,333 dirty records to a kriging map that confesses its own uncertainty.">
+<link rel="alternate" hreflang="es" href="../es/index.html">
+<script>document.documentElement.className="js"</script>
+<link rel="stylesheet" href="../estilo.css">
+</head>
+<body>
+<header class="cabecera">
+  <a class="marca" href="index.html">Gold under the noise</a>
+  <nav>
+    <a href="index.html">Index</a>
+    <a class="idioma" href="../es/index.html" rel="alternate" hreflang="es">Español</a>
+  </nav>
+</header>
+<main>
+<section class="portada">
+  <h1>Gold under the noise</h1>
+  <p class="resumen">Real geostatistics over 62,000 km² of South Australia: from 1,333 dirty records to a kriging map that confesses its own uncertainty.</p>
+  <ol class="indice"><li><span class="num">01</span><div><a href="c01_encargo-y-terreno.html">The brief and the terrane</a><p class="cifra">1,333 records · 79 variables · 62,000 km²</p><p>Gold in a Proterozoic terrane. What is asked, what the file holds, and why the analysis is modular.</p></div></li><li><span class="num">02</span><div><a href="c02_limpieza.html">Cleaning and integrity</a><p class="cifra">1,333 → 1,020 locations · &gt;99% censoring in some variables</p><p>Inconsistent coordinates, censored data, spatial redundancy. Duplicates aggregated by arithmetic mean.</p></div></li><li><span class="num">03</span><div><a href="c03_eda.html">Gold is not normal</a><p class="cifra">log10 · bimodal · P95 = 1.57 log ≈ 37.5 ppb</p><p>Strong skewness, the log10 transform, and a bimodality that will turn out to be geology.</p></div></li><li><span class="num">04</span><div><a href="c04_geoquimica.html">Gold&#x27;s companions</a><p class="cifra">Au-Gd r≈+0.47 · Au-La r≈−0.34 · CoDa</p><p>Bivariate and compositional: Gd follows gold, La walks away: hydrothermal fractionation in the data.</p></div></li><li><span class="num">05</span><div><a href="c05_controles-geologicos.html">Geology rules, statistics constrains</a><p class="cifra">15.0 ppb cut · Nxcal/Nhunt/Nhuyb · ~48 samples → global model</p><p>The anomalies live in specific basement units, but stratifying with n&lt;50 would wreck the variography: the global model is chosen knowing its price.</p></div></li><li><span class="num">06</span><div><a href="c06_variografia.html">The spatial signature</a><p class="cifra">Gaussian · range 4,470 m · nugget 0.105 · anisotropy 045°</p><p>From the experimental variogram (240 m lag) to the model: maximum continuity NE-SW and mixed geometric-zonal anisotropy.</p></div></li><li><span class="num">07</span><div><a href="c07_kriging.html">Kriging: the best honest estimate</a><p class="cifra">SK and OK · RMSE 0.230 log · z up to ±6</p><p>THE REINFORCED CHAPTER. What kriging actually is (a 3-sample system solved by hand with the project&#x27;s own variogram), SK vs OK without tricks (CV cannot tell them apart), kriging variance and its heavy tails, and the moving-neighbourhood facets explained.</p></div></li><li><span class="num">08</span><div><a href="c08_perillas.html">The knobs that did not matter</a><p class="cifra">models ±0.006 RMSE · neighbours ±0.009</p><p>Spherical 0.2371 / exponential 0.2430 / Gaussian 0.2435; n=5→0.2388 … n=40→0.2295. That the knobs barely move anything IS the finding: the real constraint is the 425 samples.</p></div></li><li><span class="num">09</span><div><a href="c09_veredicto.html">Strictly preliminary</a><p class="cifra">425 of 1,333 with measurable gold · co-kriging and simulation as the way out</p><p>Good enough to pick exploration targets, not to classify reserves. Co-kriging on Gd/La and sequential simulation as next steps, risks included.</p></div></li></ol>
+</section>
+</main>
+<script src="../motor.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Geology rules, statistics constrains · Gold under the noise</title>
+<meta name="description" content="The anomalies live in specific basement units, but stratifying with n&lt;50 would wreck the variography: the global model is chosen knowing its price.">
+<link rel="alternate" hreflang="es" href="../es/c05_controles-geologicos.html">
+<script>document.documentElement.className="js"</script>
+<link rel="stylesheet" href="../estilo.css">
+</head>
+<body>
+<header class="cabecera">
+  <a class="marca" href="index.html">Gold under the noise</a>
+  <nav>
+    <a href="index.html">Index</a>
+    <a class="idioma" href="../es/c05_controles-geologicos.html" rel="alternate" hreflang="es">Español</a>
+  </nav>
+</header>
+<main>
+<article class="capitulo">
+  <p class="miga">Chapter 5 · <span class="cifra">15.0 ppb cut · Nxcal/Nhunt/Nhuyb · ~48 samples → global model</span></p>
+  <h1>Geology rules, statistics constrains</h1>
+  <p class="resumen">The anomalies live in specific basement units, but stratifying with n&lt;50 would wreck the variography: the global model is chosen knowing its price.</p>
+<p>Geology said &quot;stratify&quot; and statistics said &quot;you cannot&quot;. Three basement units, <strong>Nxcal, Nhunt and Nhuyb</strong>, concentrate the gold with medians of 36 to 37 ppb against a cutoff of <strong>15.0 ppb</strong>. And together they add up to <strong>about 48 samples</strong> above that cutoff, when a trustworthy variogram asks for 50 to 100 pairs at the very least. The <strong>global model</strong> was chosen knowing what it cost, and this chapter is the story of that decision.</p>
+<p>In this chapter: the hypothesis that the bimodality is geology, the validation that confirmed it, the sample size argument that made it unusable for modelling, and what survives of all that.</p>
+<h2>The hypothesis</h2>
+<p>The bimodality of chapter 3 separated two gold populations around roughly 15 ppb. The premise of this phase was simple and consequential: that the separation was not a statistical artefact but the expression of <strong>real geological heterogeneity</strong>. Different lithostratigraphic units would have different gold behaviour, and the bimodal signature would serve to <strong>stratify by domain</strong> before variography and kriging.</p>
+<p>It had everything going for it. In economic geology, lithological discontinuities often coincide with changes in geochemical behaviour, and respecting domain boundaries is a founding principle of resource estimation.</p>
+<h2>The validation: gold does live in particular rocks</h2>
+<p>Of the <strong>1,024 available samples</strong>, the <strong>425 with measurable gold</strong>, 41.5%, were isolated and overlaid on the geological map.</p>
+<figure><img src="../figuras/obj0313_1297x1277.f5a9d5dd.jpg" alt="The weighted exploration targets over the geological map, with the known rare earth deposits as stars. Look at how the dark, higher grade points concentrate in a few named units, Nxcal, Nhunt, Nhuyb, and not in the grey background." loading="eager"><figcaption>The weighted exploration targets over the geological map, with the known rare earth deposits as stars. Look at how the dark, higher grade points concentrate in a few named units, Nxcal, Nhunt, Nhuyb, and not in the grey background.</figcaption></figure>
+<p>The result was visually compelling: the high-grade samples associate with specific units, in particular <strong>Nxcal, Nhunt and Nhuyb</strong>, with medians well above 15.0 ppb. And the external validation against the known deposits pointed the same way.</p>
+<figure><img src="../figuras/obj0315_1350x810.2259a20b.png" alt="The bimodality, validated: the global histogram in grey and the selected ten-unit domain in red, on a log scale. What to look at is where each colour piles up: the grey has its tall tower below 10 ppb, the red lives to the right, with its median near 23 ppb." loading="lazy"><figcaption>The bimodality, validated: the global histogram in grey and the selected ten-unit domain in red, on a log scale. What to look at is where each colour piles up: the grey has its tall tower below 10 ppb, the red lives to the right, with its median near 23 ppb.</figcaption></figure>
+<p>The restricted ten-unit domain carries a markedly higher concentration of high-grade samples: a <strong>median of about 23 ppb</strong> for Nxcal, Nhunt and Nhuyb combined, while the rest sits centred far lower.</p>
+<figure><img src="../figuras/obj0317_1351x772.e0f885b1.png" alt="The &quot;grade cliff&quot;: median gold per map unit, with the 15.0 ppb cutoff as a dotted line. Nxcal, Nhunt and Nhuyb exceed 35 ppb, but read the labels on top: n = 10, n = 11, n = 27. The whole problem of the chapter is right there." loading="lazy"><figcaption>The &quot;grade cliff&quot;: median gold per map unit, with the 15.0 ppb cutoff as a dotted line. Nxcal, Nhunt and Nhuyb exceed 35 ppb, but read the labels on top: n = 10, n = 11, n = 27. The whole problem of the chapter is right there.</figcaption></figure>
+<p>The &quot;grade cliff&quot; analysis made it sharper still: Nxcal, Nhunt and Nhuyb clear the cutoff with medians of <strong>36 to 37 ppb</strong> and counts of <strong>n = 10 to n = 27</strong>, while the remaining units cluster between 7 and 15 ppb with much larger populations. The separation looked statistically robust.</p>
+<h2>A toy example before the argument</h2>
+<p>A variogram is built from <strong>pairs</strong> of samples: every pair contributes a distance and a difference in values, and the pairs are grouped by distance to see how the difference grows with separation. With 10 samples there are 45 possible pairs. Spread them across 240 m distance bins over several kilometres and each bin gets two or three pairs. Every point of the variogram would be the average of two or three differences: that is not a curve, it is noise shaped like a curve.</p>
+<p>That is why conventional geostatistical practice demands <strong>50 to 100 or more pairs</strong> to estimate robust semivariances, and why kriging depends on adequate spatial coverage to avoid biasing or inflating the block variance.</p>
+<h2>The obstacle: sample size</h2>
+<p>The three high-grade domains contained, together, <strong>about 48 samples</strong> above 15.0 ppb. A number barely adequate for a meaningful experimental variogram, let alone for generating kriged predictions across a regional domain.</p>
+<p>Stratification would have fragmented the already modest <strong>425 samples with measurable gold</strong> into subpopulations of <strong>20 to 50 observations per domain</strong>. A reduction that fundamentally compromises the statistical power and spatial representativeness of any later variography or kriging. The gain in geological coherence would be bought at an unacceptable cost in analytical robustness and predictive reliability.</p>
+<aside class="ojo"><p>It is the classic tension in resource estimation: geological realism against the hard constraints of sample count. When the two collide, the loser is the one that cannot be defended with numbers, and with 20 samples per domain there is no variogram that defends itself.</p></aside>
+<h2>The resolution: the global model</h2>
+<p>The decision was taken to abandon the domain-stratified approach, despite its geological appeal, and proceed with integrated geostatistical analysis across the full population of measurable samples. A deliberate prioritisation of <strong>statistical adequacy</strong> over geological stratification, defensible in the context of exploratory resource assessment, where preliminary estimates balance geology against the data available.</p>
+<p>The bimodality analysis was not wasted. It did its job as validation: it confirmed that the gold anomalies have genuine spatial and geological coherence, ruling out pure chance. But rather than use that finding to split the file, the global framework was kept as the most defensible route to characterise the regional mineralisation at the scale the data allow.</p>
+<h2>A note on the &quot;global sill&quot;</h2>
+<p>In the figures of the coming chapters a line called the <em>global sill</em> appears. It is not a theoretical parameter from a fitted model: it is the <strong>sample variance</strong> of gold in log10, fixed at <strong>1.81</strong>, used as a fixed reference. Under stationary conditions the variogram should settle near that value; when it clearly exceeds it at large distances, it measures how far the data stray from that expectation and gives away a regional trend that will need dealing with.</p>
+<h2>What stands established</h2>
+<p>Gold lives in particular rocks, Nxcal, Nhunt and Nhuyb, and the bimodality is geology. But with about 48 samples spread over three domains no variogram holds, and the global model was chosen with the price in plain view. The next chapter builds that global variogram, and the regional trend that the 1.81 line is about to give away.</p>
+  <nav class="pie-nav">
+    <a class="nav-ant" href="c04_geoquimica.html"><small>Previous</small>Gold&#x27;s companions</a>
+    <a class="nav-indice" href="index.html">Back to the index</a>
+    <a class="nav-sig" href="c06_variografia.html"><small>Next</small>The spatial signature</a>
+  </nav>
+</article>
+</main>
+<script src="../motor.js" defer></script>
+</body>
+</html>
