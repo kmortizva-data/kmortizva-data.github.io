@@ -100,7 +100,8 @@ def check_links() -> list[str]:
         for target in targets:
             if target.startswith(("http://", "https://", "mailto:", "data:", "#")):
                 continue
-            resolved = (page.parent / target.split("#")[0]).resolve()
+            # A ?v= cache-buster or a #fragment is not part of the file name.
+            resolved = (page.parent / re.split(r"[#?]", target)[0]).resolve()
             checked += 1
             if not resolved.exists():
                 problems.append(f"{page.relative_to(ROOT)} apunta a {target}, que no existe")
