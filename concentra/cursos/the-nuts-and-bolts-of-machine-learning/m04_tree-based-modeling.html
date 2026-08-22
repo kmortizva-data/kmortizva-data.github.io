@@ -3,7 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Tree-based modeling — The Nuts and Bolts of Machine Learning</title>
+<title>Tree-based modeling · The Nuts and Bolts of Machine Learning</title>
+
 <style>
 /* ============================================================================
    Concentra — design tokens and shared components.
@@ -102,9 +103,18 @@ body {
   text-transform: uppercase;
   color: var(--brass);
   margin-bottom: 1rem;
+  display: flex; flex-wrap: wrap; align-items: center;
+  justify-content: space-between; gap: .6rem 1rem;
 }
 .eyebrow a { color: inherit; text-decoration: none; border-bottom: 1px solid transparent; }
 .eyebrow a:hover { border-bottom-color: var(--brass); }
+/* The way to the other edition of this page. It targets the shell, not the bare
+   page, so the sidebar follows the language too. */
+.eyebrow .lang-switch {
+  margin-left: auto; border: 1px solid var(--seam); border-radius: 2px;
+  padding: .22rem .6rem; color: var(--dust); font-size: .68rem; letter-spacing: .1em;
+}
+.eyebrow .lang-switch:hover { color: var(--brass); border-color: var(--brass); }
 
 .header h1 {
   font-family: var(--display);
@@ -447,7 +457,7 @@ figure.fig figcaption {
 <body>
 <header class="header">
   <div class="header-content">
-    <div class="eyebrow"><a href="https://www.coursera.org/learn/the-nuts-and-bolts-of-machine-learning">The Nuts and Bolts of Machine Learning</a> / Módulo 4</div>
+    <div class="eyebrow"><span><a href="https://www.coursera.org/learn/the-nuts-and-bolts-of-machine-learning">The Nuts and Bolts of Machine Learning</a> / Módulo 4</span></div>
     <h1>Tree-based modeling</h1>
     <p class="subtitle">Un corte de árbol calculado a mano con diez lotes, y luego la demostración de por qué un árbol sin límite acierta el 100 % en entrenamiento y el 54 % en prueba. De ahí salen las dos formas de juntar muchos árboles, y el aviso de que dos columnas de puro ruido se llevan el 43 % de la importancia.</p>
     <div class="mesh" role="presentation"></div>
@@ -546,7 +556,7 @@ ruido 1    0.2130</pre></div><p>Las dos que influyen de verdad quedan arriba, as
 <section class="section-block is-review"><span class="kicker">Repaso</span><h2 class="section-title">Repaso</h2><details><summary>En el ejemplo de los diez lotes, ¿por qué la ganancia vale 0,32 y qué significa?</summary><p>Porque el grupo entero, con 6 que pasan y 4 que no, tiene una impureza de Gini de 1 − 0,36 − 0,16 = 0,48, muy cerca del máximo de 0,5 que corresponde a mitad y mitad. Al preguntar por el reactivo, el trozo sin reactivo queda con 1 de 5 y una impureza de 0,32, y el trozo con reactivo queda con 5 de 5 y una impureza de 0 exacto, porque es puro. Como los dos trozos tienen cinco lotes, la impureza que queda es el promedio, 0,16, y la ganancia es la diferencia: 0,48 − 0,16 = 0,32. Significa que esa única pregunta redujo la mezcla a un tercio, y el árbol elige siempre la pregunta con la ganancia mayor.</p></details><details><summary>Un árbol acierta el 100 % en entrenamiento y el 54 % en prueba. ¿Qué ha pasado y cómo se arregla?</summary><p>Ha memorizado. Sin ninguna perilla que lo detenga, el árbol siguió partiendo hasta que cada hoja contuvo casi un solo caso, 77 hojas para 300 lotes, así que puede recitar el conjunto de entrenamiento y no ha aprendido ninguna regla general. El 54 % en prueba, con clases casi balanceadas, es apenas mejor que una moneda. Se arregla poniéndole límites: con profundidad 3 el mismo árbol baja a 0,7267 en entrenamiento y sube a 0,6100 en prueba, o sea un modelo peor sobre lo que ya sabía y mejor sobre lo que no. Y esos límites se eligen con una búsqueda en rejilla y validación cruzada, no a ojo.</p></details><details><summary>¿Qué diferencia real hay entre un bosque aleatorio y un refuerzo por gradiente?</summary><p>Que sus árboles se relacionan de forma opuesta. En el bosque son independientes: cada uno se entrena sobre un remuestreo distinto y viendo solo algunas columnas en cada corte, y al final votan, de modo que sus errores, que son distintos, se cancelan. En el refuerzo van en cadena: se entrena uno, se mira en qué falló, y el siguiente se dedica a esos casos, sumando correcciones. La consecuencia práctica es la que decide: a un bosque le puedes poner árboles de más y como mucho se estanca, mientras que a un refuerzo le sobran árboles y empieza a memorizar, y por eso su perilla crítica es cuánto caso se le hace a cada corrección.</p></details><details><summary>La búsqueda en rejilla dio 0,7013 y la prueba 0,6556. ¿Cuál se publica y por qué?</summary><p>La de la prueba, 0,6556. La cifra de validación cruzada está inflada porque es el conjunto sobre el que se compararon las 24 combinaciones y se eligió la ganadora, así que parte de su ventaja es haber encajado bien con esos pliegues concretos. Elegir el máximo de veinticuatro medidas ruidosas produce un número optimista incluso si ninguna combinación fuera realmente mejor. El conjunto de prueba no participó en ninguna decisión, y esa es toda la razón de que exista y de que se aparte antes de empezar.</p></details><details><summary>Dos columnas de ruido puro obtuvieron el 43 % de la importancia. ¿Qué conclusión hay que sacar?</summary><p>Que la importancia de variables ordena pero no descarta, y desde luego no es una prueba de significancia ni de causa. Esas dos columnas se generaron al azar y no tienen ninguna relación con el resultado, pero el árbol necesita partir por algún sitio y una columna aleatoria separa un poco por casualidad de vez en cuando, así que acumula importancia. Lo que sí funcionó es el orden: las dos variables que influyen de verdad quedaron por encima de las dos de ruido. La lectura correcta es tratarla como una pista sobre qué mirar, y si se va a usar para eliminar columnas, quitarlas y comprobar que el rendimiento en prueba no empeora.</p></details></section>
 </main>
 <footer class="footer">
-  Concentra / destilado del temario público del curso / 2026-08-20
+  Concentra / destilado del temario público del curso / 2026-08-22
 </footer>
 </body>
 </html>

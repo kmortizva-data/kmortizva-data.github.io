@@ -102,9 +102,18 @@ body {
   text-transform: uppercase;
   color: var(--brass);
   margin-bottom: 1rem;
+  display: flex; flex-wrap: wrap; align-items: center;
+  justify-content: space-between; gap: .6rem 1rem;
 }
 .eyebrow a { color: inherit; text-decoration: none; border-bottom: 1px solid transparent; }
 .eyebrow a:hover { border-bottom-color: var(--brass); }
+/* The way to the other edition of this page. It targets the shell, not the bare
+   page, so the sidebar follows the language too. */
+.eyebrow .lang-switch {
+  margin-left: auto; border: 1px solid var(--seam); border-radius: 2px;
+  padding: .22rem .6rem; color: var(--dust); font-size: .68rem; letter-spacing: .1em;
+}
+.eyebrow .lang-switch:hover { color: var(--brass); border-color: var(--brass); }
 
 .header h1 {
   font-family: var(--display);
@@ -633,14 +642,13 @@ iframe { flex: 1; width: 100%; border: 0; background: var(--rock); }
     <span class="crumb" id="crumb">Portada</span>
     <span class="spacer"></span>
     <a class="btn" id="newtab" href="#" target="_blank" rel="noopener" hidden>Abrir en pestaña</a>
-    <a class="btn" href="https://kmortizva-data.github.io/work/concentra.html" target="_blank" rel="noopener" title="The course is in Spanish; this is its summary in English">English summary &#8599;</a>
+    <a class="btn" id="lang" data-base="index.en.html" href="index.en.html" hreflang="en" lang="en" title="Read this library in English">English</a>
     <button id="home">Portada</button>
   </div>
   <div class="home" id="homePanel">
     <div class="home-inner">
       <h2>Del temario a lo que te queda</h2>
-      <p class="lede">Un curso son horas de vídeo y lecturas. Aquí queda destilado en lecciones que
-      puedes releer en diez minutos, junto a los casos que ya analizaste tú.</p>
+      <p class="lede">Un curso son horas de vídeo y lecturas. Aquí queda destilado en lecciones que puedes releer en diez minutos, junto a los casos que ya analizaste tú.</p>
       <div class="mesh" role="presentation"></div>
       <p class="stats">5 cursos · 25/25 lecciones · 12 casos</p>
 <article class="course-card"><div class="ct"><span class="cn">Curso 2</span><h3>Go Beyond the Numbers: Translate Data into Insights</h3></div><p class="meta">5 de 5 lecciones · 3 casos de estudio</p><div class="chips"><a class="overview" href="#go-beyond-the-numbers-translate-data-into-insight/curso">El curso y su cerebro</a><a href="#go-beyond-the-numbers-translate-data-into-insight/m01_find-and-share-stories-using-data">1. Find and share stories using data</a><a href="#go-beyond-the-numbers-translate-data-into-insight/m02_explore-raw-data">2. Explore raw data</a><a href="#go-beyond-the-numbers-translate-data-into-insight/m03_clean-your-data">3. Clean your data</a><a href="#go-beyond-the-numbers-translate-data-into-insight/m04_data-visualizations-and-presentations">4. Data visualizations and presentations</a><a href="#go-beyond-the-numbers-translate-data-into-insight/m05_course-2-end-of-course-project">5. Course 2 end-of-course project</a><a class="case" href="#go-beyond-the-numbers-translate-data-into-insight/case_automatidata">Automatidata</a><a class="case" href="#go-beyond-the-numbers-translate-data-into-insight/case_tiktok">TikTok</a><a class="case" href="#go-beyond-the-numbers-translate-data-into-insight/case_waze">Waze</a></div></article>
@@ -655,6 +663,7 @@ iframe { flex: 1; width: 100%; border: 0; background: var(--rock); }
 
 <script>
 const DATA = {"items": {"go-beyond-the-numbers-translate-data-into-insight/curso": {"href": "go-beyond-the-numbers-translate-data-into-insight/curso.html", "crumb": "Curso 2 · El curso y su cerebro"}, "go-beyond-the-numbers-translate-data-into-insight/m01_find-and-share-stories-using-data": {"href": "go-beyond-the-numbers-translate-data-into-insight/m01_find-and-share-stories-using-data.html", "crumb": "Curso 2 · Módulo 1 · Find and share stories using data"}, "go-beyond-the-numbers-translate-data-into-insight/m02_explore-raw-data": {"href": "go-beyond-the-numbers-translate-data-into-insight/m02_explore-raw-data.html", "crumb": "Curso 2 · Módulo 2 · Explore raw data"}, "go-beyond-the-numbers-translate-data-into-insight/m03_clean-your-data": {"href": "go-beyond-the-numbers-translate-data-into-insight/m03_clean-your-data.html", "crumb": "Curso 2 · Módulo 3 · Clean your data"}, "go-beyond-the-numbers-translate-data-into-insight/m04_data-visualizations-and-presentations": {"href": "go-beyond-the-numbers-translate-data-into-insight/m04_data-visualizations-and-presentations.html", "crumb": "Curso 2 · Módulo 4 · Data visualizations and presentations"}, "go-beyond-the-numbers-translate-data-into-insight/m05_course-2-end-of-course-project": {"href": "go-beyond-the-numbers-translate-data-into-insight/m05_course-2-end-of-course-project.html", "crumb": "Curso 2 · Módulo 5 · Course 2 end-of-course project"}, "go-beyond-the-numbers-translate-data-into-insight/case_automatidata": {"href": "go-beyond-the-numbers-translate-data-into-insight/case_automatidata.html", "crumb": "Curso 2 · Caso · Automatidata"}, "go-beyond-the-numbers-translate-data-into-insight/case_tiktok": {"href": "go-beyond-the-numbers-translate-data-into-insight/case_tiktok.html", "crumb": "Curso 2 · Caso · TikTok"}, "go-beyond-the-numbers-translate-data-into-insight/case_waze": {"href": "go-beyond-the-numbers-translate-data-into-insight/case_waze.html", "crumb": "Curso 2 · Caso · Waze"}, "the-power-of-statistics/curso": {"href": "the-power-of-statistics/curso.html", "crumb": "Curso 3 · El curso y su cerebro"}, "the-power-of-statistics/m01_introduction-to-statistics-with-python": {"href": "the-power-of-statistics/m01_introduction-to-statistics-with-python.html", "crumb": "Curso 3 · Módulo 1 · Introduction to statistics with Python"}, "the-power-of-statistics/m02_probability": {"href": "the-power-of-statistics/m02_probability.html", "crumb": "Curso 3 · Módulo 2 · Probability"}, "the-power-of-statistics/m03_sampling": {"href": "the-power-of-statistics/m03_sampling.html", "crumb": "Curso 3 · Módulo 3 · Sampling"}, "the-power-of-statistics/m04_confidence-intervals": {"href": "the-power-of-statistics/m04_confidence-intervals.html", "crumb": "Curso 3 · Módulo 4 · Confidence intervals"}, "the-power-of-statistics/m05_introduction-to-hypothesis-testing": {"href": "the-power-of-statistics/m05_introduction-to-hypothesis-testing.html", "crumb": "Curso 3 · Módulo 5 · Introduction to hypothesis testing"}, "the-power-of-statistics/m06_course-3-end-of-course-project": {"href": "the-power-of-statistics/m06_course-3-end-of-course-project.html", "crumb": "Curso 3 · Módulo 6 · Course 3 end-of-course project"}, "the-power-of-statistics/case_automatidata": {"href": "the-power-of-statistics/case_automatidata.html", "crumb": "Curso 3 · Caso · Automatidata"}, "the-power-of-statistics/case_tiktok": {"href": "the-power-of-statistics/case_tiktok.html", "crumb": "Curso 3 · Caso · TikTok"}, "the-power-of-statistics/case_waze": {"href": "the-power-of-statistics/case_waze.html", "crumb": "Curso 3 · Caso · Waze"}, "regression-analysis-simplify-complex-data-relationships/curso": {"href": "regression-analysis-simplify-complex-data-relationships/curso.html", "crumb": "Curso 4 · El curso y su cerebro"}, "regression-analysis-simplify-complex-data-relationships/m01_introduction-to-complex-data-relationships": {"href": "regression-analysis-simplify-complex-data-relationships/m01_introduction-to-complex-data-relationships.html", "crumb": "Curso 4 · Módulo 1 · Introduction to complex data relationships"}, "regression-analysis-simplify-complex-data-relationships/m02_simple-linear-regression": {"href": "regression-analysis-simplify-complex-data-relationships/m02_simple-linear-regression.html", "crumb": "Curso 4 · Módulo 2 · Simple linear regression"}, "regression-analysis-simplify-complex-data-relationships/m03_multiple-linear-regression": {"href": "regression-analysis-simplify-complex-data-relationships/m03_multiple-linear-regression.html", "crumb": "Curso 4 · Módulo 3 · Multiple linear regression"}, "regression-analysis-simplify-complex-data-relationships/m04_advanced-hypothesis-testing": {"href": "regression-analysis-simplify-complex-data-relationships/m04_advanced-hypothesis-testing.html", "crumb": "Curso 4 · Módulo 4 · Advanced hypothesis testing"}, "regression-analysis-simplify-complex-data-relationships/m05_logistic-regression": {"href": "regression-analysis-simplify-complex-data-relationships/m05_logistic-regression.html", "crumb": "Curso 4 · Módulo 5 · Logistic regression"}, "regression-analysis-simplify-complex-data-relationships/m06_course-4-end-of-course-project": {"href": "regression-analysis-simplify-complex-data-relationships/m06_course-4-end-of-course-project.html", "crumb": "Curso 4 · Módulo 6 · Course 4 end-of-course project"}, "regression-analysis-simplify-complex-data-relationships/case_automatidata": {"href": "regression-analysis-simplify-complex-data-relationships/case_automatidata.html", "crumb": "Curso 4 · Caso · Automatidata"}, "regression-analysis-simplify-complex-data-relationships/case_tiktok": {"href": "regression-analysis-simplify-complex-data-relationships/case_tiktok.html", "crumb": "Curso 4 · Caso · TikTok"}, "regression-analysis-simplify-complex-data-relationships/case_waze": {"href": "regression-analysis-simplify-complex-data-relationships/case_waze.html", "crumb": "Curso 4 · Caso · Waze"}, "the-nuts-and-bolts-of-machine-learning/curso": {"href": "the-nuts-and-bolts-of-machine-learning/curso.html", "crumb": "Curso 5 · El curso y su cerebro"}, "the-nuts-and-bolts-of-machine-learning/m01_the-different-types-of-machine-learning": {"href": "the-nuts-and-bolts-of-machine-learning/m01_the-different-types-of-machine-learning.html", "crumb": "Curso 5 · Módulo 1 · The different types of machine learning"}, "the-nuts-and-bolts-of-machine-learning/m02_workflow-for-building-complex-models": {"href": "the-nuts-and-bolts-of-machine-learning/m02_workflow-for-building-complex-models.html", "crumb": "Curso 5 · Módulo 2 · Workflow for building complex models"}, "the-nuts-and-bolts-of-machine-learning/m03_unsupervised-learning-techniques": {"href": "the-nuts-and-bolts-of-machine-learning/m03_unsupervised-learning-techniques.html", "crumb": "Curso 5 · Módulo 3 · Unsupervised learning techniques"}, "the-nuts-and-bolts-of-machine-learning/m04_tree-based-modeling": {"href": "the-nuts-and-bolts-of-machine-learning/m04_tree-based-modeling.html", "crumb": "Curso 5 · Módulo 4 · Tree-based modeling"}, "the-nuts-and-bolts-of-machine-learning/m05_course-5-end-of-course-project": {"href": "the-nuts-and-bolts-of-machine-learning/m05_course-5-end-of-course-project.html", "crumb": "Curso 5 · Módulo 5 · Course 5 end-of-course project"}, "the-nuts-and-bolts-of-machine-learning/case_waze": {"href": "the-nuts-and-bolts-of-machine-learning/case_waze.html", "crumb": "Curso 5 · Caso · Waze"}, "the-nuts-and-bolts-of-machine-learning/case_tiktok": {"href": "the-nuts-and-bolts-of-machine-learning/case_tiktok.html", "crumb": "Curso 5 · Caso · TikTok"}, "the-nuts-and-bolts-of-machine-learning/case_automatidata": {"href": "the-nuts-and-bolts-of-machine-learning/case_automatidata.html", "crumb": "Curso 5 · Caso · Automatidata"}, "google-advanced-data-analytics-capstone/curso": {"href": "google-advanced-data-analytics-capstone/curso.html", "crumb": "Curso 6 · El curso y su cerebro"}, "google-advanced-data-analytics-capstone/m01_capstone-project": {"href": "google-advanced-data-analytics-capstone/m01_capstone-project.html", "crumb": "Curso 6 · Módulo 1 · Capstone Project"}, "google-advanced-data-analytics-capstone/m02_ai-in-advanced-data-analytics": {"href": "google-advanced-data-analytics-capstone/m02_ai-in-advanced-data-analytics.html", "crumb": "Curso 6 · Módulo 2 · AI in Advanced Data Analytics"}, "google-advanced-data-analytics-capstone/m03_put-your-certificate-to-work": {"href": "google-advanced-data-analytics-capstone/m03_put-your-certificate-to-work.html", "crumb": "Curso 6 · Módulo 3 · Put your Advanced Data Analytics Certificate to work"}}};
+const UI = {"home": "Portada", "result": " resultado", "results": " resultados", "none": "sin resultados"};
 
 const tree = document.getElementById('tree');
 const view = document.getElementById('view');
@@ -668,7 +677,7 @@ function showHome() {
   view.hidden = true;
   homePanel.hidden = false;
   newtab.hidden = true;
-  crumb.textContent = 'Portada';
+  crumb.textContent = UI.home;
   document.querySelectorAll('.tree li.active').forEach(li => li.classList.remove('active'));
 }
 
@@ -706,6 +715,13 @@ function route() {
 }
 
 window.addEventListener('hashchange', route);
+
+// The language switch keeps the route, so a reader lands on the same page of the other
+// edition (or on its front page, when that twin is not written yet).
+const lang = document.getElementById('lang');
+function syncSwitch() { if (lang) lang.href = lang.dataset.base + location.hash; }
+window.addEventListener('hashchange', syncSwitch);
+syncSwitch();
 
 document.querySelectorAll('.course-head').forEach(head => {
   head.addEventListener('click', () => {
@@ -758,7 +774,7 @@ input.addEventListener('input', () => {
     if (courseHits) course.dataset.open = 'true';
     hits += courseHits;
   });
-  count.textContent = hits ? hits + (hits === 1 ? ' resultado' : ' resultados') : 'sin resultados';
+  count.textContent = hits ? hits + (hits === 1 ? UI.result : UI.results) : UI.none;
 });
 
 route();

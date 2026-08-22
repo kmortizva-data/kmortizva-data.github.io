@@ -3,7 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Workflow for building complex models — The Nuts and Bolts of Machine Learning</title>
+<title>Workflow for building complex models · The Nuts and Bolts of Machine Learning</title>
+
 <style>
 /* ============================================================================
    Concentra — design tokens and shared components.
@@ -102,9 +103,18 @@ body {
   text-transform: uppercase;
   color: var(--brass);
   margin-bottom: 1rem;
+  display: flex; flex-wrap: wrap; align-items: center;
+  justify-content: space-between; gap: .6rem 1rem;
 }
 .eyebrow a { color: inherit; text-decoration: none; border-bottom: 1px solid transparent; }
 .eyebrow a:hover { border-bottom-color: var(--brass); }
+/* The way to the other edition of this page. It targets the shell, not the bare
+   page, so the sidebar follows the language too. */
+.eyebrow .lang-switch {
+  margin-left: auto; border: 1px solid var(--seam); border-radius: 2px;
+  padding: .22rem .6rem; color: var(--dust); font-size: .68rem; letter-spacing: .1em;
+}
+.eyebrow .lang-switch:hover { color: var(--brass); border-color: var(--brass); }
 
 .header h1 {
   font-family: var(--display);
@@ -447,7 +457,7 @@ figure.fig figcaption {
 <body>
 <header class="header">
   <div class="header-content">
-    <div class="eyebrow"><a href="https://www.coursera.org/learn/the-nuts-and-bolts-of-machine-learning">The Nuts and Bolts of Machine Learning</a> / Módulo 2</div>
+    <div class="eyebrow"><span><a href="https://www.coursera.org/learn/the-nuts-and-bolts-of-machine-learning">The Nuts and Bolts of Machine Learning</a> / Módulo 2</span></div>
     <h1>Workflow for building complex models</h1>
     <p class="subtitle">Ocho lotes, dos preguntas de sí o no, y una probabilidad de 0,9 calculada a mano con la regla de Bayes del Curso 3. Aquí se monta la disciplina del curso: partir los datos en tres, construir variables que no venían en el archivo, y dejar de mirar la exactitud cuando una clase es rara.</p>
     <div class="mesh" role="presentation"></div>
@@ -506,7 +516,7 @@ F1            0.00</pre></div><p><strong>Un 95 % de exactitud y un cero en todo 
 <section class="section-block is-review"><span class="kicker">Repaso</span><h2 class="section-title">Repaso</h2><details><summary>¿Por qué los datos se parten en tres y no en dos?</summary><p>Porque el conjunto con el que eliges entre modelos y ajustas perillas se va gastando. Cada vez que miras un resultado en validación y cambias algo, le filtras información: después de veinte decisiones, esa medida ya no es independiente, es parte del ajuste. El conjunto de prueba existe para dar una cifra que nadie haya usado para decidir nada, y por eso se aparta antes de empezar y se mira una sola vez, al final. En cuanto lo miras y cambias algo, deja de medir, aunque las filas sigan ahí.</p></details><details><summary>En el ejemplo de los ocho lotes, ¿dónde está exactamente lo &quot;ingenuo&quot; del modelo?</summary><p>En multiplicar 3/4 por 3/4 como si tener ley alta y llevar reactivo fueran independientes dentro del grupo de los que pasan. Los propios datos lo desmienten: de los cuatro lotes que pasaron, solo dos tenían las dos características a la vez, o sea 0,5000, mientras que el producto asume 0,5625. El modelo dio 0,9 aun asumiendo algo falso, y la razón es que para elegir entre dos respuestas no hacen falta puntuaciones correctas, solo bien ordenadas. Por eso Naive Bayes clasifica bien y reporta probabilidades exageradas.</p></details><details><summary>Un modelo tiene un 95 % de exactitud detectando lotes defectuosos. ¿Es bueno?</summary><p>No se puede saber, y con esa cifra sola probablemente no. Si los defectuosos son el 5 %, un modelo que conteste siempre &quot;correcto&quot; acierta ese mismo 95 % sin detectar ni un defecto: su precisión, su sensibilidad y su F1 valen exactamente cero. La exactitud premia al modelo que no hace nada cuando las clases están desbalanceadas. Lo que hay que pedir es la sensibilidad, que dice cuántos defectuosos se encontraron de los que había, y la precisión, que dice cuántas de las alarmas eran ciertas.</p></details><details><summary>¿Por qué se equilibra el entrenamiento y no el conjunto entero?</summary><p>Por dos razones distintas. La primera es técnica: si duplicas filas de la clase rara y luego partes, la misma fila puede acabar en entrenamiento y en prueba, y entonces el modelo está siendo evaluado sobre algo que ya vio. La segunda es de sentido: el conjunto de prueba debe parecerse a lo que el modelo se encontrará en producción, y en producción los defectuosos seguirán siendo el 5 %. Equilibrar la prueba te daría una cifra bonita que no describe ninguna situación real.</p></details><details><summary>Al partir el 20 % para prueba y luego querer un 20 % de validación, ¿por qué el segundo corte usa 0,25?</summary><p>Porque el segundo corte se aplica sobre lo que quedó, que es el 80 % del total y no el 100 %. El 25 % de ese 80 % es el 20 % del conjunto original, y así salen las tres partes en 60, 20 y</p><ol><li>Si se volviera a pedir 0,2 en la segunda llamada, la validación se llevaría el 16 % del</li></ol><p>total y el entrenamiento el 64 %, que no es lo que se pretendía. Es un fallo silencioso: no da error, solo deja las proporciones distintas de lo que dice el informe.</p></details></section>
 </main>
 <footer class="footer">
-  Concentra / destilado del temario público del curso / 2026-08-20
+  Concentra / destilado del temario público del curso / 2026-08-22
 </footer>
 </body>
 </html>

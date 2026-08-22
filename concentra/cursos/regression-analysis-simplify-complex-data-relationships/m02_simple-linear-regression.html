@@ -3,7 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Simple linear regression — Regression Analysis: Simplify Complex Data Relationships</title>
+<title>Simple linear regression · Regression Analysis: Simplify Complex Data Relationships</title>
+
 <style>
 /* ============================================================================
    Concentra — design tokens and shared components.
@@ -102,9 +103,18 @@ body {
   text-transform: uppercase;
   color: var(--brass);
   margin-bottom: 1rem;
+  display: flex; flex-wrap: wrap; align-items: center;
+  justify-content: space-between; gap: .6rem 1rem;
 }
 .eyebrow a { color: inherit; text-decoration: none; border-bottom: 1px solid transparent; }
 .eyebrow a:hover { border-bottom-color: var(--brass); }
+/* The way to the other edition of this page. It targets the shell, not the bare
+   page, so the sidebar follows the language too. */
+.eyebrow .lang-switch {
+  margin-left: auto; border: 1px solid var(--seam); border-radius: 2px;
+  padding: .22rem .6rem; color: var(--dust); font-size: .68rem; letter-spacing: .1em;
+}
+.eyebrow .lang-switch:hover { color: var(--brass); border-color: var(--brass); }
 
 .header h1 {
   font-family: var(--display);
@@ -447,7 +457,7 @@ figure.fig figcaption {
 <body>
 <header class="header">
   <div class="header-content">
-    <div class="eyebrow"><a href="https://www.coursera.org/learn/regression-analysis-simplify-complex-data-relationships">Regression Analysis: Simplify Complex Data Relationships</a> / Módulo 2</div>
+    <div class="eyebrow"><span><a href="https://www.coursera.org/learn/regression-analysis-simplify-complex-data-relationships">Regression Analysis: Simplify Complex Data Relationships</a> / Módulo 2</span></div>
     <h1>Simple linear regression</h1>
     <p class="subtitle">La recta que mejor pasa por los puntos, construida a mano con los mismos cinco datos del módulo anterior. De dónde salen la pendiente y el intercepto, qué mide de verdad el R², cuánta incertidumbre tiene ese coeficiente, y los cuatro supuestos sin los cuales nada de esto es defendible.</p>
     <div class="mesh" role="presentation"></div>
@@ -518,7 +528,7 @@ a 200 g/t: 146.0 %  &lt;- fuera de rango, imposible</pre></div><p>Las dos línea
 <section class="section-block is-review"><span class="kicker">Repaso</span><h2 class="section-title">Repaso</h2><details><summary>¿Qué minimiza exactamente el método de mínimos cuadrados, y por qué al cuadrado?</summary><p>Minimiza la suma de los residuos elevados al cuadrado, donde el residuo es lo medido menos lo predicho para cada punto. En el ejemplo esa suma vale 4, y ninguna otra recta la deja más baja. Se elevan al cuadrado por dos motivos: sin hacerlo los errores positivos y negativos se cancelan, ya que por construcción suman cero, y además el cuadrado penaliza mucho más un error grande que varios pequeños, de modo que la recta evita dejar puntos muy lejos. El efecto secundario de eso es que un solo valor extremo tira de la recta con fuerza.</p></details><details><summary>Un modelo tiene R² de 0,97. ¿Significa que es un buen modelo?</summary><p>No por sí solo. El R² solo dice cuánto error elimina la recta comparada con predecir siempre la media, y puede ser alto en un modelo mal especificado: una relación curva ajustada con una recta puede dar 0,97 y equivocarse sistemáticamente en los extremos. Para juzgar el modelo hacen falta tres cosas más: mirar el gráfico de residuos contra predichos en busca de una U o un embudo, comprobar los cuatro supuestos, y leer el RMSE, que está en las unidades de Y y dice cuánto se equivoca el modelo en la práctica.</p></details><details><summary>¿Cuáles son los cuatro supuestos de la regresión lineal simple y cómo se comprueba cada uno?</summary><p>Linealidad, que se comprueba con el diagrama de dispersión de X contra Y. Independencia de las observaciones, que no se comprueba con una prueba sino pensando en cómo se recogieron los datos, y que se rompe casi siempre con series en el tiempo. Normalidad de los residuos, con un histograma o un gráfico cuantil de los residuos, nunca de los datos originales. Y varianza constante, dibujando los residuos contra los valores predichos y comprobando que no aparece un embudo. El gráfico de residuos contra predichos cubre por sí solo dos de los cuatro.</p></details><details><summary>El intervalo de confianza de una pendiente va de −0,1 a 0,7. ¿Qué se puede afirmar?</summary><p>Que el efecto no está demostrado, porque el intervalo incluye el cero y por tanto una pendiente de cero es compatible con los datos. No se puede afirmar que no exista efecto: eso sería confundir ausencia de evidencia con evidencia de ausencia, y un intervalo tan ancho es compatible también con una pendiente de 0,7, que sería grande. Lo honesto es decir que con estos datos no se puede concluir, y que la incertidumbre es demasiado alta, lo cual suele significar que hacen falta más observaciones.</p></details><details><summary>¿Por qué se reporta el RMSE si ya se tiene el R²?</summary><p>Porque miden cosas distintas y solo uno sirve para decidir. El R² no tiene unidades y compara el modelo contra predecir la media, así que sirve para comparar modelos sobre el mismo conjunto de datos. El RMSE está en las unidades de la variable dependiente y dice cuánto se equivoca el modelo típicamente: en el ejemplo, 0,894 puntos de recuperación. Un metalurgista puede juzgar si equivocarse nueve décimas de punto es aceptable para su decisión, y en cambio no puede juzgar directamente si un 0,9756 es suficiente.</p></details></section>
 </main>
 <footer class="footer">
-  Concentra / destilado del temario público del curso / 2026-08-20
+  Concentra / destilado del temario público del curso / 2026-08-22
 </footer>
 </body>
 </html>

@@ -1,10 +1,10 @@
 <!doctype html>
-<html lang="es">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Waze · Go Beyond the Numbers: Translate Data into Insights</title>
-
+<title>Google Advanced Data Analytics Capstone · the course</title>
+<link rel="alternate" hreflang="es" href="curso.html">
 <style>
 /* ============================================================================
    Concentra — design tokens and shared components.
@@ -452,39 +452,240 @@ figure.fig figcaption {
   a { color: #16130f; }
 }
 
+
+/* The brain file, ready to be copied into an assistant's memory. */
+.brain { max-width: 880px; margin-top: 1.2rem; }
+.brain-bar {
+  display: flex; align-items: center; gap: .8rem; flex-wrap: wrap;
+  border: 1px solid var(--seam); border-bottom: 0;
+  padding: .6rem .9rem; background: var(--bench);
+}
+.brain-bar .name {
+  font-family: var(--data); font-size: .76rem; color: var(--brass); letter-spacing: .06em;
+}
+.brain-bar .size { font-family: var(--data); font-size: .72rem; color: var(--shadowed); }
+.brain-bar .spacer { flex: 1; }
+.brain-bar button, .brain-bar a.btn {
+  background: none; border: 1px solid var(--seam); border-radius: 2px;
+  color: var(--dust); font-family: var(--data); font-size: .72rem;
+  letter-spacing: .06em; padding: .3rem .7rem; cursor: pointer;
+  text-decoration: none; white-space: nowrap;
+}
+.brain-bar button:hover, .brain-bar a.btn:hover { color: var(--brass); border-color: var(--brass); }
+.brain-bar button.done { color: var(--malachite); border-color: var(--malachite); }
+.brain pre {
+  margin: 0; max-height: 26rem; overflow: auto;
+  border-radius: 0; border-color: var(--seam);
+}
+.brain pre code { font-size: .8rem; }
 </style>
 </head>
 <body>
 <header class="header">
   <div class="header-content">
-    <div class="eyebrow"><span>Curso 2 · Go Beyond the Numbers: Translate Data into Insights / Caso de estudio</span></div>
-    <h1>Waze</h1>
-    <p class="subtitle">461 usuarios conducen más de 24 horas en un día. No es un valor extremo, es imposible.</p>
+    <div class="eyebrow"><span>Course 6 / <a href="https://www.coursera.org/learn/google-advanced-data-analytics-capstone">see on Coursera</a></span><a class="lang-switch" href="../index.html#google-advanced-data-analytics-capstone/curso" target="_top" hreflang="es" lang="es" title="Leer esta página en español">Español</a></div>
+    <h1>Google Advanced Data Analytics Capstone</h1>
+    <p class="subtitle"></p>
     <div class="mesh" role="presentation"></div>
-    <div class="assay"><span>14.999 usuarios</span><span>13 columnas</span><span>700 sin etiqueta</span><span>461 imposibles</span></div>
+    <div class="assay"><span>3 modules</span><span>6.5 h course time</span><span>37 tasks</span><span>the project is optional</span></div>
   </div>
 </header>
 <main class="container">
-<section class="section-block "><span class="kicker">Encargo</span><h2 class="section-title">El encargo</h2><p><strong>Waze</strong> quiere entender por qué la gente deja de usar la aplicación. Antes de modelar nada, el encargo de este curso es el previo: <strong>describir el archivo</strong>. Qué contiene, qué le falta y de qué se puede uno fiar.</p><p>Es el mismo archivo que los cursos siguientes usan para una prueba de hipótesis y para un modelo de abandono. Este es el trabajo que debería haber ido primero.</p></section>
-<section class="section-block is-question"><span class="kicker">Pregunta</span><h2 class="section-title">La pregunta</h2><blockquote>¿De qué partes de este archivo se puede uno fiar?</blockquote></section>
-<section class="section-block is-data"><span class="kicker">Datos</span><h2 class="section-title">Los datos</h2><p><code>waze_dataset.csv</code>, <strong>14.999 usuarios</strong> y 13 columnas, con el comportamiento de cada uno durante un mes: sesiones, trayectos, kilómetros, minutos, días de actividad, días conduciendo, dispositivo y la etiqueta de si se quedó o se fue.</p><p>Sin filas duplicadas. Una sola columna con ausentes, y es justamente la etiqueta.</p></section>
-<section class="section-block is-data"><span class="kicker">Limpieza</span><h2 class="section-title">Lo que hubo que arreglar</h2><figure class="fig"><img src="../../projects/curso2/waze/03_figures/02_etiquetas.a01de6cc.png" alt="02_etiquetas" loading="lazy"><figcaption>02_etiquetas.png</figcaption></figure><p><strong>700 usuarios no tienen etiqueta</strong>, el 4,67 %. Antes de decidir nada sobre ellos hay que comprobar si se parecen al resto, porque excluir a un grupo distinto cambia a quién describe todo lo que venga después:</p><div class="table-wrap"><table><thead><tr><th>Variable</th><th>Diferencia de la mediana</th></tr></thead><tbody><tr><td>Sesiones</td><td>0,0 %</td></tr><tr><td>Trayectos</td><td>−1,0 %</td></tr><tr><td>Kilómetros</td><td>−2,2 %</td></tr><tr><td>Días de actividad</td><td>−6,2 %</td></tr></tbody></table></div><p>La mayor diferencia es del 6,2 %. <strong>Se pueden excluir</strong>, y así lo hizo el modelo del Curso 4. Entre los 14.299 que sí tienen etiqueta, la tasa de abandono es del <strong>17,74 %</strong>.</p><p><strong>Y 1.024 usuarios condujeron cero días.</strong> No es un error: son gente que abrió la aplicación y no condujo. Importa porque cualquier ratio por día conducido divide por cero en esos casos, y el valor defendible es cero, no infinito.</p><p><em>(El proyecto del Curso 4 reporta 983 en vez de 1.024 porque cuenta después de excluir los 700 sin etiqueta. Los dos números son correctos en su contexto.)</em></p></section>
-<section class="section-block is-figures"><span class="kicker">Exploración</span><h2 class="section-title">Lo que mostró la exploración</h2><p>Y aquí está el hallazgo, que aparece al construir una variable que el archivo no trae: <strong>kilómetros por día conducido</strong>.</p><figure class="fig is-live"><iframe src="../../projects/curso2/waze/03_figures/01_kilometros_imposibles.1fa14a38.html" loading="lazy" title="01_kilometros_imposibles"></iframe><figcaption>interactiva: pasa el ratón y haz zoom</figcaption></figure><div class="table-wrap"><table><thead><tr><th>Comprobación</th><th>Usuarios</th></tr></thead><tbody><tr><td>Más de 1.000 km en un solo día conducido</td><td><strong>1.994</strong></td></tr><tr><td><strong>Más de 24 horas al volante en un solo día conducido</strong></td><td><strong>461</strong></td></tr><tr><td>Máximo de kilómetros en un día</td><td><strong>15.420,2 km</strong></td></tr><tr><td>Máximo de horas en un día</td><td><strong>172,0 horas</strong></td></tr></tbody></table></div><p>La mediana son <strong>297,1 km</strong> por día conducido, así que el grueso del archivo es razonable. Lo que no lo es son esos 461 casos: <strong>172 horas dentro de un día de 24 no es un valor extremo, es aritméticamente imposible</strong>.</p><p>La lectura honesta es que <strong>una de las dos columnas no mide lo que dice medir</strong>. La hipótesis más probable es que &quot;días conduciendo&quot; cuente días con actividad dentro de una ventana mayor que el mes que declaran las demás columnas.</p></section>
-<section class="section-block is-result"><span class="kicker">Resultado</span><h2 class="section-title">El resultado, traducido</h2><p>El resto del archivo aguanta bien la inspección:</p><ul><li><strong>Sin duplicados</strong> y sin ausentes fuera de la etiqueta.</li><li><strong>Sin categorías escritas de varias maneras</strong>: dispositivo y etiqueta tienen dos valores limpios cada una.</li><li><strong>Los candidatos a atípico por el criterio del rango intercuartílico son pocos</strong>, entre el 3 % y el 5 % en las columnas de uso, y son usuarios intensos de verdad, no errores.</li><li><strong>Ningún día de actividad fuera del rango de 0 a 31</strong>, y ningún usuario con más días conduciendo que días activo.</li></ul><p>Esa última comprobación es la que hace el hallazgo más raro: <strong>las dos columnas son coherentes entre sí y aun así producen un ratio imposible al combinarse con los kilómetros</strong>.</p></section>
-<section class="section-block is-decision"><span class="kicker">Decisión</span><h2 class="section-title">Qué se decide con esto</h2><ol><li><strong>Preguntar al equipo que genera el archivo qué mide &quot;días conduciendo&quot;.</strong> Es una pregunta de una línea que decide si el ratio sirve.</li><li><strong>No usar kilómetros ni minutos por día conducido</strong> en ningún modelo hasta que eso se aclare.</li><li><strong>Dejar los 1.024 de cero días con ratio cero</strong>, no eliminarlos.</li><li><strong>Excluir los 700 sin etiqueta</strong> para cualquier trabajo supervisado, dejando escrito que se comprobó antes que se parecen al resto.</li></ol></section>
-<section class="section-block is-warning"><span class="kicker">Límites</span><h2 class="section-title">Limitaciones</h2><ul><li><strong>Aquí no se ha corregido nada.</strong> Este trabajo cuenta y describe; las decisiones quedan escritas para quien limpie.</li><li>El umbral de 1.000 km al día es un criterio propio y discutible. Los 461 casos por encima de 24 horas diarias no lo son.</li><li>Los datos son sintéticos, creados por Waze para el certificado, así que el defecto puede venir del generador. <strong>La forma de detectarlo sería la misma con datos reales</strong>, que es lo que hace que el ejercicio valga.</li></ul></section><section class="section-block is-material"><span class="kicker">Archivos</span><h2 class="section-title">Material completo</h2><p>Estos tres proyectos se construyeron aquí. Los CSV se leen de tu carpeta del curso sin tocarlos, y todo lo demás es nuevo.</p><h3 class="sub">Informes y notas</h3><ul class="res"><li><a href="../../projects/curso2/waze/04_reports/executive_summary.md" target="_blank" rel="noopener">executive_summary.md</a> <span class="path">04_reports/executive_summary.md</span> <span class="size">3.4 KB</span></li><li><a href="../../projects/curso2/waze/04_reports/model_results.json" target="_blank" rel="noopener">model_results.json</a> <span class="path">04_reports/model_results.json</span> <span class="size">1.9 KB</span></li></ul><h3 class="sub">Código</h3><ul class="res"><li><a href="../../projects/curso2/waze/02_scripts/waze_eda.py" target="_blank" rel="noopener">waze_eda.py</a> <span class="path">02_scripts/waze_eda.py</span> <span class="size">10.2 KB</span></li></ul></section>
+<section class="section-block "><span class="kicker">Summary</span><h2 class="section-title">What this course is about</h2><p>It is the seventh and last stretch of the certificate, and <strong>it is nothing like the five before it</strong>. It teaches no new technique: it gathers what you already know and packages it.</p><p>Three very unequal blocks:</p><ol><li><strong>The Capstone project</strong>, which the page itself describes as <strong>optional</strong> and which brings together concepts from the six previous courses on a new scenario, Salifort Motors.</li><li><strong>Generative AI as an analysis tool</strong>: cleaning data, building formulas, sharpening questions and explaining charts with a model&#x27;s help. This one is new content.</li><li><strong>Closing the certificate</strong>: portfolio, badge and what to do next. Half an hour.</li></ol></section>
+<section class="section-block is-recipe"><span class="kicker">The path</span><h2 class="section-title">The path, module by module</h2><ol><li><strong>The Capstone project.</strong> What is expected of it, how it differs from the end-of-course projects, how it goes into a portfolio and how it shows on a résumé.</li><li><strong>AI in advanced data analytics.</strong> Where a generative model really helps and where it hands you an error with the face of an answer.</li><li><strong>Putting the certificate to work.</strong> Showing the work, claiming the badge, and where to go from here.</li></ol></section>
+<section class="section-block "><span class="kicker">Note</span><h2 class="section-title">A limitation, stated up front</h2><p><strong>The Salifort Motors lab lives behind the login</strong>, and the policy of this project is not to go in there: only the public page is read. The page names the scenario and does not describe its business problem, so <strong>that project is not rebuilt here</strong>. That one you do on the platform.</p><p>What can be done, and what this course does in Concentra, is answer the question that module 1 really asks: <strong>how does finished work become a portfolio someone wants to read?</strong> And for that, the library has material the platform does not have.</p></section>
+<section class="section-block "><span class="kicker">Note</span><h2 class="section-title">This course&#x27;s own deliverable</h2><p>The four previous courses analysed <strong>the same three files</strong>. Nobody has ever written the document that puts them together, and read in rows instead of columns it tells another story:</p><div class="table-wrap"><table><thead><tr><th>Case</th><th>Course 2</th><th>Course 3</th><th>Course 4</th><th>Course 5</th></tr></thead><tbody><tr><td><strong>Waze</strong></td><td>461 users drive the impossible</td><td>no difference by device</td><td>82% right, detects 8%</td><td>the trees do not win</td></tr><tr><td><strong>TikTok</strong></td><td>a claim is viewed 101 times more</td><td>medium effect, d of 0.544</td><td>the threshold decides nothing</td><td>one question ties with 300 trees</td></tr><tr><td><strong>Automatidata</strong></td><td>29.5% of the day in 4 hours</td><td>$1.22 of difference</td><td>the leak is worth 0.21 of R²</td><td>there is no signal</td></tr></tbody></table></div><p>In columns that is a syllabus. <strong>In rows it is the story of one file looked at four times with ever more powerful tools</strong>, and it has an uncomfortable ending: in Waze, the most useful finding of the four courses came from the simplest one, looking at a histogram.</p><p>That is what a portfolio has to tell, and it is what this course builds.</p></section>
+<section class="section-block is-decision"><span class="kicker">Result</span><h2 class="section-title">What you can do by the end</h2><ul><li>Turn a finished analysis into something that reads in two minutes and holds up for twenty.</li><li>Use a generative model where it speeds things up and distrust it where it makes things up.</li><li>Say what each tool adds <strong>over the previous one</strong>, which is the question no single course can answer.</li></ul></section>
+<section class="section-block is-toy"><span class="kicker">What it is for</span><h2 class="section-title">The brain of this course</h2><p>Below is the file to copy and paste as an assistant&#x27;s memory. <strong>It is not a summary of the lessons</strong>: it is the operating manual for the two things this course leaves behind, packaging work and working with a generative model without letting it slip an error past you. It is written in Spanish, the working language of this library.</p></section>
+<section class="section-block">
+  <span class="kicker">Memory</span>
+  <h2 class="section-title">The file, ready to copy (it is in Spanish)</h2>
+  <div class="brain">
+    <div class="brain-bar">
+      <span class="name">cerebro-curso-6.md</span>
+      <span class="size">5.8 KB</span>
+      <span class="spacer"></span>
+      <button id="copy" type="button" data-copy="Copy all" data-copied="Copied" data-selected="Selected: press Ctrl+C">Copy all</button>
+      <a class="btn" href="cerebro-curso-6.md" download>Download</a>
+    </div>
+    <pre><code id="brain"># Cerebro: empaquetar el trabajo y trabajar con IA generativa
+
+Manual de operación, no material de estudio. Cubre las dos cosas que deja este curso: cómo
+se convierte un análisis en algo que alguien quiera leer, y cómo se usa un modelo generativo
+sin que te cuele un error con cara de respuesta. Pégalo como memoria y asume estas reglas
+sin preguntarlas.
+
+## Qué resuelvo con esto
+
+Un análisis correcto que nadie lee no ha servido de nada, y una respuesta rápida de un modelo
+que resulta ser falsa cuesta más que no haberla pedido. Las dos mitades de este cerebro son
+las dos formas de que el trabajo bueno se pierda.
+
+---
+
+# Parte 1. Empaquetar
+
+## La regla que ordena todo lo demás
+
+**Nadie va a leer tu cuaderno.** Van a leer tres frases y a mirar una figura, y con eso
+deciden si te preguntan más. Todo lo demás existe para sostener esas tres frases cuando
+alguien las cuestione.
+
+De ahí sale el orden de un entregable, que es el inverso del orden en que trabajaste:
+
+| Orden en que se escribe | Orden en que se lee |
+|---|---|
+| Datos, limpieza, modelo, resultado | **Resultado, qué se decide, y solo después cómo** |
+
+## Las capas de un proyecto, y para quién es cada una
+
+| Capa | Quién la lee | Cuánto tarda en leerla |
+|---|---|---|
+| Una frase | Quien decide | 5 segundos |
+| Resumen ejecutivo | Quien paga | 2 minutos |
+| Ficha de caso | Quien duda | 10 minutos |
+| Informe PACE | Quien audita | media hora |
+| Cuaderno y guion | Quien reproduce | lo que haga falta |
+
+**Las cinco cuentan la misma historia.** Si la frase y el informe no dicen lo mismo, el
+problema no es de formato.
+
+## Qué hace bueno a un proyecto de portafolio
+
+No es el modelo. Es esto, en este orden:
+
+1. **Una pregunta que alguien tenía.** «Predecir el abandono para actuar antes» es una
+   pregunta. «Aplicar random forest» es un ejercicio.
+2. **Una decisión que cambia con la respuesta.** Si nadie va a hacer nada distinto, no había
+   proyecto.
+3. **Un número que se puede defender**, con su incertidumbre y su conjunto de prueba mirado
+   una sola vez.
+4. **Lo que no funcionó**, contado con el mismo detalle que lo que funcionó. Es lo que
+   separa un portafolio de un anuncio.
+5. **Los límites**, escritos por ti antes de que te los encuentren.
+
+## Lo que hunde un portafolio
+
+- **Repetir el tutorial.** Los mismos tres datasets con el mismo modelo que hicieron otras
+  cinco mil personas. Si vas a usarlos, **haz una pregunta que el exemplar no hizo**.
+- **Enseñar solo lo que salió bien.** Un proyecto sin un solo callejón sin salida no parece
+  impecable, parece incompleto.
+- **Métricas sin decisión.** Un AUC de 0,86 no es un resultado; «se contacta al 20 % de mayor
+  riesgo y se recupera al 62 %» sí.
+- **Un cuaderno de 400 celdas como entregable principal.**
+- **Números que no cuadran entre documentos.** Se arregla mecánicamente: que todo salga de un
+  único archivo de resultados y que nada se teclee dos veces.
+
+## La regla del número único
+
+**Ningún documento cita una cifra que no esté en el archivo de resultados que generó el
+código.** No es burocracia: es lo que hace imposible que el resumen diga 0,86 y la ficha
+0,84 porque alguien reajustó algo y olvidó actualizar un párrafo.
+
+---
+
+# Parte 2. La IA generativa como herramienta
+
+## Dónde ayuda y dónde miente
+
+| Tarea | ¿Sirve? | Por qué |
+|---|---|---|
+| Escribir código repetitivo | **Sí** | Lo verificas ejecutándolo |
+| Explicar un error | **Sí** | Te ahorra buscar, y lo compruebas |
+| Sugerir enfoques que no se te ocurrieron | **Sí** | Los evalúas tú |
+| Redactar el primer borrador de un resumen | **Sí, con revisión** | Tú tienes los números |
+| **Calcular un número** | **No** | No calcula: predice texto que parece un número |
+| **Decir si un resultado es significativo** | **No** | Eso sale de tus datos, no de su entrenamiento |
+| **Recordar qué hay en tu archivo** | **No** | No lo ha visto, y aun así contestará |
+
+La línea es de una simplicidad brutal: **sirve para lo que puedes verificar barato y no
+sirve para lo que tendrías que creerte**.
+
+## La regla de las tres preguntas, antes de usar una respuesta
+
+1. **¿Puedo comprobarlo en menos tiempo del que me ahorró?** Si no, no lo uso.
+2. **¿Sabría detectar que está mal?** Si el tema es nuevo para ti, la respuesta suele ser no,
+   y ahí es justo donde más peligroso es.
+3. **¿Estoy pidiendo que genere o que recuerde?** Generar va bien. Recordar datos concretos,
+   cifras, referencias o qué dice tu archivo, va mal.
+
+## Cómo se pide bien
+
+- **Dale el contexto en vez de pedirle que lo adivine.** Pegar la salida real de un `describe`
+  vale más que describirla con palabras.
+- **Pide el razonamiento, no solo el resultado.** Un razonamiento se audita; un número
+  suelto, no.
+- **Pide varias opciones y elige tú.** Es su mejor uso: ampliar lo que se te ocurre.
+- **Nunca le pidas el número final de un informe.** Ese sale del código.
+
+## Y la que se olvida siempre
+
+**Lo que pegas, lo publicas.** Datos de una empresa, un archivo con personas dentro o una
+clave no se pegan en un servicio externo. En este proyecto eso ya es regla: las claves nunca
+viajan y los CSV no se copian.
+
+## Lo que no cambia por usar un modelo
+
+**Sigues firmando tú.** Si el código que te dio tiene una fuga de información, la fuga es
+tuya. Si el gráfico que sugirió engaña, engaña con tu nombre.
+
+De ahí sale la única regla que hace falta recordar: **si no puedes explicar una línea, no la
+pones en un entregable.**
+
+---
+
+## Vocabulario español e inglés
+
+| Español | Inglés |
+|---|---|
+| Proyecto final | Capstone project |
+| Portafolio | Portfolio |
+| Resumen ejecutivo | Executive summary |
+| Ficha de caso | Case study |
+| Currículum | Resume, CV |
+| IA generativa | Generative AI |
+| Instrucción, indicación | Prompt |
+| Alucinación | Hallucination |
+| Verificable | Verifiable |
+| Insignia del certificado | Certificate badge |
+</code></pre>
+  </div>
+</section>
 </main>
 <footer class="footer">
-  Concentra / esta ficha enlaza tus archivos donde ya estaban / 2026-08-22
+  Concentra / 2026-08-22
 </footer>
 <script>
-// Same-frame links replace the current entry instead of pushing a new one, so the
-// browser's back button keeps following the sidebar routes of the shell.
-document.querySelectorAll('a.lead-link').forEach(link => {
-  link.addEventListener('click', event => {
-    event.preventDefault();
-    location.replace(link.getAttribute('href'));
-  });
+const button = document.getElementById('copy');
+const source = document.getElementById('brain');
+
+function selectSource() {
+  const range = document.createRange();
+  range.selectNodeContents(source);
+  const selection = window.getSelection();
+  selection.removeAllRanges();
+  selection.addRange(range);
+}
+
+button.addEventListener('click', async () => {
+  const text = source.textContent;
+  let copied = false;
+  // The clipboard API needs a secure context, which file:// is not, so fall back to
+  // selecting the text and letting the old command (or the reader's Ctrl+C) do it.
+  try {
+    await navigator.clipboard.writeText(text);
+    copied = true;
+  } catch {
+    selectSource();
+    try { copied = document.execCommand('copy'); } catch { copied = false; }
+  }
+  button.textContent = copied ? button.dataset.copied : button.dataset.selected;
+  button.classList.toggle('done', copied);
+  if (!copied) selectSource();
+  setTimeout(() => {
+    button.textContent = button.dataset.copy;
+    button.classList.remove('done');
+  }, 2600);
 });
 </script>
 </body>
