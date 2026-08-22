@@ -1,0 +1,682 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Preprocessing and validating without cheating · Silica, module 4</title>
+<link rel="alternate" hreflang="es" href="m04_preprocesar_y_validar.html">
+<style>
+/* Sílice: la hoja de estilos del curso.
+ *
+ * Identidad de papel de informe de planta, no de pantalla. El proyecto termina
+ * recomendando no desplegar, y eso es un informe técnico: papel hueso, tinta grafito,
+ * y una retícula de milimetrado muy tenue en la cabecera.
+ *
+ * Dos familias tipográficas y ni una más, las dos del sistema porque el sitio se abre
+ * desde file:// y tiene que funcionar sin internet: serif para la prosa (se lee como
+ * informe) y monoespaciada para todo lo que es dato, código, cifra o etiqueta.
+ *
+ * El acento lo inyecta cada página con --accent: es el del módulo, y marca su posición
+ * en el arco del proyecto. Los diez pasan check_palette.py antes de entrar aquí.
+ */
+
+:root {
+  --paper: #f6f3ec;
+  --bench: #eeeade;
+  --ink: #2a2622;
+  --ink-soft: #57504a;
+  --ink-faint: #8a8177;
+  --rule: #ddd6c6;
+  --rule-soft: #e8e2d4;
+  --grid: rgba(84, 69, 73, .07);
+  --accent: #632727;
+
+  --prose: Georgia, "Iowan Old Style", "Palatino Linotype", Palatino, "Times New Roman", serif;
+  --data: "Cascadia Mono", Consolas, "DejaVu Sans Mono", "Liberation Mono", monospace;
+
+  --measure: 680px;   /* la medida de la prosa, en píxeles y nunca en ch */
+  --wide: 1180px;     /* el borde derecho de los bloques anchos */
+  --margin: 132px;    /* la columna del margen, donde cuelgan los kickers */
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--prose);
+  font-size: 17px;
+  line-height: 1.62;
+  -webkit-text-size-adjust: 100%;
+}
+
+::selection { background: var(--accent); color: var(--paper); }
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+/* --------------------------------------------------------------- cabecera */
+
+.masthead {
+  border-bottom: 1px solid var(--rule);
+  background-color: var(--bench);
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 26px 26px;
+  background-position: -1px -1px;
+}
+
+.masthead-inner {
+  max-width: var(--wide);
+  margin: 0 auto;
+  padding: 2.4rem 2rem 1.6rem;
+}
+
+.eyebrow {
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-bottom: 1rem;
+}
+
+.eyebrow a { color: inherit; text-decoration: none; border-bottom: 1px solid transparent; }
+.eyebrow a:hover { border-bottom-color: var(--accent); color: var(--accent); }
+.eyebrow b { color: var(--accent); font-weight: 400; }
+
+.masthead h1 {
+  margin: 0;
+  font-size: clamp(1.9rem, 4.4vw, 2.9rem);
+  line-height: 1.14;
+  font-weight: 400;
+  letter-spacing: -.012em;
+  max-width: 900px;
+}
+
+.standfirst {
+  margin: .9rem 0 0;
+  max-width: var(--measure);
+  color: var(--ink-soft);
+  font-size: 1.02rem;
+  line-height: 1.55;
+}
+
+/* La cifra del módulo: el número que dejó, en grande, junto al título. Es lo que
+   convierte la cabecera en parte del argumento y no en decoración. */
+.figure-mark {
+  margin-top: 1.6rem;
+  display: flex;
+  align-items: baseline;
+  gap: .8rem;
+  flex-wrap: wrap;
+  border-left: 3px solid var(--accent);
+  padding-left: .9rem;
+}
+
+.figure-value {
+  font-family: var(--data);
+  font-size: clamp(1.5rem, 3.4vw, 2.1rem);
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: -.02em;
+}
+
+.figure-label {
+  font-family: var(--data);
+  font-size: .78rem;
+  letter-spacing: .04em;
+  color: var(--ink-soft);
+}
+
+/* El hilo del proyecto: diez segmentos, uno por módulo, con su cifra debajo. Desde
+   cualquier página se ve el recorrido entero, que es justo lo que a los apuntes
+   sueltos les faltaba. */
+.thread {
+  margin-top: 1.8rem;
+  display: grid;
+  /* One equal column per segment, whatever the temario says. It was pinned to ten and
+     the course grew to fourteen. */
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: 4px;
+}
+
+/* Where part 2 starts: the four modules that were never in the original project. */
+.thread .starts-part { margin-left: 10px; position: relative; }
+.thread .starts-part::after {
+  content: '';
+  position: absolute;
+  left: -7px; top: -3px; bottom: 0;
+  border-left: 1px solid var(--rule);
+}
+
+.thread a, .thread span {
+  display: block;
+  text-decoration: none;
+  color: var(--ink-faint);
+  font-family: var(--data);
+  font-size: .62rem;
+  letter-spacing: .04em;
+  padding-top: .4rem;
+  border-top: 3px solid var(--rule);
+  transition: color .12s, border-color .12s;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.thread a:hover { color: var(--ink); border-top-color: var(--ink-soft); }
+.thread [aria-current="page"] { color: var(--accent); border-top-color: var(--accent); }
+.thread .n { font-weight: 700; }
+.thread .v { color: inherit; opacity: .75; }
+
+/* Las pastillas de composición: de qué está hecho el módulo. */
+.assay {
+  margin-top: 1.6rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.4rem;
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .05em;
+  color: var(--ink-faint);
+}
+
+.assay b { color: var(--ink); font-weight: 700; }
+
+/* ----------------------------------------------------------------- cuerpo */
+
+.container {
+  max-width: var(--wide);
+  margin: 0 auto;
+  padding: 2.6rem 2rem 4rem;
+}
+
+/* Cada sección es una anotación de cuaderno: el kicker cuelga en el margen
+   izquierdo y el contenido corre en la columna principal. En pantalla estrecha el
+   kicker se pone encima. */
+.block {
+  display: grid;
+  grid-template-columns: var(--margin) minmax(0, 1fr);
+  column-gap: 2rem;
+  padding: 2.2rem 0;
+  border-top: 1px solid var(--rule);
+}
+
+.block:first-child { border-top: 0; padding-top: .6rem; }
+
+.kicker {
+  grid-column: 1;
+  font-family: var(--data);
+  font-size: .68rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding-top: .45rem;
+}
+
+.block > :not(.kicker) { grid-column: 2; }
+
+.block-title {
+  margin: 0 0 1.1rem;
+  font-size: 1.42rem;
+  font-weight: 400;
+  line-height: 1.25;
+  letter-spacing: -.008em;
+}
+
+.is-warning .kicker, .is-result .kicker { color: var(--accent); }
+.is-warning .block-title { border-bottom: 2px solid var(--accent); padding-bottom: .4rem; display: inline-block; }
+.is-result { background: var(--bench); margin: 0 -1.2rem; padding: 2.2rem 1.2rem; }
+.is-result .block-title { color: var(--accent); }
+
+/* Prosa: justificada con partición, que sin partición el español justificado abre
+   ríos. Tablas, código y pies de figura se quedan sin justificar. */
+.block p, .block li, .block dd, details > *:not(summary) {
+  max-width: var(--measure);
+  text-align: justify;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+}
+
+.block p { margin: 0 0 1rem; }
+.block p:last-child { margin-bottom: 0; }
+.block ul, .block ol { margin: 0 0 1rem; padding-left: 1.3rem; max-width: var(--measure); }
+.block li { margin-bottom: .5rem; }
+.block li::marker { color: var(--accent); font-family: var(--data); font-size: .85em; }
+
+td, th, figcaption, .assay, .thread a, .res li { text-align: left; hyphens: manual; }
+
+a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+a:hover { text-decoration-thickness: 2px; }
+strong { font-weight: 700; }
+em { font-style: italic; color: var(--ink-soft); }
+
+h3.sub {
+  margin: 1.9rem 0 .7rem;
+  font-size: 1.07rem;
+  font-weight: 700;
+  letter-spacing: -.004em;
+}
+
+h3.sub:first-child { margin-top: 0; }
+
+h4.sub {
+  margin: 1.4rem 0 .5rem;
+  font-family: var(--data);
+  font-size: .82rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  color: var(--ink-soft);
+}
+
+/* ------------------------------------------------------------ código y datos */
+
+code {
+  font-family: var(--data);
+  font-size: .87em;
+  background: var(--bench);
+  padding: .1em .32em;
+  border-radius: 2px;
+}
+
+pre {
+  margin: 0 0 1rem;
+  padding: 1rem 1.1rem;
+  background: var(--bench);
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--accent);
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+pre code { background: none; padding: 0; font-size: .82rem; line-height: 1.62; }
+
+/* La salida es lo que imprime el código, no código para correr: se marca aparte
+   para que nadie confunda entrada con salida. */
+.output {
+  margin: 0 0 1rem;
+  border: 1px dashed var(--rule);
+  background: transparent;
+}
+
+.output-tag {
+  display: block;
+  font-family: var(--data);
+  font-size: .64rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding: .45rem 1.1rem 0;
+}
+
+.output pre {
+  margin: 0;
+  border: 0;
+  background: none;
+  padding: .3rem 1.1rem 1rem;
+}
+
+.output pre code { color: var(--ink-soft); }
+
+/* La anotación línea por línea, para quien no ha programado antes. */
+.annot {
+  margin: 0 0 1.2rem;
+  border: 1px solid var(--rule);
+  border-top: 0;
+  padding: 0 1.1rem .6rem;
+  background: transparent;
+}
+
+.annot-head {
+  font-family: var(--data);
+  font-size: .64rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding: .55rem 0 .5rem;
+  border-bottom: 1px solid var(--rule-soft);
+  margin-bottom: .4rem;
+}
+
+.annot dt { padding: .4rem 0 .1rem; }
+.annot dt code { background: none; padding: 0; color: var(--accent); font-weight: 700; }
+.annot dd {
+  margin: 0 0 .4rem;
+  color: var(--ink-soft);
+  font-size: .94rem;
+  border-bottom: 1px solid var(--rule-soft);
+  padding-bottom: .5rem;
+}
+.annot dd:last-of-type { border-bottom: 0; }
+
+pre:has(+ .annot) { margin-bottom: 0; }
+
+blockquote {
+  margin: 0 0 1rem;
+  padding: .2rem 0 .2rem 1.1rem;
+  border-left: 3px solid var(--rule);
+  color: var(--ink-soft);
+  font-style: italic;
+  max-width: var(--measure);
+}
+
+/* --------------------------------------------------------------- tablas */
+
+.table-wrap { overflow-x: auto; margin: 0 0 1.2rem; }
+
+table {
+  border-collapse: collapse;
+  width: auto;
+  max-width: 100%;
+  font-size: .92rem;
+}
+
+th, td {
+  padding: .5rem .9rem .5rem 0;
+  border-bottom: 1px solid var(--rule-soft);
+  vertical-align: top;
+}
+
+th {
+  font-family: var(--data);
+  font-size: .7rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--ink-faint);
+  border-bottom: 1px solid var(--rule);
+  white-space: nowrap;
+}
+
+/* -------------------------------------------------------------- repaso */
+
+details {
+  border-bottom: 1px solid var(--rule-soft);
+  padding: .2rem 0;
+  max-width: var(--measure);
+}
+
+summary {
+  cursor: pointer;
+  list-style: none;
+  padding: .7rem 0 .7rem 1.5rem;
+  position: relative;
+  font-weight: 700;
+}
+
+summary::-webkit-details-marker { display: none; }
+
+summary::before {
+  content: '+';
+  position: absolute;
+  left: 0;
+  font-family: var(--data);
+  color: var(--accent);
+  font-weight: 700;
+}
+
+details[open] summary::before { content: '\2212'; }
+details[open] summary { color: var(--accent); }
+details > *:not(summary) { color: var(--ink-soft); }
+details > *:last-child { padding-bottom: .8rem; }
+
+/* -------------------------------------------------------------- figuras */
+
+figure.fig {
+  margin: 0 0 1.4rem;
+  max-width: 100%;
+  border: 1px solid var(--rule);
+  background: #fff;
+  padding: .6rem;
+}
+
+figure.fig img { width: 100%; height: auto; display: block; }
+
+figure.fig figcaption {
+  margin-top: .6rem;
+  padding-top: .5rem;
+  border-top: 1px solid var(--rule-soft);
+  font-family: var(--data);
+  font-size: .7rem;
+  letter-spacing: .04em;
+  color: var(--ink-faint);
+}
+
+.gone {
+  font-family: var(--data);
+  font-size: .76rem;
+  color: var(--accent);
+  border: 1px dashed var(--accent);
+  padding: .5rem .8rem;
+}
+
+/* ------------------------------------------------------- pie y navegación */
+
+.pager {
+  max-width: var(--wide);
+  margin: 0 auto;
+  padding: 0 2rem 3rem;
+  display: flex;
+  gap: 1.4rem;
+  justify-content: space-between;
+  font-family: var(--data);
+  font-size: .78rem;
+}
+
+.pager a { max-width: 46%; text-decoration: none; border-bottom: 1px solid var(--rule); padding-bottom: .3rem; }
+.pager a:hover { border-bottom-color: var(--accent); }
+.pager .dir { display: block; font-size: .64rem; letter-spacing: .13em; text-transform: uppercase; color: var(--ink-faint); }
+.pager .next { text-align: right; margin-left: auto; }
+
+.footer {
+  border-top: 1px solid var(--rule);
+  padding: 1.4rem 2rem 2.4rem;
+  font-family: var(--data);
+  font-size: .72rem;
+  letter-spacing: .06em;
+  color: var(--ink-faint);
+}
+
+.footer-inner { max-width: var(--wide); margin: 0 auto; display: flex; gap: 1.4rem; flex-wrap: wrap; }
+
+/* ------------------------------------------------------------- índice */
+
+.toc { list-style: none; margin: 0; padding: 0; max-width: 100%; }
+
+.toc li {
+  border-top: 1px solid var(--rule-soft);
+  max-width: 100%;
+}
+
+.toc li:last-child { border-bottom: 1px solid var(--rule-soft); }
+
+.toc a, .toc .pending {
+  display: grid;
+  grid-template-columns: 3rem minmax(0, 1fr) auto;
+  gap: 1.2rem;
+  align-items: baseline;
+  padding: 1rem .4rem;
+  text-decoration: none;
+  color: inherit;
+}
+
+.toc a:hover { background: var(--bench); }
+.toc .pending { color: var(--ink-faint); }
+.toc .num { font-family: var(--data); font-size: .82rem; font-weight: 700; }
+.toc .name { font-size: 1.05rem; }
+.toc .name small { display: block; font-family: var(--prose); font-size: .86rem; color: var(--ink-soft); margin-top: .2rem; }
+.toc .mark { font-family: var(--data); font-size: .82rem; font-weight: 700; white-space: nowrap; }
+.toc .tag { font-family: var(--data); font-size: .66rem; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-faint); }
+
+/* ---------------------------------------------------------- responsive */
+
+@media (max-width: 900px) {
+  .block { grid-template-columns: minmax(0, 1fr); }
+  .block > :not(.kicker) { grid-column: 1; }
+  .kicker { grid-column: 1; padding-top: 0; margin-bottom: .7rem; }
+  .thread { grid-auto-flow: row; grid-template-columns: repeat(5, 1fr); gap: 6px 4px; }
+  .thread .starts-part { margin-left: 0; }
+  .thread .starts-part::after { display: none; }
+  .toc a, .toc .pending { grid-template-columns: 2.2rem minmax(0, 1fr); }
+  .toc .mark { grid-column: 2; }
+}
+
+@media (max-width: 620px) {
+  body { font-size: 16px; }
+  .masthead-inner, .container, .pager, .footer { padding-left: 1.2rem; padding-right: 1.2rem; }
+  .is-result { margin: 0; padding: 2rem 1rem; }
+  .block p, .block li { text-align: left; }
+}
+
+@media print {
+  .thread, .pager { display: none; }
+  body { font-size: 11pt; }
+  .masthead { background: none; }
+  .block { break-inside: avoid; }
+}
+
+/* -------------------------------------------------- resumen y plegables */
+
+/* El resumen de entrada: la cifra, la trampa y la decision, en cinco vinetas.
+   Se lee en 30 segundos o se sigue leyendo. */
+.is-brief {
+  border-top: 0;
+  padding-top: .4rem;
+}
+
+.is-brief .kicker { color: var(--accent); }
+
+.is-brief ul {
+  list-style: none;
+  padding-left: 0;
+  max-width: var(--measure);
+  border-left: 3px solid var(--accent);
+  padding: .2rem 0 .2rem 1.1rem;
+}
+
+.is-brief li { margin-bottom: .7rem; text-align: left; }
+.is-brief li:last-child { margin-bottom: 0; }
+
+/* Los plegables de contenido denso: el glosario y la anotacion del codigo.
+   Cerrados por defecto, para que la pagina no sea un muro. */
+details.fold {
+  border: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+  background: transparent;
+  margin: 0 0 1.2rem;
+  padding: 0;
+  max-width: 100%;
+}
+
+details.fold > summary {
+  font-family: var(--data);
+  font-size: .68rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  font-weight: 400;
+  color: var(--ink-faint);
+  padding: .55rem .9rem .55rem 2rem;
+}
+
+details.fold > summary::before { left: .9rem; }
+details.fold[open] > summary {
+  color: var(--accent);
+  border-bottom: 1px solid var(--rule-soft);
+  margin-bottom: 0;
+}
+
+details.fold > *:not(summary) { padding: .8rem .9rem; color: inherit; }
+details.fold ul { margin-bottom: 0; }
+details.fold .annot { border: 0; padding: 0; margin: 0; }
+details.fold .annot dd { max-width: var(--measure); }
+
+/* Un bloque de codigo seguido de su plegable van pegados. */
+pre:has(+ details.fold) { margin-bottom: 0; border-bottom: 0; }
+
+/* The course exists in Spanish only; an English reader gets an honest way out, to the
+   project's summary on the portfolio, instead of a language switch that does not exist. */
+.portfolio-link {
+  float: right;
+  margin: 0 0 .6rem 1.2rem;
+  font-family: var(--data);
+  font-size: .7rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: inherit;
+  opacity: .72;
+  text-decoration: none;
+  border-bottom: 1px solid currentColor;
+}
+.portfolio-link:hover { opacity: 1; }
+
+:root { --accent: #6c2d16; }
+</style>
+</head>
+<body>
+<header class="masthead">
+  <div class="masthead-inner">
+    <a class="portfolio-link" href="m04_preprocesar_y_validar.html" hreflang="es" rel="alternate">Español</a>
+    <div class="eyebrow"><a href="index.en.html">Silica</a> / Module <b>4</b> of 14</div>
+    <h1>Preprocessing and validating without cheating</h1>
+    <p class="standfirst">Pipelines, cross-validation and knob tuning. Here the good score of module 2 falls apart</p>
+    <div class="figure-mark">
+      <span class="figure-value">R² −0.13</span>
+      <span class="figure-label">what cross-validation said</span>
+    </div>
+    <nav class="thread" aria-label="The arc of the project"><a href="m01_radiografia_del_dataset.en.html" title="1. An X-ray of the dataset"><span class="n">1</span> <span class="v">737,453</span></a><a href="m02_el_primer_modelo_y_el_techo.en.html" title="2. The first model, and the ceiling that appeared at once"><span class="n">2</span> <span class="v">R² 0.04</span></a><a href="m03_como_aprende_un_modelo.en.html" title="3. How a model learns on the inside"><span class="n">3</span> <span class="v">R² 0.06</span></a><span aria-current="page" title="4. Preprocessing and validating without cheating"><span class="n">4</span> <span class="v">R² −0.13</span></span><a href="m05_darle_memoria_al_modelo.en.html" title="5. Giving the model a memory"><span class="n">5</span> <span class="v">R² 0.64</span></a><a href="m06_clasificar_fuera_de_spec.en.html" title="6. Classifying: in or out of specification"><span class="n">6</span> <span class="v">0.62 vs 0.77</span></a><a href="m07_contra_que_se_compara.en.html" title="7. What a model is compared against"><span class="n">7</span> <span class="v">+0.009</span></a><a href="m08_donde_aporta_el_ml.en.html" title="8. Where does ML really add value?"><span class="n">8</span> <span class="v">0 of 4</span></a><a href="m09_los_tres_estados_de_la_planta.en.html" title="9. The three states of the plant"><span class="n">9</span> <span class="v">k = 3</span></a><a href="m10_redes_producto_y_cierre.en.html" title="10. Networks, product and closing"><span class="n">10</span> <span class="v">0.76</span></a><a class="starts-part" href="m11_modelos_de_secuencia.en.html" title="11. Sequence models: LSTM, GRU and causal convolution"><span class="n">11</span> <span class="v">+0.215</span></a><a href="m12_practica_de_pronostico.en.html" title="12. The forecasting practice that was missing"><span class="n">12</span> <span class="v">0.52 vs 0.63</span></a><a href="m13_incertidumbre.en.html" title="13. Uncertainty: from the point to the interval"><span class="n">13</span> <span class="v">92.0%</span></a><a href="m14_lectura_causal.en.html" title="14. A causal reading of the control loop"><span class="n">14</span> <span class="v">+0.16</span></a></nav>
+    <div class="assay"><span><b>3</b> source notes</span><span><b>3</b> figures</span><span><b>3</b> scripts</span></div>
+  </div>
+</header>
+<main class="container">
+<section class="block is-brief"><span class="kicker">Summary</span><h2 class="block-title">In 30 seconds</h2><ul><li><strong>R² −0.13 on average in temporal cross-validation.</strong> Negative: worse than always predicting the mean.</li><li><strong>The single cut of module 2 was luck.</strong> The five folds run from −0.011 to −0.271. With one alone you report whichever you happened to get.</li><li><strong>The honest alpha is 27,000, not 215,443.</strong> Chosen inside the training set, without looking at the test. And the test, touched once, gives 0.04.</li><li><strong>A pipeline is not tidiness, it is a defence.</strong> Scaling before splitting lets the future into the mean.</li><li><strong>The variation matters as much as the average.</strong> ±0.103 on an average of −0.126 means the figure alone says nothing.</li></ul></section>
+<section class="block "><span class="kicker">Context</span><h2 class="block-title">What this module solves</h2><p>The three previous modules measured with a single temporal cut: train up to July, test on August and September. A single exam.</p><p>Here we ask whether that exam was representative. The answer is no, and the correction hurts: the model goes from looking weak to being worse than having no model.</p><p>Preprocessing also gets put in order. Scaling, imputing and encoding have to happen inside the training set, never before splitting. A pipeline guarantees it by construction.</p></section>
+<section class="block is-toy"><span class="kicker">By hand</span><h2 class="block-title">Before the theory: a toy example</h2><p>A model evaluated on five different blocks of months. Each block is an exam.</p><div class="table-wrap"><table><thead><tr><th>Block</th><th>R²</th></tr></thead><tbody><tr><td>1</td><td>0.00</td></tr><tr><td>2</td><td>−0.20</td></tr><tr><td>3</td><td>0.00</td></tr><tr><td>4</td><td>−0.20</td></tr><tr><td>5</td><td>−0.10</td></tr></tbody></table></div><h3 class="sub">Step 1. What happens if you only sit one exam</h3><p>If the project had measured only block 1, it would report <strong>R² 0.00</strong>. A tie with having no model.</p><p>If it had measured block 2, it would report <strong>−0.20</strong>. Quite a bit worse than having no model.</p><p>It is the same model and the same data. The only thing that changes is which piece landed as the exam.</p><h3 class="sub">Step 2. The average of the five</h3><pre><code>average = (0.00 − 0.20 + 0.00 − 0.20 − 0.10) / 5
+        = −0.50 / 5
+        = −0.10</code></pre><h3 class="sub">Step 3. How much the result moves</h3><p>Measured the same way as in module 1: each block&#x27;s deviation from the average.</p><pre><code>deviations: +0.10   −0.10   +0.10   −0.10   0.00
+squares:     0.01    0.01    0.01    0.01   0.00   sum = 0.04
+variance = 0.04 / 4 = 0.01
+deviation = root of 0.01 = 0.10</code></pre><p><strong>Average −0.10 with deviation 0.10.</strong> The result moves as much as it is worth. Reporting only the average hides that.</p><h3 class="sub">Step 4. And the other trap: scaling before splitting</h3><p>Five training hours and two test hours, with the silica measured:</p><pre><code>training (Mar to Jul):  3   3   5   7   7        mean = 5
+test     (August)    :  10   14</code></pre><p>If the scaler is fitted <strong>with training only</strong>, the mean it uses is 5. The hour at 10 sits 2.5 deviations above, which is what it really was.</p><p>If the scaler is fitted <strong>with everything</strong>, the mean becomes 7:</p><pre><code>mean with everything = (3 + 3 + 5 + 7 + 7 + 10 + 14) / 7 = 49 / 7 = 7</code></pre><p>With that mean, the hour at 10 looks far less extreme than it was. <strong>The scaler already knew August was going to rise.</strong> That is leakage through preprocessing, and nobody sees it skimming the code.</p><h3 class="sub">Step 5. What just happened</h3><p>Two different ways of fooling yourself, both silent.</p><p>The first is measuring once and believing the number. The second is letting the preprocessing see data that would not exist in production. The rest of the module puts up a defence for each.</p></section>
+<section class="block is-terms"><span class="kicker">Terms</span><h2 class="block-title">Glossary</h2><details class="fold"><summary>11 terms, in plain words</summary><ul><li><strong>Cross-validation.</strong> Repeating the exam on different pieces of the data and averaging the results.</li><li><strong>Fold.</strong> Each of those pieces. In Spanish, <em>pliegue</em>.</li><li><strong>k-fold.</strong> Splitting into k pieces and using each one as the exam in turn. It works when the order of the rows does not matter.</li><li><strong>TimeSeriesSplit.</strong> The version for time series. It always trains with the past and examines with the immediate future.</li><li><strong>Pipeline.</strong> An object that chains preprocessing and model. When trained, each step learns only from the training set.</li><li><strong>Leakage through preprocessing.</strong> Computing means, scales or imputations using the test data too.</li><li><strong>Parameter.</strong> What the model learns by itself, such as the coefficients of a line.</li><li><strong>Hyperparameter.</strong> What you set before training, such as alpha or the maximum depth.</li><li><strong>Grid search.</strong> Trying every combination of a list of values. In Spanish, *búsqueda en rejilla*.</li><li><strong>Validation set.</strong> The piece used to choose the knobs. It is not the test set.</li><li><strong>Test set.</strong> The one touched a single time, at the end, to report.</li></ul></details></section>
+<section class="block is-method"><span class="kicker">Method</span><h2 class="block-title">Step by step</h2><h3 class="sub">Step 1. Put the preprocessing inside the model</h3><p>A pipeline chains scaler and model into a single object. When training is called, the scaler learns only from the training set. When predicting, it applies what it learned.</p><p>The defence is not remembering the right order. It is making the wrong order impossible.</p><h3 class="sub">Step 2. Choose the type of validation according to the data</h3><p>With independent rows, k-fold shares out at random and that is fine. With a time series, it is not.</p><p>Sharing out hours at random puts the future into the training set. <code>TimeSeriesSplit</code> respects the order: each fold trains with the past and examines with what comes right after.</p><h3 class="sub">Step 3. Look at the five results, not only the average</h3><p>An average with a lot of variation is an uninformative average. The folds are reported in full.</p><h3 class="sub">Step 4. Choose the knobs without touching the test</h3><p>Grid search tries every value of alpha and scores it with cross-validation <strong>inside the training set</strong>. The test set takes no part.</p><p>Once there is a winner, it is trained on the whole training set and the test is touched once.</p></section>
+<section class="block is-code"><span class="kicker">Code</span><h2 class="block-title">The code, in parts</h2><h3 class="sub">Step 1. A pipeline in two lines</h3><pre><code class="language-python">from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import Ridge
+
+modelo = make_pipeline(StandardScaler(), Ridge(alpha=1e4))
+modelo.fit(X_train, y_train)</code></pre><details class="fold"><summary>line by line, 3 entries</summary><dl class="annot"><dt><code>make_pipeline(a, b)</code></dt><dd>Chains steps. The output of one goes into the next.</dd><dt><code>modelo.fit(...)</code></dt><dd>Trains the whole pipeline. The scaler learns mean and deviation only in here.</dd><dt><code>modelo.predict(...)</code></dt><dd>Applies the scaling already learned and then the model. No repeated code and no way to get the order wrong.</dd></dl></details><div class="output"><span class="output-tag">prints</span><pre><code>Figure: fig_m4_pipeline.pdf</code></pre></div><figure class="fig"><img src="../figuras/fig_m4_pipeline.d82a7297.png" alt="The right order and the wrong one, drawn. Scaling before splitting lets information from the future through." loading="lazy"><figcaption>The right order and the wrong one, drawn. Scaling before splitting lets information from the future through.</figcaption></figure><h3 class="sub">Step 2. Cross-validation that respects time</h3><pre><code class="language-python">from sklearn.model_selection import TimeSeriesSplit, cross_val_score
+
+cv = TimeSeriesSplit(n_splits=5)
+scores = cross_val_score(modelo, X_train, y_train, cv=cv, scoring=&quot;r2&quot;)
+print(&quot;R2 por fold:&quot;, scores.round(3))
+print(f&quot;Promedio: {scores.mean():.3f} +/- {scores.std():.3f}&quot;)</code></pre><details class="fold"><summary>line by line, 4 entries</summary><dl class="annot"><dt><code>TimeSeriesSplit(n_splits=5)</code></dt><dd>Five folds in order. The first trains with little and the following ones accumulate past.</dd><dt><code>cross_val_score(...)</code></dt><dd>Trains and evaluates once per fold, and returns the five results.</dd><dt><code>scoring=&quot;r2&quot;</code></dt><dd>Which metric to score with. RMSE or others can be requested.</dd><dt><code>scores.std()</code></dt><dd>The deviation of the five results. It is the important half of the report.</dd></dl></details><div class="output"><span class="output-tag">prints</span><pre><code>R2 por fold (TimeSeriesSplit): [np.float64(-0.011), np.float64(-0.211), np.float64(-0.271), np.float64(-0.021), np.float64(-0.116)]
+Promedio: -0.126 +/- 0.103</code></pre></div><figure class="fig"><img src="../figuras/fig_m4_cv.a8fa0a1a.png" alt="The five folds of TimeSeriesSplit. Each one trains with the accumulated past and examines with the immediate future." loading="lazy"><figcaption>The five folds of TimeSeriesSplit. Each one trains with the accumulated past and examines with the immediate future.</figcaption></figure><p>All five results are negative. The best is −0.011 and the worst −0.271, twenty-five times lower.</p><h3 class="sub">Step 3. Choose alpha without looking at the test</h3><pre><code class="language-python">from sklearn.model_selection import GridSearchCV
+import numpy as np
+
+rejilla = {&quot;ridge__alpha&quot;: np.logspace(2, 7, 20)}
+busqueda = GridSearchCV(modelo, rejilla, cv=TimeSeriesSplit(n_splits=5), scoring=&quot;r2&quot;)
+busqueda.fit(X_train, y_train)
+print(f&quot;mejor alpha: {busqueda.best_params_[&#x27;ridge__alpha&#x27;]:.1e}&quot;)
+print(f&quot;mejor R2 CV: {busqueda.best_score_:.3f}&quot;)</code></pre><details class="fold"><summary>line by line, 4 entries</summary><dl class="annot"><dt><code>{&quot;ridge__alpha&quot;: ...}</code></dt><dd>The double underscore points at a step of the pipeline: the <code>alpha</code> knob of the step called <code>ridge</code>.</dd><dt><code>np.logspace(2, 7, 20)</code></dt><dd>Twenty values spread on a logarithmic scale, from 100 to 10 million.</dd><dt><code>GridSearchCV</code></dt><dd>Tries every value with cross-validation and keeps the best. The test never comes in.</dd><dt><code>.best_score_</code></dt><dd>The winner&#x27;s score in cross-validation, not on the test.</dd></dl></details><div class="output"><span class="output-tag">prints</span><pre><code>mejor alpha: 2.7e+04 | mejor R2 CV: -0.094 | R2 test final: 0.04
+Figure: fig_m4_tuning.pdf</code></pre></div><figure class="fig"><img src="../figuras/fig_m4_tuning.2395d42a.png" alt="The alpha curve scored with cross-validation. The winner is chosen here, and the test is touched a single time at the end." loading="lazy"><figcaption>The alpha curve scored with cross-validation. The winner is chosen here, and the test is touched a single time at the end.</figcaption></figure></section>
+<section class="block is-result"><span class="kicker">Result</span><h2 class="block-title">The result, measured</h2><p><strong>What we expected.</strong> That cross-validation would confirm the 0.04 of module 2, with some variation between folds. That is normal when there are half a million rows.</p><p><strong>What came out.</strong> All five folds negative and an average of −0.126.</p><div class="table-wrap"><table><thead><tr><th>Measurement</th><th>R²</th></tr></thead><tbody><tr><td>Single cut, module 2</td><td>+0.04</td></tr><tr><td>Single cut with alpha chosen by looking at the test, module 3</td><td>+0.061</td></tr><tr><td><strong>Temporal cross-validation, five folds</strong></td><td><strong>−0.126 ± 0.103</strong></td></tr><tr><td>Alpha chosen honestly, test touched once</td><td>+0.04</td></tr></tbody></table></div><p><strong>What it means.</strong> The single cut was not representative. Training up to July and examining August turned out to be one of the most benign combinations possible.</p><p>A negative R² means something concrete: <strong>the model predicts worse than always saying the training mean</strong>. In three of the five folds that is clearly what happens.</p><h3 class="sub">Why the folds come out so different</h3><p>The first fold trains with March and examines April, and gives −0.011. The third drops to −0.271.</p><p>That spread is not sampling noise. It is the plant changing. Module 9 finds the cause with unsupervised learning: one of the three operating regimes recedes in April and disappears in May.</p><h3 class="sub">The correction to module 3</h3><p>The alpha of 215,443 had been chosen by looking at the test. Repeated with grid search inside the training set, the winner is <strong>27,000</strong>, eight times smaller.</p><p>With that honest alpha, the test touched a single time gives <strong>0.04</strong>. The 0.061 of module 3 was optimistic, and the difference is exactly what the cheat cost.</p><h3 class="sub">What this module leaves open</h3><p>With honest validation, no model in the project beats predicting the mean. The ceiling is not only low: on average it is negative.</p><p>Two paths remain. The first is to accept there is no signal. The second is to suspect the variables: perhaps the process has memory and no column captures it. Module 5 tries that second path, and the number rises a lot.</p></section>
+<section class="block is-warning"><span class="kicker">Traps</span><h2 class="block-title">Watch out</h2><ul><li><strong>A single cut is a lottery.</strong> Here the project&#x27;s cut gave +0.04 and the honest average is −0.126. There was no bad faith, there was a single exam.</li><li><strong>Reporting the average without the variation misleads.</strong> −0.126 ± 0.103 and −0.126 ± 0.005 are completely different results.</li><li><strong>Random k-fold on time series is leakage.</strong> It shares adjacent hours between training and test. <code>TimeSeriesSplit</code> has to be used.</li><li><strong>A scaler fitted with all the data has already seen the future.</strong> The pipeline prevents it by construction, which is why it is always used.</li><li><strong>Choosing knobs with the test burns it.</strong> It stops being an independent measure as soon as it takes part in a decision.</li><li><strong>A negative R² is not a code error.</strong> It means the model does worse than the mean.</li></ul></section>
+<section class="block is-bridge"><span class="kicker">Analogy</span><h2 class="block-title">Metallurgical bridge</h2><p>Cross-validation is <strong>repeating the test across different campaigns</strong>. A flotation test on a single sample gives one number. Repeating it on samples from five different campaigns gives five numbers, and their spread says whether the result holds.</p><p>A metallurgist who reports a recovery from a single test, without replication, does not have a result. He has an anecdote. Module 2 had an anecdote.</p><p>The pipeline is the <strong>sample preparation protocol</strong>. The order of splitting, drying and pulverising is written down and followed the same way every time, so that two laboratories give the same answer. It also prevents the equivalent of leakage: homogenising the control sample together with the test samples contaminates the control and ruins the comparison.</p><p>And the alpha chosen with validation is <strong>calibrating the analyser with standards and verifying it with a sample that was not used to calibrate</strong>. Verifying with the same standards as the calibration always comes out fine, and proves nothing.</p></section>
+<section class="block is-review"><span class="kicker">Review</span><h2 class="block-title">Review</h2><details><summary>Module 2 measured +0.04 and cross-validation gives −0.126. Which is the right one?</summary><p>The cross-validation one, because it averages five exams instead of one.</p><p>The single cut of module 2 trained with March to July and examined August and September. It turned out to be a benign combination. Repeating the exercise on five different time spans, all five come out negative, between −0.011 and −0.271. The honest reading is that this model, on average, predicts worse than always saying the training mean.</p></details><details><summary>What exactly does a negative R² mean?</summary><p>That the model does worse than the minimum rival.</p><p>R² is built by comparing the model&#x27;s error with the error of always predicting the training mean. An R² of zero means a tie with that mean. Positive means better. Negative means the model introduces more error than it removes. In this project it happens when the model learned the patterns of some months and the plant is already operating in another way.</p></details><details><summary>Why is random k-fold no good here?</summary><p>Because it shares adjacent hours between training and test, and adjacent hours resemble each other enormously.</p><p>The model then does not predict the future: it recognises an hour almost identical to one it has already seen. It is the same leakage module 1 explained, now slipped in through the door of validation. <code>TimeSeriesSplit</code> avoids it because each fold trains only with the past and examines with the immediate future, just as it would happen in the plant.</p></details><details><summary>Why a pipeline and not scaling by hand before splitting?</summary><p>Because scaling before splitting computes the mean with data that do not yet exist in production.</p><p>In the module&#x27;s example, the training mean is 5 and the mean with everything is 7. With the wrong mean, an extreme August hour looks normal, and the model trains on a version of the past that already knew the future. The pipeline makes that mistake impossible: each step learns inside the training set and is then applied.</p></details><details><summary>The spread between folds is ±0.103. What should be investigated?</summary><p>That the data are not homogeneous over time. A spread that large is not sampling noise.</p><p>The folds run in chronological order, so the difference between them points to a change in the process. The right investigation is to look for that change instead of averaging it away. In this project module 9 finds it with k-means: there are three operating regimes and one of them disappears in May. That explains why a model trained with March and April performs badly afterwards.</p></details></section>
+</main>
+<nav class="pager"><a class="prev" href="m03_como_aprende_un_modelo.en.html"><span class="dir">Previous</span>3. How a model learns on the inside</a><a class="next" href="m05_darle_memoria_al_modelo.en.html"><span class="dir">Next</span>5. Giving the model a memory</a></nav>
+<footer class="footer">
+  <div class="footer-inner">
+    <span>Silica / Module 4</span>
+    <span>generated on 2026-08-22</span>
+    <span>source: the 31 original notes, their scripts and the plant CSV</span>
+  </div>
+</footer>
+</body>
+</html>

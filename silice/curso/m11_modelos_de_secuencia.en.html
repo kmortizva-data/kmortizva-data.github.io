@@ -1,0 +1,686 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sequence models: LSTM, GRU and causal convolution · Silica, module 11</title>
+<link rel="alternate" hreflang="es" href="m11_modelos_de_secuencia.html">
+<style>
+/* Sílice: la hoja de estilos del curso.
+ *
+ * Identidad de papel de informe de planta, no de pantalla. El proyecto termina
+ * recomendando no desplegar, y eso es un informe técnico: papel hueso, tinta grafito,
+ * y una retícula de milimetrado muy tenue en la cabecera.
+ *
+ * Dos familias tipográficas y ni una más, las dos del sistema porque el sitio se abre
+ * desde file:// y tiene que funcionar sin internet: serif para la prosa (se lee como
+ * informe) y monoespaciada para todo lo que es dato, código, cifra o etiqueta.
+ *
+ * El acento lo inyecta cada página con --accent: es el del módulo, y marca su posición
+ * en el arco del proyecto. Los diez pasan check_palette.py antes de entrar aquí.
+ */
+
+:root {
+  --paper: #f6f3ec;
+  --bench: #eeeade;
+  --ink: #2a2622;
+  --ink-soft: #57504a;
+  --ink-faint: #8a8177;
+  --rule: #ddd6c6;
+  --rule-soft: #e8e2d4;
+  --grid: rgba(84, 69, 73, .07);
+  --accent: #632727;
+
+  --prose: Georgia, "Iowan Old Style", "Palatino Linotype", Palatino, "Times New Roman", serif;
+  --data: "Cascadia Mono", Consolas, "DejaVu Sans Mono", "Liberation Mono", monospace;
+
+  --measure: 680px;   /* la medida de la prosa, en píxeles y nunca en ch */
+  --wide: 1180px;     /* el borde derecho de los bloques anchos */
+  --margin: 132px;    /* la columna del margen, donde cuelgan los kickers */
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--prose);
+  font-size: 17px;
+  line-height: 1.62;
+  -webkit-text-size-adjust: 100%;
+}
+
+::selection { background: var(--accent); color: var(--paper); }
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+/* --------------------------------------------------------------- cabecera */
+
+.masthead {
+  border-bottom: 1px solid var(--rule);
+  background-color: var(--bench);
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 26px 26px;
+  background-position: -1px -1px;
+}
+
+.masthead-inner {
+  max-width: var(--wide);
+  margin: 0 auto;
+  padding: 2.4rem 2rem 1.6rem;
+}
+
+.eyebrow {
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-bottom: 1rem;
+}
+
+.eyebrow a { color: inherit; text-decoration: none; border-bottom: 1px solid transparent; }
+.eyebrow a:hover { border-bottom-color: var(--accent); color: var(--accent); }
+.eyebrow b { color: var(--accent); font-weight: 400; }
+
+.masthead h1 {
+  margin: 0;
+  font-size: clamp(1.9rem, 4.4vw, 2.9rem);
+  line-height: 1.14;
+  font-weight: 400;
+  letter-spacing: -.012em;
+  max-width: 900px;
+}
+
+.standfirst {
+  margin: .9rem 0 0;
+  max-width: var(--measure);
+  color: var(--ink-soft);
+  font-size: 1.02rem;
+  line-height: 1.55;
+}
+
+/* La cifra del módulo: el número que dejó, en grande, junto al título. Es lo que
+   convierte la cabecera en parte del argumento y no en decoración. */
+.figure-mark {
+  margin-top: 1.6rem;
+  display: flex;
+  align-items: baseline;
+  gap: .8rem;
+  flex-wrap: wrap;
+  border-left: 3px solid var(--accent);
+  padding-left: .9rem;
+}
+
+.figure-value {
+  font-family: var(--data);
+  font-size: clamp(1.5rem, 3.4vw, 2.1rem);
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: -.02em;
+}
+
+.figure-label {
+  font-family: var(--data);
+  font-size: .78rem;
+  letter-spacing: .04em;
+  color: var(--ink-soft);
+}
+
+/* El hilo del proyecto: diez segmentos, uno por módulo, con su cifra debajo. Desde
+   cualquier página se ve el recorrido entero, que es justo lo que a los apuntes
+   sueltos les faltaba. */
+.thread {
+  margin-top: 1.8rem;
+  display: grid;
+  /* One equal column per segment, whatever the temario says. It was pinned to ten and
+     the course grew to fourteen. */
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: 4px;
+}
+
+/* Where part 2 starts: the four modules that were never in the original project. */
+.thread .starts-part { margin-left: 10px; position: relative; }
+.thread .starts-part::after {
+  content: '';
+  position: absolute;
+  left: -7px; top: -3px; bottom: 0;
+  border-left: 1px solid var(--rule);
+}
+
+.thread a, .thread span {
+  display: block;
+  text-decoration: none;
+  color: var(--ink-faint);
+  font-family: var(--data);
+  font-size: .62rem;
+  letter-spacing: .04em;
+  padding-top: .4rem;
+  border-top: 3px solid var(--rule);
+  transition: color .12s, border-color .12s;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.thread a:hover { color: var(--ink); border-top-color: var(--ink-soft); }
+.thread [aria-current="page"] { color: var(--accent); border-top-color: var(--accent); }
+.thread .n { font-weight: 700; }
+.thread .v { color: inherit; opacity: .75; }
+
+/* Las pastillas de composición: de qué está hecho el módulo. */
+.assay {
+  margin-top: 1.6rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.4rem;
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .05em;
+  color: var(--ink-faint);
+}
+
+.assay b { color: var(--ink); font-weight: 700; }
+
+/* ----------------------------------------------------------------- cuerpo */
+
+.container {
+  max-width: var(--wide);
+  margin: 0 auto;
+  padding: 2.6rem 2rem 4rem;
+}
+
+/* Cada sección es una anotación de cuaderno: el kicker cuelga en el margen
+   izquierdo y el contenido corre en la columna principal. En pantalla estrecha el
+   kicker se pone encima. */
+.block {
+  display: grid;
+  grid-template-columns: var(--margin) minmax(0, 1fr);
+  column-gap: 2rem;
+  padding: 2.2rem 0;
+  border-top: 1px solid var(--rule);
+}
+
+.block:first-child { border-top: 0; padding-top: .6rem; }
+
+.kicker {
+  grid-column: 1;
+  font-family: var(--data);
+  font-size: .68rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding-top: .45rem;
+}
+
+.block > :not(.kicker) { grid-column: 2; }
+
+.block-title {
+  margin: 0 0 1.1rem;
+  font-size: 1.42rem;
+  font-weight: 400;
+  line-height: 1.25;
+  letter-spacing: -.008em;
+}
+
+.is-warning .kicker, .is-result .kicker { color: var(--accent); }
+.is-warning .block-title { border-bottom: 2px solid var(--accent); padding-bottom: .4rem; display: inline-block; }
+.is-result { background: var(--bench); margin: 0 -1.2rem; padding: 2.2rem 1.2rem; }
+.is-result .block-title { color: var(--accent); }
+
+/* Prosa: justificada con partición, que sin partición el español justificado abre
+   ríos. Tablas, código y pies de figura se quedan sin justificar. */
+.block p, .block li, .block dd, details > *:not(summary) {
+  max-width: var(--measure);
+  text-align: justify;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+}
+
+.block p { margin: 0 0 1rem; }
+.block p:last-child { margin-bottom: 0; }
+.block ul, .block ol { margin: 0 0 1rem; padding-left: 1.3rem; max-width: var(--measure); }
+.block li { margin-bottom: .5rem; }
+.block li::marker { color: var(--accent); font-family: var(--data); font-size: .85em; }
+
+td, th, figcaption, .assay, .thread a, .res li { text-align: left; hyphens: manual; }
+
+a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+a:hover { text-decoration-thickness: 2px; }
+strong { font-weight: 700; }
+em { font-style: italic; color: var(--ink-soft); }
+
+h3.sub {
+  margin: 1.9rem 0 .7rem;
+  font-size: 1.07rem;
+  font-weight: 700;
+  letter-spacing: -.004em;
+}
+
+h3.sub:first-child { margin-top: 0; }
+
+h4.sub {
+  margin: 1.4rem 0 .5rem;
+  font-family: var(--data);
+  font-size: .82rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  color: var(--ink-soft);
+}
+
+/* ------------------------------------------------------------ código y datos */
+
+code {
+  font-family: var(--data);
+  font-size: .87em;
+  background: var(--bench);
+  padding: .1em .32em;
+  border-radius: 2px;
+}
+
+pre {
+  margin: 0 0 1rem;
+  padding: 1rem 1.1rem;
+  background: var(--bench);
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--accent);
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+pre code { background: none; padding: 0; font-size: .82rem; line-height: 1.62; }
+
+/* La salida es lo que imprime el código, no código para correr: se marca aparte
+   para que nadie confunda entrada con salida. */
+.output {
+  margin: 0 0 1rem;
+  border: 1px dashed var(--rule);
+  background: transparent;
+}
+
+.output-tag {
+  display: block;
+  font-family: var(--data);
+  font-size: .64rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding: .45rem 1.1rem 0;
+}
+
+.output pre {
+  margin: 0;
+  border: 0;
+  background: none;
+  padding: .3rem 1.1rem 1rem;
+}
+
+.output pre code { color: var(--ink-soft); }
+
+/* La anotación línea por línea, para quien no ha programado antes. */
+.annot {
+  margin: 0 0 1.2rem;
+  border: 1px solid var(--rule);
+  border-top: 0;
+  padding: 0 1.1rem .6rem;
+  background: transparent;
+}
+
+.annot-head {
+  font-family: var(--data);
+  font-size: .64rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding: .55rem 0 .5rem;
+  border-bottom: 1px solid var(--rule-soft);
+  margin-bottom: .4rem;
+}
+
+.annot dt { padding: .4rem 0 .1rem; }
+.annot dt code { background: none; padding: 0; color: var(--accent); font-weight: 700; }
+.annot dd {
+  margin: 0 0 .4rem;
+  color: var(--ink-soft);
+  font-size: .94rem;
+  border-bottom: 1px solid var(--rule-soft);
+  padding-bottom: .5rem;
+}
+.annot dd:last-of-type { border-bottom: 0; }
+
+pre:has(+ .annot) { margin-bottom: 0; }
+
+blockquote {
+  margin: 0 0 1rem;
+  padding: .2rem 0 .2rem 1.1rem;
+  border-left: 3px solid var(--rule);
+  color: var(--ink-soft);
+  font-style: italic;
+  max-width: var(--measure);
+}
+
+/* --------------------------------------------------------------- tablas */
+
+.table-wrap { overflow-x: auto; margin: 0 0 1.2rem; }
+
+table {
+  border-collapse: collapse;
+  width: auto;
+  max-width: 100%;
+  font-size: .92rem;
+}
+
+th, td {
+  padding: .5rem .9rem .5rem 0;
+  border-bottom: 1px solid var(--rule-soft);
+  vertical-align: top;
+}
+
+th {
+  font-family: var(--data);
+  font-size: .7rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--ink-faint);
+  border-bottom: 1px solid var(--rule);
+  white-space: nowrap;
+}
+
+/* -------------------------------------------------------------- repaso */
+
+details {
+  border-bottom: 1px solid var(--rule-soft);
+  padding: .2rem 0;
+  max-width: var(--measure);
+}
+
+summary {
+  cursor: pointer;
+  list-style: none;
+  padding: .7rem 0 .7rem 1.5rem;
+  position: relative;
+  font-weight: 700;
+}
+
+summary::-webkit-details-marker { display: none; }
+
+summary::before {
+  content: '+';
+  position: absolute;
+  left: 0;
+  font-family: var(--data);
+  color: var(--accent);
+  font-weight: 700;
+}
+
+details[open] summary::before { content: '\2212'; }
+details[open] summary { color: var(--accent); }
+details > *:not(summary) { color: var(--ink-soft); }
+details > *:last-child { padding-bottom: .8rem; }
+
+/* -------------------------------------------------------------- figuras */
+
+figure.fig {
+  margin: 0 0 1.4rem;
+  max-width: 100%;
+  border: 1px solid var(--rule);
+  background: #fff;
+  padding: .6rem;
+}
+
+figure.fig img { width: 100%; height: auto; display: block; }
+
+figure.fig figcaption {
+  margin-top: .6rem;
+  padding-top: .5rem;
+  border-top: 1px solid var(--rule-soft);
+  font-family: var(--data);
+  font-size: .7rem;
+  letter-spacing: .04em;
+  color: var(--ink-faint);
+}
+
+.gone {
+  font-family: var(--data);
+  font-size: .76rem;
+  color: var(--accent);
+  border: 1px dashed var(--accent);
+  padding: .5rem .8rem;
+}
+
+/* ------------------------------------------------------- pie y navegación */
+
+.pager {
+  max-width: var(--wide);
+  margin: 0 auto;
+  padding: 0 2rem 3rem;
+  display: flex;
+  gap: 1.4rem;
+  justify-content: space-between;
+  font-family: var(--data);
+  font-size: .78rem;
+}
+
+.pager a { max-width: 46%; text-decoration: none; border-bottom: 1px solid var(--rule); padding-bottom: .3rem; }
+.pager a:hover { border-bottom-color: var(--accent); }
+.pager .dir { display: block; font-size: .64rem; letter-spacing: .13em; text-transform: uppercase; color: var(--ink-faint); }
+.pager .next { text-align: right; margin-left: auto; }
+
+.footer {
+  border-top: 1px solid var(--rule);
+  padding: 1.4rem 2rem 2.4rem;
+  font-family: var(--data);
+  font-size: .72rem;
+  letter-spacing: .06em;
+  color: var(--ink-faint);
+}
+
+.footer-inner { max-width: var(--wide); margin: 0 auto; display: flex; gap: 1.4rem; flex-wrap: wrap; }
+
+/* ------------------------------------------------------------- índice */
+
+.toc { list-style: none; margin: 0; padding: 0; max-width: 100%; }
+
+.toc li {
+  border-top: 1px solid var(--rule-soft);
+  max-width: 100%;
+}
+
+.toc li:last-child { border-bottom: 1px solid var(--rule-soft); }
+
+.toc a, .toc .pending {
+  display: grid;
+  grid-template-columns: 3rem minmax(0, 1fr) auto;
+  gap: 1.2rem;
+  align-items: baseline;
+  padding: 1rem .4rem;
+  text-decoration: none;
+  color: inherit;
+}
+
+.toc a:hover { background: var(--bench); }
+.toc .pending { color: var(--ink-faint); }
+.toc .num { font-family: var(--data); font-size: .82rem; font-weight: 700; }
+.toc .name { font-size: 1.05rem; }
+.toc .name small { display: block; font-family: var(--prose); font-size: .86rem; color: var(--ink-soft); margin-top: .2rem; }
+.toc .mark { font-family: var(--data); font-size: .82rem; font-weight: 700; white-space: nowrap; }
+.toc .tag { font-family: var(--data); font-size: .66rem; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-faint); }
+
+/* ---------------------------------------------------------- responsive */
+
+@media (max-width: 900px) {
+  .block { grid-template-columns: minmax(0, 1fr); }
+  .block > :not(.kicker) { grid-column: 1; }
+  .kicker { grid-column: 1; padding-top: 0; margin-bottom: .7rem; }
+  .thread { grid-auto-flow: row; grid-template-columns: repeat(5, 1fr); gap: 6px 4px; }
+  .thread .starts-part { margin-left: 0; }
+  .thread .starts-part::after { display: none; }
+  .toc a, .toc .pending { grid-template-columns: 2.2rem minmax(0, 1fr); }
+  .toc .mark { grid-column: 2; }
+}
+
+@media (max-width: 620px) {
+  body { font-size: 16px; }
+  .masthead-inner, .container, .pager, .footer { padding-left: 1.2rem; padding-right: 1.2rem; }
+  .is-result { margin: 0; padding: 2rem 1rem; }
+  .block p, .block li { text-align: left; }
+}
+
+@media print {
+  .thread, .pager { display: none; }
+  body { font-size: 11pt; }
+  .masthead { background: none; }
+  .block { break-inside: avoid; }
+}
+
+/* -------------------------------------------------- resumen y plegables */
+
+/* El resumen de entrada: la cifra, la trampa y la decision, en cinco vinetas.
+   Se lee en 30 segundos o se sigue leyendo. */
+.is-brief {
+  border-top: 0;
+  padding-top: .4rem;
+}
+
+.is-brief .kicker { color: var(--accent); }
+
+.is-brief ul {
+  list-style: none;
+  padding-left: 0;
+  max-width: var(--measure);
+  border-left: 3px solid var(--accent);
+  padding: .2rem 0 .2rem 1.1rem;
+}
+
+.is-brief li { margin-bottom: .7rem; text-align: left; }
+.is-brief li:last-child { margin-bottom: 0; }
+
+/* Los plegables de contenido denso: el glosario y la anotacion del codigo.
+   Cerrados por defecto, para que la pagina no sea un muro. */
+details.fold {
+  border: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+  background: transparent;
+  margin: 0 0 1.2rem;
+  padding: 0;
+  max-width: 100%;
+}
+
+details.fold > summary {
+  font-family: var(--data);
+  font-size: .68rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  font-weight: 400;
+  color: var(--ink-faint);
+  padding: .55rem .9rem .55rem 2rem;
+}
+
+details.fold > summary::before { left: .9rem; }
+details.fold[open] > summary {
+  color: var(--accent);
+  border-bottom: 1px solid var(--rule-soft);
+  margin-bottom: 0;
+}
+
+details.fold > *:not(summary) { padding: .8rem .9rem; color: inherit; }
+details.fold ul { margin-bottom: 0; }
+details.fold .annot { border: 0; padding: 0; margin: 0; }
+details.fold .annot dd { max-width: var(--measure); }
+
+/* Un bloque de codigo seguido de su plegable van pegados. */
+pre:has(+ details.fold) { margin-bottom: 0; border-bottom: 0; }
+
+/* The course exists in Spanish only; an English reader gets an honest way out, to the
+   project's summary on the portfolio, instead of a language switch that does not exist. */
+.portfolio-link {
+  float: right;
+  margin: 0 0 .6rem 1.2rem;
+  font-family: var(--data);
+  font-size: .7rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: inherit;
+  opacity: .72;
+  text-decoration: none;
+  border-bottom: 1px solid currentColor;
+}
+.portfolio-link:hover { opacity: 1; }
+
+:root { --accent: #2c4a6d; }
+</style>
+</head>
+<body>
+<header class="masthead">
+  <div class="masthead-inner">
+    <a class="portfolio-link" href="m11_modelos_de_secuencia.html" hreflang="es" rel="alternate">Español</a>
+    <div class="eyebrow"><a href="index.en.html">Silica</a> / Module <b>11</b> of 14</div>
+    <h1>Sequence models: LSTM, GRU and causal convolution</h1>
+    <p class="standfirst">The gap the project left. A network that looks at the whole history instead of a lone row, trained on the GPU</p>
+    <div class="figure-mark">
+      <span class="figure-value">+0.215</span>
+      <span class="figure-label">what a GRU captures of the change at 12 h, the highest own signal in the project</span>
+    </div>
+    <nav class="thread" aria-label="The arc of the project"><a href="m01_radiografia_del_dataset.en.html" title="1. An X-ray of the dataset"><span class="n">1</span> <span class="v">737,453</span></a><a href="m02_el_primer_modelo_y_el_techo.en.html" title="2. The first model, and the ceiling that appeared at once"><span class="n">2</span> <span class="v">R² 0.04</span></a><a href="m03_como_aprende_un_modelo.en.html" title="3. How a model learns on the inside"><span class="n">3</span> <span class="v">R² 0.06</span></a><a href="m04_preprocesar_y_validar.en.html" title="4. Preprocessing and validating without cheating"><span class="n">4</span> <span class="v">R² −0.13</span></a><a href="m05_darle_memoria_al_modelo.en.html" title="5. Giving the model a memory"><span class="n">5</span> <span class="v">R² 0.64</span></a><a href="m06_clasificar_fuera_de_spec.en.html" title="6. Classifying: in or out of specification"><span class="n">6</span> <span class="v">0.62 vs 0.77</span></a><a href="m07_contra_que_se_compara.en.html" title="7. What a model is compared against"><span class="n">7</span> <span class="v">+0.009</span></a><a href="m08_donde_aporta_el_ml.en.html" title="8. Where does ML really add value?"><span class="n">8</span> <span class="v">0 of 4</span></a><a href="m09_los_tres_estados_de_la_planta.en.html" title="9. The three states of the plant"><span class="n">9</span> <span class="v">k = 3</span></a><a href="m10_redes_producto_y_cierre.en.html" title="10. Networks, product and closing"><span class="n">10</span> <span class="v">0.76</span></a><span class="starts-part" aria-current="page" title="11. Sequence models: LSTM, GRU and causal convolution"><span class="n">11</span> <span class="v">+0.215</span></span><a href="m12_practica_de_pronostico.en.html" title="12. The forecasting practice that was missing"><span class="n">12</span> <span class="v">0.52 vs 0.63</span></a><a href="m13_incertidumbre.en.html" title="13. Uncertainty: from the point to the interval"><span class="n">13</span> <span class="v">92.0%</span></a><a href="m14_lectura_causal.en.html" title="14. A causal reading of the control loop"><span class="n">14</span> <span class="v">+0.16</span></a></nav>
+    <div class="assay"><span><b>0</b> source notes</span><span><b>4</b> figures</span><span><b>3</b> scripts</span></div>
+  </div>
+</header>
+<main class="container">
+<section class="block is-brief"><span class="kicker">Summary</span><h2 class="block-title">In 30 seconds</h2><ul><li><strong>+0.215.</strong> A GRU predicting the change at 12 hours. It is the highest own signal in the whole project, above the boosting&#x27;s +0.175.</li><li><strong>At one hour they still do not win.</strong> The best of the three stays at 0.436 against persistence&#x27;s 0.632.</li><li><strong>The causal convolution fails</strong>, with −0.849 at one hour and −2.402 at twelve. Not everything modern works.</li><li><strong>The verdict holds.</strong> No combination becomes deployable, not even the best one.</li><li><strong>Mind the March gap.</strong> A 24-hour window can skip thirteen days if nobody checks.</li></ul></section>
+<section class="block "><span class="kicker">Context</span><h2 class="block-title">What this module solves</h2><p>The original project stopped at a simple neural network, and never treated its data as what they are: a sequence.</p><p>All the previous models saw an hour as an independent row. The past got in as contraband, in four lag columns made by hand. A sequence model reads the whole window and can find patterns nobody thought of building as a column.</p><p>Here the three serious candidates are tried, on the GPU, and the verdict is put to the test again.</p></section>
+<section class="block is-toy"><span class="kicker">By hand</span><h2 class="block-title">Before the theory: a toy example</h2><p>Four hours. In hour 1 and hour 2 there is a spike of silica in the feed, and nothing afterwards.</p><div class="table-wrap"><table><thead><tr><th>Hour</th><th>1</th><th>2</th><th>3</th><th>4</th></tr></thead><tbody><tr><td><strong>Input spike</strong></td><td>2</td><td>4</td><td>0</td><td>0</td></tr></tbody></table></div><h3 class="sub">Step 1. A model without memory</h3><p>A model that sees one row at a time. In hour 4 its input is <code>0</code>.</p><pre><code>hour 4 -&gt; input 0 -&gt; the model knows nothing</code></pre><p><strong>For it, hour 4 is identical to any quiet hour.</strong> The spike from two hours ago does not exist.</p><h3 class="sub">Step 2. A recurrent cell, with retention 0.5</h3><p>A recurrent cell keeps a state and carries it along. The rule is a single line:</p><pre><code>new state = previous state · 0.5 + input</code></pre><p>Starting from zero:</p><div class="table-wrap"><table><thead><tr><th>Hour</th><th>Input</th><th>Working</th><th>State</th></tr></thead><tbody><tr><td>1</td><td>2</td><td>0 · 0.5 + 2</td><td><strong>2</strong></td></tr><tr><td>2</td><td>4</td><td>2 · 0.5 + 4</td><td><strong>5</strong></td></tr><tr><td>3</td><td>0</td><td>5 · 0.5 + 0</td><td><strong>2.5</strong></td></tr><tr><td>4</td><td>0</td><td>2.5 · 0.5 + 0</td><td><strong>1.25</strong></td></tr></tbody></table></div><p>In hour 4 the state is 1.25. <strong>The model does know there was a spike</strong>, even though its input for that hour is zero.</p><h3 class="sub">Step 3. Retention is the knob</h3><p>With retention 0.9, the memory lasts a long time:</p><pre><code>hour 1: 2        hour 2: 5.8        hour 3: 5.22        hour 4: 4.698</code></pre><p>With retention 0.1, it dies at once:</p><pre><code>hour 1: 2        hour 2: 4.2        hour 3: 0.42        hour 4: 0.042</code></pre><p><strong>Same input, three different memories.</strong> With 0.9, hour 4 still remembers almost everything. With 0.1 it has already forgotten.</p><h3 class="sub">Step 4. What GRU and LSTM add</h3><p>In the example the retention is a fixed number we chose. In a GRU or an LSTM <strong>the retention is learned, and besides it depends on the input</strong>.</p><p>Those are the <strong>gates</strong>. At every hour, the cell decides how much of the past it keeps and how much of the new it takes in. It can cling to an important spike for hours and forget noise at once.</p><h3 class="sub">Step 5. What just happened</h3><p>The lags of module 5 were a rigid version of this. <code>sil_lag1</code>, <code>sil_lag2</code> and <code>sil_lag3</code> are three fixed memories of one hour, two and three.</p><p>A recurrent cell is the flexible version: <strong>a memory of variable length, learned, over all the variables at once</strong>. If there is temporal structure the lags do not capture, it has to show up here.</p></section>
+<section class="block is-terms"><span class="kicker">Terms</span><h2 class="block-title">Glossary</h2><details class="fold"><summary>10 terms, in plain words</summary><ul><li><strong>Sequence.</strong> A series of observations in order, where the order matters.</li><li><strong>Window.</strong> The last N hours the model reads in one go. Here, 24.</li><li><strong>Hidden state.</strong> The summary of the past the cell carries from one hour to the next.</li><li><strong>Recurrent network.</strong> The one that processes the sequence hour by hour, updating its state. Short for <em>RNN</em>.</li><li><strong>Gate.</strong> The part of the cell that decides how much is remembered and how much is forgotten. In Spanish, <em>compuerta</em>.</li><li><strong>LSTM.</strong> Long short-term memory. Three gates and a separate memory channel.</li><li><strong>GRU.</strong> Gated recurrent unit. Simpler than an LSTM and often just as good.</li><li><strong>Vanishing gradient.</strong> The problem the gates solve: in a long sequence, the gradient gets so small that the first hours stop teaching anything.</li><li><strong>Causal convolution.</strong> A filter that only looks backwards in time, never forwards.</li><li><strong>Dilation.</strong> Spacing out the points the filter looks at, to reach more history with the same layers.</li></ul></details></section>
+<section class="block is-method"><span class="kicker">Method</span><h2 class="block-title">Step by step</h2><h3 class="sub">Step 1. Put the data on a complete grid</h3><p>The previous modules used hours already cleaned, without gaps. Here that will not do.</p><p>When the empty hours are removed, the ones on either side of the thirteen-day gap end up stuck together. A 24-hour window built on that grid would jump from March to April without warning. The grid is left complete, with the gaps as empties.</p><h3 class="sub">Step 2. Emit only contiguous windows</h3><p>A window is accepted when <strong>its 24 hours really exist</strong>, and so does the hour to be predicted. It is a three-line check, and without it the model learns from invented time jumps.</p><h3 class="sub">Step 3. Scale with the training windows</h3><p>As in module 4. The mean and the deviation come from the training set only.</p><h3 class="sub">Step 4. Train the three candidates</h3><p>GRU and LSTM are recurrent. The causal convolution is the alternative: instead of walking the sequence, it applies filters that only look backwards.</p><h3 class="sub">Step 5. Ask both questions</h3><p>Level and change, as in module 8. With the addition that here the model has real temporal information.</p></section>
+<section class="block is-code"><span class="kicker">Code</span><h2 class="block-title">The code, in parts</h2><h3 class="sub">Step 1. Build contiguous windows</h3><pre><code class="language-python">complete = ~np.isnan(values).any(axis=1)
+for end in range(WINDOW - 1, len(frame) - lead):
+    start = end - WINDOW + 1
+    if not complete[start:end + 1].all() or np.isnan(target[end + lead]):
+        continue
+    stacks.append(values[start:end + 1])</code></pre><details class="fold"><summary>line by line, 4 entries</summary><dl class="annot"><dt><code>np.isnan(values).any(axis=1)</code></dt><dd>Marks every hour that has any missing value. The tilde inverts it, so <code>complete</code> marks the good hours.</dd><dt><code>complete[start:end + 1].all()</code></dt><dd>Demands that the 24 hours of the window exist. It is the line that stops the March gap from being skipped.</dd><dt><code>continue</code></dt><dd>Jumps to the next turn of the loop without running the rest.</dd><dt><code>values[start:end + 1]</code></dt><dd>The piece of the table that forms the window. In Python the end of a range is not included, hence the plus one.</dd></dl></details><div class="output"><span class="output-tag">prints</span><pre><code>Dispositivo: cuda · torch 2.12.0.dev20260408+cu128
+Rejilla horaria completa: 4415 horas · 21 variables
+Ventana de 24 h · corte 2017-08-01</code></pre></div><p>From 4,415 grid hours come 3,089 training windows and 960 test windows. The missing ones are those that touched the gap.</p><figure class="fig"><img src="../figuras/fig_m11_ventana.e6a54e2b.png" alt="Left: a real window, 24 hours by 22 variables. Right: the silica of those 24 hours, with what has to be predicted in red and what persistence repeats in gold." loading="lazy"><figcaption>Left: a real window, 24 hours by 22 variables. Right: the silica of those 24 hours, with what has to be predicted in red and what persistence repeats in gold.</figcaption></figure><h3 class="sub">Step 2. The recurrent cell, in code</h3><pre><code class="language-python">class Recurrent(nn.Module):
+    def __init__(self, inputs, hidden=64, kind=&quot;gru&quot;):
+        super().__init__()
+        cell = nn.GRU if kind == &quot;gru&quot; else nn.LSTM
+        self.rnn = cell(inputs, hidden, num_layers=1, batch_first=True)
+        self.head = nn.Linear(hidden, 1)
+
+    def forward(self, x):
+        output, _ = self.rnn(x)
+        return self.head(output[:, -1, :]).squeeze(-1)</code></pre><details class="fold"><summary>line by line, 6 entries</summary><dl class="annot"><dt><code>class Recurrent(nn.Module)</code></dt><dd>In PyTorch a model is a class that inherits from <code>nn.Module</code>. Its layers live there.</dd><dt><code>super().__init__()</code></dt><dd>Calls the parent class&#x27;s constructor. Without it PyTorch does not register the layers.</dd><dt><code>nn.GRU(inputs, hidden)</code></dt><dd>The recurrent cell. <code>hidden=64</code> is the size of the state it carries.</dd><dt><code>batch_first=True</code></dt><dd>Tells it the data arrive as (batch, time, variables). Without it, it expects time first.</dd><dt><code>forward(self, x)</code></dt><dd>What happens when data pass through the model. It is the method PyTorch calls.</dd><dt><code>output[:, -1, :]</code></dt><dd>Of the whole output sequence, only the last instant. The summary of the 24 hours is there.</dd></dl></details><div class="output"><span class="output-tag">prints</span><pre><code>=== horizonte 1 h · 3089 ventanas de entrenamiento, 960 de prueba
+  persistencia            R2 +0.6323
+  GRU  nivel              R2 +0.1487   aporte -0.4836   (11 s)
+  LSTM nivel              R2 +0.4364   aporte -0.1959   (5 s)
+  CNN  nivel              R2 -0.8487   aporte -1.4810   (4 s)</code></pre></div><figure class="fig"><img src="../figuras/fig_m11_curvas_entrenamiento.dce77518.png" alt="The validation loss over 30 epochs. The GRU and the LSTM drop and settle. The causal convolution stays up high." loading="lazy"><figcaption>The validation loss over 30 epochs. The GRU and the LSTM drop and settle. The causal convolution stays up high.</figcaption></figure><h3 class="sub">Step 3. The causal convolution, the alternative to recurrence</h3><pre><code class="language-python">for dilation in (1, 2, 4):
+    layers += [nn.Conv1d(previous, channels, kernel_size=3, dilation=dilation),
+               nn.ReLU()]</code></pre><details class="fold"><summary>line by line, 4 entries</summary><dl class="annot"><dt><code>nn.Conv1d</code></dt><dd>Convolution in one dimension, which here is time.</dd><dt><code>kernel_size=3</code></dt><dd>Each filter looks at three instants at once.</dd><dt><code>dilation=1, 2, 4</code></dt><dd>The spacing between the instants it looks at. Doubling it, three layers reach 15 hours back with very few parameters.</dd><dt><code>nn.ReLU()</code></dt><dd>The same activation as module 10: lets the positive through and cuts the negative.</dd></dl></details><div class="output"><span class="output-tag">prints</span><pre><code>=== horizonte 12 h · 3067 ventanas de entrenamiento, 960 de prueba
+  persistencia            R2 -0.6187
+  GRU  nivel              R2 -1.0659   aporte -0.4472   (4 s)
+  GRU  cambio             R2 +0.2153   sumado al ultimo valor: -0.2702
+  LSTM nivel              R2 -0.1835   aporte +0.4352   (3 s)
+  LSTM cambio             R2 +0.1963   sumado al ultimo valor: -0.3009
+  CNN  nivel              R2 -2.4020   aporte -1.7833   (3 s)
+  CNN  cambio             R2 -0.1162   sumado al ultimo valor: -0.8068</code></pre></div></section>
+<section class="block is-result"><span class="kicker">Result</span><h2 class="block-title">The result, measured</h2><p><strong>What we expected.</strong> That the sequence models would improve at one hour, because they read 24 whole hours instead of four lags.</p><p><strong>What came out.</strong> The opposite at one hour, and something interesting at twelve.</p><h3 class="sub">At one hour, none comes close</h3><div class="table-wrap"><table><thead><tr><th>Model</th><th>Level R²</th><th>Contribution over persistence</th></tr></thead><tbody><tr><td>Persistence</td><td>0.632</td><td>reference</td></tr><tr><td>LSTM</td><td>0.436</td><td>−0.196</td></tr><tr><td>GRU</td><td>0.149</td><td>−0.484</td></tr><tr><td>Causal convolution</td><td>−0.849</td><td>−1.481</td></tr></tbody></table></div><figure class="fig"><img src="../figuras/fig_m11_secuencia_vs_persistencia.bf69f776.png" alt="The three sequence models against persistence, at one hour and at twelve. At one hour none comes close." loading="lazy"><figcaption>The three sequence models against persistence, at one hour and at twelve. At one hour none comes close.</figcaption></figure><p><strong>The best loses by two tenths.</strong> And that with access to far more information than the four lags of module 5, which reached 0.641.</p><p>The explanation is the usual one, seen from another angle. At one hour, the answer is already in the last value. A model with 64 hidden states has to <strong>learn to copy</strong> that value, and learning to copy with 3,089 examples works out worse than copying directly.</p><h3 class="sub">At twelve hours the signal appears</h3><div class="table-wrap"><table><thead><tr><th>Model</th><th>Change R²</th></tr></thead><tbody><tr><td><strong>GRU</strong></td><td><strong>+0.215</strong></td></tr><tr><td>LSTM</td><td>+0.196</td></tr><tr><td>Boosting, module 8</td><td>+0.175</td></tr><tr><td>Causal convolution</td><td>−0.116</td></tr></tbody></table></div><figure class="fig"><img src="../figuras/fig_m11_horizontes_secuencia.2766dee6.png" alt="The R² on the change at 12 hours. The GRU beats the boosting of module 8, and it is the best the project has achieved on its own." loading="lazy"><figcaption>The R² on the change at 12 hours. The GRU beats the boosting of module 8, and it is the best the project has achieved on its own.</figcaption></figure><p><strong>The GRU reaches +0.215 predicting the change at 12 hours</strong>, above the +0.175 the boosting had achieved. It is a real improvement, and it comes from treating the sequence as a sequence.</p><p>The LSTM on the level also beats persistence at 12 hours, −0.184 against −0.619. It is the only time a model beats it on the level, although both remain below predicting the mean.</p><p><strong>What it means.</strong> That Kevin was half right to suspect the verdict. A better model does capture more: the own signal rises from 0.175 to 0.215, 23% more.</p><p>And the verdict still stands. Adding that change to the last known value, the result at 12 hours is −0.270. That improves on the boosting&#x27;s −0.330 and on persistence&#x27;s −0.619. And it is still <strong>worse than having no model</strong>.</p><h3 class="sub">The causal convolution, a failure that also informs</h3><p>−0.849 at one hour and −2.402 at twelve. It is the worst model in the whole project, below even the neural network of module 10.</p><p>It is not to be hidden. Causal convolutions work very well on series with repeated local patterns, such as audio. Here the useful signal is almost entirely in the last value, and a filter that averages three instants with dilation spreads it out instead of exploiting it.</p><p><strong>That a technique is modern does not make it appropriate.</strong></p><h3 class="sub">What this module leaves open</h3><p>The project has tried trees, lines, boosting, dense networks and sequence networks. It has never tried what a time-series engineer would have done first: check stationarity, difference, and run a classical baseline.</p><p>Module 12 does it, with SARIMAX.</p></section>
+<section class="block is-warning"><span class="kicker">Traps</span><h2 class="block-title">Watch out</h2><ul><li><strong>The grid is left with its gaps.</strong> If the empty hours are removed, a 24-hour window can skip thirteen days without warning. The contiguity check costs three lines.</li><li><strong>More information is not a better result.</strong> The sequence models read 24 hours by 22 variables and lose to copying one number.</li><li><strong>Learning to copy is hard.</strong> A model with 64 hidden states needs many examples to reproduce what persistence does for free.</li><li><strong>The scaling is computed on the training windows.</strong> As in module 4, with the aggravation that here each value appears in 24 different windows.</li><li><strong>The validation for early stopping comes from the end of the training set</strong>, not from a random piece. In time series, a random piece is a leak.</li><li><strong>A resounding failure is reported too.</strong> The causal convolution gives −2.402 and that goes in the table.</li></ul></section>
+<section class="block is-bridge"><span class="kicker">Analogy</span><h2 class="block-title">Metallurgical bridge</h2><p>A sequence model is an <strong>operator who has been on for the whole shift</strong>, as opposed to one who has just walked in and only sees the current screen. The one who has been on all shift remembers the silica spike of three hours ago, and knows the circuit is still digesting it.</p><p>The gate is <strong>the judgement to decide what to remember</strong>. A good operator forgets a sensor&#x27;s noise and remembers an ore change for hours. A GRU learns that judgement from the data, instead of having it set for it.</p><p>And the result has its plant version. However good the operator is, if the question is &quot;how much silica is there right now&quot; and the laboratory reported an hour ago, <strong>the assay beats experience</strong>. Experience starts to count when twelve hours have to be anticipated, and that is exactly what the +0.215 says.</p></section>
+<section class="block is-review"><span class="kicker">Review</span><h2 class="block-title">Review</h2><details><summary>What does a sequence model do that the lags of module 5 did not?</summary><p>The lags are three fixed memories: one hour, two and three, and only of the target.</p><p>A recurrent cell carries a state and updates it every hour. Its retention is learned from the data, and besides it can depend on what is coming in. All of that over the 22 variables at once, not only over the silica. It is the flexible version of the same idea: memory of variable length instead of three snapshots of the past.</p></details><details><summary>The GRU reads 24 hours by 22 variables and loses to repeating a number. How is that explained?</summary><p>Because one hour ahead the answer is almost entirely in that number, and the model has to learn to copy it.</p><p>Persistence learns nothing: it takes the laboratory&#x27;s last value and repeats it. The GRU has 64 hidden states and thousands of weights. With 3,089 training windows, it has to discover on its own a single thing: the best move is to reproduce one of its inputs. Learning to copy is a problem that is easy to state and hard to solve with little data. That is why the LSTM stays at 0.436 against 0.632.</p></details><details><summary>The GRU on the change at 12 hours gives +0.215. Why is it the important number of the module?</summary><p>Because it is signal no baseline can have, and it is the highest the project has achieved.</p><p>Persistence predicts zero change by definition, so its R² on the change is zero. Everything a model achieves there is its own merit. The boosting of module 8 reached +0.175 and the GRU reaches +0.215, 23% more, just by treating the sequence as a sequence. It confirms that there was something the tabular models were not seeing.</p></details><details><summary>So, does the verdict change?</summary><p>No, but it gets qualified, and both parts have to be said.</p><p>The part that changes: a better model does capture more signal. The part that does not: adding that change to the last known value, the result at 12 hours is −0.270. It is still worse than predicting the mean. A negative R² does not get deployed however much it has improved. The conclusion is still not to deploy, with a new note: if one day there are more data, sequence models are where to start.</p></details><details><summary>The causal convolution gives −2.402. Is it reported or discarded?</summary><p>It is reported, and with the explanation of why it failed.</p><p>Discarding the bad results is how a misleading report gets built. Causal convolutions work when the series has repeated local patterns, as in audio or text. Here almost all the useful information is concentrated in the last value, and a filter of size three with dilation averages that value with its neighbours instead of isolating it. It is the wrong model for this signal, and knowing that has value for the next project.</p></details></section>
+</main>
+<nav class="pager"><a class="prev" href="m10_redes_producto_y_cierre.en.html"><span class="dir">Previous</span>10. Networks, product and closing</a><a class="next" href="m12_practica_de_pronostico.en.html"><span class="dir">Next</span>12. The forecasting practice that was missing</a></nav>
+<footer class="footer">
+  <div class="footer-inner">
+    <span>Silica / Module 11</span>
+    <span>generated on 2026-08-22</span>
+    <span>source: the 31 original notes, their scripts and the plant CSV</span>
+  </div>
+</footer>
+</body>
+</html>

@@ -1,0 +1,692 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How a model learns on the inside · Silica, module 3</title>
+<link rel="alternate" hreflang="es" href="m03_como_aprende_un_modelo.html">
+<style>
+/* Sílice: la hoja de estilos del curso.
+ *
+ * Identidad de papel de informe de planta, no de pantalla. El proyecto termina
+ * recomendando no desplegar, y eso es un informe técnico: papel hueso, tinta grafito,
+ * y una retícula de milimetrado muy tenue en la cabecera.
+ *
+ * Dos familias tipográficas y ni una más, las dos del sistema porque el sitio se abre
+ * desde file:// y tiene que funcionar sin internet: serif para la prosa (se lee como
+ * informe) y monoespaciada para todo lo que es dato, código, cifra o etiqueta.
+ *
+ * El acento lo inyecta cada página con --accent: es el del módulo, y marca su posición
+ * en el arco del proyecto. Los diez pasan check_palette.py antes de entrar aquí.
+ */
+
+:root {
+  --paper: #f6f3ec;
+  --bench: #eeeade;
+  --ink: #2a2622;
+  --ink-soft: #57504a;
+  --ink-faint: #8a8177;
+  --rule: #ddd6c6;
+  --rule-soft: #e8e2d4;
+  --grid: rgba(84, 69, 73, .07);
+  --accent: #632727;
+
+  --prose: Georgia, "Iowan Old Style", "Palatino Linotype", Palatino, "Times New Roman", serif;
+  --data: "Cascadia Mono", Consolas, "DejaVu Sans Mono", "Liberation Mono", monospace;
+
+  --measure: 680px;   /* la medida de la prosa, en píxeles y nunca en ch */
+  --wide: 1180px;     /* el borde derecho de los bloques anchos */
+  --margin: 132px;    /* la columna del margen, donde cuelgan los kickers */
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--prose);
+  font-size: 17px;
+  line-height: 1.62;
+  -webkit-text-size-adjust: 100%;
+}
+
+::selection { background: var(--accent); color: var(--paper); }
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+/* --------------------------------------------------------------- cabecera */
+
+.masthead {
+  border-bottom: 1px solid var(--rule);
+  background-color: var(--bench);
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 26px 26px;
+  background-position: -1px -1px;
+}
+
+.masthead-inner {
+  max-width: var(--wide);
+  margin: 0 auto;
+  padding: 2.4rem 2rem 1.6rem;
+}
+
+.eyebrow {
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-bottom: 1rem;
+}
+
+.eyebrow a { color: inherit; text-decoration: none; border-bottom: 1px solid transparent; }
+.eyebrow a:hover { border-bottom-color: var(--accent); color: var(--accent); }
+.eyebrow b { color: var(--accent); font-weight: 400; }
+
+.masthead h1 {
+  margin: 0;
+  font-size: clamp(1.9rem, 4.4vw, 2.9rem);
+  line-height: 1.14;
+  font-weight: 400;
+  letter-spacing: -.012em;
+  max-width: 900px;
+}
+
+.standfirst {
+  margin: .9rem 0 0;
+  max-width: var(--measure);
+  color: var(--ink-soft);
+  font-size: 1.02rem;
+  line-height: 1.55;
+}
+
+/* La cifra del módulo: el número que dejó, en grande, junto al título. Es lo que
+   convierte la cabecera en parte del argumento y no en decoración. */
+.figure-mark {
+  margin-top: 1.6rem;
+  display: flex;
+  align-items: baseline;
+  gap: .8rem;
+  flex-wrap: wrap;
+  border-left: 3px solid var(--accent);
+  padding-left: .9rem;
+}
+
+.figure-value {
+  font-family: var(--data);
+  font-size: clamp(1.5rem, 3.4vw, 2.1rem);
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: -.02em;
+}
+
+.figure-label {
+  font-family: var(--data);
+  font-size: .78rem;
+  letter-spacing: .04em;
+  color: var(--ink-soft);
+}
+
+/* El hilo del proyecto: diez segmentos, uno por módulo, con su cifra debajo. Desde
+   cualquier página se ve el recorrido entero, que es justo lo que a los apuntes
+   sueltos les faltaba. */
+.thread {
+  margin-top: 1.8rem;
+  display: grid;
+  /* One equal column per segment, whatever the temario says. It was pinned to ten and
+     the course grew to fourteen. */
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: 4px;
+}
+
+/* Where part 2 starts: the four modules that were never in the original project. */
+.thread .starts-part { margin-left: 10px; position: relative; }
+.thread .starts-part::after {
+  content: '';
+  position: absolute;
+  left: -7px; top: -3px; bottom: 0;
+  border-left: 1px solid var(--rule);
+}
+
+.thread a, .thread span {
+  display: block;
+  text-decoration: none;
+  color: var(--ink-faint);
+  font-family: var(--data);
+  font-size: .62rem;
+  letter-spacing: .04em;
+  padding-top: .4rem;
+  border-top: 3px solid var(--rule);
+  transition: color .12s, border-color .12s;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.thread a:hover { color: var(--ink); border-top-color: var(--ink-soft); }
+.thread [aria-current="page"] { color: var(--accent); border-top-color: var(--accent); }
+.thread .n { font-weight: 700; }
+.thread .v { color: inherit; opacity: .75; }
+
+/* Las pastillas de composición: de qué está hecho el módulo. */
+.assay {
+  margin-top: 1.6rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.4rem;
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .05em;
+  color: var(--ink-faint);
+}
+
+.assay b { color: var(--ink); font-weight: 700; }
+
+/* ----------------------------------------------------------------- cuerpo */
+
+.container {
+  max-width: var(--wide);
+  margin: 0 auto;
+  padding: 2.6rem 2rem 4rem;
+}
+
+/* Cada sección es una anotación de cuaderno: el kicker cuelga en el margen
+   izquierdo y el contenido corre en la columna principal. En pantalla estrecha el
+   kicker se pone encima. */
+.block {
+  display: grid;
+  grid-template-columns: var(--margin) minmax(0, 1fr);
+  column-gap: 2rem;
+  padding: 2.2rem 0;
+  border-top: 1px solid var(--rule);
+}
+
+.block:first-child { border-top: 0; padding-top: .6rem; }
+
+.kicker {
+  grid-column: 1;
+  font-family: var(--data);
+  font-size: .68rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding-top: .45rem;
+}
+
+.block > :not(.kicker) { grid-column: 2; }
+
+.block-title {
+  margin: 0 0 1.1rem;
+  font-size: 1.42rem;
+  font-weight: 400;
+  line-height: 1.25;
+  letter-spacing: -.008em;
+}
+
+.is-warning .kicker, .is-result .kicker { color: var(--accent); }
+.is-warning .block-title { border-bottom: 2px solid var(--accent); padding-bottom: .4rem; display: inline-block; }
+.is-result { background: var(--bench); margin: 0 -1.2rem; padding: 2.2rem 1.2rem; }
+.is-result .block-title { color: var(--accent); }
+
+/* Prosa: justificada con partición, que sin partición el español justificado abre
+   ríos. Tablas, código y pies de figura se quedan sin justificar. */
+.block p, .block li, .block dd, details > *:not(summary) {
+  max-width: var(--measure);
+  text-align: justify;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+}
+
+.block p { margin: 0 0 1rem; }
+.block p:last-child { margin-bottom: 0; }
+.block ul, .block ol { margin: 0 0 1rem; padding-left: 1.3rem; max-width: var(--measure); }
+.block li { margin-bottom: .5rem; }
+.block li::marker { color: var(--accent); font-family: var(--data); font-size: .85em; }
+
+td, th, figcaption, .assay, .thread a, .res li { text-align: left; hyphens: manual; }
+
+a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+a:hover { text-decoration-thickness: 2px; }
+strong { font-weight: 700; }
+em { font-style: italic; color: var(--ink-soft); }
+
+h3.sub {
+  margin: 1.9rem 0 .7rem;
+  font-size: 1.07rem;
+  font-weight: 700;
+  letter-spacing: -.004em;
+}
+
+h3.sub:first-child { margin-top: 0; }
+
+h4.sub {
+  margin: 1.4rem 0 .5rem;
+  font-family: var(--data);
+  font-size: .82rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  color: var(--ink-soft);
+}
+
+/* ------------------------------------------------------------ código y datos */
+
+code {
+  font-family: var(--data);
+  font-size: .87em;
+  background: var(--bench);
+  padding: .1em .32em;
+  border-radius: 2px;
+}
+
+pre {
+  margin: 0 0 1rem;
+  padding: 1rem 1.1rem;
+  background: var(--bench);
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--accent);
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+pre code { background: none; padding: 0; font-size: .82rem; line-height: 1.62; }
+
+/* La salida es lo que imprime el código, no código para correr: se marca aparte
+   para que nadie confunda entrada con salida. */
+.output {
+  margin: 0 0 1rem;
+  border: 1px dashed var(--rule);
+  background: transparent;
+}
+
+.output-tag {
+  display: block;
+  font-family: var(--data);
+  font-size: .64rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding: .45rem 1.1rem 0;
+}
+
+.output pre {
+  margin: 0;
+  border: 0;
+  background: none;
+  padding: .3rem 1.1rem 1rem;
+}
+
+.output pre code { color: var(--ink-soft); }
+
+/* La anotación línea por línea, para quien no ha programado antes. */
+.annot {
+  margin: 0 0 1.2rem;
+  border: 1px solid var(--rule);
+  border-top: 0;
+  padding: 0 1.1rem .6rem;
+  background: transparent;
+}
+
+.annot-head {
+  font-family: var(--data);
+  font-size: .64rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding: .55rem 0 .5rem;
+  border-bottom: 1px solid var(--rule-soft);
+  margin-bottom: .4rem;
+}
+
+.annot dt { padding: .4rem 0 .1rem; }
+.annot dt code { background: none; padding: 0; color: var(--accent); font-weight: 700; }
+.annot dd {
+  margin: 0 0 .4rem;
+  color: var(--ink-soft);
+  font-size: .94rem;
+  border-bottom: 1px solid var(--rule-soft);
+  padding-bottom: .5rem;
+}
+.annot dd:last-of-type { border-bottom: 0; }
+
+pre:has(+ .annot) { margin-bottom: 0; }
+
+blockquote {
+  margin: 0 0 1rem;
+  padding: .2rem 0 .2rem 1.1rem;
+  border-left: 3px solid var(--rule);
+  color: var(--ink-soft);
+  font-style: italic;
+  max-width: var(--measure);
+}
+
+/* --------------------------------------------------------------- tablas */
+
+.table-wrap { overflow-x: auto; margin: 0 0 1.2rem; }
+
+table {
+  border-collapse: collapse;
+  width: auto;
+  max-width: 100%;
+  font-size: .92rem;
+}
+
+th, td {
+  padding: .5rem .9rem .5rem 0;
+  border-bottom: 1px solid var(--rule-soft);
+  vertical-align: top;
+}
+
+th {
+  font-family: var(--data);
+  font-size: .7rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--ink-faint);
+  border-bottom: 1px solid var(--rule);
+  white-space: nowrap;
+}
+
+/* -------------------------------------------------------------- repaso */
+
+details {
+  border-bottom: 1px solid var(--rule-soft);
+  padding: .2rem 0;
+  max-width: var(--measure);
+}
+
+summary {
+  cursor: pointer;
+  list-style: none;
+  padding: .7rem 0 .7rem 1.5rem;
+  position: relative;
+  font-weight: 700;
+}
+
+summary::-webkit-details-marker { display: none; }
+
+summary::before {
+  content: '+';
+  position: absolute;
+  left: 0;
+  font-family: var(--data);
+  color: var(--accent);
+  font-weight: 700;
+}
+
+details[open] summary::before { content: '\2212'; }
+details[open] summary { color: var(--accent); }
+details > *:not(summary) { color: var(--ink-soft); }
+details > *:last-child { padding-bottom: .8rem; }
+
+/* -------------------------------------------------------------- figuras */
+
+figure.fig {
+  margin: 0 0 1.4rem;
+  max-width: 100%;
+  border: 1px solid var(--rule);
+  background: #fff;
+  padding: .6rem;
+}
+
+figure.fig img { width: 100%; height: auto; display: block; }
+
+figure.fig figcaption {
+  margin-top: .6rem;
+  padding-top: .5rem;
+  border-top: 1px solid var(--rule-soft);
+  font-family: var(--data);
+  font-size: .7rem;
+  letter-spacing: .04em;
+  color: var(--ink-faint);
+}
+
+.gone {
+  font-family: var(--data);
+  font-size: .76rem;
+  color: var(--accent);
+  border: 1px dashed var(--accent);
+  padding: .5rem .8rem;
+}
+
+/* ------------------------------------------------------- pie y navegación */
+
+.pager {
+  max-width: var(--wide);
+  margin: 0 auto;
+  padding: 0 2rem 3rem;
+  display: flex;
+  gap: 1.4rem;
+  justify-content: space-between;
+  font-family: var(--data);
+  font-size: .78rem;
+}
+
+.pager a { max-width: 46%; text-decoration: none; border-bottom: 1px solid var(--rule); padding-bottom: .3rem; }
+.pager a:hover { border-bottom-color: var(--accent); }
+.pager .dir { display: block; font-size: .64rem; letter-spacing: .13em; text-transform: uppercase; color: var(--ink-faint); }
+.pager .next { text-align: right; margin-left: auto; }
+
+.footer {
+  border-top: 1px solid var(--rule);
+  padding: 1.4rem 2rem 2.4rem;
+  font-family: var(--data);
+  font-size: .72rem;
+  letter-spacing: .06em;
+  color: var(--ink-faint);
+}
+
+.footer-inner { max-width: var(--wide); margin: 0 auto; display: flex; gap: 1.4rem; flex-wrap: wrap; }
+
+/* ------------------------------------------------------------- índice */
+
+.toc { list-style: none; margin: 0; padding: 0; max-width: 100%; }
+
+.toc li {
+  border-top: 1px solid var(--rule-soft);
+  max-width: 100%;
+}
+
+.toc li:last-child { border-bottom: 1px solid var(--rule-soft); }
+
+.toc a, .toc .pending {
+  display: grid;
+  grid-template-columns: 3rem minmax(0, 1fr) auto;
+  gap: 1.2rem;
+  align-items: baseline;
+  padding: 1rem .4rem;
+  text-decoration: none;
+  color: inherit;
+}
+
+.toc a:hover { background: var(--bench); }
+.toc .pending { color: var(--ink-faint); }
+.toc .num { font-family: var(--data); font-size: .82rem; font-weight: 700; }
+.toc .name { font-size: 1.05rem; }
+.toc .name small { display: block; font-family: var(--prose); font-size: .86rem; color: var(--ink-soft); margin-top: .2rem; }
+.toc .mark { font-family: var(--data); font-size: .82rem; font-weight: 700; white-space: nowrap; }
+.toc .tag { font-family: var(--data); font-size: .66rem; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-faint); }
+
+/* ---------------------------------------------------------- responsive */
+
+@media (max-width: 900px) {
+  .block { grid-template-columns: minmax(0, 1fr); }
+  .block > :not(.kicker) { grid-column: 1; }
+  .kicker { grid-column: 1; padding-top: 0; margin-bottom: .7rem; }
+  .thread { grid-auto-flow: row; grid-template-columns: repeat(5, 1fr); gap: 6px 4px; }
+  .thread .starts-part { margin-left: 0; }
+  .thread .starts-part::after { display: none; }
+  .toc a, .toc .pending { grid-template-columns: 2.2rem minmax(0, 1fr); }
+  .toc .mark { grid-column: 2; }
+}
+
+@media (max-width: 620px) {
+  body { font-size: 16px; }
+  .masthead-inner, .container, .pager, .footer { padding-left: 1.2rem; padding-right: 1.2rem; }
+  .is-result { margin: 0; padding: 2rem 1rem; }
+  .block p, .block li { text-align: left; }
+}
+
+@media print {
+  .thread, .pager { display: none; }
+  body { font-size: 11pt; }
+  .masthead { background: none; }
+  .block { break-inside: avoid; }
+}
+
+/* -------------------------------------------------- resumen y plegables */
+
+/* El resumen de entrada: la cifra, la trampa y la decision, en cinco vinetas.
+   Se lee en 30 segundos o se sigue leyendo. */
+.is-brief {
+  border-top: 0;
+  padding-top: .4rem;
+}
+
+.is-brief .kicker { color: var(--accent); }
+
+.is-brief ul {
+  list-style: none;
+  padding-left: 0;
+  max-width: var(--measure);
+  border-left: 3px solid var(--accent);
+  padding: .2rem 0 .2rem 1.1rem;
+}
+
+.is-brief li { margin-bottom: .7rem; text-align: left; }
+.is-brief li:last-child { margin-bottom: 0; }
+
+/* Los plegables de contenido denso: el glosario y la anotacion del codigo.
+   Cerrados por defecto, para que la pagina no sea un muro. */
+details.fold {
+  border: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+  background: transparent;
+  margin: 0 0 1.2rem;
+  padding: 0;
+  max-width: 100%;
+}
+
+details.fold > summary {
+  font-family: var(--data);
+  font-size: .68rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  font-weight: 400;
+  color: var(--ink-faint);
+  padding: .55rem .9rem .55rem 2rem;
+}
+
+details.fold > summary::before { left: .9rem; }
+details.fold[open] > summary {
+  color: var(--accent);
+  border-bottom: 1px solid var(--rule-soft);
+  margin-bottom: 0;
+}
+
+details.fold > *:not(summary) { padding: .8rem .9rem; color: inherit; }
+details.fold ul { margin-bottom: 0; }
+details.fold .annot { border: 0; padding: 0; margin: 0; }
+details.fold .annot dd { max-width: var(--measure); }
+
+/* Un bloque de codigo seguido de su plegable van pegados. */
+pre:has(+ details.fold) { margin-bottom: 0; border-bottom: 0; }
+
+/* The course exists in Spanish only; an English reader gets an honest way out, to the
+   project's summary on the portfolio, instead of a language switch that does not exist. */
+.portfolio-link {
+  float: right;
+  margin: 0 0 .6rem 1.2rem;
+  font-family: var(--data);
+  font-size: .7rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: inherit;
+  opacity: .72;
+  text-decoration: none;
+  border-bottom: 1px solid currentColor;
+}
+.portfolio-link:hover { opacity: 1; }
+
+:root { --accent: #6d3713; }
+</style>
+</head>
+<body>
+<header class="masthead">
+  <div class="masthead-inner">
+    <a class="portfolio-link" href="m03_como_aprende_un_modelo.html" hreflang="es" rel="alternate">Español</a>
+    <div class="eyebrow"><a href="index.en.html">Silica</a> / Module <b>3</b> of 14</div>
+    <h1>How a model learns on the inside</h1>
+    <p class="standfirst">The line, the loss function and gradient descent: the engine that drives all the others</p>
+    <div class="figure-mark">
+      <span class="figure-value">R² 0.06</span>
+      <span class="figure-label">the regularised linear model</span>
+    </div>
+    <nav class="thread" aria-label="The arc of the project"><a href="m01_radiografia_del_dataset.en.html" title="1. An X-ray of the dataset"><span class="n">1</span> <span class="v">737,453</span></a><a href="m02_el_primer_modelo_y_el_techo.en.html" title="2. The first model, and the ceiling that appeared at once"><span class="n">2</span> <span class="v">R² 0.04</span></a><span aria-current="page" title="3. How a model learns on the inside"><span class="n">3</span> <span class="v">R² 0.06</span></span><a href="m04_preprocesar_y_validar.en.html" title="4. Preprocessing and validating without cheating"><span class="n">4</span> <span class="v">R² −0.13</span></a><a href="m05_darle_memoria_al_modelo.en.html" title="5. Giving the model a memory"><span class="n">5</span> <span class="v">R² 0.64</span></a><a href="m06_clasificar_fuera_de_spec.en.html" title="6. Classifying: in or out of specification"><span class="n">6</span> <span class="v">0.62 vs 0.77</span></a><a href="m07_contra_que_se_compara.en.html" title="7. What a model is compared against"><span class="n">7</span> <span class="v">+0.009</span></a><a href="m08_donde_aporta_el_ml.en.html" title="8. Where does ML really add value?"><span class="n">8</span> <span class="v">0 of 4</span></a><a href="m09_los_tres_estados_de_la_planta.en.html" title="9. The three states of the plant"><span class="n">9</span> <span class="v">k = 3</span></a><a href="m10_redes_producto_y_cierre.en.html" title="10. Networks, product and closing"><span class="n">10</span> <span class="v">0.76</span></a><a class="starts-part" href="m11_modelos_de_secuencia.en.html" title="11. Sequence models: LSTM, GRU and causal convolution"><span class="n">11</span> <span class="v">+0.215</span></a><a href="m12_practica_de_pronostico.en.html" title="12. The forecasting practice that was missing"><span class="n">12</span> <span class="v">0.52 vs 0.63</span></a><a href="m13_incertidumbre.en.html" title="13. Uncertainty: from the point to the interval"><span class="n">13</span> <span class="v">92.0%</span></a><a href="m14_lectura_causal.en.html" title="14. A causal reading of the control loop"><span class="n">14</span> <span class="v">+0.16</span></a></nav>
+    <div class="assay"><span><b>3</b> source notes</span><span><b>5</b> figures</span><span><b>4</b> scripts</span></div>
+  </div>
+</header>
+<main class="container">
+<section class="block is-brief"><span class="kicker">Summary</span><h2 class="block-title">In 30 seconds</h2><ul><li><strong>R² 0.06 with regularisation</strong>, six times better than the 0.010 of the untouched line. Still little, and still the best linear model in the project.</li><li><strong>Gradient descent is the engine of everything.</strong> Here it is computed by hand, and it converges by halving the remaining distance at every step.</li><li><strong>The learning rate decides whether it converges or bounces.</strong> With 0.2 it lands in one step. With 0.4 it oscillates forever.</li><li><strong>Regularising is not decoration.</strong> Shrinking the coefficients lifts the R² from 0.010 to 0.061, and past the sweet spot it falls back to 0.001.</li><li><strong>The line sees the same as the tree</strong>, air and amine, but it only captures straight relationships.</li></ul></section>
+<section class="block "><span class="kicker">Context</span><h2 class="block-title">What this module solves</h2><p>Module 2 trained models without looking inside. Here the engine is opened.</p><p>A line is fitted, what it means for a model to be wrong is defined, and that error is lowered step by step. That procedure, gradient descent, is the same one that trains a neural network of a billion parameters.</p><p>And the first knob that does move the result in this project appears: regularisation.</p></section>
+<section class="block is-toy"><span class="kicker">By hand</span><h2 class="block-title">Before the theory: a toy example</h2><p>Two batches. For each one we know how much the air was raised above normal, and how much extra silica came out.</p><div class="table-wrap"><table><thead><tr><th>Batch</th><th>Extra air</th><th>Extra SiO₂</th></tr></thead><tbody><tr><td>1</td><td>1</td><td>2</td></tr><tr><td>2</td><td>2</td><td>4</td></tr></tbody></table></div><p>We look for a single number, the <strong>slope</strong>, which we will call <code>w</code>. The prediction is <code>w</code> times the extra air. By eye you can see that <code>w = 2</code> is right for both batches. We are going to get there without looking.</p><h3 class="sub">Step 1. Define what being wrong means</h3><p>The error is the average of the squared misses.</p><pre><code>error(w) = [ (w·1 − 2)² + (w·2 − 4)² ] / 2</code></pre><p>Expanding, the two terms are multiples of the same thing:</p><pre><code>error(w) = [ (w−2)² + 4·(w−2)² ] / 2 = 2.5 · (w−2)²</code></pre><p>It is a parabola with its bottom at <code>w = 2</code>. Finding the best line means going down to that bottom.</p><h3 class="sub">Step 2. Start in a bad place</h3><p>We start at <code>w = 0</code>, which is always predicting zero.</p><pre><code>error(0) = 2.5 · (0−2)² = 2.5 · 4 = 10</code></pre><h3 class="sub">Step 3. Know which way is downhill</h3><p>The <strong>slope of the parabola</strong> at a point says which way it rises. For this parabola it is:</p><pre><code>gradient(w) = 5 · (w − 2)
+gradient(0) = 5 · (−2) = −10</code></pre><p>Negative means the error drops if <code>w</code> <strong>increases</strong>. The descent rule subtracts the gradient multiplied by a small factor, the <strong>learning rate</strong>. With rate 0.1:</p><pre><code>new w = 0 − 0.1 · (−10) = 1</code></pre><h3 class="sub">Step 4. Repeat, and see the pattern</h3><div class="table-wrap"><table><thead><tr><th>Step</th><th><code>w</code></th><th>error</th><th>gradient</th><th>next <code>w</code></th></tr></thead><tbody><tr><td>1</td><td>0</td><td>10</td><td>−10</td><td>1</td></tr><tr><td>2</td><td>1</td><td>2.5</td><td>−5</td><td>1.5</td></tr><tr><td>3</td><td>1.5</td><td>0.625</td><td>−2.5</td><td>1.75</td></tr><tr><td>4</td><td>1.75</td><td>0.15625</td><td>−1.25</td><td>1.875</td></tr></tbody></table></div><p><strong>Every step cuts the remaining distance in half.</strong> The error is divided by four each time. It never reaches exactly 2, but it gets as close as needed.</p><h3 class="sub">Step 5. The learning rate decides whether it works</h3><p>With rate 0.2 the first step lands right at the bottom:</p><pre><code>new w = 0 − 0.2 · (−10) = 2      right first time</code></pre><p>With rate 0.4 it overshoots and comes back to the start:</p><pre><code>w = 0   -&gt; 0 − 0.4·(−10) = 4
+w = 4   -&gt; 4 − 0.4·(+10) = 0
+w = 0   -&gt; 4 again ...</code></pre><p><strong>It bounces forever between 0 and 4 without ever getting closer.</strong> That is the learning rate: the size of the step. Too short and it takes an eternity. Too long and it does not converge.</p></section>
+<section class="block is-terms"><span class="kicker">Terms</span><h2 class="block-title">Glossary</h2><details class="fold"><summary>12 terms, in plain words</summary><ul><li><strong>Linear regression.</strong> A model that adds up each variable multiplied by its own number. It predicts by drawing a line or a plane.</li><li><strong>Coefficient.</strong> The number that multiplies a variable. It says how much the prediction changes if that variable rises by one unit.</li><li><strong>Loss function.</strong> The formula that measures how wrong the model is. Here, the average of the squared misses.</li><li><strong>Gradient.</strong> The slope of the loss function. It points to where the error grows.</li><li><strong>Gradient descent.</strong> Repeating small steps in the direction opposite to the gradient, until the bottom is reached.</li><li><strong>Learning rate.</strong> The size of the step. In Spanish, <em>tasa de aprendizaje</em>.</li><li><strong>Convergence.</strong> The steps no longer changing the result appreciably.</li><li><strong>Scaling.</strong> Putting every variable on the same scale before training.</li><li><strong>Regularisation.</strong> A penalty added to the loss for having large coefficients. It forces the model to be simpler.</li><li><strong>Ridge.</strong> Regularisation that shrinks all coefficients towards zero without zeroing any.</li><li><strong>Lasso.</strong> Regularisation that does take coefficients to exactly zero, so it also selects variables.</li><li><strong>Alpha.</strong> The regularisation knob. The higher it is, the more the coefficients shrink.</li></ul></details></section>
+<section class="block is-method"><span class="kicker">Method</span><h2 class="block-title">Step by step</h2><h3 class="sub">Step 1. Scale before anything else</h3><p>Air flows hover around 300 Nm³/h and the pH around 9.5. Without scaling, the air dominates any comparison of coefficients just by being a bigger number.</p><p>Scaling subtracts the mean and divides by the standard deviation. Afterwards, a coefficient of 0.2 means the same thing wherever it comes from.</p><h3 class="sub">Step 2. Fit the line and read it</h3><p>A linear regression on the 21 columns gives 21 coefficients. Each has a sign, and the sign is the first thing to audit against the chemistry.</p><h3 class="sub">Step 3. Check that the line is capable of little</h3><p>A line only captures straight relationships. If the process has an intermediate optimum, the line misses it entirely.</p><h3 class="sub">Step 4. Penalise large coefficients</h3><p>Regularisation adds to the loss a penalty proportional to the size of the coefficients. The model then has two goals at once. Be right, and do not exaggerate.</p><p>With noisy data and little signal, exaggerating is exactly what does harm.</p><h3 class="sub">Step 5. Choose the knob by looking at the curve</h3><p>Alpha is not set by default. It is swept on a logarithmic scale and the result is drawn. The sweet spot is visible, and so is the collapse after it.</p></section>
+<section class="block is-code"><span class="kicker">Code</span><h2 class="block-title">The code, in parts</h2><h3 class="sub">Step 1. Scale and fit the line</h3><pre><code class="language-python">from sklearn.linear_model import LinearRegression
+from sklearn.preprocessing import StandardScaler
+
+scaler = StandardScaler().fit(X_train)
+model = LinearRegression().fit(scaler.transform(X_train), y_train)
+print(f&quot;R2 test: {r2_score(y_test, model.predict(scaler.transform(X_test))):.3f}&quot;)</code></pre><details class="fold"><summary>line by line, 4 entries</summary><dl class="annot"><dt><code>StandardScaler()</code></dt><dd>Puts every column at mean zero and deviation one.</dd><dt><code>.fit(X_train)</code></dt><dd>Learns the mean and the deviation from the training set ONLY. Using the test set too would be a leak.</dd><dt><code>.transform(...)</code></dt><dd>Applies that transformation. It is fitted once and applied to both sets.</dd><dt><code>LinearRegression()</code></dt><dd>The line, or the plane when there are many variables.</dd></dl></details><div class="output"><span class="output-tag">prints</span><pre><code>Regresion lineal (escalada): RMSE 1.130  MAE 0.873  R2 0.010</code></pre></div><p><strong>R² 0.010.</strong> Worse than the tree of depth 3, which gave 0.038.</p><figure class="fig"><img src="../figuras/fig_m3_linea_1var.044e35b6.png" alt="The line fitted against a single variable. You can see why a line captures so little of this cloud." loading="lazy"><figcaption>The line fitted against a single variable. You can see why a line captures so little of this cloud.</figcaption></figure><h3 class="sub">Step 2. Read the coefficients and audit the signs</h3><pre><code class="language-python">import pandas as pd
+
+coefs = pd.Series(model.coef_, index=feats).sort_values(key=abs, ascending=False)
+print(coefs.head(6).round(3).to_string())</code></pre><details class="fold"><summary>line by line, 3 entries</summary><dl class="annot"><dt><code>model.coef_</code></dt><dd>The list of learned coefficients, in the same order as the columns.</dd><dt><code>pd.Series(valores, index=nombres)</code></dt><dd>Pairs each number with the name of its variable.</dd><dt><code>.sort_values(key=abs)</code></dt><dd>Sorts by size without looking at the sign, to see the most influential ones.</dd></dl></details><div class="output"><span class="output-tag">prints</span><pre><code>Coeficientes mas fuertes (escalados; signo = sube/baja la silice):
+  -0.246  Flotation Column 01 Air Flow
+  +0.202  Flotation Column 04 Air Flow
+  +0.202  Amina Flow
+  -0.165  Flotation Column 03 Air Flow
+  -0.133  Flotation Column 06 Air Flow
+  -0.118  Flotation Column 05 Level</code></pre></div><figure class="fig"><img src="../figuras/fig_m3_coef.5e78c4e1.png" alt="The line&amp;#x27;s coefficients, sorted. In red the ones that raise the silica and in blue the ones that lower it." loading="lazy"><figcaption>The line&amp;#x27;s coefficients, sorted. In red the ones that raise the silica and in blue the ones that lower it.</figcaption></figure><p>Two things to audit. The first is good: the same variables as the tree and the correlation appear, air and amine. The second is odd: column 1 and column 4 come out with <strong>opposite signs</strong> although both are air.</p><p>That is not chemistry, it is the model sharing out as best it can a signal that barely exists. With small coefficients and variables correlated with each other, the individual signs stop being reliable.</p><h3 class="sub">Step 3. Gradient descent, in code</h3><pre><code class="language-python">w, tasa = 0.0, 0.1
+for paso in range(4):
+    gradiente = 5 * (w - 2)
+    print(f&quot;w={w:5.3f}  error={2.5*(w-2)**2:7.5f}  gradiente={gradiente:+6.2f}&quot;)
+    w = w - tasa * gradiente</code></pre><details class="fold"><summary>line by line, 4 entries</summary><dl class="annot"><dt><code>w, tasa = 0.0, 0.1</code></dt><dd>Assigns two values in one line. <code>w</code> starts badly on purpose.</dd><dt><code>range(4)</code></dt><dd>The numbers 0, 1, 2, 3. Four turns of the loop.</dd><dt><code>w = w - tasa * gradiente</code></dt><dd>The whole rule of gradient descent. Everything else in machine learning is this line with more dimensions.</dd><dt><code>f&quot;{w:5.3f}&quot;</code></dt><dd>Formats the number with 3 decimals and 5 characters of width, so the table lines up.</dd></dl></details><div class="output"><span class="output-tag">prints</span><pre><code>w final: 1.5 (verdadero = 1.5)
+error inicial: 8.0 -&gt; final: 0.0
+Figures: fig_m3_gradiente_valle.pdf, fig_m3_gradiente_curva.pdf</code></pre></div><figure class="fig"><img src="../figuras/fig_m3_gradiente_valle.35ed643a.png" alt="The error parabola and the descent steps going down it to the bottom." loading="lazy"><figcaption>The error parabola and the descent steps going down it to the bottom.</figcaption></figure><figure class="fig"><img src="../figuras/fig_m3_gradiente_curva.c2d5a6f5.png" alt="The error against the step number. It drops sharply at first and then flattens out." loading="lazy"><figcaption>The error against the step number. It drops sharply at first and then flattens out.</figcaption></figure><h3 class="sub">Step 4. Regularise, and sweep the knob</h3><pre><code class="language-python">from sklearn.linear_model import Ridge
+import numpy as np
+
+for alpha in [1e2, 1e4, 1e5, 2.15e5, 1e6, 1e8]:
+    ridge = Ridge(alpha=alpha).fit(scaler.transform(X_train), y_train)
+    r2 = r2_score(y_test, ridge.predict(scaler.transform(X_test)))
+    print(f&quot;alpha {alpha:&gt;12,.0f}   R2 {r2:+.4f}&quot;)</code></pre><details class="fold"><summary>line by line, 3 entries</summary><dl class="annot"><dt><code>Ridge(alpha=...)</code></dt><dd>Linear regression with a penalty for large coefficients.</dd><dt><code>1e2</code></dt><dd>Scientific notation: 1 times 10 to the power 2, that is, 100.</dd><dt><code>np.logspace</code></dt><dd>Generates values spread on a logarithmic scale. Alpha is swept this way because it spans many orders of magnitude.</dd></dl></details><div class="output"><span class="output-tag">prints</span><pre><code>sin regularizar (alpha=0):  R2 +0.0100
+mejor alpha: 215,443  -&gt;  R2 +0.0607
+  alpha        100   R2 +0.0102
+  alpha     10,000   R2 +0.0266
+  alpha    100,000   R2 +0.0562
+  alpha  1,000,000   R2 +0.0489
+  alpha 100,000,000   R2 +0.0012</code></pre></div></section>
+<section class="block is-result"><span class="kicker">Result</span><h2 class="block-title">The result, measured</h2><p><strong>What we expected.</strong> That the line would be worse than the tree, because the process is not linear. And that regularisation would change little, as usually happens with half a million rows.</p><p><strong>What came out.</strong> The first, yes. The second, no.</p><div class="table-wrap"><table><thead><tr><th>Model</th><th>Test R²</th></tr></thead><tbody><tr><td>Line without regularisation</td><td>0.010</td></tr><tr><td>Tree, depth 3 (module 2)</td><td>0.038</td></tr><tr><td><strong>Regularised line, alpha 215,443</strong></td><td><strong>0.061</strong></td></tr></tbody></table></div><p><strong>Regularisation multiplies the R² by six</strong>, from 0.010 to 0.061. With that, the best linear model beats the three tree models of module 2.</p><figure class="fig"><img src="../figuras/fig_m3_regularizacion.a788ba0f.png" alt="The test R² against alpha, on a logarithmic scale. It rises, peaks and collapses." loading="lazy"><figcaption>The test R² against alpha, on a logarithmic scale. It rises, peaks and collapses.</figcaption></figure><p><strong>What it means.</strong> That the signal is so weak that the unpenalised model spends itself fitting noise. By shrinking the coefficients almost to nothing, it generalises better.</p><p>The winning alpha is enormous, 215,443. In a problem with a clear signal, an alpha like that would crush the model. Here it is exactly what is needed, and that is the honest measurement of the project: there is very little to learn.</p><p>And the curve shows both drops. With alpha 100 it regularises nothing and stays at 0.0102. With alpha a hundred million it crushes everything and falls to 0.0012. <strong>The sweet spot has to be searched for, not assumed.</strong></p><h3 class="sub">What this module leaves open</h3><p>The alpha of 215,443 was chosen by looking at the result <strong>on the test set</strong>. That is cheating, even if it is a small and very common cheat.</p><p>The test set is touched once, at the end. If it is used to choose knobs, it stops being an honest measure. Module 4 fixes that with cross-validation, and along the way discovers that the result was more optimistic than it looked.</p></section>
+<section class="block is-warning"><span class="kicker">Traps</span><h2 class="block-title">Watch out</h2><ul><li><strong>The learning rate is not set by eye.</strong> With 0.2 the example lands in one step and with 0.4 it bounces forever. It is the most treacherous knob of gradient descent.</li><li><strong>Scaling is mandatory if you are going to compare coefficients.</strong> Without scaling, the largest coefficient is usually the one of the variable with the smallest units.</li><li><strong>The scaler is fitted with the training set only.</strong> Computing the mean with all the data lets information from the future in. It is leakage through preprocessing.</li><li><strong>The signs of small coefficients are not reliable.</strong> Here two air columns come out with opposite signs. That is not chemistry, it is arbitrary sharing between similar variables.</li><li><strong>An enormous alpha is not a mistake.</strong> It is the data saying there is little signal. It is reported, not hidden.</li><li><strong>Choosing the knob by looking at the test set is cheating.</strong> Module 4 corrects it, and the number goes down.</li></ul></section>
+<section class="block is-bridge"><span class="kicker">Analogy</span><h2 class="block-title">Metallurgical bridge</h2><p>Gradient descent is <strong>searching for the optimum of an operating variable without knowing the curve</strong>. An operator looking for the frother dose that maximises recovery does not have the curve drawn. He raises the dose a little, sees whether recovery improves, and decides the next move with that information.</p><p>The learning rate is <strong>the size of the adjustment</strong>. Moving the dose by 1 gram per tonne takes a whole shift to get there. Moving it by 200 overshoots, the froth runs out of control, and the operator over-corrects the other way. The process oscillates and never settles. It is exactly the bounce between 0 and 4 in the example.</p><p>Regularisation is <strong>not trusting a single test</strong>. If a laboratory test suggests a large change of reagents, the experienced metallurgist does not apply it whole. He applies part of it and waits for confirmation. Shrinking the coefficient is that same prudence, written as a formula.</p></section>
+<section class="block is-review"><span class="kicker">Review</span><h2 class="block-title">Review</h2><details><summary>What is gradient descent, in one sentence you could say in an interview?</summary><p>It is walking down a slope blindfolded, feeling the gradient under your feet and taking a step downhill, over and over.</p><p>The slope is the loss function, which measures how wrong the model is. The gradient is the slope at the point where you are. You subtract the gradient multiplied by the learning rate, and that gives the next point.</p><p>In this module&#x27;s example you start at zero with rate 0.1. Every step cuts the distance in half: 0, then 1, then 1.5, then 1.75. It is the same procedure that trains a neural network with billions of parameters.</p></details><details><summary>With rate 0.4 the example bounces between 0 and 4 forever. Why?</summary><p>Because the step is longer than the distance to the bottom, and it lands on the other side at the same height.</p><p>At <code>w = 0</code> the gradient is −10, so the step is 0.4 times 10, that is, 4. It jumps to <code>w = 4</code>. There the gradient is +10, the step is 4 again, and it goes back to 0. The error is identical at both points, so it never improves. It is the same as an operator who over-corrects every shift: the process oscillates and does not converge.</p></details><details><summary>Regularisation lifts the R² from 0.010 to 0.061. What does that say about the data?</summary><p>It says there is very little signal. Regularisation only helps when the unpenalised model is busy fitting noise.</p><p>The winning alpha is 215,443, an enormous value. An alpha like that shrinks the coefficients almost to zero. The model improves sixfold by going almost mute, so almost everything before was noise. The reading is not &quot;regularisation works very well&quot;. It is &quot;these data have very little to tell&quot;.</p></details><details><summary>Two air columns come out with opposite signs. Can chemistry explain it?</summary><p>No, and claiming so would be making things up. The two coefficients are −0.246 and +0.202, which are small values on scaled variables.</p><p>When several variables are correlated with each other and the signal is weak, the regression shares the weight among them almost arbitrarily. A small change in the data can flip the signs. The correct reading is that the block of air columns matters, without assigning a direction to each column separately. The forest&#x27;s importance confirms it, since it does point at air consistently.</p></details><details><summary>Alpha was chosen by looking at the test set. What is the problem with that?</summary><p>That the test set stops being an honest measure as soon as it is used to decide anything.</p><p>Trying 28 values of alpha and keeping the one that scores best on test turns the test into part of the training. The reported 0.061 is then optimistic, because it incorporates a decision taken with that same information. The right thing is to choose the knob with cross-validation inside the training set, and touch the test once at the end. Module 4 does that, and the resulting number is quite a bit worse.</p></details></section>
+</main>
+<nav class="pager"><a class="prev" href="m02_el_primer_modelo_y_el_techo.en.html"><span class="dir">Previous</span>2. The first model, and the ceiling that appeared at once</a><a class="next" href="m04_preprocesar_y_validar.en.html"><span class="dir">Next</span>4. Preprocessing and validating without cheating</a></nav>
+<footer class="footer">
+  <div class="footer-inner">
+    <span>Silica / Module 3</span>
+    <span>generated on 2026-08-22</span>
+    <span>source: the 31 original notes, their scripts and the plant CSV</span>
+  </div>
+</footer>
+</body>
+</html>

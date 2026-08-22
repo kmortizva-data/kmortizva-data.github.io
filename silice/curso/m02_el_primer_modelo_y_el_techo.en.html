@@ -1,0 +1,710 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The first model, and the ceiling that appeared at once · Silica, module 2</title>
+<link rel="alternate" hreflang="es" href="m02_el_primer_modelo_y_el_techo.html">
+<style>
+/* Sílice: la hoja de estilos del curso.
+ *
+ * Identidad de papel de informe de planta, no de pantalla. El proyecto termina
+ * recomendando no desplegar, y eso es un informe técnico: papel hueso, tinta grafito,
+ * y una retícula de milimetrado muy tenue en la cabecera.
+ *
+ * Dos familias tipográficas y ni una más, las dos del sistema porque el sitio se abre
+ * desde file:// y tiene que funcionar sin internet: serif para la prosa (se lee como
+ * informe) y monoespaciada para todo lo que es dato, código, cifra o etiqueta.
+ *
+ * El acento lo inyecta cada página con --accent: es el del módulo, y marca su posición
+ * en el arco del proyecto. Los diez pasan check_palette.py antes de entrar aquí.
+ */
+
+:root {
+  --paper: #f6f3ec;
+  --bench: #eeeade;
+  --ink: #2a2622;
+  --ink-soft: #57504a;
+  --ink-faint: #8a8177;
+  --rule: #ddd6c6;
+  --rule-soft: #e8e2d4;
+  --grid: rgba(84, 69, 73, .07);
+  --accent: #632727;
+
+  --prose: Georgia, "Iowan Old Style", "Palatino Linotype", Palatino, "Times New Roman", serif;
+  --data: "Cascadia Mono", Consolas, "DejaVu Sans Mono", "Liberation Mono", monospace;
+
+  --measure: 680px;   /* la medida de la prosa, en píxeles y nunca en ch */
+  --wide: 1180px;     /* el borde derecho de los bloques anchos */
+  --margin: 132px;    /* la columna del margen, donde cuelgan los kickers */
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--prose);
+  font-size: 17px;
+  line-height: 1.62;
+  -webkit-text-size-adjust: 100%;
+}
+
+::selection { background: var(--accent); color: var(--paper); }
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+/* --------------------------------------------------------------- cabecera */
+
+.masthead {
+  border-bottom: 1px solid var(--rule);
+  background-color: var(--bench);
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 26px 26px;
+  background-position: -1px -1px;
+}
+
+.masthead-inner {
+  max-width: var(--wide);
+  margin: 0 auto;
+  padding: 2.4rem 2rem 1.6rem;
+}
+
+.eyebrow {
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-bottom: 1rem;
+}
+
+.eyebrow a { color: inherit; text-decoration: none; border-bottom: 1px solid transparent; }
+.eyebrow a:hover { border-bottom-color: var(--accent); color: var(--accent); }
+.eyebrow b { color: var(--accent); font-weight: 400; }
+
+.masthead h1 {
+  margin: 0;
+  font-size: clamp(1.9rem, 4.4vw, 2.9rem);
+  line-height: 1.14;
+  font-weight: 400;
+  letter-spacing: -.012em;
+  max-width: 900px;
+}
+
+.standfirst {
+  margin: .9rem 0 0;
+  max-width: var(--measure);
+  color: var(--ink-soft);
+  font-size: 1.02rem;
+  line-height: 1.55;
+}
+
+/* La cifra del módulo: el número que dejó, en grande, junto al título. Es lo que
+   convierte la cabecera en parte del argumento y no en decoración. */
+.figure-mark {
+  margin-top: 1.6rem;
+  display: flex;
+  align-items: baseline;
+  gap: .8rem;
+  flex-wrap: wrap;
+  border-left: 3px solid var(--accent);
+  padding-left: .9rem;
+}
+
+.figure-value {
+  font-family: var(--data);
+  font-size: clamp(1.5rem, 3.4vw, 2.1rem);
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: -.02em;
+}
+
+.figure-label {
+  font-family: var(--data);
+  font-size: .78rem;
+  letter-spacing: .04em;
+  color: var(--ink-soft);
+}
+
+/* El hilo del proyecto: diez segmentos, uno por módulo, con su cifra debajo. Desde
+   cualquier página se ve el recorrido entero, que es justo lo que a los apuntes
+   sueltos les faltaba. */
+.thread {
+  margin-top: 1.8rem;
+  display: grid;
+  /* One equal column per segment, whatever the temario says. It was pinned to ten and
+     the course grew to fourteen. */
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: 4px;
+}
+
+/* Where part 2 starts: the four modules that were never in the original project. */
+.thread .starts-part { margin-left: 10px; position: relative; }
+.thread .starts-part::after {
+  content: '';
+  position: absolute;
+  left: -7px; top: -3px; bottom: 0;
+  border-left: 1px solid var(--rule);
+}
+
+.thread a, .thread span {
+  display: block;
+  text-decoration: none;
+  color: var(--ink-faint);
+  font-family: var(--data);
+  font-size: .62rem;
+  letter-spacing: .04em;
+  padding-top: .4rem;
+  border-top: 3px solid var(--rule);
+  transition: color .12s, border-color .12s;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.thread a:hover { color: var(--ink); border-top-color: var(--ink-soft); }
+.thread [aria-current="page"] { color: var(--accent); border-top-color: var(--accent); }
+.thread .n { font-weight: 700; }
+.thread .v { color: inherit; opacity: .75; }
+
+/* Las pastillas de composición: de qué está hecho el módulo. */
+.assay {
+  margin-top: 1.6rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.4rem;
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .05em;
+  color: var(--ink-faint);
+}
+
+.assay b { color: var(--ink); font-weight: 700; }
+
+/* ----------------------------------------------------------------- cuerpo */
+
+.container {
+  max-width: var(--wide);
+  margin: 0 auto;
+  padding: 2.6rem 2rem 4rem;
+}
+
+/* Cada sección es una anotación de cuaderno: el kicker cuelga en el margen
+   izquierdo y el contenido corre en la columna principal. En pantalla estrecha el
+   kicker se pone encima. */
+.block {
+  display: grid;
+  grid-template-columns: var(--margin) minmax(0, 1fr);
+  column-gap: 2rem;
+  padding: 2.2rem 0;
+  border-top: 1px solid var(--rule);
+}
+
+.block:first-child { border-top: 0; padding-top: .6rem; }
+
+.kicker {
+  grid-column: 1;
+  font-family: var(--data);
+  font-size: .68rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding-top: .45rem;
+}
+
+.block > :not(.kicker) { grid-column: 2; }
+
+.block-title {
+  margin: 0 0 1.1rem;
+  font-size: 1.42rem;
+  font-weight: 400;
+  line-height: 1.25;
+  letter-spacing: -.008em;
+}
+
+.is-warning .kicker, .is-result .kicker { color: var(--accent); }
+.is-warning .block-title { border-bottom: 2px solid var(--accent); padding-bottom: .4rem; display: inline-block; }
+.is-result { background: var(--bench); margin: 0 -1.2rem; padding: 2.2rem 1.2rem; }
+.is-result .block-title { color: var(--accent); }
+
+/* Prosa: justificada con partición, que sin partición el español justificado abre
+   ríos. Tablas, código y pies de figura se quedan sin justificar. */
+.block p, .block li, .block dd, details > *:not(summary) {
+  max-width: var(--measure);
+  text-align: justify;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+}
+
+.block p { margin: 0 0 1rem; }
+.block p:last-child { margin-bottom: 0; }
+.block ul, .block ol { margin: 0 0 1rem; padding-left: 1.3rem; max-width: var(--measure); }
+.block li { margin-bottom: .5rem; }
+.block li::marker { color: var(--accent); font-family: var(--data); font-size: .85em; }
+
+td, th, figcaption, .assay, .thread a, .res li { text-align: left; hyphens: manual; }
+
+a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+a:hover { text-decoration-thickness: 2px; }
+strong { font-weight: 700; }
+em { font-style: italic; color: var(--ink-soft); }
+
+h3.sub {
+  margin: 1.9rem 0 .7rem;
+  font-size: 1.07rem;
+  font-weight: 700;
+  letter-spacing: -.004em;
+}
+
+h3.sub:first-child { margin-top: 0; }
+
+h4.sub {
+  margin: 1.4rem 0 .5rem;
+  font-family: var(--data);
+  font-size: .82rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  color: var(--ink-soft);
+}
+
+/* ------------------------------------------------------------ código y datos */
+
+code {
+  font-family: var(--data);
+  font-size: .87em;
+  background: var(--bench);
+  padding: .1em .32em;
+  border-radius: 2px;
+}
+
+pre {
+  margin: 0 0 1rem;
+  padding: 1rem 1.1rem;
+  background: var(--bench);
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--accent);
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+pre code { background: none; padding: 0; font-size: .82rem; line-height: 1.62; }
+
+/* La salida es lo que imprime el código, no código para correr: se marca aparte
+   para que nadie confunda entrada con salida. */
+.output {
+  margin: 0 0 1rem;
+  border: 1px dashed var(--rule);
+  background: transparent;
+}
+
+.output-tag {
+  display: block;
+  font-family: var(--data);
+  font-size: .64rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding: .45rem 1.1rem 0;
+}
+
+.output pre {
+  margin: 0;
+  border: 0;
+  background: none;
+  padding: .3rem 1.1rem 1rem;
+}
+
+.output pre code { color: var(--ink-soft); }
+
+/* La anotación línea por línea, para quien no ha programado antes. */
+.annot {
+  margin: 0 0 1.2rem;
+  border: 1px solid var(--rule);
+  border-top: 0;
+  padding: 0 1.1rem .6rem;
+  background: transparent;
+}
+
+.annot-head {
+  font-family: var(--data);
+  font-size: .64rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding: .55rem 0 .5rem;
+  border-bottom: 1px solid var(--rule-soft);
+  margin-bottom: .4rem;
+}
+
+.annot dt { padding: .4rem 0 .1rem; }
+.annot dt code { background: none; padding: 0; color: var(--accent); font-weight: 700; }
+.annot dd {
+  margin: 0 0 .4rem;
+  color: var(--ink-soft);
+  font-size: .94rem;
+  border-bottom: 1px solid var(--rule-soft);
+  padding-bottom: .5rem;
+}
+.annot dd:last-of-type { border-bottom: 0; }
+
+pre:has(+ .annot) { margin-bottom: 0; }
+
+blockquote {
+  margin: 0 0 1rem;
+  padding: .2rem 0 .2rem 1.1rem;
+  border-left: 3px solid var(--rule);
+  color: var(--ink-soft);
+  font-style: italic;
+  max-width: var(--measure);
+}
+
+/* --------------------------------------------------------------- tablas */
+
+.table-wrap { overflow-x: auto; margin: 0 0 1.2rem; }
+
+table {
+  border-collapse: collapse;
+  width: auto;
+  max-width: 100%;
+  font-size: .92rem;
+}
+
+th, td {
+  padding: .5rem .9rem .5rem 0;
+  border-bottom: 1px solid var(--rule-soft);
+  vertical-align: top;
+}
+
+th {
+  font-family: var(--data);
+  font-size: .7rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--ink-faint);
+  border-bottom: 1px solid var(--rule);
+  white-space: nowrap;
+}
+
+/* -------------------------------------------------------------- repaso */
+
+details {
+  border-bottom: 1px solid var(--rule-soft);
+  padding: .2rem 0;
+  max-width: var(--measure);
+}
+
+summary {
+  cursor: pointer;
+  list-style: none;
+  padding: .7rem 0 .7rem 1.5rem;
+  position: relative;
+  font-weight: 700;
+}
+
+summary::-webkit-details-marker { display: none; }
+
+summary::before {
+  content: '+';
+  position: absolute;
+  left: 0;
+  font-family: var(--data);
+  color: var(--accent);
+  font-weight: 700;
+}
+
+details[open] summary::before { content: '\2212'; }
+details[open] summary { color: var(--accent); }
+details > *:not(summary) { color: var(--ink-soft); }
+details > *:last-child { padding-bottom: .8rem; }
+
+/* -------------------------------------------------------------- figuras */
+
+figure.fig {
+  margin: 0 0 1.4rem;
+  max-width: 100%;
+  border: 1px solid var(--rule);
+  background: #fff;
+  padding: .6rem;
+}
+
+figure.fig img { width: 100%; height: auto; display: block; }
+
+figure.fig figcaption {
+  margin-top: .6rem;
+  padding-top: .5rem;
+  border-top: 1px solid var(--rule-soft);
+  font-family: var(--data);
+  font-size: .7rem;
+  letter-spacing: .04em;
+  color: var(--ink-faint);
+}
+
+.gone {
+  font-family: var(--data);
+  font-size: .76rem;
+  color: var(--accent);
+  border: 1px dashed var(--accent);
+  padding: .5rem .8rem;
+}
+
+/* ------------------------------------------------------- pie y navegación */
+
+.pager {
+  max-width: var(--wide);
+  margin: 0 auto;
+  padding: 0 2rem 3rem;
+  display: flex;
+  gap: 1.4rem;
+  justify-content: space-between;
+  font-family: var(--data);
+  font-size: .78rem;
+}
+
+.pager a { max-width: 46%; text-decoration: none; border-bottom: 1px solid var(--rule); padding-bottom: .3rem; }
+.pager a:hover { border-bottom-color: var(--accent); }
+.pager .dir { display: block; font-size: .64rem; letter-spacing: .13em; text-transform: uppercase; color: var(--ink-faint); }
+.pager .next { text-align: right; margin-left: auto; }
+
+.footer {
+  border-top: 1px solid var(--rule);
+  padding: 1.4rem 2rem 2.4rem;
+  font-family: var(--data);
+  font-size: .72rem;
+  letter-spacing: .06em;
+  color: var(--ink-faint);
+}
+
+.footer-inner { max-width: var(--wide); margin: 0 auto; display: flex; gap: 1.4rem; flex-wrap: wrap; }
+
+/* ------------------------------------------------------------- índice */
+
+.toc { list-style: none; margin: 0; padding: 0; max-width: 100%; }
+
+.toc li {
+  border-top: 1px solid var(--rule-soft);
+  max-width: 100%;
+}
+
+.toc li:last-child { border-bottom: 1px solid var(--rule-soft); }
+
+.toc a, .toc .pending {
+  display: grid;
+  grid-template-columns: 3rem minmax(0, 1fr) auto;
+  gap: 1.2rem;
+  align-items: baseline;
+  padding: 1rem .4rem;
+  text-decoration: none;
+  color: inherit;
+}
+
+.toc a:hover { background: var(--bench); }
+.toc .pending { color: var(--ink-faint); }
+.toc .num { font-family: var(--data); font-size: .82rem; font-weight: 700; }
+.toc .name { font-size: 1.05rem; }
+.toc .name small { display: block; font-family: var(--prose); font-size: .86rem; color: var(--ink-soft); margin-top: .2rem; }
+.toc .mark { font-family: var(--data); font-size: .82rem; font-weight: 700; white-space: nowrap; }
+.toc .tag { font-family: var(--data); font-size: .66rem; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-faint); }
+
+/* ---------------------------------------------------------- responsive */
+
+@media (max-width: 900px) {
+  .block { grid-template-columns: minmax(0, 1fr); }
+  .block > :not(.kicker) { grid-column: 1; }
+  .kicker { grid-column: 1; padding-top: 0; margin-bottom: .7rem; }
+  .thread { grid-auto-flow: row; grid-template-columns: repeat(5, 1fr); gap: 6px 4px; }
+  .thread .starts-part { margin-left: 0; }
+  .thread .starts-part::after { display: none; }
+  .toc a, .toc .pending { grid-template-columns: 2.2rem minmax(0, 1fr); }
+  .toc .mark { grid-column: 2; }
+}
+
+@media (max-width: 620px) {
+  body { font-size: 16px; }
+  .masthead-inner, .container, .pager, .footer { padding-left: 1.2rem; padding-right: 1.2rem; }
+  .is-result { margin: 0; padding: 2rem 1rem; }
+  .block p, .block li { text-align: left; }
+}
+
+@media print {
+  .thread, .pager { display: none; }
+  body { font-size: 11pt; }
+  .masthead { background: none; }
+  .block { break-inside: avoid; }
+}
+
+/* -------------------------------------------------- resumen y plegables */
+
+/* El resumen de entrada: la cifra, la trampa y la decision, en cinco vinetas.
+   Se lee en 30 segundos o se sigue leyendo. */
+.is-brief {
+  border-top: 0;
+  padding-top: .4rem;
+}
+
+.is-brief .kicker { color: var(--accent); }
+
+.is-brief ul {
+  list-style: none;
+  padding-left: 0;
+  max-width: var(--measure);
+  border-left: 3px solid var(--accent);
+  padding: .2rem 0 .2rem 1.1rem;
+}
+
+.is-brief li { margin-bottom: .7rem; text-align: left; }
+.is-brief li:last-child { margin-bottom: 0; }
+
+/* Los plegables de contenido denso: el glosario y la anotacion del codigo.
+   Cerrados por defecto, para que la pagina no sea un muro. */
+details.fold {
+  border: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+  background: transparent;
+  margin: 0 0 1.2rem;
+  padding: 0;
+  max-width: 100%;
+}
+
+details.fold > summary {
+  font-family: var(--data);
+  font-size: .68rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  font-weight: 400;
+  color: var(--ink-faint);
+  padding: .55rem .9rem .55rem 2rem;
+}
+
+details.fold > summary::before { left: .9rem; }
+details.fold[open] > summary {
+  color: var(--accent);
+  border-bottom: 1px solid var(--rule-soft);
+  margin-bottom: 0;
+}
+
+details.fold > *:not(summary) { padding: .8rem .9rem; color: inherit; }
+details.fold ul { margin-bottom: 0; }
+details.fold .annot { border: 0; padding: 0; margin: 0; }
+details.fold .annot dd { max-width: var(--measure); }
+
+/* Un bloque de codigo seguido de su plegable van pegados. */
+pre:has(+ details.fold) { margin-bottom: 0; border-bottom: 0; }
+
+/* The course exists in Spanish only; an English reader gets an honest way out, to the
+   project's summary on the portfolio, instead of a language switch that does not exist. */
+.portfolio-link {
+  float: right;
+  margin: 0 0 .6rem 1.2rem;
+  font-family: var(--data);
+  font-size: .7rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: inherit;
+  opacity: .72;
+  text-decoration: none;
+  border-bottom: 1px solid currentColor;
+}
+.portfolio-link:hover { opacity: 1; }
+
+:root { --accent: #6e4410; }
+</style>
+</head>
+<body>
+<header class="masthead">
+  <div class="masthead-inner">
+    <a class="portfolio-link" href="m02_el_primer_modelo_y_el_techo.html" hreflang="es" rel="alternate">Español</a>
+    <div class="eyebrow"><a href="index.en.html">Silica</a> / Module <b>2</b> of 14</div>
+    <h1>The first model, and the ceiling that appeared at once</h1>
+    <p class="standfirst">A tree, a forest and a dumb baseline. All three land in the same place, and that place is the answer</p>
+    <div class="figure-mark">
+      <span class="figure-value">R² 0.04</span>
+      <span class="figure-label">the ceiling with a temporal split</span>
+    </div>
+    <nav class="thread" aria-label="The arc of the project"><a href="m01_radiografia_del_dataset.en.html" title="1. An X-ray of the dataset"><span class="n">1</span> <span class="v">737,453</span></a><span aria-current="page" title="2. The first model, and the ceiling that appeared at once"><span class="n">2</span> <span class="v">R² 0.04</span></span><a href="m03_como_aprende_un_modelo.en.html" title="3. How a model learns on the inside"><span class="n">3</span> <span class="v">R² 0.06</span></a><a href="m04_preprocesar_y_validar.en.html" title="4. Preprocessing and validating without cheating"><span class="n">4</span> <span class="v">R² −0.13</span></a><a href="m05_darle_memoria_al_modelo.en.html" title="5. Giving the model a memory"><span class="n">5</span> <span class="v">R² 0.64</span></a><a href="m06_clasificar_fuera_de_spec.en.html" title="6. Classifying: in or out of specification"><span class="n">6</span> <span class="v">0.62 vs 0.77</span></a><a href="m07_contra_que_se_compara.en.html" title="7. What a model is compared against"><span class="n">7</span> <span class="v">+0.009</span></a><a href="m08_donde_aporta_el_ml.en.html" title="8. Where does ML really add value?"><span class="n">8</span> <span class="v">0 of 4</span></a><a href="m09_los_tres_estados_de_la_planta.en.html" title="9. The three states of the plant"><span class="n">9</span> <span class="v">k = 3</span></a><a href="m10_redes_producto_y_cierre.en.html" title="10. Networks, product and closing"><span class="n">10</span> <span class="v">0.76</span></a><a class="starts-part" href="m11_modelos_de_secuencia.en.html" title="11. Sequence models: LSTM, GRU and causal convolution"><span class="n">11</span> <span class="v">+0.215</span></a><a href="m12_practica_de_pronostico.en.html" title="12. The forecasting practice that was missing"><span class="n">12</span> <span class="v">0.52 vs 0.63</span></a><a href="m13_incertidumbre.en.html" title="13. Uncertainty: from the point to the interval"><span class="n">13</span> <span class="v">92.0%</span></a><a href="m14_lectura_causal.en.html" title="14. A causal reading of the control loop"><span class="n">14</span> <span class="v">+0.16</span></a></nav>
+    <div class="assay"><span><b>6</b> source notes</span><span><b>7</b> figures</span><span><b>7</b> scripts</span></div>
+  </div>
+</header>
+<main class="container">
+<section class="block is-brief"><span class="kicker">Summary</span><h2 class="block-title">In 30 seconds</h2><ul><li><strong>R² 0.04 on test.</strong> A tree, a pruned tree and a forest of 100 trees all land in the same place.</li><li><strong>The ceiling is set by the problem, not by the algorithm.</strong> When three different models tie, it stops being the model&#x27;s fault.</li><li><strong>Overfitting, measured live.</strong> At depth 30 the training error drops to 0.061 and the test error rises to 1.543. The model memorises.</li><li><strong>The signal is where module 1 said it was</strong>: air in columns 3 and 4, plus the amine. The two feed columns have importance 0.000.</li><li><strong>Mind the baseline here.</strong> Always predicting the mean is the weakest possible rival. Module 7 brings in a real one.</li></ul></section>
+<section class="block "><span class="kicker">Context</span><h2 class="block-title">What this module solves</h2><p>Here the first model of the project is trained, and we learn how to grade it. A decision tree, which is the easiest model there is to read: a chain of yes-or-no questions.</p><p>The problem that haunts all of machine learning also shows up. If you let the tree grow, it memorises. It gets 100% of what it has already seen and is useless for anything new.</p><p>And out comes the result that marks the rest of the project. With honest temporal evaluation, the ceiling is at R² 0.04. It does not move by changing algorithm.</p></section>
+<section class="block is-toy"><span class="kicker">By hand</span><h2 class="block-title">Before the theory: a toy example</h2><p>Six batches processed. For each one we know the column&#x27;s air flow and the silica that came out.</p><div class="table-wrap"><table><thead><tr><th>Batch</th><th>Air (Nm³/h)</th><th>% SiO₂</th></tr></thead><tbody><tr><td>1</td><td>280</td><td>5</td></tr><tr><td>2</td><td>285</td><td>4</td></tr><tr><td>3</td><td>290</td><td>6</td></tr><tr><td>4</td><td>300</td><td>1</td></tr><tr><td>5</td><td>305</td><td>0</td></tr><tr><td>6</td><td>310</td><td>2</td></tr></tbody></table></div><h3 class="sub">Step 1. The error before asking anything</h3><p>Without a model, the best bet is the mean of them all.</p><pre><code>mean = (5 + 4 + 6 + 1 + 0 + 2) / 6 = 18 / 6 = 3</code></pre><p>The error is measured by adding up the square of each miss.</p><pre><code>error = (5-3)² + (4-3)² + (6-3)² + (1-3)² + (0-3)² + (2-3)²
+      =   4    +   1    +   9    +   4    +   9    +   1
+      = 28</code></pre><p><strong>28.</strong> That is the starting point.</p><h3 class="sub">Step 2. Try a split</h3><p>The tree tries splitting the batches into two groups. Split at air below 295.</p><pre><code>left  (280, 285, 290) -&gt; 5, 4, 6   mean 5   error = 0 + 1 + 1 = 2
+right (300, 305, 310) -&gt; 1, 0, 2   mean 1   error = 0 + 1 + 1 = 2
+error after = 2 + 2 = 4</code></pre><p>The gain is what has been cleaned up.</p><pre><code>gain = 28 - 4 = 24</code></pre><h3 class="sub">Step 3. Try another split, to compare</h3><p>Split at air below 305.</p><pre><code>left  (280, 285, 290, 300) -&gt; 5, 4, 6, 1   mean 4   error = 1 + 0 + 4 + 9 = 14
+right (305, 310)           -&gt; 0, 2         mean 1   error = 1 + 1 = 2
+error after = 14 + 2 = 16
+gain = 28 - 16 = 12</code></pre><p><strong>24 against 12.</strong> The first split cleans up twice as much, so the tree keeps that one. That is all a tree does as it grows: it tries every possible split, computes the gain of each one and picks the largest. Then it repeats inside each piece.</p><h3 class="sub">Step 4. How a prediction is graded</h3><p>Another example, smaller. Five batches that all came out at 2% SiO₂, and a model that predicted this:</p><div class="table-wrap"><table><thead><tr><th>Actual</th><th>2</th><th>2</th><th>2</th><th>2</th><th>2</th></tr></thead><tbody><tr><td><strong>Predicted</strong></td><td>1</td><td>2</td><td>2</td><td>2</td><td>4</td></tr><tr><td><strong>Miss</strong></td><td>−1</td><td>0</td><td>0</td><td>0</td><td>+2</td></tr></tbody></table></div><p>Two ways of summing up those five misses:</p><pre><code>MAE  = (1 + 0 + 0 + 0 + 2) / 5 = 3 / 5 = 0.6
+MSE  = (1 + 0 + 0 + 0 + 4) / 5 = 5 / 5 = 1.0
+RMSE = root of 1.0 = 1.0</code></pre><p><strong>MAE 0.6 and RMSE 1.0 on the same misses.</strong> The difference is the batch that missed by 2. The MAE counts it once. The RMSE squares it and gives it far more weight.</p><h3 class="sub">Step 5. What just happened</h3><p>Both pieces of the module are in place. The tree picks its splits by lowering the squared error. And the RMSE punishes large misses more than small ones.</p><p>A practical rule follows. <strong>If the RMSE is much larger than the MAE, there are large misses hiding.</strong> In the real file the difference will be 1.114 against 0.845.</p></section>
+<section class="block is-terms"><span class="kicker">Terms</span><h2 class="block-title">Glossary</h2><details class="fold"><summary>13 terms, in plain words</summary><ul><li><strong>Decision tree.</strong> A model made of chained yes-or-no questions. Each answer leads to another question, until a number comes out.</li><li><strong>Root node.</strong> The first question, at the very top.</li><li><strong>Leaf.</strong> An end of the tree. No more questions are asked there and the answer is given.</li><li><strong>Depth.</strong> How many chained questions there are at most from the root to a leaf.</li><li><strong>Hyperparameter.</strong> A knob you set before training and the model does not learn. The maximum depth is one.</li><li><strong>MAE.</strong> Mean absolute error. The typical miss, in the units of the data.</li><li><strong>RMSE.</strong> Root mean squared error. Like the MAE, but punishing large misses more.</li><li><strong>R².</strong> What fraction of the target&#x27;s variation the model explains. Zero means it adds nothing over predicting the mean. It can come out negative.</li><li><strong>Baseline.</strong> The minimum rival that has to be beaten. Here, always predicting the mean.</li><li><strong>Overfitting.</strong> The model learning the particulars of your specific data instead of the general rule. You recognise it because it scores far better on training than on test.</li><li><strong>Validation curve.</strong> The training and test errors drawn against a knob. It shows where the sweet spot is.</li><li><strong>Random forest.</strong> Many trees trained on different resamples. The result is averaged across all of them.</li><li><strong>Feature importance.</strong> How much each column contributed to the model&#x27;s splits. It is not a proof of cause.</li></ul></details></section>
+<section class="block is-method"><span class="kicker">Method</span><h2 class="block-title">Step by step</h2><h3 class="sub">Step 1. Apply the decisions of module 1</h3><p>Before training, the data have to be left as module 1 said. The 1,171 duplicate rows are removed. The gap and the frozen stretch are kept. The two feed columns are kept. And <code>% Iron Concentrate</code>, which was a leak, is excluded.</p><p>That leaves 21 input columns.</p><h3 class="sub">Step 2. Split by time, not at random</h3><p>The cut goes on 1 August. Training from March to July, test in August and September.</p><p>This is not a detail. A random partition puts adjacent hours on both sides, and adjacent hours resemble each other. The model would pass by copying from its neighbour.</p><h3 class="sub">Step 3. Train a short tree and read it</h3><p>Depth 3 on purpose. A tree of depth 3 has eight leaves at most, so it can be drawn and read aloud.</p><p>Reading it matters as much as training it. If the tree&#x27;s first question makes no metallurgical sense, something is wrong with the data.</p><h3 class="sub">Step 4. Grade it against a baseline</h3><p>A lone R² says nothing. It has to be compared with the minimum rival, which is always predicting the training mean.</p><h3 class="sub">Step 5. Look for the sweet spot of the depth</h3><p>The same tree is trained with increasing depths. The training error and the test error are drawn on the same chart. There the overfitting is seen, instead of assumed.</p><h3 class="sub">Step 6. Test whether many trees fix what one could not</h3><p>A random forest trains a hundred trees on different resamples and averages. If the problem were the variance of a single tree, the forest would notice.</p></section>
+<section class="block is-code"><span class="kicker">Code</span><h2 class="block-title">The code, in parts</h2><h3 class="sub">Step 1. Prepare the data and split them by time</h3><pre><code class="language-python">from prepare_data import get_train_test
+
+X_train, X_test, y_train, y_test, feats = get_train_test()
+print(f&quot;Features: {len(feats)} (excluye objetivo y % Iron Concentrate por fuga)&quot;)
+print(f&quot;Train: {len(X_train):,} filas -&gt; mar a jul&quot;)
+print(f&quot;Test:  {len(X_test):,} filas -&gt; ago a sep&quot;)</code></pre><details class="fold"><summary>line by line, 3 entries</summary><dl class="annot"><dt><code>from prepare_data import get_train_test</code></dt><dd>Brings in a function written earlier in the project, instead of repeating the cleaning code in every script.</dd><dt><code>X_train, X_test, y_train, y_test, feats =</code></dt><dd>Hands the function&#x27;s five results to five names at once.</dd><dt><code>X</code></dt><dd>By convention, the table of inputs. The <code>y</code> is what we want to predict.</dd></dl></details><div class="output"><span class="output-tag">prints</span><pre><code>Features usadas: 21 (excluye objetivo y % Iron Concentrate por fuga)
+Train: 563,482 filas (77%)  -&gt; mar a jul
+Test:  172,800 filas (23%)  -&gt; ago a sep</code></pre></div><h3 class="sub">Step 2. Train the tree and grade it</h3><pre><code class="language-python">from sklearn.tree import DecisionTreeRegressor
+from sklearn.metrics import r2_score, root_mean_squared_error
+
+tree = DecisionTreeRegressor(max_depth=3, random_state=0)
+tree.fit(X_train, y_train)
+print(f&quot;RMSE test: {root_mean_squared_error(y_test, tree.predict(X_test)):.3f}&quot;)
+print(f&quot;R2   test: {r2_score(y_test, tree.predict(X_test)):.3f}&quot;)</code></pre><details class="fold"><summary>line by line, 5 entries</summary><dl class="annot"><dt><code>DecisionTreeRegressor</code></dt><dd>The version of the tree that predicts a number. There is another that predicts categories.</dd><dt><code>max_depth=3</code></dt><dd>The knob: at most three chained questions.</dd><dt><code>random_state=0</code></dt><dd>Pins the internal randomness, so the same code always gives the same result.</dd><dt><code>.fit(X_train, y_train)</code></dt><dd>Train. This is where the tree tries splits and keeps the best ones.</dd><dt><code>.predict(X_test)</code></dt><dd>Pass rows it has never seen through the tree, and keep what each leaf says.</dd></dl></details><div class="output"><span class="output-tag">prints</span><pre><code>Arbol de decision (max_depth=3), objetivo = % SiO2 concentrado
+  RMSE train: 1.029  |  RMSE test: 1.114
+  R2   train: 0.160  |  R2   test: 0.038</code></pre></div><p><strong>R² 0.160 on training and 0.038 on test.</strong> The first sign of overfitting already shows, still mild.</p><figure class="fig"><img src="../figuras/fig_m2_arbol.255bb354.png" alt="The trained tree, of depth 3. The first question is about the air in column 3, just as the correlation in module 1 said." loading="lazy"><figcaption>The trained tree, of depth 3. The first question is about the air in column 3, just as the correlation in module 1 said.</figcaption></figure><p>The root asks whether the air in column 3 drops below 295.85 Nm³/h. It agrees with module 1, which had put that column among the strongest correlations. The model and the exploration say the same thing, which is what we wanted to check.</p><h3 class="sub">Step 3. See what it can and cannot predict</h3><pre><code class="language-python">import matplotlib.pyplot as plt
+
+sample = X_test.sample(4000, random_state=0)
+plt.scatter(y_test.loc[sample.index], tree.predict(sample), s=4, alpha=.3)</code></pre><details class="fold"><summary>line by line, 3 entries</summary><dl class="annot"><dt><code>.sample(4000, random_state=0)</code></dt><dd>Takes 4,000 rows at random. Drawing 172,800 points hides the pattern and takes a long time.</dd><dt><code>plt.scatter(x, y)</code></dt><dd>A point cloud. Actual on the horizontal axis, predicted on the vertical.</dd><dt><code>s=4, alpha=.3</code></dt><dd>Small, semi-transparent points, so you can see where they pile up.</dd></dl></details><div class="output"><span class="output-tag">prints</span><pre><code>Figures written:
+  RMSE test: 1.114 | R2 test: 0.038
+ - fig_m2_arbol.pdf
+ - fig_m2_arbol_pred_vs_real.pdf</code></pre></div><figure class="fig"><img src="../figuras/fig_m2_arbol_pred_vs_real.b2a54b93.png" alt="Predicted against actual. The horizontal bands are the eight leaves: a tree of depth 3 can only give eight different answers." loading="lazy"><figcaption>Predicted against actual. The horizontal bands are the eight leaves: a tree of depth 3 can only give eight different answers.</figcaption></figure><p>That figure shows a limitation the metrics do not. The tree has eight leaves, so it can only give <strong>eight different values</strong>. The real target runs from 0.60 to 5.53 continuously.</p><h3 class="sub">Step 4. Compare it with the minimum rival</h3><pre><code class="language-python">baseline = [y_train.mean()] * len(y_test)
+print(f&quot;Modelo   RMSE {root_mean_squared_error(y_test, tree.predict(X_test)):.3f}&quot;)
+print(f&quot;Baseline RMSE {root_mean_squared_error(y_test, baseline):.3f}&quot;)</code></pre><details class="fold"><summary>line by line, 1 entry</summary><dl class="annot"><dt><code>[y_train.mean()] * len(y_test)</code></dt><dd>A list with the mean repeated as many times as there are test rows. It is the dumbest possible model.</dd></dl></details><div class="output"><span class="output-tag">prints</span><pre><code>RMSE=1.114  MAE=0.845  R2=0.038
+Baseline RMSE=1.136  MAE=0.908</code></pre></div><figure class="fig"><img src="../figuras/fig_m2_errores.18678746.png" alt="The spread of the tree&amp;#x27;s misses on test. The MAE sums that width up in one number." loading="lazy"><figcaption>The spread of the tree&amp;#x27;s misses on test. The MAE sums that width up in one number.</figcaption></figure><figure class="fig"><img src="../figuras/fig_m2_baseline.79c5abf7.png" alt="The tree against always predicting the mean. The difference is 0.022 in RMSE." loading="lazy"><figcaption>The tree against always predicting the mean. The difference is 0.022 in RMSE.</figcaption></figure><p>From 1.136 to 1.114. <strong>The model improves on the baseline by 0.022</strong>, which is 2%. And there is the comparison of the two metrics from the toy example: RMSE 1.114 against MAE 0.845. There are large misses hiding.</p><h3 class="sub">Step 5. Watch the overfitting live</h3><pre><code class="language-python">for depth in [1, 2, 3, 4, 6, 8, 10, 14, 18, 24, 30]:
+    m = DecisionTreeRegressor(max_depth=depth, random_state=0).fit(X_train, y_train)
+    print(f&quot;{depth:5} | {root_mean_squared_error(y_train, m.predict(X_train)):.3f}&quot;
+          f&quot;      | {root_mean_squared_error(y_test, m.predict(X_test)):.3f}&quot;)</code></pre><details class="fold"><summary>line by line, 2 entries</summary><dl class="annot"><dt><code>for depth in [...]:</code></dt><dd>Repeats the block once for each depth in the list.</dd><dt><code>.fit(...) chained</code></dt><dd><code>DecisionTreeRegressor(...).fit(...)</code> creates and trains in a single line, because <code>fit</code> returns the model already trained.</dd></dl></details><div class="output"><span class="output-tag">prints</span><pre><code>depth | rmse_train | rmse_test
+    1 | 1.085      | 1.158
+    2 | 1.050      | 1.111
+    3 | 1.029      | 1.114
+    4 | 1.007      | 1.141
+    6 | 0.950      | 1.174
+    8 | 0.869      | 1.212
+   10 | 0.786      | 1.272
+   14 | 0.591      | 1.447
+   18 | 0.393      | 1.531
+   24 | 0.171      | 1.579
+   30 | 0.061      | 1.543
+Mejor profundidad en test: 2 -&gt; RMSE 1.111</code></pre></div><figure class="fig"><img src="../figuras/fig_m2_sobreajuste.fff6c9d8.png" alt="The two curves. The training one keeps dropping. The test one bottoms out at depth 2 and rises from there." loading="lazy"><figcaption>The two curves. The training one keeps dropping. The test one bottoms out at depth 2 and rises from there.</figcaption></figure><p>This table is the whole of overfitting in eleven lines. The training error falls from 1.085 to 0.061, almost zero. The test error bottoms out at 1.111 and then worsens to 1.579.</p><p><strong>At depth 30 the tree knows the data by heart and predicts worse than one with two questions.</strong></p><h3 class="sub">Step 6. A hundred trees instead of one</h3><pre><code class="language-python">from sklearn.ensemble import RandomForestRegressor
+
+forest = RandomForestRegressor(n_estimators=100, max_depth=3,
+                               n_jobs=-1, random_state=0).fit(X_train, y_train)
+print(f&quot;Random forest: R2 {r2_score(y_test, forest.predict(X_test)):.3f}&quot;)</code></pre><details class="fold"><summary>line by line, 2 entries</summary><dl class="annot"><dt><code>n_estimators=100</code></dt><dd>How many trees it trains. Each one sees a different resample of the rows.</dd><dt><code>n_jobs=-1</code></dt><dd>Uses every core of the processor. With a hundred trees it shows.</dd></dl></details><div class="output"><span class="output-tag">prints</span><pre><code>Arbol (prof. 2): RMSE 1.111  R2 0.043
+Random forest  : RMSE 1.112  R2 0.041</code></pre></div><figure class="fig"><img src="../figuras/fig_m2_forest_compare.4a97136d.png" alt="The forest against the pruned tree and against the baseline. The three almost touch." loading="lazy"><figcaption>The forest against the pruned tree and against the baseline. The three almost touch.</figcaption></figure></section>
+<section class="block is-result"><span class="kicker">Result</span><h2 class="block-title">The result, measured</h2><p><strong>What we expected.</strong> That the short tree would be weak and that the forest of a hundred trees would clearly improve on it. That is what happens in almost every tutorial.</p><p><strong>What came out.</strong> The three models tie.</p><div class="table-wrap"><table><thead><tr><th>Model</th><th>Test RMSE</th><th>Test R²</th></tr></thead><tbody><tr><td>Predicting the mean</td><td>1.136</td><td>0.000</td></tr><tr><td>Tree, depth 3</td><td>1.114</td><td>0.038</td></tr><tr><td>Pruned tree, depth 2</td><td>1.111</td><td>0.043</td></tr><tr><td>Forest of 100 trees</td><td>1.112</td><td>0.041</td></tr></tbody></table></div><p><strong>What it means.</strong> When three models of very different complexity land in the same place, the limit is not in the model. It is in the problem. <strong>The ceiling of this project is R² 0.04</strong>, and it does not rise by changing algorithm.</p><p>The R² of 0.9 seen in tutorials with this same dataset come from splitting at random. That is leakage by temporal neighbourhood, and module 1 already explained why.</p><h3 class="sub">Where the little signal there is lives</h3><figure class="fig"><img src="../figuras/fig_m2_importance.6f12aaa9.png" alt="Importance of the 21 variables in the pruned forest. Three take 80%." loading="lazy"><figcaption>Importance of the 21 variables in the pruned forest. Three take 80%.</figcaption></figure><div class="table-wrap"><table><thead><tr><th>Variable</th><th>Importance</th></tr></thead><tbody><tr><td>Column 3 air</td><td>0.406</td></tr><tr><td>Column 4 air</td><td>0.219</td></tr><tr><td>Amine</td><td>0.175</td></tr><tr><td>Column 4 level</td><td>0.048</td></tr><tr><td>Column 5 level</td><td>0.047</td></tr><tr><td>Column 2 level</td><td>0.047</td></tr></tbody></table></div><p>Three variables take 80%, and they are the same ones the correlation in module 1 pointed at. Exploration and model agree, which is the sign that neither of them is making things up.</p><p>The two feed columns end up in place 15 of 21, with importance <strong>0.000</strong>. Keeping them did no harm and added nothing either. The decision of module 1 stands confirmed.</p><h3 class="sub">What this module leaves open</h3><p>The baseline here is always predicting the mean. It is the weakest rival there is, because it ignores that the laboratory already measured the previous hour.</p><p>Beating that baseline by 2% does not say much. <strong>The question of what it should really be compared against stays open.</strong> Module 7 answers it with a number. And that number changes the reading of everything in between.</p></section>
+<section class="block is-warning"><span class="kicker">Traps</span><h2 class="block-title">Watch out</h2><ul><li><strong>Three models that tie are not three failures.</strong> They are a measurement of the problem. Changing algorithm when this happens is a waste of time.</li><li><strong>The training R² is no use for deciding anything.</strong> At depth 30 it is almost 1 and the model is useless. Only the test one counts.</li><li><strong>The depth is chosen by looking at data, not by default.</strong> Here the sweet spot is 2, which is far less than anyone would have set by eye.</li><li><strong>Feature importance depends on the model.</strong> A deep forest shares out the importance differently. Here the pruned one was used, which is the one that generalises.</li><li><strong>Importance is not cause.</strong> It says what the model held on to, not what drives the process.</li><li><strong>A tree only gives as many distinct values as it has leaves.</strong> With depth 3 that is eight, for a target that is continuous.</li><li><strong>Beware the weak baseline.</strong> Predicting the mean is easy to beat and proves almost nothing.</li></ul></section>
+<section class="block is-bridge"><span class="kicker">Analogy</span><h2 class="block-title">Metallurgical bridge</h2><p>A decision tree is a <strong>plant decision tree</strong>, of the kind already hanging in the control room. If the pH drops below 9.5, raise the lime. If the feed grade falls, adjust the dosing. Chained questions that end in an action.</p><p>Overfitting has its exact equivalent in <strong>calibration</strong>. A calibration curve fitted with a high-degree polynomial passes through every standard. And then it gets a new sample wildly wrong. It fitted the noise of the standards, not the relationship.</p><p>And the module&#x27;s result reads like a <strong>laboratory flotation test</strong>. If three different reagent schemes give the same recovery, the limit is not in the scheme. It is in the liberation of the mineral. Changing reagent does not fix an insufficient grind.</p></section>
+<section class="block is-review"><span class="kicker">Review</span><h2 class="block-title">Review</h2><details><summary>Three different models give R² around 0.04. What do you conclude?</summary><p>That the limit is set by the problem, not by the model. A tree of three questions, a tree pruned to two and a forest of a hundred trees have very different capacities. If all three land at 1.11 of RMSE, the difference between them is not what is holding the result back.</p><p>The practical conclusion is to stop trying algorithms. What has to be attacked is the information available: new variables, another prediction horizon, or another way of posing the question. That is what the following modules do.</p></details><details><summary>The training error at depth 30 is 0.061 and the test error 1.543. Explain what happened.</summary><p>The tree memorised. At depth 30 it can ask so many chained questions that it ends up isolating tiny groups of rows, almost one leaf per case.</p><p>On the data it has already seen it is almost perfect, which is why the training error drops to 0.061. But what it learned are the particulars of those specific rows, not the general rule. With new hours it fails more than a tree of two questions. That is why the only curve that matters is the test one.</p></details><details><summary>Why is the partition by date and not at random?</summary><p>Because adjacent hours resemble each other closely. With a random partition, the 14:00 hour can fall in training and the 15:00 hour in test.</p><p>The model then does not predict: it recognises an almost identical situation it has already seen. The R² rises to values of 0.9 and means nothing, because in the plant the future is never in the training set. The temporal partition reproduces the real situation, where the model has to speak about months that did not exist when it was trained.</p></details><details><summary>The two feed columns come out with importance 0.000. Was keeping them a mistake?</summary><p>No, it was the right way to decide it. In module 1 the correlation of those columns with the target was 0.08 and 0.07 in absolute value, so they were suspected of contributing little.</p><p>Suspecting is not measuring. Keeping them cost two columns out of 21 and let the model itself judge them. The forest left them in place 15 of 21 with zero importance, which confirms the suspicion with a second, independent method. Throwing them away in advance would have been an unverified decision.</p></details><details><summary>The model improves on the baseline by 2%. Is that a good result?</summary><p>It cannot be known yet, because that baseline is too weak. Always predicting the mean ignores information the plant already has: the laboratory measured the previous hour.</p><p>An honest rival would have to use that information. The right question is not whether the model beats the mean, but whether it beats repeating the last assay. This module leaves it open on purpose and module 7 answers it. The answer changes how the whole project is read.</p></details></section>
+</main>
+<nav class="pager"><a class="prev" href="m01_radiografia_del_dataset.en.html"><span class="dir">Previous</span>1. An X-ray of the dataset</a><a class="next" href="m03_como_aprende_un_modelo.en.html"><span class="dir">Next</span>3. How a model learns on the inside</a></nav>
+<footer class="footer">
+  <div class="footer-inner">
+    <span>Silica / Module 2</span>
+    <span>generated on 2026-08-22</span>
+    <span>source: the 31 original notes, their scripts and the plant CSV</span>
+  </div>
+</footer>
+</body>
+</html>
