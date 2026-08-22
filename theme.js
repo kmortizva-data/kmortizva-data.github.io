@@ -82,6 +82,47 @@
     });
   }
 
+  /* ----------------------------------------------------------------- contact */
+
+  /* Copy the address with a visible confirmation. The button only exists with this file
+     running (CSS hides it otherwise), and the mailto link next to it stays for everyone.
+     The clipboard API needs a secure context: GitHub Pages is https, localhost counts. */
+  var copy = document.querySelector(".copy-email");
+  if (copy && navigator.clipboard) {
+    var copyLabel = copy.textContent;
+    copy.addEventListener("click", function () {
+      navigator.clipboard.writeText(copy.getAttribute("data-email")).then(function () {
+        copy.textContent = copy.getAttribute("data-copied");
+        copy.classList.add("done");
+        window.setTimeout(function () {
+          copy.textContent = copyLabel;
+          copy.classList.remove("done");
+        }, 2000);
+      });
+    });
+  }
+
+  /* The form posts on its own without this; with it, the reply lands on the page
+     instead of on the form service's thank-you screen. */
+  var form = document.querySelector(".contact-form");
+  if (form && window.fetch && window.FormData) {
+    form.addEventListener("submit", function (event) {
+      event.preventDefault();
+      var status = form.querySelector(".form-status");
+      var button = form.querySelector("button[type=submit]");
+      button.disabled = true;
+      fetch(form.action, { method: "POST", body: new FormData(form),
+                           headers: { "Accept": "application/json" } })
+        .then(function (response) {
+          if (!response.ok) throw new Error(String(response.status));
+          form.reset();
+          status.textContent = status.getAttribute("data-sent");
+        })
+        .catch(function () { status.textContent = status.getAttribute("data-error"); })
+        .then(function () { button.disabled = false; });
+    });
+  }
+
   var reveals = document.querySelectorAll(".reveal");
 
   if (reduced || !("IntersectionObserver" in window)) {

@@ -109,7 +109,7 @@ def shell(*, title: str, desc: str, lang: str, depth: int, switch_href: str,
     <a href="{home}#about">{esc(ui["nav_about"])}</a>
     <a href="{home}#work">{esc(ui["nav_work"])}</a>
     <a href="{switch}" rel="alternate" hreflang="{other_lang}">{esc(ui["switch_to"])}</a>
-    <a class="cta" href="mailto:{esc(site["email"])}">{esc(ui["cta"])}</a>
+    <a class="cta" href="{home}#contact">{esc(ui["cta"])}</a>
   </nav>
 </header>
 <main id="main">
@@ -359,6 +359,46 @@ def credentials_section(data: dict, lang: str) -> str:
 </section>'''
 
 
+def contact_ways(data: dict, ui: dict) -> str:
+    """Every way in that does not assume a mail client is installed.
+
+    A mailto: link is all the page had, and on a machine where the only mail is Gmail in
+    a browser tab it opens nothing. So: the address in plain sight, a button that copies
+    it (JavaScript only, so it is hidden without it and the mailto link stands in),
+    LinkedIn once the URL is set, GitHub, and a Formspree form once its endpoint is set.
+    Both slots are empty until Kevin fills them; nothing half-built is printed.
+    """
+    email = esc(data["email"])
+    links = ""
+    if data.get("linkedin"):
+        links += (f'<li><a href="{esc(data["linkedin"])}" target="_blank" rel="noopener">'
+                  f'{esc(ui["linkedin_label"])}</a></li>')
+    links += (f'<li><a href="https://github.com/{esc(data["github_user"])}" target="_blank" '
+              f'rel="noopener">github.com/{esc(data["github_user"])}</a></li>')
+    form = ""
+    if data.get("form_endpoint"):
+        form = f"""
+  <form class="contact-form reveal" action="{esc(data["form_endpoint"])}" method="POST">
+    <p class="eyebrow">{esc(ui["form_title"])}</p>
+    <label><span>{esc(ui["form_name"])}</span><input type="text" name="name" autocomplete="name" required></label>
+    <label><span>{esc(ui["form_email"])}</span><input type="email" name="email" autocomplete="email" required></label>
+    <label><span>{esc(ui["form_message"])}</span><textarea name="message" rows="5" required></textarea></label>
+    <input class="gotcha" type="text" name="_gotcha" tabindex="-1" autocomplete="off" aria-hidden="true">
+    <input type="hidden" name="_subject" value="Portfolio message">
+    <p class="form-actions">
+      <button class="cta" type="submit">{esc(ui["form_send"])}</button>
+      <span class="form-status" role="status" aria-live="polite" data-sent="{esc(ui["form_sent"])}" data-error="{esc(ui["form_error"])}"></span>
+    </p>
+  </form>"""
+    return f"""<div class="contact-ways reveal">
+    <p class="contact-email">
+      <a class="contact-address" href="mailto:{email}">{email}</a>
+      <button class="copy-email" type="button" data-email="{email}" data-copied="{esc(ui["copied"])}">{esc(ui["copy_email"])}</button>
+    </p>
+    <ul class="contact-links">{links}</ul>
+  </div>{form}"""
+
+
 def home_page(data: dict, lang: str) -> str:
     ui = data["ui"][lang]
     hero = data["hero"][lang]
@@ -377,7 +417,7 @@ def home_page(data: dict, lang: str) -> str:
   </div>
   <p class="hero-actions">
     <a class="cta" href="#work">{esc(ui["see_work"])}</a>
-    <a class="cta cta-quiet" href="mailto:{esc(data["email"])}">{esc(ui["cta"])}</a>
+    <a class="cta cta-quiet" href="#contact">{esc(ui["cta"])}</a>
   </p>
 </section>
 
@@ -402,10 +442,7 @@ def home_page(data: dict, lang: str) -> str:
     <h2>{esc(contact["title"])}</h2>
     <p>{esc(contact["text"])}</p>
   </div>
-  <ul class="contact-links reveal">
-    <li><a href="mailto:{esc(data["email"])}">{esc(data["email"])}</a></li>
-    <li><a href="https://github.com/{esc(data["github_user"])}">github.com/{esc(data["github_user"])}</a></li>
-  </ul>
+  {contact_ways(data, ui)}
 </section>"""
 
     return shell(title=str(data["author"]), desc=hero["lede"], lang=lang, depth=depth,
