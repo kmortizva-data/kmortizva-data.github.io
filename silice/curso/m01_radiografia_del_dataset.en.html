@@ -1,0 +1,700 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>An X-ray of the dataset · Silica, module 1</title>
+<link rel="alternate" hreflang="es" href="m01_radiografia_del_dataset.html">
+<style>
+/* Sílice: la hoja de estilos del curso.
+ *
+ * Identidad de papel de informe de planta, no de pantalla. El proyecto termina
+ * recomendando no desplegar, y eso es un informe técnico: papel hueso, tinta grafito,
+ * y una retícula de milimetrado muy tenue en la cabecera.
+ *
+ * Dos familias tipográficas y ni una más, las dos del sistema porque el sitio se abre
+ * desde file:// y tiene que funcionar sin internet: serif para la prosa (se lee como
+ * informe) y monoespaciada para todo lo que es dato, código, cifra o etiqueta.
+ *
+ * El acento lo inyecta cada página con --accent: es el del módulo, y marca su posición
+ * en el arco del proyecto. Los diez pasan check_palette.py antes de entrar aquí.
+ */
+
+:root {
+  --paper: #f6f3ec;
+  --bench: #eeeade;
+  --ink: #2a2622;
+  --ink-soft: #57504a;
+  --ink-faint: #8a8177;
+  --rule: #ddd6c6;
+  --rule-soft: #e8e2d4;
+  --grid: rgba(84, 69, 73, .07);
+  --accent: #632727;
+
+  --prose: Georgia, "Iowan Old Style", "Palatino Linotype", Palatino, "Times New Roman", serif;
+  --data: "Cascadia Mono", Consolas, "DejaVu Sans Mono", "Liberation Mono", monospace;
+
+  --measure: 680px;   /* la medida de la prosa, en píxeles y nunca en ch */
+  --wide: 1180px;     /* el borde derecho de los bloques anchos */
+  --margin: 132px;    /* la columna del margen, donde cuelgan los kickers */
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--prose);
+  font-size: 17px;
+  line-height: 1.62;
+  -webkit-text-size-adjust: 100%;
+}
+
+::selection { background: var(--accent); color: var(--paper); }
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+/* --------------------------------------------------------------- cabecera */
+
+.masthead {
+  border-bottom: 1px solid var(--rule);
+  background-color: var(--bench);
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 26px 26px;
+  background-position: -1px -1px;
+}
+
+.masthead-inner {
+  max-width: var(--wide);
+  margin: 0 auto;
+  padding: 2.4rem 2rem 1.6rem;
+}
+
+.eyebrow {
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-bottom: 1rem;
+}
+
+.eyebrow a { color: inherit; text-decoration: none; border-bottom: 1px solid transparent; }
+.eyebrow a:hover { border-bottom-color: var(--accent); color: var(--accent); }
+.eyebrow b { color: var(--accent); font-weight: 400; }
+
+.masthead h1 {
+  margin: 0;
+  font-size: clamp(1.9rem, 4.4vw, 2.9rem);
+  line-height: 1.14;
+  font-weight: 400;
+  letter-spacing: -.012em;
+  max-width: 900px;
+}
+
+.standfirst {
+  margin: .9rem 0 0;
+  max-width: var(--measure);
+  color: var(--ink-soft);
+  font-size: 1.02rem;
+  line-height: 1.55;
+}
+
+/* La cifra del módulo: el número que dejó, en grande, junto al título. Es lo que
+   convierte la cabecera en parte del argumento y no en decoración. */
+.figure-mark {
+  margin-top: 1.6rem;
+  display: flex;
+  align-items: baseline;
+  gap: .8rem;
+  flex-wrap: wrap;
+  border-left: 3px solid var(--accent);
+  padding-left: .9rem;
+}
+
+.figure-value {
+  font-family: var(--data);
+  font-size: clamp(1.5rem, 3.4vw, 2.1rem);
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: -.02em;
+}
+
+.figure-label {
+  font-family: var(--data);
+  font-size: .78rem;
+  letter-spacing: .04em;
+  color: var(--ink-soft);
+}
+
+/* El hilo del proyecto: diez segmentos, uno por módulo, con su cifra debajo. Desde
+   cualquier página se ve el recorrido entero, que es justo lo que a los apuntes
+   sueltos les faltaba. */
+.thread {
+  margin-top: 1.8rem;
+  display: grid;
+  /* One equal column per segment, whatever the temario says. It was pinned to ten and
+     the course grew to fourteen. */
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: 4px;
+}
+
+/* Where part 2 starts: the four modules that were never in the original project. */
+.thread .starts-part { margin-left: 10px; position: relative; }
+.thread .starts-part::after {
+  content: '';
+  position: absolute;
+  left: -7px; top: -3px; bottom: 0;
+  border-left: 1px solid var(--rule);
+}
+
+.thread a, .thread span {
+  display: block;
+  text-decoration: none;
+  color: var(--ink-faint);
+  font-family: var(--data);
+  font-size: .62rem;
+  letter-spacing: .04em;
+  padding-top: .4rem;
+  border-top: 3px solid var(--rule);
+  transition: color .12s, border-color .12s;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.thread a:hover { color: var(--ink); border-top-color: var(--ink-soft); }
+.thread [aria-current="page"] { color: var(--accent); border-top-color: var(--accent); }
+.thread .n { font-weight: 700; }
+.thread .v { color: inherit; opacity: .75; }
+
+/* Las pastillas de composición: de qué está hecho el módulo. */
+.assay {
+  margin-top: 1.6rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.4rem;
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .05em;
+  color: var(--ink-faint);
+}
+
+.assay b { color: var(--ink); font-weight: 700; }
+
+/* ----------------------------------------------------------------- cuerpo */
+
+.container {
+  max-width: var(--wide);
+  margin: 0 auto;
+  padding: 2.6rem 2rem 4rem;
+}
+
+/* Cada sección es una anotación de cuaderno: el kicker cuelga en el margen
+   izquierdo y el contenido corre en la columna principal. En pantalla estrecha el
+   kicker se pone encima. */
+.block {
+  display: grid;
+  grid-template-columns: var(--margin) minmax(0, 1fr);
+  column-gap: 2rem;
+  padding: 2.2rem 0;
+  border-top: 1px solid var(--rule);
+}
+
+.block:first-child { border-top: 0; padding-top: .6rem; }
+
+.kicker {
+  grid-column: 1;
+  font-family: var(--data);
+  font-size: .68rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding-top: .45rem;
+}
+
+.block > :not(.kicker) { grid-column: 2; }
+
+.block-title {
+  margin: 0 0 1.1rem;
+  font-size: 1.42rem;
+  font-weight: 400;
+  line-height: 1.25;
+  letter-spacing: -.008em;
+}
+
+.is-warning .kicker, .is-result .kicker { color: var(--accent); }
+.is-warning .block-title { border-bottom: 2px solid var(--accent); padding-bottom: .4rem; display: inline-block; }
+.is-result { background: var(--bench); margin: 0 -1.2rem; padding: 2.2rem 1.2rem; }
+.is-result .block-title { color: var(--accent); }
+
+/* Prosa: justificada con partición, que sin partición el español justificado abre
+   ríos. Tablas, código y pies de figura se quedan sin justificar. */
+.block p, .block li, .block dd, details > *:not(summary) {
+  max-width: var(--measure);
+  text-align: justify;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+}
+
+.block p { margin: 0 0 1rem; }
+.block p:last-child { margin-bottom: 0; }
+.block ul, .block ol { margin: 0 0 1rem; padding-left: 1.3rem; max-width: var(--measure); }
+.block li { margin-bottom: .5rem; }
+.block li::marker { color: var(--accent); font-family: var(--data); font-size: .85em; }
+
+td, th, figcaption, .assay, .thread a, .res li { text-align: left; hyphens: manual; }
+
+a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+a:hover { text-decoration-thickness: 2px; }
+strong { font-weight: 700; }
+em { font-style: italic; color: var(--ink-soft); }
+
+h3.sub {
+  margin: 1.9rem 0 .7rem;
+  font-size: 1.07rem;
+  font-weight: 700;
+  letter-spacing: -.004em;
+}
+
+h3.sub:first-child { margin-top: 0; }
+
+h4.sub {
+  margin: 1.4rem 0 .5rem;
+  font-family: var(--data);
+  font-size: .82rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  color: var(--ink-soft);
+}
+
+/* ------------------------------------------------------------ código y datos */
+
+code {
+  font-family: var(--data);
+  font-size: .87em;
+  background: var(--bench);
+  padding: .1em .32em;
+  border-radius: 2px;
+}
+
+pre {
+  margin: 0 0 1rem;
+  padding: 1rem 1.1rem;
+  background: var(--bench);
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--accent);
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+pre code { background: none; padding: 0; font-size: .82rem; line-height: 1.62; }
+
+/* La salida es lo que imprime el código, no código para correr: se marca aparte
+   para que nadie confunda entrada con salida. */
+.output {
+  margin: 0 0 1rem;
+  border: 1px dashed var(--rule);
+  background: transparent;
+}
+
+.output-tag {
+  display: block;
+  font-family: var(--data);
+  font-size: .64rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding: .45rem 1.1rem 0;
+}
+
+.output pre {
+  margin: 0;
+  border: 0;
+  background: none;
+  padding: .3rem 1.1rem 1rem;
+}
+
+.output pre code { color: var(--ink-soft); }
+
+/* La anotación línea por línea, para quien no ha programado antes. */
+.annot {
+  margin: 0 0 1.2rem;
+  border: 1px solid var(--rule);
+  border-top: 0;
+  padding: 0 1.1rem .6rem;
+  background: transparent;
+}
+
+.annot-head {
+  font-family: var(--data);
+  font-size: .64rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding: .55rem 0 .5rem;
+  border-bottom: 1px solid var(--rule-soft);
+  margin-bottom: .4rem;
+}
+
+.annot dt { padding: .4rem 0 .1rem; }
+.annot dt code { background: none; padding: 0; color: var(--accent); font-weight: 700; }
+.annot dd {
+  margin: 0 0 .4rem;
+  color: var(--ink-soft);
+  font-size: .94rem;
+  border-bottom: 1px solid var(--rule-soft);
+  padding-bottom: .5rem;
+}
+.annot dd:last-of-type { border-bottom: 0; }
+
+pre:has(+ .annot) { margin-bottom: 0; }
+
+blockquote {
+  margin: 0 0 1rem;
+  padding: .2rem 0 .2rem 1.1rem;
+  border-left: 3px solid var(--rule);
+  color: var(--ink-soft);
+  font-style: italic;
+  max-width: var(--measure);
+}
+
+/* --------------------------------------------------------------- tablas */
+
+.table-wrap { overflow-x: auto; margin: 0 0 1.2rem; }
+
+table {
+  border-collapse: collapse;
+  width: auto;
+  max-width: 100%;
+  font-size: .92rem;
+}
+
+th, td {
+  padding: .5rem .9rem .5rem 0;
+  border-bottom: 1px solid var(--rule-soft);
+  vertical-align: top;
+}
+
+th {
+  font-family: var(--data);
+  font-size: .7rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--ink-faint);
+  border-bottom: 1px solid var(--rule);
+  white-space: nowrap;
+}
+
+/* -------------------------------------------------------------- repaso */
+
+details {
+  border-bottom: 1px solid var(--rule-soft);
+  padding: .2rem 0;
+  max-width: var(--measure);
+}
+
+summary {
+  cursor: pointer;
+  list-style: none;
+  padding: .7rem 0 .7rem 1.5rem;
+  position: relative;
+  font-weight: 700;
+}
+
+summary::-webkit-details-marker { display: none; }
+
+summary::before {
+  content: '+';
+  position: absolute;
+  left: 0;
+  font-family: var(--data);
+  color: var(--accent);
+  font-weight: 700;
+}
+
+details[open] summary::before { content: '\2212'; }
+details[open] summary { color: var(--accent); }
+details > *:not(summary) { color: var(--ink-soft); }
+details > *:last-child { padding-bottom: .8rem; }
+
+/* -------------------------------------------------------------- figuras */
+
+figure.fig {
+  margin: 0 0 1.4rem;
+  max-width: 100%;
+  border: 1px solid var(--rule);
+  background: #fff;
+  padding: .6rem;
+}
+
+figure.fig img { width: 100%; height: auto; display: block; }
+
+figure.fig figcaption {
+  margin-top: .6rem;
+  padding-top: .5rem;
+  border-top: 1px solid var(--rule-soft);
+  font-family: var(--data);
+  font-size: .7rem;
+  letter-spacing: .04em;
+  color: var(--ink-faint);
+}
+
+.gone {
+  font-family: var(--data);
+  font-size: .76rem;
+  color: var(--accent);
+  border: 1px dashed var(--accent);
+  padding: .5rem .8rem;
+}
+
+/* ------------------------------------------------------- pie y navegación */
+
+.pager {
+  max-width: var(--wide);
+  margin: 0 auto;
+  padding: 0 2rem 3rem;
+  display: flex;
+  gap: 1.4rem;
+  justify-content: space-between;
+  font-family: var(--data);
+  font-size: .78rem;
+}
+
+.pager a { max-width: 46%; text-decoration: none; border-bottom: 1px solid var(--rule); padding-bottom: .3rem; }
+.pager a:hover { border-bottom-color: var(--accent); }
+.pager .dir { display: block; font-size: .64rem; letter-spacing: .13em; text-transform: uppercase; color: var(--ink-faint); }
+.pager .next { text-align: right; margin-left: auto; }
+
+.footer {
+  border-top: 1px solid var(--rule);
+  padding: 1.4rem 2rem 2.4rem;
+  font-family: var(--data);
+  font-size: .72rem;
+  letter-spacing: .06em;
+  color: var(--ink-faint);
+}
+
+.footer-inner { max-width: var(--wide); margin: 0 auto; display: flex; gap: 1.4rem; flex-wrap: wrap; }
+
+/* ------------------------------------------------------------- índice */
+
+.toc { list-style: none; margin: 0; padding: 0; max-width: 100%; }
+
+.toc li {
+  border-top: 1px solid var(--rule-soft);
+  max-width: 100%;
+}
+
+.toc li:last-child { border-bottom: 1px solid var(--rule-soft); }
+
+.toc a, .toc .pending {
+  display: grid;
+  grid-template-columns: 3rem minmax(0, 1fr) auto;
+  gap: 1.2rem;
+  align-items: baseline;
+  padding: 1rem .4rem;
+  text-decoration: none;
+  color: inherit;
+}
+
+.toc a:hover { background: var(--bench); }
+.toc .pending { color: var(--ink-faint); }
+.toc .num { font-family: var(--data); font-size: .82rem; font-weight: 700; }
+.toc .name { font-size: 1.05rem; }
+.toc .name small { display: block; font-family: var(--prose); font-size: .86rem; color: var(--ink-soft); margin-top: .2rem; }
+.toc .mark { font-family: var(--data); font-size: .82rem; font-weight: 700; white-space: nowrap; }
+.toc .tag { font-family: var(--data); font-size: .66rem; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-faint); }
+
+/* ---------------------------------------------------------- responsive */
+
+@media (max-width: 900px) {
+  .block { grid-template-columns: minmax(0, 1fr); }
+  .block > :not(.kicker) { grid-column: 1; }
+  .kicker { grid-column: 1; padding-top: 0; margin-bottom: .7rem; }
+  .thread { grid-auto-flow: row; grid-template-columns: repeat(5, 1fr); gap: 6px 4px; }
+  .thread .starts-part { margin-left: 0; }
+  .thread .starts-part::after { display: none; }
+  .toc a, .toc .pending { grid-template-columns: 2.2rem minmax(0, 1fr); }
+  .toc .mark { grid-column: 2; }
+}
+
+@media (max-width: 620px) {
+  body { font-size: 16px; }
+  .masthead-inner, .container, .pager, .footer { padding-left: 1.2rem; padding-right: 1.2rem; }
+  .is-result { margin: 0; padding: 2rem 1rem; }
+  .block p, .block li { text-align: left; }
+}
+
+@media print {
+  .thread, .pager { display: none; }
+  body { font-size: 11pt; }
+  .masthead { background: none; }
+  .block { break-inside: avoid; }
+}
+
+/* -------------------------------------------------- resumen y plegables */
+
+/* El resumen de entrada: la cifra, la trampa y la decision, en cinco vinetas.
+   Se lee en 30 segundos o se sigue leyendo. */
+.is-brief {
+  border-top: 0;
+  padding-top: .4rem;
+}
+
+.is-brief .kicker { color: var(--accent); }
+
+.is-brief ul {
+  list-style: none;
+  padding-left: 0;
+  max-width: var(--measure);
+  border-left: 3px solid var(--accent);
+  padding: .2rem 0 .2rem 1.1rem;
+}
+
+.is-brief li { margin-bottom: .7rem; text-align: left; }
+.is-brief li:last-child { margin-bottom: 0; }
+
+/* Los plegables de contenido denso: el glosario y la anotacion del codigo.
+   Cerrados por defecto, para que la pagina no sea un muro. */
+details.fold {
+  border: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+  background: transparent;
+  margin: 0 0 1.2rem;
+  padding: 0;
+  max-width: 100%;
+}
+
+details.fold > summary {
+  font-family: var(--data);
+  font-size: .68rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  font-weight: 400;
+  color: var(--ink-faint);
+  padding: .55rem .9rem .55rem 2rem;
+}
+
+details.fold > summary::before { left: .9rem; }
+details.fold[open] > summary {
+  color: var(--accent);
+  border-bottom: 1px solid var(--rule-soft);
+  margin-bottom: 0;
+}
+
+details.fold > *:not(summary) { padding: .8rem .9rem; color: inherit; }
+details.fold ul { margin-bottom: 0; }
+details.fold .annot { border: 0; padding: 0; margin: 0; }
+details.fold .annot dd { max-width: var(--measure); }
+
+/* Un bloque de codigo seguido de su plegable van pegados. */
+pre:has(+ details.fold) { margin-bottom: 0; border-bottom: 0; }
+
+/* The course exists in Spanish only; an English reader gets an honest way out, to the
+   project's summary on the portfolio, instead of a language switch that does not exist. */
+.portfolio-link {
+  float: right;
+  margin: 0 0 .6rem 1.2rem;
+  font-family: var(--data);
+  font-size: .7rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: inherit;
+  opacity: .72;
+  text-decoration: none;
+  border-bottom: 1px solid currentColor;
+}
+.portfolio-link:hover { opacity: 1; }
+
+:root { --accent: #6f550e; }
+</style>
+</head>
+<body>
+<header class="masthead">
+  <div class="masthead-inner">
+    <a class="portfolio-link" href="m01_radiografia_del_dataset.html" hreflang="es" rel="alternate">Español</a>
+    <div class="eyebrow"><a href="index.en.html">Silica</a> / Module <b>1</b> of 14</div>
+    <h1>An X-ray of the dataset</h1>
+    <p class="standfirst">What lies inside 737,453 rows of real plant data, and the three scars nobody declares in the file</p>
+    <div class="figure-mark">
+      <span class="figure-value">737,453</span>
+      <span class="figure-label">rows of real plant data</span>
+    </div>
+    <nav class="thread" aria-label="The arc of the project"><span aria-current="page" title="1. An X-ray of the dataset"><span class="n">1</span> <span class="v">737,453</span></span><span title="2. The first model, and the ceiling that appeared at once (pending)"><span class="n">2</span> <span class="v">R² 0.04</span></span><span title="3. How a model learns on the inside (pending)"><span class="n">3</span> <span class="v">R² 0.06</span></span><span title="4. Preprocessing and validating without cheating (pending)"><span class="n">4</span> <span class="v">R² −0.13</span></span><span title="5. Giving the model a memory (pending)"><span class="n">5</span> <span class="v">R² 0.64</span></span><span title="6. Classifying: in or out of specification (pending)"><span class="n">6</span> <span class="v">0.62 vs 0.77</span></span><span title="7. What a model is compared against (pending)"><span class="n">7</span> <span class="v">+0.009</span></span><span title="8. Where does ML really add value? (pending)"><span class="n">8</span> <span class="v">0 of 4</span></span><span title="9. The three states of the plant (pending)"><span class="n">9</span> <span class="v">k = 3</span></span><span title="10. Networks, product and closing (pending)"><span class="n">10</span> <span class="v">0.76</span></span><span class="starts-part" title="11. Sequence models: LSTM, GRU and causal convolution (pending)"><span class="n">11</span> <span class="v">+0.215</span></span><span title="12. The forecasting practice that was missing (pending)"><span class="n">12</span> <span class="v">0.52 vs 0.63</span></span><span title="13. Uncertainty: from the point to the interval (pending)"><span class="n">13</span> <span class="v">92.0%</span></span><span title="14. A causal reading of the control loop (pending)"><span class="n">14</span> <span class="v">+0.16</span></span></nav>
+    <div class="assay"><span><b>6</b> source notes</span><span><b>7</b> figures</span><span><b>5</b> scripts</span></div>
+  </div>
+</header>
+<main class="container">
+<section class="block is-brief"><span class="kicker">Summary</span><h2 class="block-title">In 30 seconds</h2><ul><li><strong>737,453 rows</strong> from a real plant, six months, 24 columns. Zero missing values, and that is an alarm signal, not a sign of quality.</li><li><strong>Three scars nobody declares</strong>: a 13-day gap, a laboratory assay frozen for 792 hours, and two air columns pinned to their setpoint.</li><li><strong>The strongest correlation in the file is a trap.</strong> <code>% Iron Concentrate</code> scores −0.80 and has to be discarded. It comes from the same analysis as the target, one hour later.</li><li><strong>The strongest usable signal is −0.22.</strong> That is what the rest of the project has to work with.</li><li><strong>The rule that decides everything:</strong> a variable is only usable if it already exists at the moment of predicting.</li></ul></section>
+<section class="block "><span class="kicker">Context</span><h2 class="block-title">What this module solves</h2><p>Before training anything you have to know what is inside the file. And this file deceives: it looks clean and it is not.</p><p>The module takes the X-ray in six passes:</p><ol><li>What type each column has.</li><li>How much each one varies.</li><li>What happened to the process over six months.</li><li>At what rate each thing is measured.</li><li>What moves together with the silica.</li><li>Which variables it would be cheating to use.</li></ol><p>That last pass decides the whole project. If it is answered wrongly, everything that comes after will give excellent, false numbers.</p></section>
+<section class="block is-toy"><span class="kicker">By hand</span><h2 class="block-title">Before the theory: a toy example</h2><p>Two flotation columns. Five readings of air flow each, in Nm³/h, from one shift.</p><div class="table-wrap"><table><thead><tr><th>Reading</th><th>Column A</th><th>Column B</th></tr></thead><tbody><tr><td>1</td><td>280</td><td>299</td></tr><tr><td>2</td><td>280</td><td>299</td></tr><tr><td>3</td><td>300</td><td>300</td></tr><tr><td>4</td><td>320</td><td>301</td></tr><tr><td>5</td><td>320</td><td>301</td></tr></tbody></table></div><h3 class="sub">Step 1. The mean of each</h3><p>Add up and divide by five.</p><pre><code>Columna A: (280 + 280 + 300 + 320 + 320) / 5 = 1500 / 5 = 300
+Columna B: (299 + 299 + 300 + 301 + 301) / 5 = 1500 / 5 = 300</code></pre><p><strong>Both give exactly 300.</strong> If the report only carried the mean, they would be the same column.</p><h3 class="sub">Step 2. How far each reading strays from its mean</h3><p>The mean is subtracted from each value.</p><pre><code>Columna A:  -20   -20    0   +20   +20
+Columna B:   -1    -1    0    +1    +1</code></pre><p>The difference is already visible. It still has to be summed up in one number.</p><h3 class="sub">Step 3. Square and average</h3><p>Each deviation is squared. That way the negatives do not cancel the positives. Then divide by four, which is the five readings minus one.</p><pre><code>Columna A: (400 + 400 + 0 + 400 + 400) / 4 = 1600 / 4 = 400
+Columna B: (  1 +   1 + 0 +   1 +   1) / 4 =    4 / 4 =   1</code></pre><h3 class="sub">Step 4. The square root, to get back to the original units</h3><pre><code>Columna A: raíz de 400 = 20 Nm³/h
+Columna B: raíz de   1 =  1 Nm³/h</code></pre><p>That is the <strong>standard deviation</strong>. It comes out round on purpose, so it can be checked with a pencil.</p><h3 class="sub">Step 5. What just happened</h3><p>Same mean, twenty times more spread in one than in the other. That changes what each column can teach.</p><p><strong>Column A</strong> moves. It can be asked what happens to the silica when it goes up, and what happens when it goes down. <strong>Column B</strong> is pinned to a setpoint value. It does not vary, so there is nothing to compare.</p><p><strong>A column that does not vary cannot explain anything that does.</strong> That sentence is all the descriptive statistics needed to start. In the real file it holds to the letter in two specific columns.</p></section>
+<section class="block is-terms"><span class="kicker">Terms</span><h2 class="block-title">Glossary</h2><details class="fold"><summary>11 terms, in plain words</summary><ul><li><strong>Row.</strong> One reading of the system at one instant. Here there are 737,453.</li><li><strong>Column.</strong> One measured variable. Here there are 24, between laboratory assays, process variables and the date.</li><li><strong>Data type.</strong> What the program believes each column is: number, text or date. If it believes a number is text, every later calculation fails or lies.</li><li><strong>DataFrame.</strong> The table once loaded into memory. It is the object pandas works with.</li><li><strong>Mean.</strong> The sum divided by the number of data points.</li><li><strong>Median.</strong> The value that leaves half of the data below it. It withstands extremes much better than the mean.</li><li><strong>Standard deviation.</strong> How far a typical data point strays from the mean, in the same units as the data.</li><li><strong>Setpoint.</strong> The value a control loop holds a variable at. In Spanish, <em>consigna</em>.</li><li><strong>Pearson correlation.</strong> A number between minus one and one. It measures whether two variables go up and down together in a straight line. A zero rules out the straight line, not the relationship.</li><li><strong>Data leakage.</strong> Using as an input something that does not yet exist at the real moment of predicting. In Spanish, <em>fuga de datos</em>.</li><li><strong>Prediction instant.</strong> The exact moment at which the model has to answer. Whatever arrives afterwards is forbidden as an input.</li></ul></details></section>
+<section class="block is-method"><span class="kicker">Method</span><h2 class="block-title">Step by step</h2><h3 class="sub">Step 1. Load without believing the result</h3><p>The first move is not to look at the data. It is to look at the <strong>types</strong>.</p><p>The file comes from a Brazilian plant and uses a decimal comma. A naive load leaves the 24 columns as text and does not warn. There is no error and no warning. From there on, every calculation is broken.</p><h3 class="sub">Step 2. Measure how much each column varies</h3><p>With the right types, the standard deviation of every variable can be requested. Here the toy example becomes real. Two of the seven air columns have ten times less spread than their sisters.</p><h3 class="sub">Step 3. Look at time, not only at the distribution</h3><p>A histogram sums up six months in one shape and hides when each thing happened. The time series shows the scars: the gaps, the flat stretches and the jumps.</p><h3 class="sub">Step 4. Count how many distinct values there are per hour</h3><p>This pass is not usually done, and here it decides a lot. The columns are not measured at the same rate. Some come from a sensor every twenty seconds. Others come from a laboratory analysis. Counting unique values per timestamp reveals it without reading documentation.</p><h3 class="sub">Step 5. Correlate, and distrust the result</h3><p>Correlation with the target ranks the variables by suspicion, not by cause. Two warnings come up at once. A very high correlation is usually a leak. And a control loop can flip the sign that the chemistry would lead you to expect.</p><h3 class="sub">Step 6. Draw the line of the prediction instant</h3><p>The last pass is engineering. On a timeline, lay out what information already exists when it is time to predict, and what information arrives afterwards. Whatever is left on the right is forbidden.</p></section>
+<section class="block is-code"><span class="kicker">Code</span><h2 class="block-title">The code, in parts</h2><h3 class="sub">Step 1. Load it wrong, on purpose</h3><p>It is worth seeing the failure before fixing it. It is silent, and you have to know how to recognise it.</p><pre><code class="language-python">import pandas as pd
+
+path = &quot;data/MiningProcess_Flotation_Plant_Database.csv&quot;
+naive = pd.read_csv(path, nrows=50_000)
+print(naive.dtypes.value_counts())
+print(naive[&quot;% Iron Feed&quot;].iloc[0] + naive[&quot;% Iron Feed&quot;].iloc[1])</code></pre><details class="fold"><summary>line by line, 6 entries</summary><dl class="annot"><dt><code>import pandas as pd</code></dt><dd>Brings in the table library and gives it the nickname <code>pd</code>, which is what everyone calls it.</dd><dt><code>pd.read_csv(path)</code></dt><dd>Reads the comma-separated text file and returns a table.</dd><dt><code>nrows=50_000</code></dt><dd>Reads only the first 50,000 rows. The underscore inside the number is a visual separator: Python ignores it.</dd><dt><code>naive.dtypes</code></dt><dd>The type pandas has assigned to each column.</dd><dt><code>.value_counts()</code></dt><dd>Counts how many times each value appears. On the types, it says how many columns there are of each type.</dd><dt><code>.iloc[0]</code></dt><dd>The first element of the column. Python counts from zero, so <code>iloc[0]</code> is the first and not the second.</dd></dl></details><div class="output"><span class="output-tag">prints</span><pre><code>str    24
+Name: count, dtype: int64
+55,255,2</code></pre></div><p>The 24 columns were left as text. The proof is in the second line. Adding the first two values of <code>% Iron Feed</code> should give 110.4, and it gave <code>55,255,2</code>. That is one value glued behind the other, which is what the plus sign does between two texts.</p><h3 class="sub">Step 2. Load it right, and check the shape</h3><pre><code class="language-python">df = pd.read_csv(path, decimal=&quot;,&quot;, parse_dates=[&quot;date&quot;])
+print(df.dtypes.value_counts())
+print(f&quot;{df.shape[0]:,} filas x {df.shape[1]} columnas&quot;)
+print(df[&quot;date&quot;].min(), &quot;-&gt;&quot;, df[&quot;date&quot;].max())
+print(&quot;faltantes:&quot;, df.isna().sum().sum())</code></pre><details class="fold"><summary>line by line, 6 entries</summary><dl class="annot"><dt><code>decimal=&quot;,&quot;</code></dt><dd>Tells pandas that the comma is this file&#x27;s decimal separator. Without it the numbers are not recognised.</dd><dt><code>parse_dates=[&quot;date&quot;]</code></dt><dd>Turns that column into real dates, which can be sorted and subtracted.</dd><dt><code>df.shape</code></dt><dd>A pair with the number of rows and the number of columns. <code>shape[0]</code> is rows and <code>shape[1]</code> columns.</dd><dt><code>f&quot;...{...:,}&quot;</code></dt><dd>The <code>f</code> before the quotes switches the braces on. The colon and the comma ask for a thousands separator.</dd><dt><code>df.isna()</code></dt><dd>A table of the same size, with true wherever the value is missing.</dd><dt><code>.sum().sum()</code></dt><dd>The first sum counts per column. The second adds those counts and gives the total for the file.</dd></dl></details><div class="output"><span class="output-tag">prints</span><pre><code>float64           23
+datetime64[us]     1
+Name: count, dtype: int64
+737,453 filas x 24 columnas
+2017-03-10 01:00:00 -&gt; 2017-09-09 23:00:00
+faltantes: 0</code></pre></div><p>Now yes: 23 numeric columns, one date column, six months of plant and zero missing values. That zero is not good news. It is a clue that someone processed the file before handing it over.</p><figure class="fig"><img src="../figuras/fig_m1_trampa_coma.fd233d34.png" alt="The same 737,453 rows loaded both ways. The difference does not show in the table, only in the types." loading="lazy"><figcaption>The same 737,453 rows loaded both ways. The difference does not show in the table, only in the types.</figcaption></figure><h3 class="sub">Step 3. How much each air column varies</h3><p>Here the toy example is checked against the real file.</p><pre><code class="language-python">aire = [f&quot;Flotation Column 0{i} Air Flow&quot; for i in range(1, 8)]
+print(df[aire].std().round(2).to_string())</code></pre><details class="fold"><summary>line by line, 4 entries</summary><dl class="annot"><dt><code>[f&quot;...&quot; for i in range(1, 8)]</code></dt><dd>Builds a list by repeating the text with <code>i</code> taking the values 1, 2, 3 up to 7. <code>range(1, 8)</code> reaches 7 and not 8.</dd><dt><code>df[aire]</code></dt><dd>Selects only those seven columns of the table.</dd><dt><code>.std()</code></dt><dd>The standard deviation of each column, computed just like in the example by hand.</dd><dt><code>.round(2)</code></dt><dd>Rounds to two decimals so it can be read.</dd></dl></details><div class="output"><span class="output-tag">prints</span><pre><code>Flotation Column 01 Air Flow    29.62
+Flotation Column 02 Air Flow    30.15
+Flotation Column 03 Air Flow    28.56
+Flotation Column 04 Air Flow     2.57
+Flotation Column 05 Air Flow     3.64
+Flotation Column 06 Air Flow    30.22
+Flotation Column 07 Air Flow    28.67</code></pre></div><p>Five columns around 29, and <strong>two around 3</strong>. Those two are column B from the example: they are pinned to their setpoint.</p><h3 class="sub">Step 4. Duplicates and gaps</h3><pre><code class="language-python">print(&quot;filas duplicadas:&quot;, df.duplicated().sum())
+print(&quot;marcas de tiempo unicas:&quot;, f&quot;{df[&#x27;date&#x27;].nunique():,}&quot;)
+horas = df[&quot;date&quot;].drop_duplicates().sort_values()
+huecos = horas.diff()
+print(huecos[huecos &gt; pd.Timedelta(hours=2)].to_string())</code></pre><details class="fold"><summary>line by line, 6 entries</summary><dl class="annot"><dt><code>df.duplicated()</code></dt><dd>Marks true on every row that had already appeared identical before.</dd><dt><code>.nunique()</code></dt><dd>Counts how many distinct values there are.</dd><dt><code>.drop_duplicates()</code></dt><dd>Keeps a single copy of each timestamp.</dd><dt><code>.diff()</code></dt><dd>Subtracts the previous value from each one. On dates, it gives the time between one hour and the next.</dd><dt><code>huecos[huecos &gt; ...]</code></dt><dd>Read from the inside out. First the condition, which gives true or false per row. Then the filter, which keeps the true ones.</dd><dt><code>pd.Timedelta(hours=2)</code></dt><dd>A duration of two hours, so there is something to compare against.</dd></dl></details><div class="output"><span class="output-tag">prints</span><pre><code>filas duplicadas: 1171
+marcas de tiempo unicas: 4,097
+26814   13 days 07:00:00</code></pre></div><p>1,171 repeated rows and 4,097 distinct hours. And <strong>a single large gap, of thirteen days and seven hours</strong>. Nowhere in the file is it declared.</p><h3 class="sub">Step 5. At what rate each column is measured</h3><pre><code class="language-python">por_hora = df.groupby(&quot;date&quot;).nunique()
+for col in [&quot;% Iron Feed&quot;, &quot;Ore Pulp pH&quot;, &quot;% Silica Concentrate&quot;]:
+    print(f&quot;{col:&lt;22} {por_hora[col].mean():6.2f} valores por hora&quot;)</code></pre><details class="fold"><summary>line by line, 4 entries</summary><dl class="annot"><dt><code>df.groupby(&quot;date&quot;)</code></dt><dd>Groups the rows that share the same timestamp.</dd><dt><code>.nunique()</code></dt><dd>On the group, counts how many distinct values each column has within each hour.</dd><dt><code>for col in [...]:</code></dt><dd>Repeats the block below once for each name in the list. The indentation marks which instructions are inside the loop.</dd><dt><code>{col:&lt;22}</code></dt><dd>Pads with spaces up to 22 characters, so the columns line up.</dd></dl></details><div class="output"><span class="output-tag">prints</span><pre><code>% Iron Feed              1.00 valores por hora
+Ore Pulp pH            171.31 valores por hora
+% Silica Concentrate    14.54 valores por hora</code></pre></div><p>Three different rates in the same file. The feed brings <strong>one</strong> value per hour, repeated across the 180 rows. The process brings about 171, because the sensor measures every twenty seconds. And the target brings about 14: the laboratory analyses several times an hour, but not 180.</p><h3 class="sub">Step 6. What moves together with the silica</h3><pre><code class="language-python">corr = df.drop(columns=[&quot;date&quot;]).corr()[&quot;% Silica Concentrate&quot;]
+print(corr.drop(&quot;% Silica Concentrate&quot;).sort_values().head(3).round(2).to_string())
+print(corr[[&quot;Amina Flow&quot;, &quot;% Silica Feed&quot;]].round(2).to_string())</code></pre><details class="fold"><summary>line by line, 6 entries</summary><dl class="annot"><dt><code>.drop(columns=[&quot;date&quot;])</code></dt><dd>Removes the date, because correlating a date makes no sense.</dd><dt><code>.corr()</code></dt><dd>The matrix with the correlation of every column against every other.</dd><dt><code>[&quot;% Silica Concentrate&quot;]</code></dt><dd>From that matrix, only the target&#x27;s row.</dd><dt><code>.sort_values()</code></dt><dd>Sorts from smallest to largest, so the strong negatives come first.</dd><dt><code>.head(3)</code></dt><dd>The first three.</dd><dt><code>corr[[&quot;Amina Flow&quot;, &quot;% Silica Feed&quot;]]</code></dt><dd>Selects two rows by name. The double brackets are because a list is being passed.</dd></dl></details><div class="output"><span class="output-tag">prints</span><pre><code>% Iron Concentrate             -0.80
+Flotation Column 01 Air Flow   -0.22
+Flotation Column 03 Air Flow   -0.22
+Amina Flow       0.16
+% Silica Feed    0.07</code></pre></div></section>
+<section class="block is-result"><span class="kicker">Result</span><h2 class="block-title">The result, measured</h2><p><strong>What we expected.</strong> A plant file with many gaps and many missing values. And one or two process variables clearly tied to the silica, on which to build the model.</p><p><strong>What came out.</strong> Neither one nor the other. Zero missing values and a single gap. And no usable variable above 0.22 in absolute value. The strongest correlation in the file turned out to be useless.</p><h3 class="sub">The two columns that carry no information</h3><figure class="fig"><img src="../figuras/fig_m1_aire_std.bd1dd066.png" alt="Standard deviation of the seven air columns. Columns 4 and 5 are pinned to their setpoint, just like column B in the example." loading="lazy"><figcaption>Standard deviation of the seven air columns. Columns 4 and 5 are pinned to their setpoint, just like column B in the example.</figcaption></figure><p>Columns 4 and 5 score 2.57 and 3.64, against the roughly 30 of their sisters. They are column B from the toy example. They are not discarded, because knowing a setpoint has value as context. But it goes on record that they cannot explain anything.</p><h3 class="sub">The three scars of the history</h3><figure class="fig"><img src="../figuras/fig_m1_serie_tiempo.ad18e10b.png" alt="Six months hour by hour. The thirteen-day gap, the flat stretch of the iron assay and the starch jump." loading="lazy"><figcaption>Six months hour by hour. The thirteen-day gap, the flat stretch of the iron assay and the starch jump.</figcaption></figure><div class="table-wrap"><table><thead><tr><th>Scar</th><th>Measure</th><th>What it is</th></tr></thead><tbody><tr><td>Gap</td><td>13 days and 7 hours, before 29 March</td><td>There are no data. None are invented</td></tr><tr><td>Frozen assay</td><td>792 hours pinned at 64.03, from 13 May to 15 June</td><td>The laboratory stopped updating. It is not physics</td></tr><tr><td>Low starch</td><td>3,976 rows below 100</td><td>Another dosing regime, not an error</td></tr></tbody></table></div><p>The frozen stretch touches <strong>142,560 rows, 19.3% of the file</strong>. The temptation is to throw them away, and it would be an expensive mistake. Only two columns are frozen, the feed ones. The process and the target stay alive in those same rows.</p><p>The decision: they are kept. And it goes on record that during that month those two columns are constant noise.</p><h3 class="sub">What moves together with the silica</h3><figure class="fig"><img src="../figuras/fig_m1_corr_bars.7441c3a0.png" alt="Pearson correlation of each variable with the target. In red the one that is a leak. In orange the two that the control loop distorts." loading="lazy"><figcaption>Pearson correlation of each variable with the target. In red the one that is a leak. In orange the two that the control loop distorts.</figcaption></figure><figure class="fig"><img src="../figuras/fig_m1_corr_scatters.0b068c1a.png" alt="The three correlations that show the three ways of fooling yourself: the leak, the sign flipped by control, and the erased relationship." loading="lazy"><figcaption>The three correlations that show the three ways of fooling yourself: the leak, the sign flipped by control, and the erased relationship.</figcaption></figure><div class="table-wrap"><table><thead><tr><th>Variable</th><th>Correlation</th><th>Reading</th></tr></thead><tbody><tr><td><code>% Iron Concentrate</code></td><td>−0.80</td><td>The strongest in the file, and a <strong>leak</strong>. It is the complement of the silica and comes from the same analysis, one hour later</td></tr><tr><td><code>Flotation Column 01 Air Flow</code></td><td>−0.22</td><td>The strongest usable signal. And it is weak</td></tr><tr><td><code>Amina Flow</code></td><td>+0.16</td><td>Sign inverted with respect to the chemistry. When the silica goes up, the operator doses more collector</td></tr><tr><td><code>% Silica Feed</code></td><td>+0.07</td><td>The feed barely explains the concentrate. The plant&#x27;s control erases the relationship</td></tr></tbody></table></div><h3 class="sub">The rule that decides the project</h3><figure class="fig"><img src="../figuras/fig_m1_leakage_timeline.52d3b360.png" alt="The line of the prediction instant. On the left what already exists, on the right what arrives afterwards. Only the left goes into the model." loading="lazy"><figcaption>The line of the prediction instant. On the left what already exists, on the right what arrives afterwards. Only the left goes into the model.</figcaption></figure><p>Of the whole module, this is what to take away:</p><blockquote>An input variable is only legitimate if it <strong>already exists</strong> at the instant when the prediction has to be made.</blockquote><p><code>% Iron Concentrate</code> breaks it, so it is excluded. Never mind that it is the most tempting correlation in the file. A model that uses it will give a splendid R² and be useless in the plant, because there that number has not arrived yet.</p><h3 class="sub">The distribution of the target</h3><figure class="fig"><img src="../figuras/fig_m1_histogramas.a5605088.png" alt="Spread of the target and of three key variables over the 737,453 rows." loading="lazy"><figcaption>Spread of the target and of three key variables over the 737,453 rows.</figcaption></figure><p>The target runs from 0.60 to 5.53% SiO₂. Mean 2.33, median 2.00, standard deviation 1.13.</p><p>The mean exceeds the median by 0.33. That points to a tail on the right: the plant runs well most of the time, and now and then it gets away.</p><p>That standard deviation of 1.13 is the project&#x27;s measuring stick. Always predicting the mean already gives that error. Any model that does not get below it is adding nothing.</p></section>
+<section class="block is-warning"><span class="kicker">Traps</span><h2 class="block-title">Watch out</h2><ul><li><strong>The comma failure does not warn.</strong> There is no error and no warning. The program goes on, the charts come out and the results are wrong. The defence is to look at the types before computing.</li><li><strong>Zero missing values is not a good sign.</strong> In plant data something is always missing. A clean zero means someone already cleaned, and with what criterion is unknown.</li><li><strong>The highest correlation is usually the trap.</strong> If a variable explains the target suspiciously well, the first question is where it comes from and when it arrives.</li><li><strong>A control loop flips the signs.</strong> The amine goes up when the silica goes up, not the other way round. Reading that +0.16 as chemistry is reading it backwards.</li><li><strong>A column without variation is not bad, it is mute.</strong> It is not discarded as a rule, but it cannot be asked to explain anything.</li><li><strong>Not every row in an hour says the same thing.</strong> The target is not repeated 180 times per hour: there are about 14 distinct values. Checking it costs one line.</li></ul></section>
+<section class="block is-bridge"><span class="kicker">Analogy</span><h2 class="block-title">Metallurgical bridge</h2><p>This is sampling, and the rules of sampling are already known.</p><p>A <strong>pulp aliquot</strong> taken from a sump without homogenising gives a grade that does not represent the flow. The laboratory reports it with the same confidence as if it were good. The load with a decimal comma is the same thing: the instrument answers, but it answers about something else.</p><p><strong>Columns 4 and 5</strong> are a closed, well-tuned control loop. Asking that column what it does to the silica is like asking a level controller. The answer is that it does nothing, because it does not move. What moves the process is the setpoint, and the setpoint is not recorded.</p><p>And <code>% Iron Concentrate</code> is the <strong>online analyser against the laboratory assay</strong>. An X-ray analyser gives the grade at once and serves for control. The laboratory assay arrives one hour later and serves for reconciliation. Using it as the input of a real-time prediction is asking the morning shift to decide with the afternoon&#x27;s report.</p></section>
+<section class="block is-review"><span class="kicker">Review</span><h2 class="block-title">Review</h2><details><summary>The file has zero missing values. Is that good news?</summary><p>No, it is an alarm signal. In real plant data there are always sensor gaps, stoppages and assays that were not done.</p><p>A file with zero missing values means someone processed it before handing it over, and it does not come documented with what criterion. This file confirms it from another side: it has 1,171 exact duplicate rows and a thirteen-day gap. That gap does not show up as missing, because the rows simply do not exist. The missing value became an absence, and an absence is harder to see.</p></details><details><summary>The strongest correlation with the silica is −0.80. Why is it not used?</summary><p>Because it is <code>% Iron Concentrate</code>. In reverse iron flotation the concentrate is practically iron and silica, so if one goes up the other goes down. That correlation is not an exploitable process relationship, it is almost an arithmetic identity.</p><p>And there is a stronger reason. It comes from the same laboratory analysis as the target and arrives one hour late. At the instant of predicting it does not exist. Using it is data leakage: the model would come out splendid on the computer and useless in the plant.</p></details><details><summary>How do you know two air columns are pinned to their setpoint, without documentation?</summary><p>From the standard deviation. Columns 1, 2, 3, 6 and 7 have around 29 Nm³/h of spread. Columns 4 and 5 have 2.57 and 3.64.</p><p>Ten times less spread with the same mean says that a control loop is holding them. The practical consequence is the one from the toy example. A variable that does not vary cannot explain one that does. Those two columns will have near-zero importance in any model, and it is worth knowing before training it.</p></details><details><summary>The iron assay is frozen for 792 hours and that touches 19% of the file. Are those rows thrown away?</summary><p>No. They are kept and the limitation goes on record.</p><p>What is frozen is two feed columns, <code>% Iron Feed</code> and <code>% Silica Feed</code>, because the laboratory stopped updating the value. The process variables and the target keep being measured normally in those same 142,560 rows.</p><p>Throwing them away would mean losing a fifth of the good data to fix two columns that contribute less than 0.08 in absolute value. During that month, those two columns are constant noise.</p></details><details><summary>Explain the anti-leak rule the way you would tell it to a plant manager.</summary><p>A piece of data can only be used to predict if it is already on the table at the moment of deciding.</p><p>Draw a vertical line at the instant of the prediction. On the left is what the system already has: pH, flows, levels and air, measured every twenty seconds. On the right is what will arrive afterwards, which is the laboratory analysis, including the iron in the concentrate.</p><p>Everything on the right is forbidden as an input, however well it correlates. If it sneaks in, the model passes the exam by copying the answer. In the plant nobody hands it the answer, and it fails.</p></details></section>
+</main>
+<nav class="pager"></nav>
+<footer class="footer">
+  <div class="footer-inner">
+    <span>Silica / Module 1</span>
+    <span>generated on 2026-08-22</span>
+    <span>source: the 31 original notes, their scripts and the plant CSV</span>
+  </div>
+</footer>
+</body>
+</html>
