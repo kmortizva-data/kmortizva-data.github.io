@@ -218,7 +218,8 @@ def work_index(data: dict, lang: str, ui: dict, depth: int) -> str:
             f'<span class="index-assay">{esc(p["mark"])}</span>'
             f'<span class="index-area">{esc(p["area"])}</span>'
             f'</a>'
-            + (f'<a class="index-open" href="{esc(open_href(project, depth))}">'
+            + (f'<a class="index-open" href="{esc(open_href(project, depth))}" '
+               f'target="_blank" rel="noopener">'
                f'{esc(p["open_label"])} ↗</a>' if project.get("open_href") else "")
             + '</li>')
 
@@ -409,8 +410,8 @@ def project_page(project: dict, data: dict, lang: str) -> str:
     # honest and two would be the same door twice.
     open_link = ""
     if project.get("open_href") and project["open_href"] != project["repo"]:
-        open_link = (f'<a class="cta" href="{esc(open_href(project, depth))}">'
-                     f'{esc(p["open_label"])}</a>')
+        open_link = (f'<a class="cta" href="{esc(open_href(project, depth))}" '
+                     f'target="_blank" rel="noopener">{esc(p["open_label"])}</a>')
 
     body = f"""<article class="wrap section">
   <a class="back" href="{home_href(lang, depth)}#work">{esc(ui["back"])}</a>
@@ -432,7 +433,7 @@ def project_page(project: dict, data: dict, lang: str) -> str:
   <p class="eyebrow stack-label">{esc(ui["stack"])}</p>
   <ul class="stack">{stack_of(project)}</ul>
 
-  <p class="assay-links">{open_link}<a href="{esc(project["repo"])}">{esc(ui["view_repo"])}</a></p>
+  <p class="assay-links">{open_link}<a href="{esc(project["repo"])}" target="_blank" rel="noopener">{esc(ui["view_repo"])}</a></p>
 </article>"""
 
     return shell(title=f"{p['name']} - {data['author']}", desc=p["tagline"], lang=lang,
