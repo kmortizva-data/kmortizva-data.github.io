@@ -1,10 +1,10 @@
 <!doctype html>
-<html lang="es">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>The Power of Statistics · el curso</title>
-<link rel="alternate" hreflang="en" href="curso.en.html">
+<title>Automatidata · The Power of Statistics</title>
+<link rel="alternate" hreflang="es" href="case_automatidata.html">
 <style>
 /* ============================================================================
    Concentra — design tokens and shared components.
@@ -452,248 +452,42 @@ figure.fig figcaption {
   a { color: #16130f; }
 }
 
-
-/* The brain file, ready to be copied into an assistant's memory. */
-.brain { max-width: 880px; margin-top: 1.2rem; }
-.brain-bar {
-  display: flex; align-items: center; gap: .8rem; flex-wrap: wrap;
-  border: 1px solid var(--seam); border-bottom: 0;
-  padding: .6rem .9rem; background: var(--bench);
-}
-.brain-bar .name {
-  font-family: var(--data); font-size: .76rem; color: var(--brass); letter-spacing: .06em;
-}
-.brain-bar .size { font-family: var(--data); font-size: .72rem; color: var(--shadowed); }
-.brain-bar .spacer { flex: 1; }
-.brain-bar button, .brain-bar a.btn {
-  background: none; border: 1px solid var(--seam); border-radius: 2px;
-  color: var(--dust); font-family: var(--data); font-size: .72rem;
-  letter-spacing: .06em; padding: .3rem .7rem; cursor: pointer;
-  text-decoration: none; white-space: nowrap;
-}
-.brain-bar button:hover, .brain-bar a.btn:hover { color: var(--brass); border-color: var(--brass); }
-.brain-bar button.done { color: var(--malachite); border-color: var(--malachite); }
-.brain pre {
-  margin: 0; max-height: 26rem; overflow: auto;
-  border-radius: 0; border-color: var(--seam);
-}
-.brain pre code { font-size: .8rem; }
 </style>
 </head>
 <body>
 <header class="header">
   <div class="header-content">
-    <div class="eyebrow"><span>Curso 3 / <a href="https://www.coursera.org/learn/the-power-of-statistics">ver en Coursera</a></span><a class="lang-switch" href="../index.en.html#the-power-of-statistics/curso" target="_top" hreflang="en" lang="en" title="Read this page in English">English</a></div>
-    <h1>The Power of Statistics</h1>
-    <p class="subtitle"></p>
+    <div class="eyebrow"><span>Course 3 · The Power of Statistics / Case study</span><a class="lang-switch" href="../index.html#the-power-of-statistics/case_automatidata" target="_top" hreflang="es" lang="es" title="Leer esta página en español">Español</a></div>
+    <h1>Automatidata</h1>
+    <p class="subtitle">Management&#x27;s hunch was right, but the effect size deflates it: the case that teaches that significant is not the same as important.</p>
     <div class="mesh" role="presentation"></div>
-    <div class="assay"><span>6 módulos</span><span>34 h de curso</span><span>154 tasks</span><span>3 casos propios</span></div>
+    <div class="assay"><span>22,532 trips</span><span>2 forms of payment</span><span>Welch + Mann-Whitney</span><span>α = 0.05</span></div>
   </div>
 </header>
 <main class="container">
-<section class="section-block "><span class="kicker">Resumen</span><h2 class="section-title">De qué va este curso</h2><p>Es el curso donde el análisis deja de describir y empieza a <strong>decidir</strong>. Los cursos anteriores enseñan a mirar los datos y contar lo que se ve. Este responde a la pregunta que viene después y que es la que paga: <strong>¿la diferencia que estoy viendo es real, o es casualidad de esta muestra?</strong></p><p>Toda la maquinaria del curso existe para eso. La probabilidad da el lenguaje, el muestreo explica por qué una parte puede hablar por el todo, los intervalos de confianza ponen números a lo que no sabemos, y las pruebas de hipótesis convierten todo eso en un sí o un no defendible frente a alguien que va a gastar dinero según tu respuesta.</p><p>Termina en un proyecto de portafolio que es un A/B test completo sobre datos reales de empresa. Ahí es donde se ve si lo anterior se entendió.</p></section>
-<section class="section-block is-recipe"><span class="kicker">Recorrido</span><h2 class="section-title">El recorrido, módulo a módulo</h2><ol><li><strong>Introducción a la estadística con Python.</strong> El vocabulario: descriptiva frente a inferencial, y las tres familias de estadísticos (centro, dispersión, posición).</li><li><strong>Probabilidad.</strong> Reglas básicas, probabilidad condicional, teorema de Bayes y las distribuciones que modelan datos reales: binomial, Poisson y normal.</li><li><strong>Muestreo.</strong> Métodos de selección, el sesgo que ningún cálculo posterior arregla, y el teorema del límite central, que es el resultado que sostiene todo lo demás.</li><li><strong>Intervalos de confianza.</strong> Cómo pasar de un número suelto a un rango honesto, y la interpretación del 95 % que casi todo el mundo dice mal.</li><li><strong>Pruebas de hipótesis.</strong> H₀ y Hₐ, errores tipo I y II, pruebas de una y dos muestras, y el A/B testing.</li><li><strong>Proyecto final.</strong> Un escenario de empresa, un análisis completo y un documento PACE.</li></ol></section>
-<section class="section-block is-decision"><span class="kicker">Resultado</span><h2 class="section-title">Qué sabes hacer al terminar</h2><ul><li>Decidir si una diferencia entre dos grupos es real o ruido, con la prueba adecuada y sus supuestos verificados.</li><li>Acompañar cualquier resultado del tamaño del efecto y su intervalo de confianza, que es lo que distingue un análisis profesional de un valor p suelto.</li><li>Detectar cuándo un resultado significativo es irrelevante en la práctica.</li><li>Convertir todo eso en una recomendación que alguien sin formación estadística pueda ejecutar.</li></ul></section>
-<section class="section-block is-toy"><span class="kicker">Para qué sirve</span><h2 class="section-title">El cerebro de este curso</h2><p>Debajo está el archivo para copiar y pegar como memoria de un asistente. <strong>No es un resumen de las lecciones</strong>: es el manual de operación, con el procedimiento en orden, los umbrales, las reglas de decisión, las trampas conocidas y los tres casos propios con sus números reales para calibrar.</p><p>Esa diferencia es deliberada. Un resumen de las clases le da material de estudio a algo que no necesita estudiar, y gasta contexto sin cambiar cómo trabaja. El manual de operación ocupa una fracción y sí cambia el resultado.</p></section>
-<section class="section-block">
-  <span class="kicker">Memoria</span>
-  <h2 class="section-title">El archivo, listo para copiar</h2>
-  <div class="brain">
-    <div class="brain-bar">
-      <span class="name">cerebro-curso-3.md</span>
-      <span class="size">7.5 KB</span>
-      <span class="spacer"></span>
-      <button id="copy" type="button" data-copy="Copiar todo" data-copied="Copiado" data-selected="Seleccionado: pulsa Ctrl+C">Copiar todo</button>
-      <a class="btn" href="cerebro-curso-3.md" download>Descargar</a>
-    </div>
-    <pre><code id="brain"># Cerebro: inferencia estadística para decisiones de negocio
-
-Manual de operación, no material de estudio. Describe cómo trabajo una pregunta del tipo
-&quot;¿esta diferencia es real?&quot;: el orden, los umbrales, lo que siempre reporto y lo que nunca
-hago. Pégalo como memoria y asume estas reglas sin volver a preguntarlas.
-
-## Qué resuelvo con esto
-
-Comparar dos grupos y decidir si la diferencia observada justifica actuar. Tasas de
-conversión, tiempos, importes, métricas de uso, recuperación de un proceso. La respuesta
-siempre es una decisión de negocio, nunca un número suelto.
-
-## El procedimiento, en este orden
-
-1. **Escribir H₀ y Hₐ en lenguaje de negocio, antes de mirar los datos.** Si se formulan
-   después de ver el resultado, la prueba no vale.
-2. **Fijar α antes también.** Por defecto 0,05. Se baja a 0,01 cuando un falso positivo
-   sale caro.
-3. **Explorar**: tamaño de cada grupo, medias, medianas, desviaciones, y mirar la forma con
-   histograma y diagrama de caja.
-4. **Comprobar supuestos**: Levene para igualdad de varianzas, y tamaño de muestra para
-   apoyarse en el teorema del límite central.
-5. **Elegir la prueba** según la tabla de decisión de abajo.
-6. **Validar el resultado** con al menos dos respaldos: repetir sin atípicos y añadir una
-   prueba no paramétrica.
-7. **Reportar** el bloque completo de la sección &quot;lo que siempre se reporta&quot;.
-8. **Traducir a una recomendación accionable** y declarar las limitaciones.
-
-## Reglas de decisión
-
-### Qué prueba usar
-
-| Lo que comparo | Prueba |
-|---|---|
-| Una media contra un valor de referencia | t de una muestra |
-| Medias de dos grupos independientes | t de dos muestras (Welch por defecto) |
-| Dos proporciones o tasas | prueba z de proporciones |
-| Confirmar sin asumir normalidad | Mann-Whitney U |
-| Igualdad de varianzas | Levene |
-| Reparto de la asignación | chi cuadrado (SRM) |
-
-### Welch o Student
-
-Welch por defecto, siempre. Si Levene da `p &lt; 0,05` las varianzas son desiguales y Student
-queda descartado. Si Levene da `p ≥ 0,05` Student sería válido, pero Welch da
-prácticamente el mismo resultado, así que no se gana nada cambiando. En código:
-`stats.ttest_ind(a, b, equal_var=False)`.
-
-### t o z
-
-Se usa **t** siempre que la variabilidad de la población se estime desde la muestra, que
-es el caso real. La **z** solo si esa variabilidad se conoce de verdad. Con n grande las
-dos convergen: con n=100 el multiplicador es 1,984 frente a 1,960.
-
-### Atípicos
-
-No se borran por defecto. Se detectan con la regla del IQR (`Q1 − 1,5·IQR` a
-`Q3 + 1,5·IQR`), se decide con criterio de dominio, y **se repite el análisis con y sin
-ellos** reportando ambos. Solo se eliminan si son físicamente imposibles, y entonces se
-documenta cuántas filas y qué porcentaje.
-
-### Datos faltantes
-
-Primero se investiga **por qué** faltan. Eliminar filas si son pocas y al azar; imputar con
-mediana antes que con media; dejarlos como nulos si el modelo los maneja. Cualquier
-imputación se calcula **después** de partir en entrenamiento y prueba, nunca antes, o se
-mete fuga de datos.
-
-## Lo que siempre se reporta
-
-Nunca un valor p solo. El bloque mínimo es:
-
-| Elemento | Por qué |
-|---|---|
-| Tamaño de cada grupo | Determina cuánta confianza merece la estimación |
-| Medias y desviaciones | El dato crudo que sostiene todo lo demás |
-| Estadístico y valor p | La evidencia contra H₀ |
-| **Tamaño del efecto (Cohen&#x27;s d)** | Impide confundir significativo con importante |
-| **Intervalo de confianza de la diferencia** | Si cruza el cero, no hay diferencia demostrada |
-| Prueba de respaldo | Descarta que el resultado sea artefacto de la forma o los extremos |
-| Limitaciones | Las encuentro yo antes de que las encuentre quien revisa |
-
-**Escala de Cohen&#x27;s d**: por debajo de 0,2 es despreciable; alrededor de 0,5 es medio;
-por encima de 0,8 es grande.
-
-## Trampas que ya conozco
-
-- **El valor p no es la probabilidad de que H₀ sea verdadera.** Es la probabilidad de ver
-  un resultado así de extremo si H₀ lo fuera.
-- **Con muestra grande, cualquier diferencia trivial sale significativa.** Por eso el
-  tamaño del efecto es obligatorio.
-- **&quot;No rechazar H₀&quot; no es &quot;demostrar que son iguales&quot;.** Puede ser falta de poder
-  estadístico. Se dice &quot;no hay evidencia suficiente&quot;.
-- **Un intervalo de confianza no dice que el parámetro esté ahí con 95 % de probabilidad.**
-  El 95 % describe el método a la larga, no ese intervalo concreto.
-- **Elegir prueba de una cola después de ver los datos es hacer trampa.** La dirección se
-  decide antes y con razón de negocio.
-- **Más muestra no arregla el sesgo de selección.** Solo un método de muestreo mejor.
-- **Asociación no es causa.** En estudios observacionales se nombran los factores de
-  confusión plausibles de forma explícita.
-- **`scale` recibe el error estándar, no la desviación estándar**, al construir intervalos
-  con `scipy`.
-- **`ppf(0.975)` para un intervalo del 95 %**, porque el 5 % se reparte en dos colas.
-
-## Casos de referencia, con números reales
-
-Sirven para calibrar qué es grande y qué no. Son análisis propios, ya ejecutados.
-
-| Caso | Comparación | Resultado | Lectura |
-|---|---|---|---|
-| **TikTok** | Cuentas verificadas contra no verificadas, sobre visualizaciones. n=19.084 | `t = 25,4994`, `p = 2,61e-120`, `d = −0,544`, IC [−187.626, −160.823] | Diferencia real y de magnitud media. Hallazgo secundario más fuerte: vídeos con reclamación 501.029 visualizaciones frente a 4.956 de opinión |
-| **Automatidata** | Tarjeta contra efectivo, sobre tarifa de taxi. n=22.532 | `t = 6,8668`, `p = 6,80e-12`, `d = 0,0922`, IC [0,87 $, 1,56 $] | Diferencia real pero **despreciable**. El caso que demuestra que un p diminuto no implica un efecto grande |
-| **Waze** | iPhone contra Android, sobre número de viajes. n=14.999 | `t = 1,4635`, `p = 0,1434`, `d = 0,0247`, IC [−0,55, 3,81] | Sin evidencia de diferencia. El intervalo cruza el cero y las tres validaciones coinciden |
-
-Los tres se validaron igual: Levene, luego Welch, luego repetición sin atípicos, luego
-Mann-Whitney. En los tres, las tres validaciones coincidieron entre sí.
-
-## Cómo quiero los entregables
-
-- **Documento PACE** (Plan, Analyze, Construct, Execute) como entregable escrito. Pesa más
-  que el notebook, porque es lo que lee quien decide.
-- **Resumen ejecutivo de una página**: hallazgo, evidencia, recomendación, limitaciones.
-- **Cada decisión de limpieza documentada** con criterio, número de filas y porcentaje. No
-  vale &quot;limpié los datos&quot;.
-- **La recomendación en una frase que alguien sin formación estadística pueda ejecutar.**
-  &quot;p = 0,03&quot; no es una recomendación.
-- **Código en inglés**, explicaciones en español.
-- **Ningún resultado cuenta como hecho** si no está explicado en palabras simples en el
-  entregable visible, aunque el número ya esté calculado en un script o un JSON.
-
-## Vocabulario, español e inglés
-
-Los cursos y la documentación vienen en inglés; los entregables van en español.
-
-| Español | Inglés |
-|---|---|
-| Hipótesis nula / alternativa | null / alternative hypothesis |
-| Nivel de significancia | significance level, alpha |
-| Valor p | p-value |
-| Tamaño del efecto | effect size |
-| Intervalo de confianza | confidence interval |
-| Error estándar | standard error |
-| Grados de libertad | degrees of freedom |
-| Distribución muestral | sampling distribution |
-| Teorema del límite central | central limit theorem |
-| Error tipo I / tipo II | type I / type II error |
-| Poder estadístico | statistical power |
-| Muestreo estratificado | stratified sampling |
-| Sesgo de muestreo | sampling bias |
-| Valor atípico | outlier |
-</code></pre>
-  </div>
-</section>
+<section class="section-block "><span class="kicker">Brief</span><h2 class="section-title">The brief</h2><p>You work as an analyst for <strong>Automatidata</strong>, a data consultancy hired by the New York City Taxi and Limousine Commission (the NYC TLC), the body that regulates the city&#x27;s yellow taxis.</p><p>Management has a hunch about revenue. It suspects that the form of payment changes what the customer ends up paying, and wants to know whether it is worth pushing card payment. Before setting up a campaign, someone has to check whether that hunch holds up with the real data.</p></section>
+<section class="section-block is-question"><span class="kicker">Question</span><h2 class="section-title">The question</h2><blockquote>Do customers who pay by <strong>credit card</strong> leave a higher fare than those who pay in <strong>cash</strong>?</blockquote><p>The temptation is to calculate the two averages, see which is higher and call the matter settled. But a couple of dollars of difference in a sample can be pure chance of that sample. To claim that the pattern is real, a hypothesis test is needed.</p></section>
+<section class="section-block is-toy"><span class="kicker">Hypotheses</span><h2 class="section-title">The hypotheses</h2><p>They are written before looking at the results, not after:</p><ul><li><strong>Null hypothesis (H₀).</strong> There is no difference between the mean fare paid by card and the one paid in cash. It is the default position, the &quot;nothing is going on here&quot; one.</li><li><strong>Alternative hypothesis (Hₐ).</strong> There is a real difference between the two.</li></ul><p>The <strong>significance level</strong> is set at <strong>α = 0.05</strong>, the standard. It is the amount of risk we accept of shouting &quot;there is a difference!&quot; when in fact there was none.</p></section>
+<section class="section-block is-data"><span class="kicker">Data</span><h2 class="section-title">The data</h2><p>New York yellow taxi trips, year 2017. The file holds 22,699 trips and the analysis works with the 22,532 that have an identified form of payment.</p><div class="table-wrap"><table><thead><tr><th>Group</th><th>Trips</th><th>What it is</th></tr></thead><tbody><tr><td>Credit card</td><td>15,265</td><td><code>payment_type = 1</code></td></tr><tr><td>Cash</td><td>7,267</td><td><code>payment_type = 2</code></td></tr></tbody></table></div><p>The variable measured is <code>fare_amount</code>, the fare of the trip in dollars.</p></section>
+<section class="section-block is-figures"><span class="kicker">Exploration</span><h2 class="section-title">What the exploration showed</h2><p>One panel per group, so that each is read on its own scale, and then the two splits compared.</p><figure class="fig"><img src="../../figures/automatidata/01_tarjeta.f7a281b0.png" alt="01_tarjeta" loading="lazy"><figcaption>01_tarjeta.png</figcaption></figure><h3 class="sub h3">Panel 1. The card payments</h3><p>The columns count how many trips fall in each fare band, with the axis on a logarithmic scale because rides go from a few dollars to close to a thousand.</p><p>The split into three bands says that <strong>half of the card trips are short rides</strong> of less than 10 dollars, 42% are medium and 8% are long.</p><p>There is also an isolated column on the right that does not fit the general shape: it is <strong>514 trips of exactly 52.00 dollars</strong>, the flat fare of JFK airport. A spike that narrow in a histogram is almost never chance; it is almost always a business rule hidden in the data.</p><figure class="fig"><img src="../../figures/automatidata/01_efectivo.5c4014de.png" alt="01_efectivo" loading="lazy"><figcaption>01_efectivo.png</figcaption></figure><h3 class="sub h3">Panel 2. The cash payments</h3><p>The same shape, and that resemblance is the story of the case. But the split changes a little: <strong>57% of cash payments are short rides</strong>, against 50% of the card ones.</p><p>As in the other case, the vertical scale of each panel is its own, because there are 15,265 card trips and 7,267 cash ones.</p><h3 class="sub h3">The two splits, side by side</h3><div class="table-wrap"><table><thead><tr><th>Band</th><th>Card</th><th>Cash</th></tr></thead><tbody><tr><td>Short rides (less than $10)</td><td>50.4%</td><td><strong>57.2%</strong></td></tr><tr><td>Medium rides ($10 to $30)</td><td><strong>41.6%</strong></td><td>36.5%</td></tr><tr><td>Long rides (more than $30)</td><td><strong>8.0%</strong></td><td>6.3%</td></tr></tbody></table></div><p>And here appears, drawn, the confounding factor the limitations section talks about: <strong>cash concentrates in the short rides and card in the long ones</strong>. Since long rides cost more, part of the difference in mean fare could come from distance and not from the form of payment. This analysis cannot separate the two things.</p><figure class="fig"><img src="../../figures/automatidata/02_efecto.6f3bc572.png" alt="02_efecto" loading="lazy"><figcaption>02_efecto.png</figcaption></figure><h3 class="sub h3">How to read this figure</h3><p>This figure did not exist in the original project and it is the one that best sums up the case.</p><p>The dot marks the observed difference, 1.22 dollars. The bar is the <strong>95% confidence interval</strong>, the range where the real difference can be. The vertical line is zero, the position of &quot;no difference&quot;.</p><p>Here the bar <strong>does not touch zero</strong>, so the difference is real. But look at the other half of the message: the whole interval lives between 0.87 and 1.56 dollars. The difference is not only real, it is <strong>small and well bounded</strong>. This figure is what stops the finding being sold as something bigger than it is.</p></section>
+<section class="section-block is-recipe"><span class="kicker">Method</span><h2 class="section-title">The test, and why this test</h2><p>The means of two independent groups are compared, so a <strong>two-sample t-test</strong> is called for. Within that family a choice has to be made, and the choice gets justified.</p><h3 class="sub h3">First, check whether the variances are equal</h3><p>The classic t-test, Student&#x27;s, assumes that both groups have the same spread. That is verified with <strong>Levene&#x27;s test</strong>:</p><div class="output"><span class="output-tag">prints</span><pre>Levene: estadístico = 9.6815     p = 1.86e-03</pre></div><p>That <code>p = 0.00186</code> is less than 0.05, so the variances are <strong>not</strong> equal. It makes sense: it could already be seen in the panels that the card group reaches further towards the high fares.</p><h3 class="sub h3">That is why Welch is used, not Student</h3><p>Since the equal-variances assumption does not hold, <strong>Welch&#x27;s t-test</strong> (<code>equal_var=False</code>) is used, which does not require it. Using Student here would have given a pretend precision.</p><p>And normality, with distributions as skewed as those in the histogram? Enter the <strong>central limit theorem</strong> of module 3: with more than 22,000 trips, the distribution of the <strong>means</strong> is approximately normal even if the individual trips are not.</p><h3 class="sub h3">And then it is checked that the result is not a mirage</h3><p>The analysis does not stop at a single test. It repeats the contrast removing the outliers by the IQR rule, and adds <strong>Mann-Whitney U</strong>, which compares ranks instead of means and assumes no distribution shape at all:</p><div class="table-wrap"><table><thead><tr><th>Validation</th><th>Result</th><th>Decision</th></tr></thead><tbody><tr><td>Welch, full data</td><td><code>t = 6.8668</code>, <code>p = 6.80e-12</code></td><td>Reject H₀</td></tr><tr><td>Welch, without outliers (n₁=13,778 / n₂=6,711)</td><td><code>t = 8.4911</code>, <code>p = 2.26e-17</code></td><td>Reject H₀</td></tr><tr><td>Mann-Whitney U</td><td><code>U = 60,832,931.5</code>, <code>p = 5.75e-32</code></td><td>Reject H₀</td></tr></tbody></table></div><p>All three agree. The difference is not an artefact of the extreme values nor of the distribution not being normal.</p></section>
+<section class="section-block is-result"><span class="kicker">Result</span><h2 class="section-title">The result, translated</h2><div class="output"><span class="output-tag">prints</span><pre>Welch t = 6.8668          p = 6.80e-12
+IC 95% de la diferencia = [0.87 , 1.56] dólares
+Cohen&#x27;s d = 0.0922</pre></div><p>What each line means:</p><ul><li><strong>t = 6.87.</strong> The means are separated by almost seven standard errors. From 2 upwards it is already considered a notable separation.</li><li><strong>p = 6.80 × 10⁻¹².</strong> The probability of seeing a difference this big **if in fact there were none<strong>. In decimals it is <code>0.0000000000068</code>. For practical purposes, zero. </strong>H₀ is rejected.**</li><li><strong>95% confidence interval = [$0.87 , $1.56].</strong> The real difference is somewhere in that range. It does not include zero, which is another way of seeing the same result.</li><li><strong>Cohen&#x27;s d = 0.0922.</strong> And here comes the interesting part.</li></ul><h3 class="sub h3">The lesson that makes this case valuable</h3><p>A <code>p</code> with twelve zeros seems to shout &quot;enormous difference!&quot;. But <strong>Cohen&#x27;s d = 0.0922</strong> is a <strong>small</strong> effect: by convention, below 0.2 it is considered almost imperceptible.</p><p>How can both things be true at once? Because the p-value depends on the <strong>sample size</strong>. With 22,532 trips, even a minuscule difference becomes statistically certain. The confidence interval confirms it: the real difference is between 87 cents and 1.56 dollars, a small and well-bounded range, not a spectacular jump.</p><p>Said in one sentence: <strong>the difference is real and consistent, but modest</strong>. Confusing &quot;statistically significant&quot; with &quot;important&quot; is the mistake this case teaches not to make.</p></section>
+<section class="section-block is-decision"><span class="kicker">Decision</span><h2 class="section-title">What gets decided with this</h2><p>Yes, it is worth encouraging card payment, <strong>but with realistic expectations</strong>. Electronic payment is associated with higher fares in a statistically reliable way, and at the same time the effect is around 1.22 dollars per trip. Nobody should promise a jump in revenue from promoting cards.</p><p>Translated into concrete actions:</p><ol><li><strong>Signage inside the taxis</strong> inviting card payment, presented as convenience and speed.</li><li><strong>Budget the impact with the real number</strong>, not with the impression the p-value leaves.</li><li><strong>Investigate the confounding factors</strong> before drawing causal conclusions.</li></ol></section>
+<section class="section-block is-warning"><span class="kicker">Limits</span><h2 class="section-title">Limitations</h2><ul><li><strong>It is an observational study, not an experiment.</strong> Nobody assigned at random who pays by card. One can claim that an association exists, <strong>not</strong> that paying by card <em>causes</em> a higher fare.</li><li><strong>And there is an obvious confounding factor</strong>: long trips cost more and also tend to be paid by card, because nobody carries sixty dollars in cash. Distance could explain the whole difference, and this analysis does not control for it.</li><li><strong>The effect size is small.</strong> Any business decision should start from the 1.22 dollars and the interval [0.87, 1.56], not from the p-value.</li><li><strong>The data is from 2017 and from a single city.</strong> The split between cash and card has changed a lot since then.</li></ul></section><section class="section-block is-material"><span class="kicker">Files</span><h2 class="section-title">Full material</h2><p>Everything above comes out of these files, which are still in the course folder exactly as they were.</p><h3 class="sub">Extended guide</h3><ul class="res"><li><span class="local-ref">automatidata_project_cheatsheet_v2.html</span> <span class="path">05_cheatsheets/automatidata_project_cheatsheet_v2.html</span> <span class="size">32.6 KB</span></li></ul><h3 class="sub">Reports and notes</h3><ul class="res"><li><span class="local-ref">automatidata_ab_test_plan.md</span> <span class="path">04_reports/automatidata_ab_test_plan.md</span> <span class="size">1.9 KB</span></li></ul><h3 class="sub">Code</h3><ul class="res"><li><span class="local-ref">automatidata_ab_test.py</span> <span class="path">02_scripts/automatidata_ab_test.py</span> <span class="size">20.0 KB</span></li></ul><h3 class="sub">Data</h3><ul class="res"><li><strong>C2_2017_Yellow_Taxi_Trip_Data.csv</strong> <span class="path">01_data/C2_2017_Yellow_Taxi_Trip_Data.csv</span> <span class="size">2.2 MB</span></li></ul><h3 class="sub">Slides</h3><ul class="res"><li><strong>Activity-Exemplar_-Course-3-Automatidata-Executive-Summary.pptx</strong> <span class="path">Activity-Exemplar_-Course-3-Automatidata-Executive-Summary.pptx</span> <span class="size">5.7 MB</span></li></ul></section>
 </main>
 <footer class="footer">
-  Concentra / 2026-08-22
+  Concentra / this sheet links the files where they already were / 2026-08-22
 </footer>
 <script>
-const button = document.getElementById('copy');
-const source = document.getElementById('brain');
-
-function selectSource() {
-  const range = document.createRange();
-  range.selectNodeContents(source);
-  const selection = window.getSelection();
-  selection.removeAllRanges();
-  selection.addRange(range);
-}
-
-button.addEventListener('click', async () => {
-  const text = source.textContent;
-  let copied = false;
-  // The clipboard API needs a secure context, which file:// is not, so fall back to
-  // selecting the text and letting the old command (or the reader's Ctrl+C) do it.
-  try {
-    await navigator.clipboard.writeText(text);
-    copied = true;
-  } catch {
-    selectSource();
-    try { copied = document.execCommand('copy'); } catch { copied = false; }
-  }
-  button.textContent = copied ? button.dataset.copied : button.dataset.selected;
-  button.classList.toggle('done', copied);
-  if (!copied) selectSource();
-  setTimeout(() => {
-    button.textContent = button.dataset.copy;
-    button.classList.remove('done');
-  }, 2600);
+// Same-frame links replace the current entry instead of pushing a new one, so the
+// browser's back button keeps following the sidebar routes of the shell.
+document.querySelectorAll('a.lead-link').forEach(link => {
+  link.addEventListener('click', event => {
+    event.preventDefault();
+    location.replace(link.getAttribute('href'));
+  });
 });
 </script>
 </body>

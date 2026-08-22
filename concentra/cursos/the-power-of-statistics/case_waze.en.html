@@ -1,10 +1,10 @@
 <!doctype html>
-<html lang="es">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>The Power of Statistics · el curso</title>
-<link rel="alternate" hreflang="en" href="curso.en.html">
+<title>Waze · The Power of Statistics</title>
+<link rel="alternate" hreflang="es" href="case_waze.html">
 <style>
 /* ============================================================================
    Concentra — design tokens and shared components.
@@ -452,248 +452,42 @@ figure.fig figcaption {
   a { color: #16130f; }
 }
 
-
-/* The brain file, ready to be copied into an assistant's memory. */
-.brain { max-width: 880px; margin-top: 1.2rem; }
-.brain-bar {
-  display: flex; align-items: center; gap: .8rem; flex-wrap: wrap;
-  border: 1px solid var(--seam); border-bottom: 0;
-  padding: .6rem .9rem; background: var(--bench);
-}
-.brain-bar .name {
-  font-family: var(--data); font-size: .76rem; color: var(--brass); letter-spacing: .06em;
-}
-.brain-bar .size { font-family: var(--data); font-size: .72rem; color: var(--shadowed); }
-.brain-bar .spacer { flex: 1; }
-.brain-bar button, .brain-bar a.btn {
-  background: none; border: 1px solid var(--seam); border-radius: 2px;
-  color: var(--dust); font-family: var(--data); font-size: .72rem;
-  letter-spacing: .06em; padding: .3rem .7rem; cursor: pointer;
-  text-decoration: none; white-space: nowrap;
-}
-.brain-bar button:hover, .brain-bar a.btn:hover { color: var(--brass); border-color: var(--brass); }
-.brain-bar button.done { color: var(--malachite); border-color: var(--malachite); }
-.brain pre {
-  margin: 0; max-height: 26rem; overflow: auto;
-  border-radius: 0; border-color: var(--seam);
-}
-.brain pre code { font-size: .8rem; }
 </style>
 </head>
 <body>
 <header class="header">
   <div class="header-content">
-    <div class="eyebrow"><span>Curso 3 / <a href="https://www.coursera.org/learn/the-power-of-statistics">ver en Coursera</a></span><a class="lang-switch" href="../index.en.html#the-power-of-statistics/curso" target="_top" hreflang="en" lang="en" title="Read this page in English">English</a></div>
-    <h1>The Power of Statistics</h1>
-    <p class="subtitle"></p>
+    <div class="eyebrow"><span>Course 3 · The Power of Statistics / Case study</span><a class="lang-switch" href="../index.html#the-power-of-statistics/case_waze" target="_top" hreflang="es" lang="es" title="Leer esta página en español">Español</a></div>
+    <h1>Waze</h1>
+    <p class="subtitle">The only one of the three where the answer is that there is no difference, and why that is a complete result and not a failed project.</p>
     <div class="mesh" role="presentation"></div>
-    <div class="assay"><span>6 módulos</span><span>34 h de curso</span><span>154 tasks</span><span>3 casos propios</span></div>
+    <div class="assay"><span>14,999 users</span><span>2 devices</span><span>Welch + Mann-Whitney</span><span>α = 0.05</span></div>
   </div>
 </header>
 <main class="container">
-<section class="section-block "><span class="kicker">Resumen</span><h2 class="section-title">De qué va este curso</h2><p>Es el curso donde el análisis deja de describir y empieza a <strong>decidir</strong>. Los cursos anteriores enseñan a mirar los datos y contar lo que se ve. Este responde a la pregunta que viene después y que es la que paga: <strong>¿la diferencia que estoy viendo es real, o es casualidad de esta muestra?</strong></p><p>Toda la maquinaria del curso existe para eso. La probabilidad da el lenguaje, el muestreo explica por qué una parte puede hablar por el todo, los intervalos de confianza ponen números a lo que no sabemos, y las pruebas de hipótesis convierten todo eso en un sí o un no defendible frente a alguien que va a gastar dinero según tu respuesta.</p><p>Termina en un proyecto de portafolio que es un A/B test completo sobre datos reales de empresa. Ahí es donde se ve si lo anterior se entendió.</p></section>
-<section class="section-block is-recipe"><span class="kicker">Recorrido</span><h2 class="section-title">El recorrido, módulo a módulo</h2><ol><li><strong>Introducción a la estadística con Python.</strong> El vocabulario: descriptiva frente a inferencial, y las tres familias de estadísticos (centro, dispersión, posición).</li><li><strong>Probabilidad.</strong> Reglas básicas, probabilidad condicional, teorema de Bayes y las distribuciones que modelan datos reales: binomial, Poisson y normal.</li><li><strong>Muestreo.</strong> Métodos de selección, el sesgo que ningún cálculo posterior arregla, y el teorema del límite central, que es el resultado que sostiene todo lo demás.</li><li><strong>Intervalos de confianza.</strong> Cómo pasar de un número suelto a un rango honesto, y la interpretación del 95 % que casi todo el mundo dice mal.</li><li><strong>Pruebas de hipótesis.</strong> H₀ y Hₐ, errores tipo I y II, pruebas de una y dos muestras, y el A/B testing.</li><li><strong>Proyecto final.</strong> Un escenario de empresa, un análisis completo y un documento PACE.</li></ol></section>
-<section class="section-block is-decision"><span class="kicker">Resultado</span><h2 class="section-title">Qué sabes hacer al terminar</h2><ul><li>Decidir si una diferencia entre dos grupos es real o ruido, con la prueba adecuada y sus supuestos verificados.</li><li>Acompañar cualquier resultado del tamaño del efecto y su intervalo de confianza, que es lo que distingue un análisis profesional de un valor p suelto.</li><li>Detectar cuándo un resultado significativo es irrelevante en la práctica.</li><li>Convertir todo eso en una recomendación que alguien sin formación estadística pueda ejecutar.</li></ul></section>
-<section class="section-block is-toy"><span class="kicker">Para qué sirve</span><h2 class="section-title">El cerebro de este curso</h2><p>Debajo está el archivo para copiar y pegar como memoria de un asistente. <strong>No es un resumen de las lecciones</strong>: es el manual de operación, con el procedimiento en orden, los umbrales, las reglas de decisión, las trampas conocidas y los tres casos propios con sus números reales para calibrar.</p><p>Esa diferencia es deliberada. Un resumen de las clases le da material de estudio a algo que no necesita estudiar, y gasta contexto sin cambiar cómo trabaja. El manual de operación ocupa una fracción y sí cambia el resultado.</p></section>
-<section class="section-block">
-  <span class="kicker">Memoria</span>
-  <h2 class="section-title">El archivo, listo para copiar</h2>
-  <div class="brain">
-    <div class="brain-bar">
-      <span class="name">cerebro-curso-3.md</span>
-      <span class="size">7.5 KB</span>
-      <span class="spacer"></span>
-      <button id="copy" type="button" data-copy="Copiar todo" data-copied="Copiado" data-selected="Seleccionado: pulsa Ctrl+C">Copiar todo</button>
-      <a class="btn" href="cerebro-curso-3.md" download>Descargar</a>
-    </div>
-    <pre><code id="brain"># Cerebro: inferencia estadística para decisiones de negocio
-
-Manual de operación, no material de estudio. Describe cómo trabajo una pregunta del tipo
-&quot;¿esta diferencia es real?&quot;: el orden, los umbrales, lo que siempre reporto y lo que nunca
-hago. Pégalo como memoria y asume estas reglas sin volver a preguntarlas.
-
-## Qué resuelvo con esto
-
-Comparar dos grupos y decidir si la diferencia observada justifica actuar. Tasas de
-conversión, tiempos, importes, métricas de uso, recuperación de un proceso. La respuesta
-siempre es una decisión de negocio, nunca un número suelto.
-
-## El procedimiento, en este orden
-
-1. **Escribir H₀ y Hₐ en lenguaje de negocio, antes de mirar los datos.** Si se formulan
-   después de ver el resultado, la prueba no vale.
-2. **Fijar α antes también.** Por defecto 0,05. Se baja a 0,01 cuando un falso positivo
-   sale caro.
-3. **Explorar**: tamaño de cada grupo, medias, medianas, desviaciones, y mirar la forma con
-   histograma y diagrama de caja.
-4. **Comprobar supuestos**: Levene para igualdad de varianzas, y tamaño de muestra para
-   apoyarse en el teorema del límite central.
-5. **Elegir la prueba** según la tabla de decisión de abajo.
-6. **Validar el resultado** con al menos dos respaldos: repetir sin atípicos y añadir una
-   prueba no paramétrica.
-7. **Reportar** el bloque completo de la sección &quot;lo que siempre se reporta&quot;.
-8. **Traducir a una recomendación accionable** y declarar las limitaciones.
-
-## Reglas de decisión
-
-### Qué prueba usar
-
-| Lo que comparo | Prueba |
-|---|---|
-| Una media contra un valor de referencia | t de una muestra |
-| Medias de dos grupos independientes | t de dos muestras (Welch por defecto) |
-| Dos proporciones o tasas | prueba z de proporciones |
-| Confirmar sin asumir normalidad | Mann-Whitney U |
-| Igualdad de varianzas | Levene |
-| Reparto de la asignación | chi cuadrado (SRM) |
-
-### Welch o Student
-
-Welch por defecto, siempre. Si Levene da `p &lt; 0,05` las varianzas son desiguales y Student
-queda descartado. Si Levene da `p ≥ 0,05` Student sería válido, pero Welch da
-prácticamente el mismo resultado, así que no se gana nada cambiando. En código:
-`stats.ttest_ind(a, b, equal_var=False)`.
-
-### t o z
-
-Se usa **t** siempre que la variabilidad de la población se estime desde la muestra, que
-es el caso real. La **z** solo si esa variabilidad se conoce de verdad. Con n grande las
-dos convergen: con n=100 el multiplicador es 1,984 frente a 1,960.
-
-### Atípicos
-
-No se borran por defecto. Se detectan con la regla del IQR (`Q1 − 1,5·IQR` a
-`Q3 + 1,5·IQR`), se decide con criterio de dominio, y **se repite el análisis con y sin
-ellos** reportando ambos. Solo se eliminan si son físicamente imposibles, y entonces se
-documenta cuántas filas y qué porcentaje.
-
-### Datos faltantes
-
-Primero se investiga **por qué** faltan. Eliminar filas si son pocas y al azar; imputar con
-mediana antes que con media; dejarlos como nulos si el modelo los maneja. Cualquier
-imputación se calcula **después** de partir en entrenamiento y prueba, nunca antes, o se
-mete fuga de datos.
-
-## Lo que siempre se reporta
-
-Nunca un valor p solo. El bloque mínimo es:
-
-| Elemento | Por qué |
-|---|---|
-| Tamaño de cada grupo | Determina cuánta confianza merece la estimación |
-| Medias y desviaciones | El dato crudo que sostiene todo lo demás |
-| Estadístico y valor p | La evidencia contra H₀ |
-| **Tamaño del efecto (Cohen&#x27;s d)** | Impide confundir significativo con importante |
-| **Intervalo de confianza de la diferencia** | Si cruza el cero, no hay diferencia demostrada |
-| Prueba de respaldo | Descarta que el resultado sea artefacto de la forma o los extremos |
-| Limitaciones | Las encuentro yo antes de que las encuentre quien revisa |
-
-**Escala de Cohen&#x27;s d**: por debajo de 0,2 es despreciable; alrededor de 0,5 es medio;
-por encima de 0,8 es grande.
-
-## Trampas que ya conozco
-
-- **El valor p no es la probabilidad de que H₀ sea verdadera.** Es la probabilidad de ver
-  un resultado así de extremo si H₀ lo fuera.
-- **Con muestra grande, cualquier diferencia trivial sale significativa.** Por eso el
-  tamaño del efecto es obligatorio.
-- **&quot;No rechazar H₀&quot; no es &quot;demostrar que son iguales&quot;.** Puede ser falta de poder
-  estadístico. Se dice &quot;no hay evidencia suficiente&quot;.
-- **Un intervalo de confianza no dice que el parámetro esté ahí con 95 % de probabilidad.**
-  El 95 % describe el método a la larga, no ese intervalo concreto.
-- **Elegir prueba de una cola después de ver los datos es hacer trampa.** La dirección se
-  decide antes y con razón de negocio.
-- **Más muestra no arregla el sesgo de selección.** Solo un método de muestreo mejor.
-- **Asociación no es causa.** En estudios observacionales se nombran los factores de
-  confusión plausibles de forma explícita.
-- **`scale` recibe el error estándar, no la desviación estándar**, al construir intervalos
-  con `scipy`.
-- **`ppf(0.975)` para un intervalo del 95 %**, porque el 5 % se reparte en dos colas.
-
-## Casos de referencia, con números reales
-
-Sirven para calibrar qué es grande y qué no. Son análisis propios, ya ejecutados.
-
-| Caso | Comparación | Resultado | Lectura |
-|---|---|---|---|
-| **TikTok** | Cuentas verificadas contra no verificadas, sobre visualizaciones. n=19.084 | `t = 25,4994`, `p = 2,61e-120`, `d = −0,544`, IC [−187.626, −160.823] | Diferencia real y de magnitud media. Hallazgo secundario más fuerte: vídeos con reclamación 501.029 visualizaciones frente a 4.956 de opinión |
-| **Automatidata** | Tarjeta contra efectivo, sobre tarifa de taxi. n=22.532 | `t = 6,8668`, `p = 6,80e-12`, `d = 0,0922`, IC [0,87 $, 1,56 $] | Diferencia real pero **despreciable**. El caso que demuestra que un p diminuto no implica un efecto grande |
-| **Waze** | iPhone contra Android, sobre número de viajes. n=14.999 | `t = 1,4635`, `p = 0,1434`, `d = 0,0247`, IC [−0,55, 3,81] | Sin evidencia de diferencia. El intervalo cruza el cero y las tres validaciones coinciden |
-
-Los tres se validaron igual: Levene, luego Welch, luego repetición sin atípicos, luego
-Mann-Whitney. En los tres, las tres validaciones coincidieron entre sí.
-
-## Cómo quiero los entregables
-
-- **Documento PACE** (Plan, Analyze, Construct, Execute) como entregable escrito. Pesa más
-  que el notebook, porque es lo que lee quien decide.
-- **Resumen ejecutivo de una página**: hallazgo, evidencia, recomendación, limitaciones.
-- **Cada decisión de limpieza documentada** con criterio, número de filas y porcentaje. No
-  vale &quot;limpié los datos&quot;.
-- **La recomendación en una frase que alguien sin formación estadística pueda ejecutar.**
-  &quot;p = 0,03&quot; no es una recomendación.
-- **Código en inglés**, explicaciones en español.
-- **Ningún resultado cuenta como hecho** si no está explicado en palabras simples en el
-  entregable visible, aunque el número ya esté calculado en un script o un JSON.
-
-## Vocabulario, español e inglés
-
-Los cursos y la documentación vienen en inglés; los entregables van en español.
-
-| Español | Inglés |
-|---|---|
-| Hipótesis nula / alternativa | null / alternative hypothesis |
-| Nivel de significancia | significance level, alpha |
-| Valor p | p-value |
-| Tamaño del efecto | effect size |
-| Intervalo de confianza | confidence interval |
-| Error estándar | standard error |
-| Grados de libertad | degrees of freedom |
-| Distribución muestral | sampling distribution |
-| Teorema del límite central | central limit theorem |
-| Error tipo I / tipo II | type I / type II error |
-| Poder estadístico | statistical power |
-| Muestreo estratificado | stratified sampling |
-| Sesgo de muestreo | sampling bias |
-| Valor atípico | outlier |
-</code></pre>
-  </div>
-</section>
+<section class="section-block "><span class="kicker">Brief</span><h2 class="section-title">The brief</h2><p>You work on the data team at <strong>Waze</strong>, the navigation app. The business problem occupying the company is <strong>user churn</strong>: people who install the app and stop using it.</p><p>The original project is above all a prediction job, with logistic regression, Random Forest and XGBoost. But in the middle of all that there is <strong>a single formal hypothesis test</strong>, and it is the one examined here: does the kind of phone influence how much the app gets used?</p><p>And this case has a peculiarity that makes it the most instructive of the three. The original notebook ran the test with <code>equal_var=False</code> <strong>without justifying why</strong>, and without any of the backups a complete analysis requires: no Levene, no Mann-Whitney, no effect size and no confidence interval. Here those gaps get filled.</p></section>
+<section class="section-block is-question"><span class="kicker">Question</span><h2 class="section-title">The question</h2><blockquote>Is the number of drives (<code>drives</code>) different between <strong>iPhone</strong> users and <strong>Android</strong> users?</blockquote><p>If it were, it would have product consequences: it would justify prioritising development on one platform over the other.</p></section>
+<section class="section-block is-toy"><span class="kicker">Hypotheses</span><h2 class="section-title">The hypotheses</h2><ul><li><strong>Null hypothesis (H₀).</strong> There is no difference in the mean number of drives between iPhone and Android users.</li><li><strong>Alternative hypothesis (Hₐ).</strong> There is a real difference.</li></ul><p>Significance level: <strong>α = 0.05</strong>.</p></section>
+<section class="section-block is-data"><span class="kicker">Data</span><h2 class="section-title">The data</h2><p>14,999 users of the app, from a public Kaggle dataset.</p><div class="table-wrap"><table><thead><tr><th>Group</th><th>Users</th><th>Weight</th></tr></thead><tbody><tr><td>iPhone</td><td>9,672</td><td>64.5%</td></tr><tr><td>Android</td><td>5,327</td><td>35.5%</td></tr></tbody></table></div><p>The variable measured is <code>drives</code>, the number of drives of each user.</p><p>Right from the start, the means come in very close: <strong>67.86</strong> drives on iPhone against <strong>66.23</strong> on Android, with medians of 48 and 47. The difference is <strong>1.63 drives</strong>, 2.5% relative. For comparison: in Automatidata the difference was 10%, and in TikTok 65%. Here the starting point is already almost nothing.</p></section>
+<section class="section-block is-figures"><span class="kicker">Exploration</span><h2 class="section-title">What the exploration showed</h2><figure class="fig"><img src="../../figures/waze/01_iphone.b99bcc4f.png" alt="01_iphone" loading="lazy"><figcaption>01_iphone.png</figcaption></figure><h3 class="sub h3">Panel 1. The iPhone users</h3><p>The columns count how many users make that number of drives, with the axis on a logarithmic scale. The split into three bands leaves <strong>24% occasional use, 53% habitual use and 23% intensive use</strong>.</p><figure class="fig"><img src="../../figures/waze/01_android.f321b068.png" alt="01_android" loading="lazy"><figcaption>01_android.png</figcaption></figure><h3 class="sub h3">Panel 2. The Android users</h3><p>The same shape, the same bands, and its own vertical scale because there are 9,672 iPhone users against 5,327 Android ones.</p><h3 class="sub h3">The split, which is where the conclusion shows</h3><div class="table-wrap"><table><thead><tr><th>Band</th><th>iPhone</th><th>Android</th></tr></thead><tbody><tr><td>Occasional use (fewer than 20 drives)</td><td>24.1%</td><td>24.1%</td></tr><tr><td>Habitual use (20 to 100)</td><td>53.0%</td><td>53.8%</td></tr><tr><td>Intensive use (more than 100)</td><td>22.9%</td><td>22.1%</td></tr></tbody></table></div><p><strong>The percentages are practically identical</strong>, down to the tenth in the first band. This table demonstrates the absence of a difference much better than two shapes that look alike, because it compares proportions and not bar heights.</p><p>If the device influenced how much the app gets used, it would show here before it showed in any statistical test.</p><figure class="fig"><img src="../../figures/waze/02_efecto.a04ed336.png" alt="02_efecto" loading="lazy"><figcaption>02_efecto.png</figcaption></figure><h3 class="sub h3">How to read this figure</h3><p>This is the figure that sums up the whole case, and the one that did not exist in the original project.</p><p>The dot is the observed difference between the two groups, 1.63 drives. The bar around it is the <strong>95% confidence interval</strong>, that is the range where the real difference can be. And the vertical line marks zero, which is the position of &quot;no difference&quot;.</p><p>The whole result reads at a glance: <strong>the bar goes through zero</strong>. The real difference could be negative, could be nil, could be almost four drives. With that uncertainty it cannot be claimed that a difference exists, and that is why the figure is in grey and not in colour: grey is the signal that there is no finding here.</p></section>
+<section class="section-block is-recipe"><span class="kicker">Method</span><h2 class="section-title">The test, and why this test</h2><h3 class="sub h3">First, the split check</h3><div class="output"><span class="output-tag">prints</span><pre>SRM (chi²) = 1,258.6856     p = 1.08e-275     FAIL</pre></div><p>Just as with the verification status in TikTok, this &quot;failure&quot; <strong>is expected and invalidates nothing</strong>. The device is the user&#x27;s real preference, that is, which phone they bought, not a random traffic assignment. Comparing a 64.5/35.5 split against a theoretical 50/50 is always going to fail. The only thing it confirms is that in this sample there are more iPhones than Androids.</p><h3 class="sub h3">Second, the variances, and here it changes from the other cases</h3><div class="output"><span class="output-tag">prints</span><pre>Levene: estadístico = 2.3596     p = 0.1245</pre></div><p>This <code>p = 0.1245</code> is <strong>greater</strong> than 0.05, so the variances <strong>do seem equal</strong>. It is the opposite of Automatidata, where Levene gave <code>p = 0.0019</code>.</p><p>That means the classic Student&#x27;s t-test would have been technically valid here. Even so <strong>Welch</strong> is used, which is what the original notebook already had: when the variances are equal, Welch gives practically the same result as Student, so no price is paid for using it unnecessarily. It is the safe default.</p><h3 class="sub h3">Third, the three validations</h3><div class="table-wrap"><table><thead><tr><th>Validation</th><th>Result</th><th>Decision</th></tr></thead><tbody><tr><td>Welch, full data</td><td><code>t = 1.4635</code>, <code>p = 0.1434</code></td><td>H₀ not rejected</td></tr><tr><td>Welch, without outliers (n₁=9,187 / n₂=5,078)</td><td><code>t = 0.7756</code>, <code>p = 0.4380</code></td><td>H₀ not rejected</td></tr><tr><td>Mann-Whitney U</td><td><code>U = 25,964,593.5</code>, <code>p = 0.4232</code></td><td>H₀ not rejected</td></tr></tbody></table></div><p>All three agree, and this time they agree on <strong>not</strong> rejecting. The robustness here confirms the absence of an effect, which is a result as valid as the opposite one.</p><blockquote>The original notebook reported <code>t = 1.4057</code> and <code>p = 0.1599</code>, similar but not identical. The difference comes from the test there being run after trimming the outliers at the 95th percentile in several columns, whereas here <code>drives</code> is used untouched. The conclusion is the same in both cases.</blockquote></section>
+<section class="section-block is-result"><span class="kicker">Result</span><h2 class="section-title">The result, translated</h2><div class="output"><span class="output-tag">prints</span><pre>Welch t = 1.4635          p = 0.1434
+IC 95% de la diferencia = [-0.55 , 3.81] viajes
+Cohen&#x27;s d = 0.0247</pre></div><ul><li><strong>p = 0.1434.</strong> It is <strong>greater</strong> than α = 0.05, so <strong>H₀ is not rejected</strong>. Mind how it is said: it has not been shown that the groups are equal, there is simply not enough evidence to claim that they are different.</li><li><strong>95% confidence interval = [−0.55 , 3.81].</strong> This is the most eloquent piece of data: <strong>the interval crosses zero</strong>. The real difference could be negative, could be nil or could be almost four drives. With that uncertainty nothing can be claimed.</li><li><strong>Cohen&#x27;s d = 0.0247.</strong> A practically nil effect.</li></ul><h3 class="sub h3">The three signals point the same way</h3><p>And here is the value of having the three cases together, because each one illustrates a different combination:</p><div class="table-wrap"><table><thead><tr><th>Case</th><th>p-value</th><th>Cohen&#x27;s d</th><th>What it means</th></tr></thead><tbody><tr><td><strong>TikTok</strong></td><td>2.61e-120</td><td>−0.544 (medium)</td><td>There is a difference, and it matters</td></tr><tr><td><strong>Automatidata</strong></td><td>6.80e-12</td><td>0.0922 (small)</td><td>There is a difference, but it barely matters</td></tr><tr><td><strong>Waze</strong></td><td>0.1434</td><td>0.0247 (nil)</td><td>No evidence of a difference</td></tr></tbody></table></div><p>Waze is the cleanest case of the three: large p-value, almost nil effect size and an interval that crosses zero. When statistical and practical significance agree, the conclusion admits no argument.</p></section>
+<section class="section-block is-decision"><span class="kicker">Decision</span><h2 class="section-title">What gets decided with this</h2><p><strong>Do not prioritise platform-specific development</strong> based on the number of drives. On this metric, iPhone and Android behave the same.</p><p>And two recommendations that come from looking at the complete project:</p><ol><li><strong>The real business question, churn, still has no formal hypothesis test.</strong> The classification model is a complementary approach, not a substitute. Its <em>recall</em> on test is <strong>0.19</strong>, which means it lets through most of the users who are actually going to abandon the app.</li><li><strong>If this same framework is to be applied to churn</strong>, the grouping variable should be <code>label</code> (churned or stayed) on variables like <code>activity_days</code> or <code>km_per_driving_day</code>. The exploratory analysis itself already suggests there is signal there: <strong>7.6%</strong> churn among professional drivers against <strong>19.9%</strong> in the rest.</li></ol></section>
+<section class="section-block is-warning"><span class="kicker">Limits</span><h2 class="section-title">Limitations</h2><ul><li><strong>&quot;No evidence of a difference&quot; is not the same as &quot;no difference&quot;.</strong> With a larger sample a small effect could appear. What can be claimed is that, if it exists, it is too small for these 14,999 users to detect, and from the confidence interval we know it would not reach four drives.</li><li><strong>The device was not assigned at random.</strong> Whoever buys an iPhone may differ from the Android user in income, country or age, and any of those things could influence use. It is an observational study.</li><li><strong><code>drives</code> was analysed, not churn.</strong> The test answers a side question, not the main business question, something worth saying out loud when presenting it.</li><li><strong>The result depends on what is done with the outliers.</strong> With the full data it comes out <code>p = 0.1434</code> and without outliers <code>p = 0.4380</code>. Both point the same way, but they show that the treatment of the extremes moves the numbers, and that is why it is documented.</li></ul></section><section class="section-block is-material"><span class="kicker">Files</span><h2 class="section-title">Full material</h2><p>Everything above comes out of these files, which are still in the course folder exactly as they were.</p><h3 class="sub">Extended guide</h3><ul class="res"><li><span class="local-ref">waze_project_cheatsheet.html</span> <span class="path">05_cheatsheets/waze_project_cheatsheet.html</span> <span class="size">26.8 KB</span></li></ul><h3 class="sub">Code</h3><ul class="res"><li><span class="local-ref">waze_ab_test.py</span> <span class="path">02_scripts/waze_ab_test.py</span> <span class="size">21.5 KB</span></li><li><span class="local-ref">waze-users-churn-google-advanced-data-analytics.ipynb</span> <span class="path">waze-users-churn-google-advanced-data-analytics.ipynb</span> <span class="size">1.4 MB</span></li></ul><h3 class="sub">Data</h3><ul class="res"><li><strong>waze_dataset.csv</strong> <span class="path">01_data/waze_dataset.csv</span> <span class="size">1.1 MB</span></li></ul></section>
 </main>
 <footer class="footer">
-  Concentra / 2026-08-22
+  Concentra / this sheet links the files where they already were / 2026-08-22
 </footer>
 <script>
-const button = document.getElementById('copy');
-const source = document.getElementById('brain');
-
-function selectSource() {
-  const range = document.createRange();
-  range.selectNodeContents(source);
-  const selection = window.getSelection();
-  selection.removeAllRanges();
-  selection.addRange(range);
-}
-
-button.addEventListener('click', async () => {
-  const text = source.textContent;
-  let copied = false;
-  // The clipboard API needs a secure context, which file:// is not, so fall back to
-  // selecting the text and letting the old command (or the reader's Ctrl+C) do it.
-  try {
-    await navigator.clipboard.writeText(text);
-    copied = true;
-  } catch {
-    selectSource();
-    try { copied = document.execCommand('copy'); } catch { copied = false; }
-  }
-  button.textContent = copied ? button.dataset.copied : button.dataset.selected;
-  button.classList.toggle('done', copied);
-  if (!copied) selectSource();
-  setTimeout(() => {
-    button.textContent = button.dataset.copy;
-    button.classList.remove('done');
-  }, 2600);
+// Same-frame links replace the current entry instead of pushing a new one, so the
+// browser's back button keeps following the sidebar routes of the shell.
+document.querySelectorAll('a.lead-link').forEach(link => {
+  link.addEventListener('click', event => {
+    event.preventDefault();
+    location.replace(link.getAttribute('href'));
+  });
 });
 </script>
 </body>
