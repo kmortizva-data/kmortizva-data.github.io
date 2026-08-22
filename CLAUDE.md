@@ -53,6 +53,7 @@ python src/build.py && python src/check_site.py
 | Página de proyecto | Estado, título, tagline, captura, bloque «Measured», **figura calculada** si `inline_figure` (Geoestadística trae su variograma dibujado con las reglas `.dibujar`), prosa, stack, botón abrir | `project_page()`, `inline_figure()` |
 | Get in touch | Texto, **dirección grande con `mailto:`**, botón **Copy address** (solo con JS; si el portapapeles se niega, selecciona la dirección), LinkedIn (cuando `linkedin` tenga valor), GitHub, y **formulario Formspree** (cuando `form_endpoint` tenga valor; honeypot `_gotcha`, `_subject`, envío con `fetch` y respuesta en la página, POST normal sin JS) | `contact_ways()`, `theme.js`, `.contact-*` |
 | Pie | © año, correo, GitHub | `shell()` |
+| Móvil (≤40rem) | Cabecera de dos filas (marca + botón / enlaces), cifras en una fila de tres, filas de proyecto con el número sobre la miniatura 2:1 y botón de abrir a todo el ancho con el acento, credenciales justas, pie centrado; medido a 375 px: cabecera 96 px, cifras 101 px, filas 436 a 459 px, sin desbordes | bloque «Mobile craft» al final de `style.css` |
 
 ## Huecos que solo Kevin puede llenar
 
@@ -79,7 +80,10 @@ python src/build.py && python src/check_site.py
 
 ## Pendientes fuera de esta ronda
 
-- Traducir Sílice (14 módulos) y Concentra (25 módulos + 12 casos) al inglés con la
-  infraestructura bilingüe de Geoestadística.
+- **Siguiente tramo: traducir Sílice (14 módulos) y Concentra (25 módulos + 12 casos)**
+  al inglés con la infraestructura bilingüe de Geoestadística, Sílice primero. Kevin
+  (2026-08-22): «cursos individuales no tienen interruptor idioma». Hasta entonces, cada
+  curso lleva en su cabecera «English summary on the portfolio ↗» hacia su página del
+  proyecto en inglés; no se finge un interruptor que lleve a una página en español.
 - Repo público para Geoestadística si Kevin quiere el botón «Read the code».
 - Retomar la captura de bg-remover cuando se arregle y se muestre.

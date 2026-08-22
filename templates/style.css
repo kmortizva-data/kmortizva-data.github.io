@@ -1497,3 +1497,72 @@ html.js .copy-email { display: inline-block; }
 @media (max-width: 59.99rem) {
   .index-open { display: inline-block; justify-self: start; margin: 0 0 1.1rem 0.5rem; }
 }
+
+/* ===========================================================================
+   Mobile craft (Kevin, 2026-08-22: "celular quede bien, estilizado").
+   Everything below 40rem; the desktop is untouched.
+   =========================================================================== */
+@media (max-width: 40rem) {
+  /* Masthead: mark and the button on the first row, the links on a quiet second row.
+     The nav keeps its landmark; only its box goes, so its links join the header's flex. */
+  .masthead { padding-block: 0.6rem 0.7rem; gap: 0.45rem 1.25rem; }
+  .masthead nav { display: contents; }
+  .mark { order: 0; }
+  .masthead nav .cta { order: 1; margin-left: auto; }
+  .masthead::after { content: ""; flex-basis: 100%; order: 2; }
+  .masthead nav a:not(.cta) { order: 3; }
+  .masthead nav a[rel="alternate"] { margin-right: auto; }   /* the language link is the last of the row: pack the row left */
+
+  /* The three figures share one row instead of stacking as three tall cards. */
+  .marks { grid-template-columns: repeat(3, 1fr); }
+  .marks > div { padding: 0.8rem 0.6rem; }
+  .mark-value { font-size: 1.35rem; }
+  .mark-label { font-size: 0.72rem; line-height: 1.35; margin-top: 0.35rem; }
+
+  /* Project rows: picture first, the number sits on it as a chip, and the open button
+     runs the full width in the project's accent. */
+  .index-row > a {
+    position: relative;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "thumb" "name" "say" "assay" "area";
+    padding-inline: 0;
+  }
+  .index-num {
+    position: absolute;
+    top: calc(clamp(1.25rem, 3vw, 1.9rem) + 0.6rem);
+    left: 0.6rem;
+    z-index: 1;
+    padding: 0.2rem 0.55rem;
+    background: rgb(0 0 0 / 0.6);
+    border: 1px solid var(--tint);
+    border-radius: 999px;
+    color: var(--ink);
+  }
+  .index-row > a { gap: 0.2rem 0; }
+  .index-thumb { margin-bottom: 0.5rem; aspect-ratio: 2 / 1; }
+  .index-thumb img { height: 100%; object-fit: cover; object-position: top center; }
+  .index-open {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    text-align: center;
+    border: 1px solid var(--tint);
+    border-radius: 999px;
+    padding: 0.65rem 1rem;
+    margin: 0 0 1.1rem;
+  }
+
+  /* Credentials: the same four rows, less air. */
+  .creds li { padding: 0.9rem 1rem; gap: 0.2rem; }
+  .cred-detail { font-size: 0.9rem; }
+
+  /* Footer: centred, three short lines. */
+  .foot { justify-content: center; text-align: center; gap: 0.5rem; padding-block: 2rem 2.5rem; }
+  .foot span { width: 100%; }
+
+  /* Contact and hero: stacked address and button; a quieter eyebrow. */
+  .contact-email { flex-direction: column; align-items: flex-start; }
+  .contact-address { font-size: 1.1rem; }
+  .hero .eyebrow { font-size: 11px; letter-spacing: 0.12em; }
+  .hero-art { margin-top: 0.5rem; }
+}

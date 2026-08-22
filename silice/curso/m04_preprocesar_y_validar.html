@@ -598,12 +598,29 @@ details.fold .annot dd { max-width: var(--measure); }
 /* Un bloque de codigo seguido de su plegable van pegados. */
 pre:has(+ details.fold) { margin-bottom: 0; border-bottom: 0; }
 
+/* The course exists in Spanish only; an English reader gets an honest way out, to the
+   project's summary on the portfolio, instead of a language switch that does not exist. */
+.portfolio-link {
+  float: right;
+  margin: 0 0 .6rem 1.2rem;
+  font-family: var(--data);
+  font-size: .7rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: inherit;
+  opacity: .72;
+  text-decoration: none;
+  border-bottom: 1px solid currentColor;
+}
+.portfolio-link:hover { opacity: 1; }
+
 :root { --accent: #6c2d16; }
 </style>
 </head>
 <body>
 <header class="masthead">
   <div class="masthead-inner">
+    <a class="portfolio-link" href="https://kmortizva-data.github.io/work/silica.html" target="_blank" rel="noopener">English summary on the portfolio &#8599;</a>
     <div class="eyebrow"><a href="index.html">Sílice</a> / M&oacute;dulo <b>4</b> de 14</div>
     <h1>Preprocesar y validar sin hacer trampa</h1>
     <p class="standfirst">Pipelines, validación cruzada y ajuste de perillas. Aquí la nota buena del módulo 2 se cae</p>
@@ -656,7 +673,7 @@ Figure: fig_m4_tuning.pdf</code></pre></div><figure class="fig"><img src="../fig
 <footer class="footer">
   <div class="footer-inner">
     <span>S&iacute;lice / M&oacute;dulo 4</span>
-    <span>generado el 2026-08-21</span>
+    <span>generado el 2026-08-22</span>
     <span>fuente: los 31 apuntes originales, sus scripts y el CSV de la planta</span>
   </div>
 </footer>
