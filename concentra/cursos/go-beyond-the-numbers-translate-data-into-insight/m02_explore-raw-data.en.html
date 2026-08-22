@@ -1,0 +1,542 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Explore raw data · Go Beyond the Numbers: Translate Data into Insights</title>
+<link rel="alternate" hreflang="es" href="m02_explore-raw-data.html">
+<style>
+/* ============================================================================
+   Concentra — design tokens and shared components.
+   Inlined into every generated page by load_style(), so pages stay self-contained
+   and work offline from file:// with no external requests.
+
+   Direction: an assay lab, not a tech dashboard. The palette is taken from ore
+   and lab materials (chalcopyrite brass, malachite, hematite, quartz) on warm
+   graphite rather than the blue-black + neon of a generic dark UI. Type is
+   Bahnschrift, the DIN-descended grotesque that Windows ships and that lives on
+   machinery plates and technical drawings, over Corbel for reading.
+   ========================================================================== */
+
+:root {
+  /* Ground and surfaces: warm graphite, the colour of rock dust, not blue-black */
+  --rock: #1a1714;
+  --bench: #221e19;
+  --core: #2b251f;
+  --seam: #3d352c;
+
+  /* Ore palette. No blue and no purple anywhere: those are the tones that make a
+     page read as generated, and this palette comes from the ores instead. */
+  --brass: #c9a227;      /* chalcopyrite, the primary accent */
+  --malachite: #5d9b7a;  /* verified output, results that came out right */
+  --hematite: #b04a35;   /* iron oxide, pitfalls and warnings */
+
+  /* Text */
+  --quartz: #ece7de;
+  --dust: #9a9186;
+  --shadowed: #6f675c;
+
+  --display: Bahnschrift, 'DIN Alternate', 'Segoe UI Semibold', system-ui, sans-serif;
+  --body: Corbel, Candara, 'Segoe UI', system-ui, sans-serif;
+  --data: Consolas, 'Cascadia Mono', ui-monospace, monospace;
+
+  /* In px, not ch: ch scales with font-size, so a heading ended up wider than a
+     paragraph and the page had four different right edges instead of two. */
+  --measure: 640px;
+  --wide: 900px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--rock);
+  color: var(--quartz);
+  font-family: var(--body);
+  font-size: 16px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection { background: var(--brass); color: var(--rock); }
+
+:focus-visible {
+  outline: 2px solid var(--brass);
+  outline-offset: 3px;
+}
+
+/* --------------------------------------------------------------- the signature
+   A sieve series: ticks that get finer from left to right, coarse feed to fine
+   concentrate. It is the one ornament on the page and appears exactly twice —
+   under the wordmark and under a page title. */
+.mesh {
+  height: 10px;
+  background-image:
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 16px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 9px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 5px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 3px);
+  background-size: 25% 100%;
+  background-position: 0 0, 25% 0, 50% 0, 75% 0;
+  background-repeat: no-repeat;
+  opacity: .8;
+  transform-origin: left center;
+  animation: sieve .55s cubic-bezier(.2, .8, .3, 1) both;
+}
+@keyframes sieve { from { transform: scaleX(0); opacity: 0; } to { transform: scaleX(1); opacity: .8; } }
+@media (prefers-reduced-motion: reduce) {
+  .mesh { animation: none; }
+  * { transition: none !important; }
+}
+
+/* ------------------------------------------------------------------ page head */
+.header {
+  border-bottom: 1px solid var(--seam);
+  padding: 3.2rem 2rem 0;
+  background: linear-gradient(180deg, #221d16 0%, var(--rock) 100%);
+}
+.header-content { max-width: 1080px; margin: 0 auto; }
+
+.eyebrow {
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--brass);
+  margin-bottom: 1rem;
+  display: flex; flex-wrap: wrap; align-items: center;
+  justify-content: space-between; gap: .6rem 1rem;
+}
+.eyebrow a { color: inherit; text-decoration: none; border-bottom: 1px solid transparent; }
+.eyebrow a:hover { border-bottom-color: var(--brass); }
+/* The way to the other edition of this page. It targets the shell, not the bare
+   page, so the sidebar follows the language too. */
+.eyebrow .lang-switch {
+  margin-left: auto; border: 1px solid var(--seam); border-radius: 2px;
+  padding: .22rem .6rem; color: var(--dust); font-size: .68rem; letter-spacing: .1em;
+}
+.eyebrow .lang-switch:hover { color: var(--brass); border-color: var(--brass); }
+
+.header h1 {
+  font-family: var(--display);
+  font-size: clamp(2rem, 4.5vw, 3.1rem);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -.015em;
+  color: var(--quartz);
+  max-width: 20ch;
+}
+.header .subtitle {
+  color: var(--dust);
+  max-width: var(--measure);
+  margin-top: 1rem;
+  font-size: 1.02rem;
+}
+.header .mesh { margin: 1.8rem 0 0; }
+
+/* An assay line: the real composition of the module, in lab-report shorthand. */
+.assay {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.4rem;
+  font-family: var(--data);
+  font-size: .78rem;
+  color: var(--shadowed);
+  padding: .9rem 0 1.6rem;
+  letter-spacing: .04em;
+}
+.assay b { color: var(--dust); font-weight: 400; }
+
+/* --------------------------------------------------------------------- layout */
+/* The container hugs the widest block, so there is no orphan edge past the content. */
+.container { max-width: var(--wide); margin: 3rem auto 5rem; padding: 0 2rem; }
+
+/* Two deliberate right edges and no more: prose stops at the reading measure, and
+   only the things that genuinely need room (code, output, figures, big tables) run
+   out to the full column. */
+.section-block {
+  border-top: 1px solid var(--seam);
+  padding: 2rem 0 2.4rem;
+}
+.section-block > p,
+.section-block > ul,
+.section-block > ol,
+.section-block h3.sub,
+.section-block h4.sub,
+.section-block blockquote,
+details > *:not(summary) { max-width: var(--measure); }
+.section-block:first-child { border-top: 0; padding-top: .5rem; }
+
+/* The kicker names what kind of content follows: context, method, pitfalls.
+   It replaces decorative icons with something that actually classifies. */
+.kicker {
+  font-family: var(--data);
+  font-size: .68rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  display: block;
+  margin-bottom: .5rem;
+}
+.section-title {
+  font-family: var(--display);
+  font-size: 1.55rem;
+  font-weight: 600;
+  letter-spacing: -.01em;
+  line-height: 1.2;
+  margin-bottom: 1.2rem;
+  color: var(--quartz);
+}
+.is-warning .kicker { color: var(--hematite); }
+.is-warning .section-title { color: #e8c4b8; }
+.is-bridge .kicker, .is-decision .kicker { color: var(--malachite); }
+.is-toy .kicker, .is-result .kicker, .is-question .kicker { color: var(--brass); }
+
+/* ---------------------------------------------------------------------- prose */
+/* Justified with hyphenation. In Spanish, justifying without hyphens opens rivers of
+   white space and reads worse than ragged right; lang="es" is what feeds the
+   dictionary. Tables, code, captions and summaries stay ragged on purpose. */
+.section-block p,
+.section-block li,
+details > *:not(summary) {
+  text-align: justify;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+}
+.section-block p { margin-bottom: 1rem; }
+.section-block p:last-child { margin-bottom: 0; }
+/* Indent with padding, not margin, so the bullet sits inside the measure instead of
+   pushing the list 1.2rem past the right edge of the paragraphs. */
+.section-block ul, .section-block ol { margin: 0 0 1rem; padding-left: 1.2rem; }
+.section-block li { margin-bottom: .55rem; padding-left: .2rem; }
+.section-block li::marker { color: var(--brass); }
+td, th, figcaption, .res li, .assay { text-align: left; hyphens: manual; }
+a { color: var(--brass); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+a:hover { text-decoration-thickness: 2px; }
+strong { color: #fff; font-weight: 700; }
+em { color: var(--dust); font-style: italic; }
+
+h3.sub {
+  font-family: var(--display);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--brass);
+  margin: 2rem 0 .7rem;
+  letter-spacing: -.005em;
+}
+h3.sub:first-child { margin-top: 0; }
+h4.sub {
+  font-family: var(--display);
+  font-size: .98rem;
+  font-weight: 600;
+  color: var(--dust);
+  margin: 1.3rem 0 .5rem;
+}
+
+code {
+  font-family: var(--data);
+  font-size: .9em;
+  background: var(--core);
+  border-radius: 3px;
+  padding: .08rem .32rem;
+  color: var(--brass);
+}
+pre {
+  background: #14110e;
+  border: 1px solid var(--seam);
+  border-left: 2px solid var(--seam);
+  border-radius: 2px;
+  padding: 1.1rem 1.2rem;
+  overflow-x: auto;
+  margin-bottom: 1rem;
+}
+pre code {
+  background: none; padding: 0; color: var(--quartz);
+  font-size: .87rem; line-height: 1.6;
+}
+
+/* What the code prints. Malachite: the material that came out of the process. */
+.output {
+  position: relative;
+  border: 1px solid rgba(93, 155, 122, .32);
+  border-left: 2px solid var(--malachite);
+  border-radius: 2px;
+  background: rgba(93, 155, 122, .06);
+  padding: 1.7rem 1.2rem 1rem;
+  margin-bottom: 1rem;
+  overflow-x: auto;
+}
+.output-tag {
+  position: absolute; top: .5rem; left: 1.2rem;
+  font-family: var(--data); font-size: .64rem;
+  letter-spacing: .18em; text-transform: uppercase; color: var(--malachite);
+}
+.output pre {
+  background: none; border: 0; padding: 0; margin: 0;
+  font-family: var(--data); font-size: .85rem;
+  color: var(--quartz); white-space: pre-wrap;
+}
+
+/* Line by line explanation of a code block, for a reader new to programming.
+   Two columns: the fragment of code, and what it does. */
+.annot {
+  display: grid;
+  grid-template-columns: minmax(9rem, auto) 1fr;
+  gap: .1rem 1.2rem;
+  align-items: baseline;
+  max-width: var(--wide);
+  margin: -.4rem 0 1.4rem;
+  padding: .9rem 1.1rem 1rem;
+  border: 1px solid var(--seam);
+  border-top: 0;
+  border-radius: 0 0 2px 2px;
+  background: rgba(201, 162, 39, .04);
+}
+.annot-head {
+  grid-column: 1 / -1;
+  font-family: var(--data);
+  font-size: .64rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  margin-bottom: .5rem;
+}
+.annot dt { padding: .35rem 0; }
+.annot dt code {
+  background: var(--core);
+  color: var(--brass);
+  font-size: .82rem;
+  white-space: nowrap;
+}
+.annot dd {
+  padding: .35rem 0;
+  margin: 0;
+  color: var(--dust);
+  font-size: .93rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(61, 53, 44, .5);
+}
+.annot dt { border-bottom: 1px solid rgba(61, 53, 44, .5); }
+.annot dt:last-of-type, .annot dd:last-of-type { border-bottom: 0; }
+/* The code block sits directly on top of its annotation, as one unit. */
+pre:has(+ .annot) { margin-bottom: 0; border-radius: 2px 2px 0 0; }
+
+@media (max-width: 640px) {
+  .annot { grid-template-columns: 1fr; gap: 0; }
+  .annot dt { border-bottom: 0; padding-bottom: 0; }
+  .annot dd { padding-top: .15rem; }
+}
+
+blockquote {
+  border-left: 2px solid var(--brass);
+  padding: .3rem 0 .3rem 1.3rem;
+  margin: 0 0 1rem;
+  font-family: var(--display);
+  font-size: 1.2rem;
+  font-weight: 400;
+  line-height: 1.4;
+  color: var(--quartz);
+}
+
+/* Tables read as assay data: mono figures, hairline rules, no zebra fill.
+   They take the width they need instead of being stretched to the full column,
+   which is what left a two-column table floating in empty space. */
+.table-wrap { overflow-x: auto; margin-bottom: 1rem; }
+table { border-collapse: collapse; width: auto; max-width: 100%; font-size: .93rem; }
+th, td {
+  border-bottom: 1px solid var(--seam);
+  padding: .55rem .8rem .55rem 0;
+  text-align: left;
+  vertical-align: top;
+}
+th {
+  font-family: var(--data);
+  font-size: .7rem;
+  font-weight: 400;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  border-bottom-color: var(--brass);
+}
+td:first-child { color: var(--quartz); }
+
+/* Review questions: closed by default, so they work as recall practice. */
+details {
+  border-top: 1px solid var(--seam);
+  padding: .9rem 0;
+}
+details:last-child { border-bottom: 1px solid var(--seam); }
+summary {
+  cursor: pointer;
+  font-family: var(--display);
+  font-size: 1.02rem;
+  font-weight: 600;
+  color: var(--quartz);
+  list-style: none;
+  display: flex;
+  gap: .7rem;
+  align-items: baseline;
+}
+summary::-webkit-details-marker { display: none; }
+summary::before {
+  content: '+';
+  font-family: var(--data);
+  color: var(--brass);
+  font-size: .95rem;
+}
+details[open] summary::before { content: '−'; }
+details[open] summary { color: var(--brass); margin-bottom: .7rem; }
+details > *:not(summary) { color: var(--dust); }
+
+figure.fig {
+  margin: 1.6rem 0;
+  border: 1px solid var(--seam);
+  padding: .7rem;
+  background: var(--bench);
+}
+figure.fig img { width: 100%; height: auto; display: block; }
+/* The interactive twin of a figure. Its aspect matches the still one, 10 by 4.4, so a
+   case sheet keeps the same rhythm whichever kind of figure comes next. */
+figure.fig.is-live iframe {
+  width: 100%;
+  /* Matches INTERACTIVE_HEIGHT in src/make_figures.py. It used to be an aspect ratio, and
+     that made the figure's height depend on the window: the caption and the legend are
+     placed at fractions of the plot area, so on a wide screen they were pushed past the
+     bottom margin, clipping the caption and covering the x-axis title. */
+  height: 520px;
+  border: 0;
+  display: block;
+}
+figure.fig figcaption {
+  font-family: var(--data);
+  font-size: .72rem;
+  color: var(--shadowed);
+  margin-top: .6rem;
+  letter-spacing: .04em;
+}
+
+/* File listings on a case sheet */
+.res { list-style: none; margin-left: 0 !important; }
+.res li {
+  display: flex; align-items: baseline; gap: .8rem; flex-wrap: wrap;
+  padding: .5rem 0; border-bottom: 1px solid var(--seam); margin-bottom: 0;
+}
+.res .path { font-family: var(--data); font-size: .74rem; color: var(--shadowed); }
+.res .size { font-family: var(--data); font-size: .74rem; color: var(--shadowed); margin-left: auto; }
+.res .gone { font-family: var(--data); font-size: .74rem; color: var(--hematite); }
+
+.footer {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 2rem 4rem;
+  color: var(--shadowed);
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .03em;
+}
+
+@media (max-width: 640px) {
+  body { font-size: 15px; }
+  .header { padding: 2rem 1.2rem 0; }
+  .container { padding: 0 1.2rem; margin-top: 2rem; }
+  .footer { padding: 0 1.2rem 3rem; }
+}
+
+@media print {
+  body { background: #fff; color: #16130f; }
+  .header { background: none; border-bottom: 1px solid #bbb; padding-top: 0; }
+  .header h1, .section-title, summary { color: #16130f; }
+  .mesh { animation: none; }
+  .section-block { break-inside: avoid; max-width: none; }
+  pre, .output { background: #f6f4f0; border-color: #ccc; }
+  details:not([open]) > *:not(summary) { display: block; }
+  a { color: #16130f; }
+}
+
+</style>
+</head>
+<body>
+<header class="header">
+  <div class="header-content">
+    <div class="eyebrow"><span><a href="https://www.coursera.org/learn/go-beyond-the-numbers-translate-data-into-insight">Go Beyond the Numbers: Translate Data into Insights</a> / Module 2</span><a class="lang-switch" href="../index.html#go-beyond-the-numbers-translate-data-into-insight/m02_explore-raw-data" target="_top" hreflang="es" lang="es" title="Leer esta página en español">Español</a></div>
+    <h1>Explore raw data</h1>
+    <p class="subtitle">The five lines to run before having an opinion about a file, and the three traps they uncover, a grade that sorts wrongly for being stored as text, some dates that put November before September, and a histogram that tells two different stories depending on how many bars you give it.</p>
+    <div class="mesh" role="presentation"></div>
+    <div class="assay"><span><b>7 h</b> course time</span><span><b>9</b> videos</span><span><b>6</b> readings</span><span><b>4</b> assignments</span><span><b>7</b> practice</span><span><b>2</b> interactive</span></div>
+  </div>
+</header>
+<main class="container">
+<section class="section-block "><span class="kicker">Context</span><h2 class="section-title">What this module solves</h2><p>You have a file and you have never seen it. The question is not yet what to conclude, but <strong>what is in there</strong>: how many rows, which columns, what the computer thinks each one is and what is missing.</p><p>It is the part of the work that is not taught and where the expensive mistakes slip in, because none of them produces an error message. A number stored as text sorts wrongly in silence. A date written as text puts November before September. A histogram with few bars turns three groups into one.</p><p>This module is the procedure so that none of those three things happens to you without you noticing.</p></section>
+<section class="section-block is-toy"><span class="kicker">Example</span><h2 class="section-title">Before the theory: a toy example</h2><p>Six laboratory samples, just as they arrive from the system:</p><div class="table-wrap"><table><thead><tr><th>sample</th><th>taken_on</th><th>grade</th><th>shift</th></tr></thead><tbody><tr><td>M-101</td><td>9/1/2026</td><td>28.4</td><td>dia</td></tr><tr><td>M-102</td><td>9/15/2026</td><td>9.7</td><td>noche</td></tr><tr><td>M-103</td><td>10/1/2026</td><td>31.2</td><td>dia</td></tr><tr><td>M-104</td><td>10/20/2026</td><td><em>(empty)</em></td><td>noche</td></tr><tr><td>M-105</td><td>11/3/2026</td><td>30.5</td><td>dia</td></tr><tr><td>M-106</td><td>11/28/2026</td><td>29.8</td><td>noche</td></tr></tbody></table></div><p>Six rows and four columns. It looks as if there is nothing to discover. There are three things.</p><h3 class="sub h3">Step 1. The grade is stored as text</h3><p>If the file brings the grades in quotes, the computer sorts them as words, letter by letter. And comparing letter by letter, <strong>9 is greater than 2</strong>:</p><pre><code>ordenadas como texto:    28.4   29.8   30.5   31.2   9.7
+ordenadas como número:    9.7   28.4   29.8   30.5   31.2</code></pre><p>The lowest grade of the lot, which is exactly the one to look at, <strong>goes to the end of the list</strong>. If you look for the minimum by looking at the first sorted value, you walk away with 28.4.</p><h3 class="sub h3">Step 2. The dates are text too</h3><p>And with the same letter-by-letter criterion, <code>1</code> goes before <code>9</code>:</p><pre><code>ordenadas como texto:    10/1/2026   10/20/2026   11/28/2026   11/3/2026   9/1/2026   9/15/2026
+ordenadas como fecha:    2026-09-01  2026-09-15   2026-10-01   2026-10-20  2026-11-03  2026-11-28</code></pre><p>Two disasters in a single line: <strong>October and November go before September</strong>, and within November, <strong>the 28th goes before the 3rd</strong>. Any trend analysis done on that column without converting it is looking at a scrambled time series.</p><h3 class="sub h3">Step 3. A value is missing, and that changes a mean</h3><p>Sample M-104 has no grade. When grouping by shift:</p><pre><code>turno    muestras    ley media
+día          3         30,03
+noche        2         19,75</code></pre><p>Two things have to be said about that table, and both belong to the module:</p><ul><li><strong>The night mean comes out of two samples, not three.</strong> The gap raises no error, it only shrinks the denominator without warning.</li><li><strong>That 19.75 describes no sample</strong>: it is the average of 9.7 and 29.8. The grade of 9.7 is the real finding, and the average hides it.</li></ul><h3 class="sub h3">Step 4. And a fourth one, with other data: how many bars the histogram has</h3><p>Twelve recoveries of a circuit:</p><pre><code>61  62  63  64      71  72  73  74      81  82  83  84</code></pre><p>With three bars:</p><pre><code>[4, 4, 4]        bordes: 61,0   68,7   76,3   84,0</code></pre><p>A flat split, perfectly boring. With six bars:</p><pre><code>[4, 0, 2, 2, 0, 4]    bordes: 61,0  64,8  68,7  72,5  76,3  80,2  84,0</code></pre><p><strong>Three groups separated by gaps appear.</strong> It is the same data. And the mean is 72.5, which falls inside the middle group: <strong>it describes four of the twelve measurements and says nothing about the other eight</strong>.</p></section>
+<section class="section-block "><span class="kicker">Terms</span><h2 class="section-title">Glossary</h2><ul><li><strong>DataFrame.</strong> The pandas table: rows, named columns and one data type per column.</li><li><strong>Data type.</strong> What the computer thinks each column is: integer, decimal, text, date. <em>dtype</em> for short, and it is the first thing to check.</li><li><strong>Object or text.</strong> The type pandas assigns when it does not recognise numbers. **A numeric column marked as text is the most common failure when opening a file.**</li><li><strong>Null value.</strong> The empty cell, which pandas writes as <code>NaN</code>. It is not a zero: it is an &quot;I do not know&quot;, and treating it as zero changes every mean.</li><li><strong>Datetime.</strong> The data type for dates and times. Converting text to datetime is what allows sorting, subtracting and grouping by month.</li><li><strong>ISO format.</strong> Writing a date as <code>2026-11-03</code>, year, month and day. It has a practical virtue: <strong>sorted as text it comes out the same as sorted as a date</strong>, because the big parts go first.</li><li><strong>Discovering.</strong> The practice of the previous module applied here: getting to know the shape, size and content.</li><li><strong>Structuring.</strong> Reorganising the raw data: sorting, grouping, pivoting, splitting columns.</li><li><strong>Grouping.</strong> Splitting the table by the values of a column and calculating something inside each part. <em>groupby</em> in pandas.</li><li><strong>Histogram.</strong> A chart that splits the values into intervals and counts how many fall in each one. <strong>The number of intervals is your decision and it changes what it seems to say.</strong></li><li><strong>Data provenance.</strong> Where it came from: who measured it, with what and when. It determines what can be trusted.</li></ul></section>
+<section class="section-block is-recipe"><span class="kicker">Method</span><h2 class="section-title">Step by step</h2><h3 class="sub h3">Step 1. Ask where the data comes from</h3><p>Before the first line of code, and it is not a formality. <strong>Data collected by hand, data that comes out of a sensor and data that comes from a form a customer fills in have different errors</strong>, and looking for the ones that are not there is a waste of time.</p><div class="table-wrap"><table><thead><tr><th>Where it comes from</th><th>What fails there</th></tr></thead><tbody><tr><td>Typed in by hand</td><td>Typos, mixed units, empty cells</td></tr><tr><td>Automatic sensor</td><td>Runs of repeated values, gaps from outages, drifts</td></tr><tr><td>User form</td><td>Blank answers, free text where there should have been an option</td></tr><tr><td>Another system, already aggregated</td><td><strong>You already lost the spread inside and cannot get it back</strong></td></tr></tbody></table></div><p>The last row is the most important and the least obvious: if you are handed means per shift, there is no way of knowing whether there was variability within a shift.</p><h3 class="sub h3">Step 2. The ritual of the five lines</h3><p>Always the same five, always in this order:</p><div class="table-wrap"><table><thead><tr><th>Line</th><th>What it answers</th><th>What you are looking for</th></tr></thead><tbody><tr><td><code>df.shape</code></td><td>The size of the problem</td><td>Is it 500 rows or 700,000?</td></tr><tr><td><code>df.info()</code></td><td>Types and non-nulls at once</td><td>Numeric columns marked as text</td></tr><tr><td><code>df.describe()</code></td><td>Minimum, maximum, mean</td><td><strong>Impossible values</strong>, not striking ones</td></tr><tr><td><code>df.head(10)</code></td><td>What a real row looks like</td><td>What no summary shows</td></tr><tr><td><code>df.isna().sum()</code></td><td>Where the gaps are</td><td>Whether they concentrate in one column or in a few rows</td></tr></tbody></table></div><p>About <code>describe()</code>, the right question is not which numbers come out. It is <strong>which ones are impossible</strong>: a negative fare, a grade of 150%, an age of 200 years, a date in 1970 in this year&#x27;s data.</p><h3 class="sub h3">Step 3. Fix the types before touching anything else</h3><p>Two conversions and in that order, because everything else depends on them:</p><ol><li><strong>The numbers to number</strong>, with <code>pd.to_numeric</code>.</li><li><strong>The dates to date</strong>, with <code>pd.to_datetime</code> <strong>telling it the format</strong>.</li></ol><p>The format matters: <code>9/1/2026</code> can be September 1 or January 9, and the difference between the two readings is not settled by anyone guessing. It is said explicitly with <code>format=&quot;%m/%d/%Y&quot;</code>.</p><p>And once the column is a date, what was needed opens up: extracting the month, subtracting two dates to get a duration, grouping by week.</p><h3 class="sub h3">Step 4. Structure so that the story appears</h3><p>Four operations that cover almost everything:</p><div class="table-wrap"><table><thead><tr><th>Operation</th><th>What for</th></tr></thead><tbody><tr><td><strong>Sort</strong> by a column</td><td>Seeing extremes and trends</td></tr><tr><td><strong>Group</strong> and summarise</td><td>Comparing segments</td></tr><tr><td><strong>Filter</strong></td><td>Isolating the piece that matters</td></tr><tr><td><strong>Pivot</strong></td><td>Crossing two variables in a table</td></tr></tbody></table></div><p>And the rule of the previous module still stands: <strong>after each one, validate</strong>. Are they still the same rows? Does the count per group add up to the total?</p><h3 class="sub h3">Step 5. Draw the histogram more than once</h3><p>The number of bars is not an aesthetic detail, it is an analytical decision. The healthy habit is to <strong>try three cuts</strong> before concluding anything about the shape:</p><ul><li><strong>Few bars</strong> flatten the story and merge distinct groups into one.</li><li><strong>Too many</strong> turn noise into peaks that look meaningful.</li><li><strong>The useful point</strong> is usually where the shape stops changing when one more bar is added.</li></ul><p>And one check that is worth many: <strong>look at whether the mean falls where there is no data</strong>. If so, you have more than one group and the mean describes nobody.</p></section>
+<section class="section-block is-recipe"><span class="kicker">Code</span><h2 class="section-title">The code, in parts</h2><h3 class="sub h3">Step 1. The five lines on the six samples</h3><pre><code class="language-python">import numpy as np
+import pandas as pd
+
+lab = pd.DataFrame({
+    &quot;sample&quot;:   [&quot;M-101&quot;, &quot;M-102&quot;, &quot;M-103&quot;, &quot;M-104&quot;, &quot;M-105&quot;, &quot;M-106&quot;],
+    &quot;taken_on&quot;: [&quot;9/1/2026&quot;, &quot;9/15/2026&quot;, &quot;10/1/2026&quot;, &quot;10/20/2026&quot;, &quot;11/3/2026&quot;,
+                 &quot;11/28/2026&quot;],
+    &quot;grade&quot;:    [&quot;28.4&quot;, &quot;9.7&quot;, &quot;31.2&quot;, None, &quot;30.5&quot;, &quot;29.8&quot;],
+    &quot;shift&quot;:    [&quot;dia&quot;, &quot;noche&quot;, &quot;dia&quot;, &quot;noche&quot;, &quot;dia&quot;, &quot;noche&quot;],
+})
+
+print(&quot;shape:&quot;, lab.shape)
+lab.info()
+print()
+print(lab.isna().sum().to_string())</code></pre><dl class="annot"><div class="annot-head">line by line</div><dt><code>None</code></dt><dd>The way of writing a missing value in Python. Inside a DataFrame pandas turns it into <code>NaN</code>, which is what shows when printing.</dd><dt><code>lab.shape</code></dt><dd>Rows and columns, in that order. It returns a pair of numbers, not text.</dd><dt><code>lab.info()</code></dt><dd><strong>It is not printed with <code>print</code></strong>: the function already writes on its own and returns nothing. It is a common slip to write <code>print(lab.info())</code> and see a <code>None</code> at the end.</dd><dt><code>lab.isna()</code></dt><dd>A table of the same size with true wherever the value is missing.</dd><dt><code>.sum()</code></dt><dd>On that table of trues and falses, it adds by column counting each true as 1. That is why the result is how many gaps each column has.</dd><dt><code>.to_string()</code></dt><dd>Forces printing the whole series without trimming. With six rows it makes no difference, with six hundred it does.</dd></dl><div class="output"><span class="output-tag">prints</span><pre>shape: (6, 4)
+&lt;class &#x27;pandas.DataFrame&#x27;&gt;
+RangeIndex: 6 entries, 0 to 5
+Data columns (total 4 columns):
+ #   Column    Non-Null Count  Dtype
+---  ------    --------------  -----
+ 0   sample    6 non-null      str
+ 1   taken_on  6 non-null      str
+ 2   grade     5 non-null      str
+ 3   shift     6 non-null      str
+dtypes: str(4)
+
+sample      0
+taken_on    0
+grade       1
+shift       0</pre></div><p>Three findings in a single output: <strong>all four columns are text</strong>, including the grade and the date; the grade has <strong>5 non-nulls out of 6</strong>; and the rest is complete.</p><h3 class="sub h3">Step 2. See the disaster of sorting text</h3><pre><code class="language-python">print(&quot;ley como texto: &quot;, sorted(lab.grade.dropna()))
+lab[&quot;grade&quot;] = pd.to_numeric(lab.grade)
+print(&quot;ley como numero:&quot;, sorted(lab.grade.dropna()))
+
+print(&quot;fechas como texto:&quot;, sorted(lab.taken_on))
+lab[&quot;taken_on&quot;] = pd.to_datetime(lab.taken_on, format=&quot;%m/%d/%Y&quot;)</code></pre><dl class="annot"><div class="annot-head">line by line</div><dt><code>.dropna()</code></dt><dd>Removes the missing values. It is needed because <code>sorted</code> does not know how to compare a gap with a number and raises an error.</dd><dt><code>sorted(...)</code></dt><dd>The Python function that sorts. On text it compares letter by letter, and there is the problem.</dd><dt><code>pd.to_numeric(lab.grade)</code></dt><dd>Converts the column to number. If some cell were not convertible, it warns with an error instead of letting it through, which is what one wants.</dd><dt><code>lab[&quot;grade&quot;] = ...</code></dt><dd>Reassigns the column on the table itself. From this line on, <code>grade</code> is numeric everywhere.</dd><dt><code>format=&quot;%m/%d/%Y&quot;</code></dt><dd>Month, day and year. <strong>Telling it is not optional</strong>: <code>9/1/2026</code> can be September 1 or January 9, and guessing it is how an analysis with swapped dates gets produced.</dd></dl><div class="output"><span class="output-tag">prints</span><pre>ley como texto:  [&#x27;28.4&#x27;, &#x27;29.8&#x27;, &#x27;30.5&#x27;, &#x27;31.2&#x27;, &#x27;9.7&#x27;]
+ley como numero: [9.7, 28.4, 29.8, 30.5, 31.2]
+fechas como texto: [&#x27;10/1/2026&#x27;, &#x27;10/20/2026&#x27;, &#x27;11/28/2026&#x27;, &#x27;11/3/2026&#x27;, &#x27;9/1/2026&#x27;, &#x27;9/15/2026&#x27;]</pre></div><p>The grade of 9.7 goes from being last to being first. And in the dates, <strong>November before September and the 28th before the 3rd</strong>.</p><h3 class="sub h3">Step 3. Sort and group, now with the types right</h3><pre><code class="language-python">ordered = lab.sort_values(&quot;taken_on&quot;)
+print(ordered.assign(taken_on=ordered.taken_on.dt.strftime(&quot;%Y-%m-%d&quot;)).to_string(index=False))
+print()
+print(lab.groupby(&quot;shift&quot;).grade.agg([&quot;count&quot;, &quot;mean&quot;]).round(2).to_string())</code></pre><dl class="annot"><div class="annot-head">line by line</div><dt><code>.sort_values(&quot;taken_on&quot;)</code></dt><dd>Sorts the table by that column. It returns a new table and <strong>does not touch the original</strong>, which is the default behaviour of almost everything in pandas.</dd><dt><code>.assign(taken_on=...)</code></dt><dd>Creates or replaces a column on a copy. It is used here only to print the date nicely without spoiling the datetime type of the table.</dd><dt><code>.dt.strftime(&quot;%Y-%m-%d&quot;)</code></dt><dd>The <code>.dt</code> accessor gives the date operations of a whole column. <code>strftime</code> writes it in the format you ask for, here ISO.</dd><dt><code>to_string(index=False)</code></dt><dd>Prints without the index column, which adds nothing here.</dd><dt><code>.groupby(&quot;shift&quot;)</code></dt><dd>Splits the table into groups according to the value of that column.</dd><dt><code>.agg([&quot;count&quot;, &quot;mean&quot;])</code></dt><dd>Calculates several things at once on each group. <strong><code>count</code> counts the non-nulls</strong>, not the rows, and that is why it gives away the gap.</dd></dl><div class="output"><span class="output-tag">prints</span><pre>sample   taken_on  grade shift
+ M-101 2026-09-01   28.4   dia
+ M-102 2026-09-15    9.7 noche
+ M-103 2026-10-01   31.2   dia
+ M-104 2026-10-20    NaN noche
+ M-105 2026-11-03   30.5   dia
+ M-106 2026-11-28   29.8 noche
+
+       count   mean
+shift
+dia        3  30.03
+noche      2  19.75</pre></div><p>The <code>count</code> column is the one to look at: <strong>the night shift has 2 and not 3</strong>. And its mean of 19.75 describes no real sample, because it averages a 9.7 with a 29.8.</p><h3 class="sub h3">Step 4. The histogram, twice</h3><pre><code class="language-python">recoveries = np.array([61, 62, 63, 64, 71, 72, 73, 74, 81, 82, 83, 84])
+
+for bins in (3, 6):
+    counts, edges = np.histogram(recoveries, bins=bins)
+    print(f&quot;{bins} barras: {counts.tolist()}   bordes {np.round(edges, 1).tolist()}&quot;)
+print(f&quot;media {recoveries.mean()}   mediana {np.median(recoveries)}&quot;)</code></pre><dl class="annot"><div class="annot-head">line by line</div><dt><code>np.histogram(x, bins=n)</code></dt><dd>Counts how many values fall in each interval, <strong>without drawing anything</strong>. It returns the counts and the edges, which is exactly what is needed to check a histogram with numbers instead of by eye.</dd><dt><code>counts, edges =</code></dt><dd>Two values returned, two names. The edges are always one more than the counts, because each interval needs a start and an end.</dd><dt><code>.tolist()</code></dt><dd>Turns the numpy vector into an ordinary Python list, which prints more cleanly.</dd><dt><code>for bins in (3, 6)</code></dt><dd>The same calculation with two different cuts, which is the check the module asks you to always do.</dd></dl><div class="output"><span class="output-tag">prints</span><pre>3 barras: [4, 4, 4]   bordes [61.0, 68.7, 76.3, 84.0]
+6 barras: [4, 0, 2, 2, 0, 4]   bordes [61.0, 64.8, 68.7, 72.5, 76.3, 80.2, 84.0]
+media 72.5   mediana 72.5</pre></div><p>With three bars, a flat split with nothing to tell. With six, <strong>three groups separated by two empty gaps</strong>. And the mean and the median are both 72.5, which falls inside the central group: <strong>the summary describes four measurements out of twelve and does not mention that the other eight exist</strong>.</p></section>
+<section class="section-block is-warning"><span class="kicker">Traps</span><h2 class="section-title">Watch out</h2><ul><li><strong>A numeric column stored as text sorts wrongly and does not warn.</strong> The 9.7 goes to the end. Checking the types with <code>info()</code> is the first line of defence.</li><li><strong>A date as text puts November before September.</strong> And the 28th before the 3rd.</li><li><strong>When converting dates, tell it the format.</strong> <code>9/1/2026</code> is ambiguous and guessing it produces analyses with the months swapped.</li><li><strong><code>count</code> counts non-nulls, not rows.</strong> It is what gives away that a mean came out of less data than you think.</li><li><strong>A gap is not a zero.</strong> Treating it as zero lowers every mean without anything complaining.</li><li><strong><code>describe()</code> only looks at the numeric columns</strong> by default. The text ones, with their unexpected categories, have to be asked for separately.</li><li><strong>The number of bars of a histogram changes the conclusion.</strong> Try three cuts before talking about the shape.</li><li><strong>A mean can describe a small part of the set.</strong> With three groups, the 72.5 of the example portrays four measurements out of twelve. If the histogram shows groups, they are reported separately.</li><li><strong><code>info()</code> is not printed with <code>print</code>.</strong> It writes on its own and returns nothing.</li></ul></section>
+<section class="section-block is-bridge"><span class="kicker">Analogy</span><h2 class="section-title">Metallurgical bridge</h2><p>The ritual of the five lines is <strong>the inspection of the sample before sending it to the laboratory</strong>, and you do it without thinking: how many bags arrived, whether they come labelled, whether the weight matches the dispatch note, whether any came wet.</p><p>Nobody sends a lot for analysis without looking at the bags. This module is the same thing with a file.</p><div class="table-wrap"><table><thead><tr><th>At the plant</th><th>In the file</th></tr></thead><tbody><tr><td>Counting the bags that arrived</td><td><code>df.shape</code></td></tr><tr><td>Checking that they all carry a label</td><td><code>df.info()</code>, the types</td></tr><tr><td>Looking for the bag without a label</td><td><code>df.isna().sum()</code></td></tr><tr><td>Seeing whether any weight is impossible</td><td><code>df.describe()</code>, minimums and maximums</td></tr><tr><td>Opening one and looking at it</td><td><code>df.head(10)</code></td></tr></tbody></table></div><p>And the three traps have their exact equivalent:</p><p><strong>The grade stored as text</strong> is the certificate that arrives with the decimal comma where the point goes, and that on importing turns a 2.5% into a 25%. It has happened in real plants.</p><p><strong>The scrambled dates</strong> are the log filed by file name instead of by date, with November in front of September.</p><p><strong>The histogram with few bars</strong> is the particle size analysis with too few sieves: if you skip meshes, two populations of particles merge into a single fraction and the report says the grind is uniform when it is not. <strong>The resolution you measure with decides what you can see</strong>, and that holds equally for a sieve and for a histogram interval.</p></section>
+<section class="section-block is-review"><span class="kicker">Review</span><h2 class="section-title">Review</h2><details><summary>Why is it dangerous for a numeric column to be stored as text?</summary><p>Because it sorts and compares letter by letter instead of by value, and gives no error. In the module&#x27;s example, the grades sorted as text come out 28.4, 29.8, 30.5, 31.2 and 9.7: the lowest of the lot, which is precisely the one that had to be investigated, ends up last. Besides, it cannot be averaged or subtracted until converted. It is detected with <code>df.info()</code>, looking at the types column, and fixed with <code>pd.to_numeric</code> before touching anything else.</p></details><details><summary>What are the five lines and what does each one look for?</summary><p><code>df.shape</code> gives the size of the problem, <code>df.info()</code> the types and the non-nulls at once, <code>df.describe()</code> the minimums and maximums where impossible values are looked for rather than striking ones, <code>df.head(10)</code> what a real row looks like, and <code>df.isna().sum()</code> where the gaps are and how many. They are always run in that order and before having any opinion about the file. The only one that tends to be misread is <code>describe()</code>: the question is not which numbers come out, but which are impossible for the phenomenon being measured.</p></details><details><summary>When converting dates, why does the format have to be given?</summary><p>Because a date like <code>9/1/2026</code> is ambiguous: it can be September 1 or January 9, and no universal rule settles it, since some countries write month then day and others the other way round. If it is not given, the library guesses, and if it guesses wrong the analysis comes out with the months swapped without any warning. It is said explicitly with <code>format=&quot;%m/%d/%Y&quot;</code>. As a habit, storing and writing dates in ISO format, <code>2026-11-03</code>, avoids the problem at the root, because in that format the alphabetical order matches the chronological one.</p></details><details><summary>The same data drawn with 3 and with 6 bars gives two stories. Which is the right one?</summary><p>Neither of the two on its own: the conclusion is that several cuts have to be tried before talking about the shape. With 3 bars the twelve recoveries come out [4, 4, 4], a flat split with nothing to tell; with 6 they come out [4, 0, 2, 2, 0, 4] and three groups separated by gaps appear. Few bars merge distinct groups and too many turn noise into peaks. And the histogram with six lets you see something no summary says: the mean, 72.5, falls inside the central group, so it describes four measurements out of twelve and is silent about the other eight existing. When the drawing shows groups, they are reported separately.</p></details><details><summary>Why does it matter to know where the data comes from before analysing it?</summary><p>Because the origin determines which errors to look for, and looking for the ones that are not there is wasted time. Data typed by hand brings typos and mixed units; sensor data brings repeated runs and gaps from outages; form data brings blank answers and free text. And the most important case is data that arrives already aggregated: if you are handed means per shift, the spread that existed within each shift was lost and there is no way of recovering it, so there are questions that file can no longer answer however much it is analysed.</p></details></section>
+</main>
+<footer class="footer">
+  Concentra / distilled from the public syllabus of the course / 2026-08-22
+</footer>
+</body>
+</html>

@@ -1,0 +1,497 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Course 2 end-of-course project · Go Beyond the Numbers: Translate Data into Insights</title>
+<link rel="alternate" hreflang="es" href="m05_course-2-end-of-course-project.html">
+<style>
+/* ============================================================================
+   Concentra — design tokens and shared components.
+   Inlined into every generated page by load_style(), so pages stay self-contained
+   and work offline from file:// with no external requests.
+
+   Direction: an assay lab, not a tech dashboard. The palette is taken from ore
+   and lab materials (chalcopyrite brass, malachite, hematite, quartz) on warm
+   graphite rather than the blue-black + neon of a generic dark UI. Type is
+   Bahnschrift, the DIN-descended grotesque that Windows ships and that lives on
+   machinery plates and technical drawings, over Corbel for reading.
+   ========================================================================== */
+
+:root {
+  /* Ground and surfaces: warm graphite, the colour of rock dust, not blue-black */
+  --rock: #1a1714;
+  --bench: #221e19;
+  --core: #2b251f;
+  --seam: #3d352c;
+
+  /* Ore palette. No blue and no purple anywhere: those are the tones that make a
+     page read as generated, and this palette comes from the ores instead. */
+  --brass: #c9a227;      /* chalcopyrite, the primary accent */
+  --malachite: #5d9b7a;  /* verified output, results that came out right */
+  --hematite: #b04a35;   /* iron oxide, pitfalls and warnings */
+
+  /* Text */
+  --quartz: #ece7de;
+  --dust: #9a9186;
+  --shadowed: #6f675c;
+
+  --display: Bahnschrift, 'DIN Alternate', 'Segoe UI Semibold', system-ui, sans-serif;
+  --body: Corbel, Candara, 'Segoe UI', system-ui, sans-serif;
+  --data: Consolas, 'Cascadia Mono', ui-monospace, monospace;
+
+  /* In px, not ch: ch scales with font-size, so a heading ended up wider than a
+     paragraph and the page had four different right edges instead of two. */
+  --measure: 640px;
+  --wide: 900px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--rock);
+  color: var(--quartz);
+  font-family: var(--body);
+  font-size: 16px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection { background: var(--brass); color: var(--rock); }
+
+:focus-visible {
+  outline: 2px solid var(--brass);
+  outline-offset: 3px;
+}
+
+/* --------------------------------------------------------------- the signature
+   A sieve series: ticks that get finer from left to right, coarse feed to fine
+   concentrate. It is the one ornament on the page and appears exactly twice —
+   under the wordmark and under a page title. */
+.mesh {
+  height: 10px;
+  background-image:
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 16px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 9px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 5px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 3px);
+  background-size: 25% 100%;
+  background-position: 0 0, 25% 0, 50% 0, 75% 0;
+  background-repeat: no-repeat;
+  opacity: .8;
+  transform-origin: left center;
+  animation: sieve .55s cubic-bezier(.2, .8, .3, 1) both;
+}
+@keyframes sieve { from { transform: scaleX(0); opacity: 0; } to { transform: scaleX(1); opacity: .8; } }
+@media (prefers-reduced-motion: reduce) {
+  .mesh { animation: none; }
+  * { transition: none !important; }
+}
+
+/* ------------------------------------------------------------------ page head */
+.header {
+  border-bottom: 1px solid var(--seam);
+  padding: 3.2rem 2rem 0;
+  background: linear-gradient(180deg, #221d16 0%, var(--rock) 100%);
+}
+.header-content { max-width: 1080px; margin: 0 auto; }
+
+.eyebrow {
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--brass);
+  margin-bottom: 1rem;
+  display: flex; flex-wrap: wrap; align-items: center;
+  justify-content: space-between; gap: .6rem 1rem;
+}
+.eyebrow a { color: inherit; text-decoration: none; border-bottom: 1px solid transparent; }
+.eyebrow a:hover { border-bottom-color: var(--brass); }
+/* The way to the other edition of this page. It targets the shell, not the bare
+   page, so the sidebar follows the language too. */
+.eyebrow .lang-switch {
+  margin-left: auto; border: 1px solid var(--seam); border-radius: 2px;
+  padding: .22rem .6rem; color: var(--dust); font-size: .68rem; letter-spacing: .1em;
+}
+.eyebrow .lang-switch:hover { color: var(--brass); border-color: var(--brass); }
+
+.header h1 {
+  font-family: var(--display);
+  font-size: clamp(2rem, 4.5vw, 3.1rem);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -.015em;
+  color: var(--quartz);
+  max-width: 20ch;
+}
+.header .subtitle {
+  color: var(--dust);
+  max-width: var(--measure);
+  margin-top: 1rem;
+  font-size: 1.02rem;
+}
+.header .mesh { margin: 1.8rem 0 0; }
+
+/* An assay line: the real composition of the module, in lab-report shorthand. */
+.assay {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.4rem;
+  font-family: var(--data);
+  font-size: .78rem;
+  color: var(--shadowed);
+  padding: .9rem 0 1.6rem;
+  letter-spacing: .04em;
+}
+.assay b { color: var(--dust); font-weight: 400; }
+
+/* --------------------------------------------------------------------- layout */
+/* The container hugs the widest block, so there is no orphan edge past the content. */
+.container { max-width: var(--wide); margin: 3rem auto 5rem; padding: 0 2rem; }
+
+/* Two deliberate right edges and no more: prose stops at the reading measure, and
+   only the things that genuinely need room (code, output, figures, big tables) run
+   out to the full column. */
+.section-block {
+  border-top: 1px solid var(--seam);
+  padding: 2rem 0 2.4rem;
+}
+.section-block > p,
+.section-block > ul,
+.section-block > ol,
+.section-block h3.sub,
+.section-block h4.sub,
+.section-block blockquote,
+details > *:not(summary) { max-width: var(--measure); }
+.section-block:first-child { border-top: 0; padding-top: .5rem; }
+
+/* The kicker names what kind of content follows: context, method, pitfalls.
+   It replaces decorative icons with something that actually classifies. */
+.kicker {
+  font-family: var(--data);
+  font-size: .68rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  display: block;
+  margin-bottom: .5rem;
+}
+.section-title {
+  font-family: var(--display);
+  font-size: 1.55rem;
+  font-weight: 600;
+  letter-spacing: -.01em;
+  line-height: 1.2;
+  margin-bottom: 1.2rem;
+  color: var(--quartz);
+}
+.is-warning .kicker { color: var(--hematite); }
+.is-warning .section-title { color: #e8c4b8; }
+.is-bridge .kicker, .is-decision .kicker { color: var(--malachite); }
+.is-toy .kicker, .is-result .kicker, .is-question .kicker { color: var(--brass); }
+
+/* ---------------------------------------------------------------------- prose */
+/* Justified with hyphenation. In Spanish, justifying without hyphens opens rivers of
+   white space and reads worse than ragged right; lang="es" is what feeds the
+   dictionary. Tables, code, captions and summaries stay ragged on purpose. */
+.section-block p,
+.section-block li,
+details > *:not(summary) {
+  text-align: justify;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+}
+.section-block p { margin-bottom: 1rem; }
+.section-block p:last-child { margin-bottom: 0; }
+/* Indent with padding, not margin, so the bullet sits inside the measure instead of
+   pushing the list 1.2rem past the right edge of the paragraphs. */
+.section-block ul, .section-block ol { margin: 0 0 1rem; padding-left: 1.2rem; }
+.section-block li { margin-bottom: .55rem; padding-left: .2rem; }
+.section-block li::marker { color: var(--brass); }
+td, th, figcaption, .res li, .assay { text-align: left; hyphens: manual; }
+a { color: var(--brass); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+a:hover { text-decoration-thickness: 2px; }
+strong { color: #fff; font-weight: 700; }
+em { color: var(--dust); font-style: italic; }
+
+h3.sub {
+  font-family: var(--display);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--brass);
+  margin: 2rem 0 .7rem;
+  letter-spacing: -.005em;
+}
+h3.sub:first-child { margin-top: 0; }
+h4.sub {
+  font-family: var(--display);
+  font-size: .98rem;
+  font-weight: 600;
+  color: var(--dust);
+  margin: 1.3rem 0 .5rem;
+}
+
+code {
+  font-family: var(--data);
+  font-size: .9em;
+  background: var(--core);
+  border-radius: 3px;
+  padding: .08rem .32rem;
+  color: var(--brass);
+}
+pre {
+  background: #14110e;
+  border: 1px solid var(--seam);
+  border-left: 2px solid var(--seam);
+  border-radius: 2px;
+  padding: 1.1rem 1.2rem;
+  overflow-x: auto;
+  margin-bottom: 1rem;
+}
+pre code {
+  background: none; padding: 0; color: var(--quartz);
+  font-size: .87rem; line-height: 1.6;
+}
+
+/* What the code prints. Malachite: the material that came out of the process. */
+.output {
+  position: relative;
+  border: 1px solid rgba(93, 155, 122, .32);
+  border-left: 2px solid var(--malachite);
+  border-radius: 2px;
+  background: rgba(93, 155, 122, .06);
+  padding: 1.7rem 1.2rem 1rem;
+  margin-bottom: 1rem;
+  overflow-x: auto;
+}
+.output-tag {
+  position: absolute; top: .5rem; left: 1.2rem;
+  font-family: var(--data); font-size: .64rem;
+  letter-spacing: .18em; text-transform: uppercase; color: var(--malachite);
+}
+.output pre {
+  background: none; border: 0; padding: 0; margin: 0;
+  font-family: var(--data); font-size: .85rem;
+  color: var(--quartz); white-space: pre-wrap;
+}
+
+/* Line by line explanation of a code block, for a reader new to programming.
+   Two columns: the fragment of code, and what it does. */
+.annot {
+  display: grid;
+  grid-template-columns: minmax(9rem, auto) 1fr;
+  gap: .1rem 1.2rem;
+  align-items: baseline;
+  max-width: var(--wide);
+  margin: -.4rem 0 1.4rem;
+  padding: .9rem 1.1rem 1rem;
+  border: 1px solid var(--seam);
+  border-top: 0;
+  border-radius: 0 0 2px 2px;
+  background: rgba(201, 162, 39, .04);
+}
+.annot-head {
+  grid-column: 1 / -1;
+  font-family: var(--data);
+  font-size: .64rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  margin-bottom: .5rem;
+}
+.annot dt { padding: .35rem 0; }
+.annot dt code {
+  background: var(--core);
+  color: var(--brass);
+  font-size: .82rem;
+  white-space: nowrap;
+}
+.annot dd {
+  padding: .35rem 0;
+  margin: 0;
+  color: var(--dust);
+  font-size: .93rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(61, 53, 44, .5);
+}
+.annot dt { border-bottom: 1px solid rgba(61, 53, 44, .5); }
+.annot dt:last-of-type, .annot dd:last-of-type { border-bottom: 0; }
+/* The code block sits directly on top of its annotation, as one unit. */
+pre:has(+ .annot) { margin-bottom: 0; border-radius: 2px 2px 0 0; }
+
+@media (max-width: 640px) {
+  .annot { grid-template-columns: 1fr; gap: 0; }
+  .annot dt { border-bottom: 0; padding-bottom: 0; }
+  .annot dd { padding-top: .15rem; }
+}
+
+blockquote {
+  border-left: 2px solid var(--brass);
+  padding: .3rem 0 .3rem 1.3rem;
+  margin: 0 0 1rem;
+  font-family: var(--display);
+  font-size: 1.2rem;
+  font-weight: 400;
+  line-height: 1.4;
+  color: var(--quartz);
+}
+
+/* Tables read as assay data: mono figures, hairline rules, no zebra fill.
+   They take the width they need instead of being stretched to the full column,
+   which is what left a two-column table floating in empty space. */
+.table-wrap { overflow-x: auto; margin-bottom: 1rem; }
+table { border-collapse: collapse; width: auto; max-width: 100%; font-size: .93rem; }
+th, td {
+  border-bottom: 1px solid var(--seam);
+  padding: .55rem .8rem .55rem 0;
+  text-align: left;
+  vertical-align: top;
+}
+th {
+  font-family: var(--data);
+  font-size: .7rem;
+  font-weight: 400;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  border-bottom-color: var(--brass);
+}
+td:first-child { color: var(--quartz); }
+
+/* Review questions: closed by default, so they work as recall practice. */
+details {
+  border-top: 1px solid var(--seam);
+  padding: .9rem 0;
+}
+details:last-child { border-bottom: 1px solid var(--seam); }
+summary {
+  cursor: pointer;
+  font-family: var(--display);
+  font-size: 1.02rem;
+  font-weight: 600;
+  color: var(--quartz);
+  list-style: none;
+  display: flex;
+  gap: .7rem;
+  align-items: baseline;
+}
+summary::-webkit-details-marker { display: none; }
+summary::before {
+  content: '+';
+  font-family: var(--data);
+  color: var(--brass);
+  font-size: .95rem;
+}
+details[open] summary::before { content: '−'; }
+details[open] summary { color: var(--brass); margin-bottom: .7rem; }
+details > *:not(summary) { color: var(--dust); }
+
+figure.fig {
+  margin: 1.6rem 0;
+  border: 1px solid var(--seam);
+  padding: .7rem;
+  background: var(--bench);
+}
+figure.fig img { width: 100%; height: auto; display: block; }
+/* The interactive twin of a figure. Its aspect matches the still one, 10 by 4.4, so a
+   case sheet keeps the same rhythm whichever kind of figure comes next. */
+figure.fig.is-live iframe {
+  width: 100%;
+  /* Matches INTERACTIVE_HEIGHT in src/make_figures.py. It used to be an aspect ratio, and
+     that made the figure's height depend on the window: the caption and the legend are
+     placed at fractions of the plot area, so on a wide screen they were pushed past the
+     bottom margin, clipping the caption and covering the x-axis title. */
+  height: 520px;
+  border: 0;
+  display: block;
+}
+figure.fig figcaption {
+  font-family: var(--data);
+  font-size: .72rem;
+  color: var(--shadowed);
+  margin-top: .6rem;
+  letter-spacing: .04em;
+}
+
+/* File listings on a case sheet */
+.res { list-style: none; margin-left: 0 !important; }
+.res li {
+  display: flex; align-items: baseline; gap: .8rem; flex-wrap: wrap;
+  padding: .5rem 0; border-bottom: 1px solid var(--seam); margin-bottom: 0;
+}
+.res .path { font-family: var(--data); font-size: .74rem; color: var(--shadowed); }
+.res .size { font-family: var(--data); font-size: .74rem; color: var(--shadowed); margin-left: auto; }
+.res .gone { font-family: var(--data); font-size: .74rem; color: var(--hematite); }
+
+.footer {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 2rem 4rem;
+  color: var(--shadowed);
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .03em;
+}
+
+@media (max-width: 640px) {
+  body { font-size: 15px; }
+  .header { padding: 2rem 1.2rem 0; }
+  .container { padding: 0 1.2rem; margin-top: 2rem; }
+  .footer { padding: 0 1.2rem 3rem; }
+}
+
+@media print {
+  body { background: #fff; color: #16130f; }
+  .header { background: none; border-bottom: 1px solid #bbb; padding-top: 0; }
+  .header h1, .section-title, summary { color: #16130f; }
+  .mesh { animation: none; }
+  .section-block { break-inside: avoid; max-width: none; }
+  pre, .output { background: #f6f4f0; border-color: #ccc; }
+  details:not([open]) > *:not(summary) { display: block; }
+  a { color: #16130f; }
+}
+
+</style>
+</head>
+<body>
+<header class="header">
+  <div class="header-content">
+    <div class="eyebrow"><span><a href="https://www.coursera.org/learn/go-beyond-the-numbers-translate-data-into-insight">Go Beyond the Numbers: Translate Data into Insights</a> / Module 5</span><a class="lang-switch" href="../index.html#go-beyond-the-numbers-translate-data-into-insight/m05_course-2-end-of-course-project" target="_top" hreflang="es" lang="es" title="Leer esta página en español">Español</a></div>
+    <h1>Course 2 end-of-course project</h1>
+    <p class="subtitle">The deliverable of the course is three files explored and described. All three are done, and all three taught the same thing from different places, the defect that matters is not found by an automatic rule, it is found by someone who knows what is impossible.</p>
+    <div class="mesh" role="presentation"></div>
+    <div class="assay"><span><b>7 h</b> course time</span><span><b>4</b> videos</span><span><b>10</b> readings</span><span><b>4</b> assignments</span><span><b>6</b> practice</span></div>
+  </div>
+</header>
+<main class="container">
+<section class="section-block "><span class="kicker">Context</span><h2 class="section-title">What this module solves</h2><p>The four previous modules taught how to explore, clean and tell. This is the delivery, and its job is the one almost never taught: <strong>saying what a file does not yet allow you to do</strong>.</p><p>They are three company scenarios, the same three that reappear in the following courses with more ambitious questions. Here the question is the first of all: <strong>which parts of this data can be trusted?</strong></p><p>All three are done, so this module does not explain how they would be done: it links to what came out.</p></section>
+<section class="section-block "><span class="kicker">Note</span><h2 class="section-title">The three cases, and what each one taught</h2><div class="table-wrap"><table><thead><tr><th>Project</th><th>What was being looked for</th><th>What turned up</th></tr></thead><tbody><tr><td><strong>Waze</strong></td><td>Describing the file before modelling</td><td><strong>461 users drive more than 24 hours in a day</strong></td></tr><tr><td><strong>TikTok</strong></td><td>Seeing whether the file says something on its own</td><td>A claim is viewed <strong>101 times</strong> more than an opinion</td></tr><tr><td><strong>Automatidata</strong></td><td>Preparing a year of trips</td><td>Almost a third of the business happens <strong>in four hours</strong></td></tr></tbody></table></div><h3 class="sub h3">Waze: the defect no automatic rule flags</h3><p>The file passes every routine check. No duplicates, no missing values outside the label, clean categories, and the outlier candidates by the interquartile range criterion are a perfectly normal 3 to 5%.</p><p>The problem appears <strong>when building a variable the file does not bring</strong>: kilometres per driving day. There, 1,994 users come out above 1,000 km in a single day and <strong>461 above 24 hours at the wheel in a day</strong>, with a maximum of 172 hours.</p><p>No statistical rule would have flagged it, because <strong>it is not an extreme value, it is an impossible value</strong>, and to know that 172 hours do not fit in a day you have to know how many hours a day has. That is not in the data.</p><h3 class="sub h3">TikTok: the file points out its important variable on its own</h3><p>501,029 mean views on the videos with a claim against 4,956 on the opinion ones, <strong>101 times more</strong>, and the two distributions not overlapping on a logarithmic scale.</p><p>It is the variable that two courses later has to be predicted, and here it appears <strong>without having tested anything</strong>: just by looking at the distribution.</p><p>The other finding is one of shape: its 298 incomplete rows <strong>do not have loose gaps</strong>, they are missing seven columns at once. A gap has a shape, and its shape says where it comes from.</p><h3 class="sub h3">Automatidata: the question nobody had asked the file</h3><p>As soon as the dates stop being text, the file answers something that was in no report: the peak hour is 19, with 1,454 trips, the slowest is 4, with 233, and <strong>29.5% of the day happens between 17 and 21</strong>.</p><p>And it brings the opposite case to Waze&#x27;s: <strong>a spike that looks like a defect and is not</strong>. The 514 trips of exactly $52.00 are the airport flat fare, and an automatic outlier filter would have deleted them for being expensive.</p><h3 class="sub h3">What the three have in common</h3><p>In all three cases, <strong>what decided the result was knowing the domain</strong>, not applying a rule:</p><ul><li>Knowing that a day has 24 hours.</li><li>Knowing that an airport has a flat fare.</li><li>Knowing that a negative fare is a refund and not a cheap trip.</li></ul><blockquote>Automatic rules flag candidates. Whoever knows the phenomenon decides.</blockquote></section>
+<section class="section-block "><span class="kicker">Terms</span><h2 class="section-title">Glossary</h2><ul><li><strong>Data quality report.</strong> The deliverable of this course: what the file contains, what it lacks, what is impossible and which decisions remain pending.</li><li><strong>Impossible value.</strong> One that cannot exist in the phenomenon measured. It is not the same as an outlier, and no statistical rule finds it.</li><li><strong>Derived variable.</strong> One built from others, like the duration of a trip or the kilometres per day. <strong>It is where the inconsistencies between columns appear.</strong></li><li><strong>Shape of the gaps.</strong> Whether the missing values are loose cells or whole rows. It tells a measurement failure from a record that came in empty.</li><li><strong>PACE strategy document.</strong> The written deliverable: what was planned, what was analysed and what is recommended.</li><li><strong>Executive summary.</strong> One page for whoever is not going to read the analysis: finding, number with units, decision and limits.</li></ul></section>
+<section class="section-block is-recipe"><span class="kicker">Method</span><h2 class="section-title">Step by step</h2><p>What has to be done to deliver each project, in the order it was done.</p><h3 class="sub h3">Step 1. Always run the same six passes</h3><p>Whatever the file. Shape and duplicates, missing values per column, types, cardinality of the categories, outlier candidates and impossible values. They are in <code>projects/curso2/quality.py</code> and they are identical for the three.</p><p><strong>The first five are done by the code on its own. The sixth is declared by whoever knows the domain</strong>, and it is the one that found the Waze finding.</p><h3 class="sub h3">Step 2. Look at the shape of the gaps, not only count them</h3><p>In TikTok, 298 gaps in seven columns could have been 2,086 cells spread around. They were 298 rows with all seven empty. <strong>Counting gives a number; looking at the shape gives a cause.</strong></p><h3 class="sub h3">Step 3. Build the derived variables early</h3><p>Because they are the ones that uncover the inconsistencies between columns. The trip duration in Automatidata and the kilometres per day in Waze do not exist in the files, and both revealed problems the original columns were hiding.</p><h3 class="sub h3">Step 4. Separate the impossible from the extreme</h3><p>And treat them differently:</p><div class="table-wrap"><table><thead><tr><th></th><th>What it is</th><th>What is done</th></tr></thead><tbody><tr><td><strong>Outlier</strong></td><td>A far-off value that may be real</td><td>It is investigated and decided: keep, clip or remove</td></tr><tr><td><strong>Impossible</strong></td><td>A value the phenomenon does not admit</td><td>It is removed or corrected, no discussion</td></tr></tbody></table></div><h3 class="sub h3">Step 5. Write what the file does not allow yet</h3><p>It is the part that distinguishes an exploration report from a list of statistics. In Waze, the deliverable conclusion is not a number: it is <strong>a question for the team that generates the file</strong> and a recommendation not to use two columns until there is an answer.</p></section>
+<section class="section-block is-recipe"><span class="kicker">Code</span><h2 class="section-title">The code, in parts</h2><h3 class="sub h3">Step 1. Run any of the three projects</h3><pre><code class="language-python"># desde la carpeta del proyecto Concentra
+python projects/curso2/automatidata/02_scripts/automatidata_eda.py
+python projects/curso2/tiktok/02_scripts/tiktok_eda.py
+python projects/curso2/waze/02_scripts/waze_eda.py</code></pre><dl class="annot"><div class="annot-head">line by line</div><dt><code>python projects/...</code></dt><dd>They are launched from the root of Concentra. The scripts find your data folder on their own, with <code>src/data_paths.py</code>, so they work even if the folder moves.</dd><dt><code>02_scripts/</code></dt><dd>The same folder numbering as your Course 3, so that all of them are walked the same way.</dd></dl><div class="output"><span class="output-tag">prints</span><pre>Números publicables -&gt; projects\curso2\waze\04_reports\model_results.json</pre></div><p>Each one writes that file, and <strong>neither the report nor the sheet can quote a number that is not in there</strong>.</p><h3 class="sub h3">Step 2. The quality pass, which is the same for the three</h3><pre><code class="language-python">from quality import full_report
+
+full_report(
+    raw, results,
+    numeric_expected=[&quot;sessions&quot;, &quot;drives&quot;, &quot;driven_km_drives&quot;],
+    outlier_columns=[&quot;sessions&quot;, &quot;drives&quot;, &quot;driven_km_drives&quot;],
+    impossible={
+        &quot;mas de 1000 km en un solo dia conducido&quot;:
+            lambda d: d.km_per_driving_day.gt(1000),
+        &quot;mas de 24 horas al volante en un dia conducido&quot;:
+            lambda d: (d.duration_minutes_drives / d.driving_days).gt(24 * 60),
+    },
+)</code></pre><dl class="annot"><div class="annot-head">line by line</div><dt><code>numeric_expected=[...]</code></dt><dd>The columns that <strong>should</strong> be numbers. If any arrives as text, the pass says so. The code cannot guess it: only you know what should be numeric.</dd><dt><code>outlier_columns=[...]</code></dt><dd>On which ones to apply the interquartile range rule. The candidates are counted, none is touched.</dd><dt><code>impossible={...}</code></dt><dd>A dictionary of <strong>name and rule</strong>. This is where domain knowledge comes in, and it is the only part of the pass that cannot be automated.</dd><dt><code>lambda d: ...</code></dt><dd>A short function written in one line. It receives the table and returns true wherever the rule is broken. It is stored without running and the pass calls it when its turn comes.</dd><dt><code>.gt(24 * 60)</code></dt><dd>&quot;Greater than&quot;, written as a method. It is equivalent to <code>&gt;</code> and reads better chained. The 24 times 60 is left unresolved on purpose: it says where the number comes from.</dd></dl><div class="output"><span class="output-tag">prints</span><pre>  mas de 1000 km en un solo dia conducido: 1994
+  mas de 24 horas al volante en un dia conducido: 461</pre></div><p><strong>Those two lines are the finding of the course</strong>, and they come out of two rules someone had to write knowing how many hours a day has.</p></section>
+<section class="section-block is-warning"><span class="kicker">Traps</span><h2 class="section-title">Watch out</h2><ul><li><strong>The impossible is not found by a statistical rule.</strong> The interquartile range criterion gave normal results on the Waze file while it contained users with 172 hours of daily driving.</li><li><strong>A file can pass every routine check and be broken.</strong> No duplicates, no missing values, correct types, and still inconsistent between columns.</li><li><strong>Derived variables are where the inconsistencies appear.</strong> Build them early.</li><li><strong>Count the shape of the gaps, not only how many there are.</strong> 298 rows with seven empty columns is not the same as 2,086 loose cells.</li><li><strong>A spike is not always a defect.</strong> The 514 trips of 52 dollars are a fixed price, and an automatic filter would have deleted them.</li><li><strong>The IQR rule flags nothing when the spread is already enormous.</strong> In the TikTok views its fence sits above the real maximum.</li><li><strong>The deliverable includes what cannot be done yet.</strong> A well-posed question to the team that generates the data is worth more than another table.</li></ul></section>
+<section class="section-block is-bridge"><span class="kicker">Analogy</span><h2 class="section-title">Metallurgical bridge</h2><p>These three reports are <strong>the review of a lot before accepting it</strong>, and you do it with a criterion that is written in no procedure: you know what is possible.</p><p>When a certificate arrives declaring a recovery of 103%, you do not consult an outlier table. You know it cannot be, because you cannot recover more metal than went in. That is exactly the Waze case: <strong>172 hours do not fit in a day</strong>, and no statistic is going to say it for you.</p><div class="table-wrap"><table><thead><tr><th>At the plant</th><th>In these projects</th></tr></thead><tbody><tr><td>A recovery of 103%</td><td>172 hours of driving in a day</td></tr><tr><td>A balance that does not close</td><td>Two coherent columns that give an impossible ratio</td></tr><tr><td>The flat fare of a contract</td><td>The 514 trips of 52 dollars</td></tr><tr><td>A wild assay that turns out to be a rich vein</td><td>The outlier that has to be kept</td></tr><tr><td>Samples that arrive without a label</td><td>The 700 users without a label</td></tr><tr><td>The question to the laboratory before signing</td><td>The question to the team that generates the file</td></tr></tbody></table></div><p>And the most important row is the last one. <strong>An experienced metallurgist does not sign an odd balance: they call and ask.</strong> The deliverable of this course does the same, and that is why the Waze report ends with a question and not with an invented correction.</p></section>
+<section class="section-block is-review"><span class="kicker">Review</span><h2 class="section-title">Review</h2><details><summary>What is the difference between an outlier and an impossible value?</summary><p>An outlier is a value far from the rest that <strong>may be real</strong>, and that is why the interquartile range rule only flags it as a candidate: it has to be investigated and a decision made between keeping it, clipping it or removing it. An impossible value is one the measured phenomenon does not admit, like 172 hours of driving within a day of 24, a negative fare or a recovery of 103%. There is no decision to make there, it is a defect. The distinction matters because no statistical rule finds the impossible: you have to know how what is being measured works.</p></details><details><summary>Why does the Waze file pass every routine check and still be broken?</summary><p>Because the routine checks look at the columns one at a time, and the defect is in the relationship between two of them. There are no duplicates, no missing values except in the label, the categories are clean and the outlier candidates hover around a perfectly normal 3 to 5%. The problem only appears when building a derived variable, kilometres per driving day, which the file does not bring: then 1,994 users come out above 1,000 km daily and 461 above 24 hours at the wheel in a day. The lesson is that derived variables have to be built early, because they are where the inconsistencies between columns show.</p></details><details><summary>What is learned by looking at the shape of the gaps and not only counting them?</summary><p>Where they come from. In TikTok there are 298 missing values in each of seven columns, which could be 2,086 cells scattered at random through the file. They are not: they are 298 rows missing all seven columns at once. That rules out a column-by-column measurement failure and points to a record created empty or an interrupted load, which is a different cause with a different solution. Counting gives a number; looking at the shape gives a hypothesis about the origin.</p></details><details><summary>Why did the interquartile range rule flag no outlier in the TikTok views?</summary><p>Because that rule measures the spread with the central half of the data, and in that column the central half is already enormous: the first quartile is at 4,942 and the third at 504,327, so the interquartile range is almost half a million and the upper fence goes to 1,253,404, above the real maximum of the file. In columns spanning several orders of magnitude, the rule has nothing to point at, and the criterion has to change: look at the drawing on a logarithmic scale or split the data into named bands.</p></details><details><summary>What should the deliverable of an exploration project include, besides the statistics?</summary><p>What the file does not allow yet, and what would be needed to be able to do it. In the Waze project the deliverable conclusion is not a figure but a specific question for the team that generates the file, about what exactly the driving-days column measures, plus the recommendation not to use two columns until there is an answer. A report that only lists means, minimums and maximums leaves the work half done: whoever receives it does not know what to trust or what to ask.</p></details></section>
+</main>
+<footer class="footer">
+  Concentra / distilled from the public syllabus of the course / 2026-08-22
+</footer>
+</body>
+</html>
