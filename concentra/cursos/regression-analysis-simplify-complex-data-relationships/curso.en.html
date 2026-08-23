@@ -1,10 +1,10 @@
 <!doctype html>
-<html lang="es">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>The Power of Statistics · el curso</title>
-<link rel="alternate" hreflang="en" href="curso.en.html">
+<title>Regression Analysis: Simplify Complex Data Relationships · the course</title>
+<link rel="alternate" hreflang="es" href="curso.html">
 <style>
 /* ============================================================================
    Concentra — design tokens and shared components.
@@ -483,179 +483,178 @@ figure.fig figcaption {
 <body>
 <header class="header">
   <div class="header-content">
-    <div class="eyebrow"><span>Curso 3 / <a href="https://www.coursera.org/learn/the-power-of-statistics">ver en Coursera</a></span><a class="lang-switch" href="../index.en.html#the-power-of-statistics/curso" target="_top" hreflang="en" lang="en" title="Read this page in English">English</a></div>
-    <h1>The Power of Statistics</h1>
+    <div class="eyebrow"><span>Course 4 / <a href="https://www.coursera.org/learn/regression-analysis-simplify-complex-data-relationships">see on Coursera</a></span><a class="lang-switch" href="../index.html#regression-analysis-simplify-complex-data-relationships/curso" target="_top" hreflang="es" lang="es" title="Leer esta página en español">Español</a></div>
+    <h1>Regression Analysis: Simplify Complex Data Relationships</h1>
     <p class="subtitle"></p>
     <div class="mesh" role="presentation"></div>
-    <div class="assay"><span>6 módulos</span><span>34 h de curso</span><span>154 tasks</span><span>3 casos propios</span></div>
+    <div class="assay"><span>6 modules</span><span>27 h course time</span><span>132 tasks</span><span>3 case studies</span></div>
   </div>
 </header>
 <main class="container">
-<section class="section-block "><span class="kicker">Resumen</span><h2 class="section-title">De qué va este curso</h2><p>Es el curso donde el análisis deja de describir y empieza a <strong>decidir</strong>. Los cursos anteriores enseñan a mirar los datos y contar lo que se ve. Este responde a la pregunta que viene después y que es la que paga: <strong>¿la diferencia que estoy viendo es real, o es casualidad de esta muestra?</strong></p><p>Toda la maquinaria del curso existe para eso. La probabilidad da el lenguaje, el muestreo explica por qué una parte puede hablar por el todo, los intervalos de confianza ponen números a lo que no sabemos, y las pruebas de hipótesis convierten todo eso en un sí o un no defendible frente a alguien que va a gastar dinero según tu respuesta.</p><p>Termina en un proyecto de portafolio que es un A/B test completo sobre datos reales de empresa. Ahí es donde se ve si lo anterior se entendió.</p></section>
-<section class="section-block is-recipe"><span class="kicker">Recorrido</span><h2 class="section-title">El recorrido, módulo a módulo</h2><ol><li><strong>Introducción a la estadística con Python.</strong> El vocabulario: descriptiva frente a inferencial, y las tres familias de estadísticos (centro, dispersión, posición).</li><li><strong>Probabilidad.</strong> Reglas básicas, probabilidad condicional, teorema de Bayes y las distribuciones que modelan datos reales: binomial, Poisson y normal.</li><li><strong>Muestreo.</strong> Métodos de selección, el sesgo que ningún cálculo posterior arregla, y el teorema del límite central, que es el resultado que sostiene todo lo demás.</li><li><strong>Intervalos de confianza.</strong> Cómo pasar de un número suelto a un rango honesto, y la interpretación del 95 % que casi todo el mundo dice mal.</li><li><strong>Pruebas de hipótesis.</strong> H₀ y Hₐ, errores tipo I y II, pruebas de una y dos muestras, y el A/B testing.</li><li><strong>Proyecto final.</strong> Un escenario de empresa, un análisis completo y un documento PACE.</li></ol></section>
-<section class="section-block is-decision"><span class="kicker">Resultado</span><h2 class="section-title">Qué sabes hacer al terminar</h2><ul><li>Decidir si una diferencia entre dos grupos es real o ruido, con la prueba adecuada y sus supuestos verificados.</li><li>Acompañar cualquier resultado del tamaño del efecto y su intervalo de confianza, que es lo que distingue un análisis profesional de un valor p suelto.</li><li>Detectar cuándo un resultado significativo es irrelevante en la práctica.</li><li>Convertir todo eso en una recomendación que alguien sin formación estadística pueda ejecutar.</li></ul></section>
-<section class="section-block is-toy"><span class="kicker">Para qué sirve</span><h2 class="section-title">El cerebro de este curso</h2><p>Debajo está el archivo para copiar y pegar como memoria de un asistente. <strong>No es un resumen de las lecciones</strong>: es el manual de operación, con el procedimiento en orden, los umbrales, las reglas de decisión, las trampas conocidas y los tres casos propios con sus números reales para calibrar.</p><p>Esa diferencia es deliberada. Un resumen de las clases le da material de estudio a algo que no necesita estudiar, y gasta contexto sin cambiar cómo trabaja. El manual de operación ocupa una fracción y sí cambia el resultado.</p></section>
+<section class="section-block "><span class="kicker">Summary</span><h2 class="section-title">What this course is about</h2><p>The previous course taught how to compare two groups and decide whether the difference was real. This one goes a step further and answers a different question: <strong>how much does one thing change when another changes, and how much of that change can be attributed to each cause?</strong></p><p>That is the difference between knowing that the day shift recovers more and knowing that <strong>for every gram per tonne of collector the recovery rises 0.4 points</strong>. The first informs; the second lets you dose.</p><p>The tool is called regression, and the course walks it in four forms: the simple line, the model with several variables at once, the tests for comparing more than two groups, and the version that predicts a yes or a no instead of a number.</p></section>
+<section class="section-block is-recipe"><span class="kicker">The path</span><h2 class="section-title">The path, module by module</h2><ol><li><strong>Relationships between variables.</strong> What a relationship is, how it is measured with correlation, and why correlation is not cause.</li><li><strong>Simple linear regression.</strong> The line that best passes through the points: where its slope and its intercept come from, what residuals are and what R² measures.</li><li><strong>Multiple linear regression.</strong> What happens when the result depends on several things at once, and why looking at a single variable can give you the opposite sign to the true one.</li><li><strong>Advanced hypothesis testing.</strong> Chi-square for categories and ANOVA for comparing three groups or more without chaining t-tests.</li><li><strong>Logistic regression.</strong> When what you want to predict is not a number but a yes or a no: passes or does not pass, leaves or stays.</li><li><strong>Final project.</strong> Building a complete regression model on a company scenario and defending its assumptions.</li></ol></section>
+<section class="section-block is-decision"><span class="kicker">Result</span><h2 class="section-title">What you can do by the end</h2><ul><li>Fit a model that quantifies how much each variable moves the result, and not only whether there is a difference.</li><li>Check the assumptions that make that model valid, instead of taking the output on faith.</li><li>Detect when a hidden variable is inverting the conclusion.</li><li>Choose between comparing means, comparing categories or predicting a binary response.</li></ul></section>
+<section class="section-block "><span class="kicker">Note</span><h2 class="section-title">The three projects, and what they taught</h2><p>The projects of this course did not exist, so <strong>they were built here</strong>: complete analysis, figures, PACE report, executive summary and executed notebook, reading your Course 3 CSVs without touching them.</p><p>All three ended up telling the same story from different places: <strong>the number that shines in a notebook is not the one that survives in production</strong>.</p><div class="table-wrap"><table><thead><tr><th>Case</th><th>Model</th><th>What it taught</th></tr></thead><tbody><tr><td><strong>Automatidata</strong></td><td>Multiple linear</td><td>The model that predicts best uses data that does not exist at booking time. Removing the information leak costs 0.21 of R²</td></tr><tr><td><strong>TikTok</strong></td><td>Logistic</td><td>The threshold decides nothing: the probabilities fall in two piles with an empty gap in between</td></tr><tr><td><strong>Waze</strong></td><td>Logistic</td><td>It gets 82% right and detects 8%. The model was fine; the threshold was not</td></tr></tbody></table></div><p>Every script writes a <code>model_results.json</code> with every publishable number, and the rule is that neither the report nor the sheet can quote one that is not in there.</p></section>
+<section class="section-block is-toy"><span class="kicker">What it is for</span><h2 class="section-title">The brain of this course</h2><p>Below is the file to copy and paste as an assistant&#x27;s memory. <strong>It is not a summary of the lessons</strong>: it is the operating manual of regression, with when to use each model, which assumptions to check, what to always report and the known traps. It is written in Spanish, the working language of this library.</p></section>
 <section class="section-block">
-  <span class="kicker">Memoria</span>
-  <h2 class="section-title">El archivo, listo para copiar</h2>
+  <span class="kicker">Memory</span>
+  <h2 class="section-title">The file, ready to copy (it is in Spanish)</h2>
   <div class="brain">
     <div class="brain-bar">
-      <span class="name">cerebro-curso-3.md</span>
-      <span class="size">7.5 KB</span>
+      <span class="name">cerebro-curso-4.md</span>
+      <span class="size">8.2 KB</span>
       <span class="spacer"></span>
-      <button id="copy" type="button" data-copy="Copiar todo" data-copied="Copiado" data-selected="Seleccionado: pulsa Ctrl+C">Copiar todo</button>
-      <a class="btn" href="cerebro-curso-3.md" download>Descargar</a>
+      <button id="copy" type="button" data-copy="Copy all" data-copied="Copied" data-selected="Selected: press Ctrl+C">Copy all</button>
+      <a class="btn" href="cerebro-curso-4.md" download>Download</a>
     </div>
-    <pre><code id="brain"># Cerebro: inferencia estadística para decisiones de negocio
+    <pre><code id="brain"># Cerebro: regresión y modelos de relación
 
-Manual de operación, no material de estudio. Describe cómo trabajo una pregunta del tipo
-&quot;¿esta diferencia es real?&quot;: el orden, los umbrales, lo que siempre reporto y lo que nunca
-hago. Pégalo como memoria y asume estas reglas sin volver a preguntarlas.
+Manual de operación, no material de estudio. Describe cómo trabajo la pregunta &quot;¿cuánto
+cambia esto cuando cambia aquello?&quot;: qué modelo elegir, qué supuestos comprobar, qué
+reportar y qué trampas conozco. Pégalo como memoria y asume estas reglas sin preguntarlas.
+
+Complementa al cerebro del curso anterior, que cubre comparar dos grupos. Este cubre
+cuantificar relaciones.
 
 ## Qué resuelvo con esto
 
-Comparar dos grupos y decidir si la diferencia observada justifica actuar. Tasas de
-conversión, tiempos, importes, métricas de uso, recuperación de un proceso. La respuesta
-siempre es una decisión de negocio, nunca un número suelto.
+Poner número a una relación. No &quot;el turno de día recupera más&quot;, sino &quot;por cada gramo por
+tonelada de colector la recuperación sube 0,4 puntos, con un intervalo de tanto a tanto&quot;.
+La salida siempre es un coeficiente con su incertidumbre y una recomendación.
+
+## Qué modelo usar
+
+| La pregunta | El modelo |
+|---|---|
+| ¿Cuánto cambia Y cuando cambia una X numérica? | Regresión lineal simple |
+| ¿Y cuando cambian varias X a la vez? | Regresión lineal múltiple |
+| ¿Difieren las medias de tres grupos o más? | ANOVA de un factor |
+| ¿Y con dos factores de agrupación? | ANOVA de dos factores |
+| ¿Están relacionadas dos variables categóricas? | Chi cuadrado de independencia |
+| ¿Coincide un reparto con el esperado? | Chi cuadrado de bondad de ajuste |
+| ¿Cuál es la probabilidad de un sí o un no? | Regresión logística binomial |
+
+**Nunca encadenes pruebas t para comparar tres grupos.** Cada prueba tiene su propio riesgo
+de falso positivo y se acumulan: con tres comparaciones al 5 % el riesgo real ronda el
+14 %. Para eso existe ANOVA.
 
 ## El procedimiento, en este orden
 
-1. **Escribir H₀ y Hₐ en lenguaje de negocio, antes de mirar los datos.** Si se formulan
-   después de ver el resultado, la prueba no vale.
-2. **Fijar α antes también.** Por defecto 0,05. Se baja a 0,01 cuando un falso positivo
-   sale caro.
-3. **Explorar**: tamaño de cada grupo, medias, medianas, desviaciones, y mirar la forma con
-   histograma y diagrama de caja.
-4. **Comprobar supuestos**: Levene para igualdad de varianzas, y tamaño de muestra para
-   apoyarse en el teorema del límite central.
-5. **Elegir la prueba** según la tabla de decisión de abajo.
-6. **Validar el resultado** con al menos dos respaldos: repetir sin atípicos y añadir una
-   prueba no paramétrica.
-7. **Reportar** el bloque completo de la sección &quot;lo que siempre se reporta&quot;.
-8. **Traducir a una recomendación accionable** y declarar las limitaciones.
+1. **Dibujar los datos antes de modelar.** Un diagrama de dispersión enseña si la relación
+   es siquiera aproximadamente recta. Ajustar una recta a algo curvo no da error.
+2. **Ajustar el modelo** y leer los coeficientes, no solo el R².
+3. **Comprobar los supuestos** con la lista de abajo. Este paso es el que casi todo el
+   mundo se salta.
+4. **Mirar los residuos dibujados**, que es donde aparecen los problemas.
+5. **Reportar** el bloque completo.
+6. **Traducir a una recomendación** con unidades reales.
 
-## Reglas de decisión
+## Los supuestos, y cómo se comprueba cada uno
 
-### Qué prueba usar
+| Supuesto | Qué significa | Cómo se comprueba |
+|---|---|---|
+| Linealidad | La relación es aproximadamente una recta | Dispersión de X contra Y |
+| Independencia | Cada observación es su propio caso | Cómo se recogieron los datos, no una prueba |
+| Normalidad de los residuos | Los errores se reparten en campana | Histograma o gráfico cuantil de los residuos |
+| Varianza constante | El error no crece con la predicción | Residuos contra valores predichos: no debe verse un embudo |
+| Sin multicolinealidad | Las X no se explican entre sí | Correlación entre variables, o el factor de inflación de varianza |
 
-| Lo que comparo | Prueba |
-|---|---|
-| Una media contra un valor de referencia | t de una muestra |
-| Medias de dos grupos independientes | t de dos muestras (Welch por defecto) |
-| Dos proporciones o tasas | prueba z de proporciones |
-| Confirmar sin asumir normalidad | Mann-Whitney U |
-| Igualdad de varianzas | Levene |
-| Reparto de la asignación | chi cuadrado (SRM) |
-
-### Welch o Student
-
-Welch por defecto, siempre. Si Levene da `p &lt; 0,05` las varianzas son desiguales y Student
-queda descartado. Si Levene da `p ≥ 0,05` Student sería válido, pero Welch da
-prácticamente el mismo resultado, así que no se gana nada cambiando. En código:
-`stats.ttest_ind(a, b, equal_var=False)`.
-
-### t o z
-
-Se usa **t** siempre que la variabilidad de la población se estime desde la muestra, que
-es el caso real. La **z** solo si esa variabilidad se conoce de verdad. Con n grande las
-dos convergen: con n=100 el multiplicador es 1,984 frente a 1,960.
-
-### Atípicos
-
-No se borran por defecto. Se detectan con la regla del IQR (`Q1 − 1,5·IQR` a
-`Q3 + 1,5·IQR`), se decide con criterio de dominio, y **se repite el análisis con y sin
-ellos** reportando ambos. Solo se eliminan si son físicamente imposibles, y entonces se
-documenta cuántas filas y qué porcentaje.
-
-### Datos faltantes
-
-Primero se investiga **por qué** faltan. Eliminar filas si son pocas y al azar; imputar con
-mediana antes que con media; dejarlos como nulos si el modelo los maneja. Cualquier
-imputación se calcula **después** de partir en entrenamiento y prueba, nunca antes, o se
-mete fuga de datos.
+**La normalidad se exige de los residuos, no de los datos.** Es el malentendido más común
+del tema.
 
 ## Lo que siempre se reporta
 
-Nunca un valor p solo. El bloque mínimo es:
-
 | Elemento | Por qué |
 |---|---|
-| Tamaño de cada grupo | Determina cuánta confianza merece la estimación |
-| Medias y desviaciones | El dato crudo que sostiene todo lo demás |
-| Estadístico y valor p | La evidencia contra H₀ |
-| **Tamaño del efecto (Cohen&#x27;s d)** | Impide confundir significativo con importante |
-| **Intervalo de confianza de la diferencia** | Si cruza el cero, no hay diferencia demostrada |
-| Prueba de respaldo | Descarta que el resultado sea artefacto de la forma o los extremos |
-| Limitaciones | Las encuentro yo antes de que las encuentre quien revisa |
-
-**Escala de Cohen&#x27;s d**: por debajo de 0,2 es despreciable; alrededor de 0,5 es medio;
-por encima de 0,8 es grande.
+| El coeficiente de cada variable, **con sus unidades** | Es el resultado: cuánto sube Y por unidad de X |
+| Su intervalo de confianza | Si cruza el cero, esa variable no está demostrada |
+| R², y R² ajustado en modelos múltiples | Cuánta variación explica el modelo |
+| Número de observaciones | Determina cuánto vale todo lo anterior |
+| Los supuestos comprobados, uno por uno | Sin esto el modelo no es defendible |
+| Limitaciones | El rango de validez y los factores no medidos |
 
 ## Trampas que ya conozco
 
-- **El valor p no es la probabilidad de que H₀ sea verdadera.** Es la probabilidad de ver
-  un resultado así de extremo si H₀ lo fuera.
-- **Con muestra grande, cualquier diferencia trivial sale significativa.** Por eso el
-  tamaño del efecto es obligatorio.
-- **&quot;No rechazar H₀&quot; no es &quot;demostrar que son iguales&quot;.** Puede ser falta de poder
-  estadístico. Se dice &quot;no hay evidencia suficiente&quot;.
-- **Un intervalo de confianza no dice que el parámetro esté ahí con 95 % de probabilidad.**
-  El 95 % describe el método a la larga, no ese intervalo concreto.
-- **Elegir prueba de una cola después de ver los datos es hacer trampa.** La dirección se
-  decide antes y con razón de negocio.
-- **Más muestra no arregla el sesgo de selección.** Solo un método de muestreo mejor.
-- **Asociación no es causa.** En estudios observacionales se nombran los factores de
-  confusión plausibles de forma explícita.
-- **`scale` recibe el error estándar, no la desviación estándar**, al construir intervalos
-  con `scipy`.
-- **`ppf(0.975)` para un intervalo del 95 %**, porque el 5 % se reparte en dos colas.
+- **Un R² alto no significa modelo bueno.** Puede venir de una relación curva mal ajustada,
+  de valores extremos que tiran de la recta, o de meter variables sin sentido.
+- **El R² siempre sube al añadir variables**, aunque sean ruido. Por eso en modelos
+  múltiples se mira el **R² ajustado**, que penaliza las variables de más.
+- **Extrapolar fuera del rango medido no vale.** Si dosificaste entre 10 y 50 g/t, el
+  modelo no dice nada sobre 200 g/t, y la recta seguirá dándote un número igualmente.
+- **La paradoja de Simpson.** Una relación puede invertir su signo al mirar los grupos por
+  separado. Si hay una variable de agrupación conocida, hay que meterla en el modelo.
+- **Variables muy correlacionadas entre sí** vuelven los coeficientes inestables y sin
+  interpretación individual, aunque el modelo prediga bien.
+- **Correlación no es causa**, y una regresión sobre datos observacionales tampoco lo es.
+  Lo que se afirma es asociación, salvo que haya asignación aleatoria.
+- **En logística el coeficiente no es una probabilidad.** Está en escala de log-odds, y hay
+  que exponenciarlo para leerlo como razón de momios.
+- **Chi cuadrado necesita frecuencias esperadas suficientes.** Con esperados por debajo de
+  5 en muchas casillas el resultado deja de ser fiable.
 
-## Casos de referencia, con números reales
+## Cómo se lee un coeficiente
 
-Sirven para calibrar qué es grande y qué no. Son análisis propios, ya ejecutados.
+Para una recta `recuperación = 66 + 0,4 × dosis`:
 
-| Caso | Comparación | Resultado | Lectura |
-|---|---|---|---|
-| **TikTok** | Cuentas verificadas contra no verificadas, sobre visualizaciones. n=19.084 | `t = 25,4994`, `p = 2,61e-120`, `d = −0,544`, IC [−187.626, −160.823] | Diferencia real y de magnitud media. Hallazgo secundario más fuerte: vídeos con reclamación 501.029 visualizaciones frente a 4.956 de opinión |
-| **Automatidata** | Tarjeta contra efectivo, sobre tarifa de taxi. n=22.532 | `t = 6,8668`, `p = 6,80e-12`, `d = 0,0922`, IC [0,87 $, 1,56 $] | Diferencia real pero **despreciable**. El caso que demuestra que un p diminuto no implica un efecto grande |
-| **Waze** | iPhone contra Android, sobre número de viajes. n=14.999 | `t = 1,4635`, `p = 0,1434`, `d = 0,0247`, IC [−0,55, 3,81] | Sin evidencia de diferencia. El intervalo cruza el cero y las tres validaciones coinciden |
+- El **66** es el intercepto: lo que predice el modelo con dosis cero. Solo tiene sentido
+  si el cero está dentro del rango medido, y muchas veces no lo está.
+- El **0,4** es la pendiente: por cada gramo por tonelada más de colector, la recuperación
+  sube 0,4 puntos. **Esa frase, con sus unidades, es el resultado del análisis.**
 
-Los tres se validaron igual: Levene, luego Welch, luego repetición sin atípicos, luego
-Mann-Whitney. En los tres, las tres validaciones coincidieron entre sí.
+En logística, un coeficiente de 0,7 significa que la razón de momios se multiplica por
+`e^0,7`, o sea por 2, cada vez que la variable sube una unidad.
 
-## Cómo quiero los entregables
+## Lo que aprendí haciendo los tres proyectos
 
-- **Documento PACE** (Plan, Analyze, Construct, Execute) como entregable escrito. Pesa más
-  que el notebook, porque es lo que lee quien decide.
-- **Resumen ejecutivo de una página**: hallazgo, evidencia, recomendación, limitaciones.
-- **Cada decisión de limpieza documentada** con criterio, número de filas y porcentaje. No
-  vale &quot;limpié los datos&quot;.
-- **La recomendación en una frase que alguien sin formación estadística pueda ejecutar.**
-  &quot;p = 0,03&quot; no es una recomendación.
-- **Código en inglés**, explicaciones en español.
-- **Ningún resultado cuenta como hecho** si no está explicado en palabras simples en el
-  entregable visible, aunque el número ya esté calculado en un script o un JSON.
+Números reales, de mis propios modelos, para calibrar expectativas en vez de citar reglas
+generales.
+
+- **Comprueba si la variable existirá cuando haya que predecir.** En el modelo de tarifas de
+  taxi, la distancia recorrida explicaba casi todo y no existe al reservar. Quitarla bajó el
+  R² de 0,95 a 0,67, y ese 0,67 es el número real: sobre la prueba, **RMSE de 5,93 $** y
+  error absoluto medio de 3,21 $, con cuatro variables (distancia y duración medias de la
+  ruta, hora punta y tarifa plana de aeropuerto).
+- **La fuga de información se mide, no se discute.** Calcular medias por grupo sobre todos
+  los datos en vez de solo sobre el entrenamiento infló el R² en **0,2101** y escondió 2,40
+  dólares de error.
+- **Un error medio puede esconder dos poblaciones.** El mismo modelo se equivocaba 2,42
+  dólares en rutas conocidas y 11,11 en rutas nuevas. Siempre parto el error por algún
+  criterio antes de reportarlo.
+- **Con clases desbalanceadas, la exactitud es ruido.** Un modelo de abandono con 82,3 % de
+  acierto y 8,2 % de detección: contestar siempre &quot;se queda&quot; acertaba el 82,26 %.
+- **Un modelo mal calibrado se parece a un modelo malo.** Ese mismo tenía AUC de 0,737. El
+  fallo era el umbral: bajarlo a 0,20 llevó la detección al 62,3 %.
+- **Comprueba que el umbral hace algo.** En un caso las probabilidades predichas cayeron en
+  dos montones sin nada entre 0,28 y 0,56, así que cualquier corte intermedio daba el mismo
+  resultado. El modelo se había reducido a una regla binaria.
+- **Un predictor fuerte en crudo puede evaporarse dentro del modelo.** Un grupo que abandonaba
+  al 7,56 % frente al 19,88 % acabó con un p de 0,952, porque otra variable ya recogía ese
+  efecto.
+- **Escala los coeficientes a unidades imaginables.** Razones de momios de 1,000 con
+  intervalos de 1,000 a 1,000 y valores p de 3e-48: el efecto era real y la unidad, absurda.
+  Por año en vez de por día, la razón pasó a 0,864.
+- **Antes de tirar filas sin etiqueta, compara ese grupo con el resto.** Con 700 ausentes, la
+  mayor diferencia de medianas era del 6,2 % y el reparto por dispositivo idéntico, así que
+  excluirlos era inocuo. Si no lo hubiera sido, habría cambiado a quién describe el modelo.
+- **Busca divisiones por cero en las variables derivadas.** 983 usuarios con cero días
+  conduciendo habrían metido infinitos en el ajuste sin un solo aviso.
 
 ## Vocabulario, español e inglés
 
-Los cursos y la documentación vienen en inglés; los entregables van en español.
-
 | Español | Inglés |
 |---|---|
-| Hipótesis nula / alternativa | null / alternative hypothesis |
-| Nivel de significancia | significance level, alpha |
-| Valor p | p-value |
-| Tamaño del efecto | effect size |
-| Intervalo de confianza | confidence interval |
-| Error estándar | standard error |
-| Grados de libertad | degrees of freedom |
-| Distribución muestral | sampling distribution |
-| Teorema del límite central | central limit theorem |
-| Error tipo I / tipo II | type I / type II error |
-| Poder estadístico | statistical power |
-| Muestreo estratificado | stratified sampling |
-| Sesgo de muestreo | sampling bias |
-| Valor atípico | outlier |
+| Regresión lineal simple / múltiple | simple / multiple linear regression |
+| Pendiente e intercepto | slope and intercept |
+| Residuo | residual |
+| Mínimos cuadrados | ordinary least squares (OLS) |
+| Bondad de ajuste | goodness of fit |
+| R² ajustado | adjusted R-squared |
+| Varianza constante | homoscedasticity |
+| Multicolinealidad | multicollinearity |
+| Variable de confusión | confounder |
+| Razón de momios | odds ratio |
+| Análisis de varianza | analysis of variance (ANOVA) |
+| Chi cuadrado de independencia | chi-squared test of independence |
 </code></pre>
   </div>
 </section>

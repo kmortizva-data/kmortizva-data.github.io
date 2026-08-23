@@ -1,0 +1,520 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Advanced hypothesis testing · Regression Analysis: Simplify Complex Data Relationships</title>
+<link rel="alternate" hreflang="es" href="m04_advanced-hypothesis-testing.html">
+<style>
+/* ============================================================================
+   Concentra — design tokens and shared components.
+   Inlined into every generated page by load_style(), so pages stay self-contained
+   and work offline from file:// with no external requests.
+
+   Direction: an assay lab, not a tech dashboard. The palette is taken from ore
+   and lab materials (chalcopyrite brass, malachite, hematite, quartz) on warm
+   graphite rather than the blue-black + neon of a generic dark UI. Type is
+   Bahnschrift, the DIN-descended grotesque that Windows ships and that lives on
+   machinery plates and technical drawings, over Corbel for reading.
+   ========================================================================== */
+
+:root {
+  /* Ground and surfaces: warm graphite, the colour of rock dust, not blue-black */
+  --rock: #1a1714;
+  --bench: #221e19;
+  --core: #2b251f;
+  --seam: #3d352c;
+
+  /* Ore palette. No blue and no purple anywhere: those are the tones that make a
+     page read as generated, and this palette comes from the ores instead. */
+  --brass: #c9a227;      /* chalcopyrite, the primary accent */
+  --malachite: #5d9b7a;  /* verified output, results that came out right */
+  --hematite: #b04a35;   /* iron oxide, pitfalls and warnings */
+
+  /* Text */
+  --quartz: #ece7de;
+  --dust: #9a9186;
+  --shadowed: #6f675c;
+
+  --display: Bahnschrift, 'DIN Alternate', 'Segoe UI Semibold', system-ui, sans-serif;
+  --body: Corbel, Candara, 'Segoe UI', system-ui, sans-serif;
+  --data: Consolas, 'Cascadia Mono', ui-monospace, monospace;
+
+  /* In px, not ch: ch scales with font-size, so a heading ended up wider than a
+     paragraph and the page had four different right edges instead of two. */
+  --measure: 640px;
+  --wide: 900px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--rock);
+  color: var(--quartz);
+  font-family: var(--body);
+  font-size: 16px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection { background: var(--brass); color: var(--rock); }
+
+:focus-visible {
+  outline: 2px solid var(--brass);
+  outline-offset: 3px;
+}
+
+/* --------------------------------------------------------------- the signature
+   A sieve series: ticks that get finer from left to right, coarse feed to fine
+   concentrate. It is the one ornament on the page and appears exactly twice —
+   under the wordmark and under a page title. */
+.mesh {
+  height: 10px;
+  background-image:
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 16px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 9px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 5px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 3px);
+  background-size: 25% 100%;
+  background-position: 0 0, 25% 0, 50% 0, 75% 0;
+  background-repeat: no-repeat;
+  opacity: .8;
+  transform-origin: left center;
+  animation: sieve .55s cubic-bezier(.2, .8, .3, 1) both;
+}
+@keyframes sieve { from { transform: scaleX(0); opacity: 0; } to { transform: scaleX(1); opacity: .8; } }
+@media (prefers-reduced-motion: reduce) {
+  .mesh { animation: none; }
+  * { transition: none !important; }
+}
+
+/* ------------------------------------------------------------------ page head */
+.header {
+  border-bottom: 1px solid var(--seam);
+  padding: 3.2rem 2rem 0;
+  background: linear-gradient(180deg, #221d16 0%, var(--rock) 100%);
+}
+.header-content { max-width: 1080px; margin: 0 auto; }
+
+.eyebrow {
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--brass);
+  margin-bottom: 1rem;
+  display: flex; flex-wrap: wrap; align-items: center;
+  justify-content: space-between; gap: .6rem 1rem;
+}
+.eyebrow a { color: inherit; text-decoration: none; border-bottom: 1px solid transparent; }
+.eyebrow a:hover { border-bottom-color: var(--brass); }
+/* The way to the other edition of this page. It targets the shell, not the bare
+   page, so the sidebar follows the language too. */
+.eyebrow .lang-switch {
+  margin-left: auto; border: 1px solid var(--seam); border-radius: 2px;
+  padding: .22rem .6rem; color: var(--dust); font-size: .68rem; letter-spacing: .1em;
+}
+.eyebrow .lang-switch:hover { color: var(--brass); border-color: var(--brass); }
+
+.header h1 {
+  font-family: var(--display);
+  font-size: clamp(2rem, 4.5vw, 3.1rem);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -.015em;
+  color: var(--quartz);
+  max-width: 20ch;
+}
+.header .subtitle {
+  color: var(--dust);
+  max-width: var(--measure);
+  margin-top: 1rem;
+  font-size: 1.02rem;
+}
+.header .mesh { margin: 1.8rem 0 0; }
+
+/* An assay line: the real composition of the module, in lab-report shorthand. */
+.assay {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.4rem;
+  font-family: var(--data);
+  font-size: .78rem;
+  color: var(--shadowed);
+  padding: .9rem 0 1.6rem;
+  letter-spacing: .04em;
+}
+.assay b { color: var(--dust); font-weight: 400; }
+
+/* --------------------------------------------------------------------- layout */
+/* The container hugs the widest block, so there is no orphan edge past the content. */
+.container { max-width: var(--wide); margin: 3rem auto 5rem; padding: 0 2rem; }
+
+/* Two deliberate right edges and no more: prose stops at the reading measure, and
+   only the things that genuinely need room (code, output, figures, big tables) run
+   out to the full column. */
+.section-block {
+  border-top: 1px solid var(--seam);
+  padding: 2rem 0 2.4rem;
+}
+.section-block > p,
+.section-block > ul,
+.section-block > ol,
+.section-block h3.sub,
+.section-block h4.sub,
+.section-block blockquote,
+details > *:not(summary) { max-width: var(--measure); }
+.section-block:first-child { border-top: 0; padding-top: .5rem; }
+
+/* The kicker names what kind of content follows: context, method, pitfalls.
+   It replaces decorative icons with something that actually classifies. */
+.kicker {
+  font-family: var(--data);
+  font-size: .68rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  display: block;
+  margin-bottom: .5rem;
+}
+.section-title {
+  font-family: var(--display);
+  font-size: 1.55rem;
+  font-weight: 600;
+  letter-spacing: -.01em;
+  line-height: 1.2;
+  margin-bottom: 1.2rem;
+  color: var(--quartz);
+}
+.is-warning .kicker { color: var(--hematite); }
+.is-warning .section-title { color: #e8c4b8; }
+.is-bridge .kicker, .is-decision .kicker { color: var(--malachite); }
+.is-toy .kicker, .is-result .kicker, .is-question .kicker { color: var(--brass); }
+
+/* ---------------------------------------------------------------------- prose */
+/* Justified with hyphenation. In Spanish, justifying without hyphens opens rivers of
+   white space and reads worse than ragged right; lang="es" is what feeds the
+   dictionary. Tables, code, captions and summaries stay ragged on purpose. */
+.section-block p,
+.section-block li,
+details > *:not(summary) {
+  text-align: justify;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+}
+.section-block p { margin-bottom: 1rem; }
+.section-block p:last-child { margin-bottom: 0; }
+/* Indent with padding, not margin, so the bullet sits inside the measure instead of
+   pushing the list 1.2rem past the right edge of the paragraphs. */
+.section-block ul, .section-block ol { margin: 0 0 1rem; padding-left: 1.2rem; }
+.section-block li { margin-bottom: .55rem; padding-left: .2rem; }
+.section-block li::marker { color: var(--brass); }
+td, th, figcaption, .res li, .assay { text-align: left; hyphens: manual; }
+a { color: var(--brass); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+a:hover { text-decoration-thickness: 2px; }
+strong { color: #fff; font-weight: 700; }
+em { color: var(--dust); font-style: italic; }
+
+h3.sub {
+  font-family: var(--display);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--brass);
+  margin: 2rem 0 .7rem;
+  letter-spacing: -.005em;
+}
+h3.sub:first-child { margin-top: 0; }
+h4.sub {
+  font-family: var(--display);
+  font-size: .98rem;
+  font-weight: 600;
+  color: var(--dust);
+  margin: 1.3rem 0 .5rem;
+}
+
+code {
+  font-family: var(--data);
+  font-size: .9em;
+  background: var(--core);
+  border-radius: 3px;
+  padding: .08rem .32rem;
+  color: var(--brass);
+}
+pre {
+  background: #14110e;
+  border: 1px solid var(--seam);
+  border-left: 2px solid var(--seam);
+  border-radius: 2px;
+  padding: 1.1rem 1.2rem;
+  overflow-x: auto;
+  margin-bottom: 1rem;
+}
+pre code {
+  background: none; padding: 0; color: var(--quartz);
+  font-size: .87rem; line-height: 1.6;
+}
+
+/* What the code prints. Malachite: the material that came out of the process. */
+.output {
+  position: relative;
+  border: 1px solid rgba(93, 155, 122, .32);
+  border-left: 2px solid var(--malachite);
+  border-radius: 2px;
+  background: rgba(93, 155, 122, .06);
+  padding: 1.7rem 1.2rem 1rem;
+  margin-bottom: 1rem;
+  overflow-x: auto;
+}
+.output-tag {
+  position: absolute; top: .5rem; left: 1.2rem;
+  font-family: var(--data); font-size: .64rem;
+  letter-spacing: .18em; text-transform: uppercase; color: var(--malachite);
+}
+.output pre {
+  background: none; border: 0; padding: 0; margin: 0;
+  font-family: var(--data); font-size: .85rem;
+  color: var(--quartz); white-space: pre-wrap;
+}
+
+/* Line by line explanation of a code block, for a reader new to programming.
+   Two columns: the fragment of code, and what it does. */
+.annot {
+  display: grid;
+  grid-template-columns: minmax(9rem, auto) 1fr;
+  gap: .1rem 1.2rem;
+  align-items: baseline;
+  max-width: var(--wide);
+  margin: -.4rem 0 1.4rem;
+  padding: .9rem 1.1rem 1rem;
+  border: 1px solid var(--seam);
+  border-top: 0;
+  border-radius: 0 0 2px 2px;
+  background: rgba(201, 162, 39, .04);
+}
+.annot-head {
+  grid-column: 1 / -1;
+  font-family: var(--data);
+  font-size: .64rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  margin-bottom: .5rem;
+}
+.annot dt { padding: .35rem 0; }
+.annot dt code {
+  background: var(--core);
+  color: var(--brass);
+  font-size: .82rem;
+  white-space: nowrap;
+}
+.annot dd {
+  padding: .35rem 0;
+  margin: 0;
+  color: var(--dust);
+  font-size: .93rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(61, 53, 44, .5);
+}
+.annot dt { border-bottom: 1px solid rgba(61, 53, 44, .5); }
+.annot dt:last-of-type, .annot dd:last-of-type { border-bottom: 0; }
+/* The code block sits directly on top of its annotation, as one unit. */
+pre:has(+ .annot) { margin-bottom: 0; border-radius: 2px 2px 0 0; }
+
+@media (max-width: 640px) {
+  .annot { grid-template-columns: 1fr; gap: 0; }
+  .annot dt { border-bottom: 0; padding-bottom: 0; }
+  .annot dd { padding-top: .15rem; }
+}
+
+blockquote {
+  border-left: 2px solid var(--brass);
+  padding: .3rem 0 .3rem 1.3rem;
+  margin: 0 0 1rem;
+  font-family: var(--display);
+  font-size: 1.2rem;
+  font-weight: 400;
+  line-height: 1.4;
+  color: var(--quartz);
+}
+
+/* Tables read as assay data: mono figures, hairline rules, no zebra fill.
+   They take the width they need instead of being stretched to the full column,
+   which is what left a two-column table floating in empty space. */
+.table-wrap { overflow-x: auto; margin-bottom: 1rem; }
+table { border-collapse: collapse; width: auto; max-width: 100%; font-size: .93rem; }
+th, td {
+  border-bottom: 1px solid var(--seam);
+  padding: .55rem .8rem .55rem 0;
+  text-align: left;
+  vertical-align: top;
+}
+th {
+  font-family: var(--data);
+  font-size: .7rem;
+  font-weight: 400;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  border-bottom-color: var(--brass);
+}
+td:first-child { color: var(--quartz); }
+
+/* Review questions: closed by default, so they work as recall practice. */
+details {
+  border-top: 1px solid var(--seam);
+  padding: .9rem 0;
+}
+details:last-child { border-bottom: 1px solid var(--seam); }
+summary {
+  cursor: pointer;
+  font-family: var(--display);
+  font-size: 1.02rem;
+  font-weight: 600;
+  color: var(--quartz);
+  list-style: none;
+  display: flex;
+  gap: .7rem;
+  align-items: baseline;
+}
+summary::-webkit-details-marker { display: none; }
+summary::before {
+  content: '+';
+  font-family: var(--data);
+  color: var(--brass);
+  font-size: .95rem;
+}
+details[open] summary::before { content: '−'; }
+details[open] summary { color: var(--brass); margin-bottom: .7rem; }
+details > *:not(summary) { color: var(--dust); }
+
+figure.fig {
+  margin: 1.6rem 0;
+  border: 1px solid var(--seam);
+  padding: .7rem;
+  background: var(--bench);
+}
+figure.fig img { width: 100%; height: auto; display: block; }
+/* The interactive twin of a figure. Its aspect matches the still one, 10 by 4.4, so a
+   case sheet keeps the same rhythm whichever kind of figure comes next. */
+figure.fig.is-live iframe {
+  width: 100%;
+  /* Matches INTERACTIVE_HEIGHT in src/make_figures.py. It used to be an aspect ratio, and
+     that made the figure's height depend on the window: the caption and the legend are
+     placed at fractions of the plot area, so on a wide screen they were pushed past the
+     bottom margin, clipping the caption and covering the x-axis title. */
+  height: 520px;
+  border: 0;
+  display: block;
+}
+figure.fig figcaption {
+  font-family: var(--data);
+  font-size: .72rem;
+  color: var(--shadowed);
+  margin-top: .6rem;
+  letter-spacing: .04em;
+}
+
+/* File listings on a case sheet */
+.res { list-style: none; margin-left: 0 !important; }
+.res li {
+  display: flex; align-items: baseline; gap: .8rem; flex-wrap: wrap;
+  padding: .5rem 0; border-bottom: 1px solid var(--seam); margin-bottom: 0;
+}
+.res .path { font-family: var(--data); font-size: .74rem; color: var(--shadowed); }
+.res .size { font-family: var(--data); font-size: .74rem; color: var(--shadowed); margin-left: auto; }
+.res .gone { font-family: var(--data); font-size: .74rem; color: var(--hematite); }
+
+.footer {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 2rem 4rem;
+  color: var(--shadowed);
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .03em;
+}
+
+@media (max-width: 640px) {
+  body { font-size: 15px; }
+  .header { padding: 2rem 1.2rem 0; }
+  .container { padding: 0 1.2rem; margin-top: 2rem; }
+  .footer { padding: 0 1.2rem 3rem; }
+}
+
+@media print {
+  body { background: #fff; color: #16130f; }
+  .header { background: none; border-bottom: 1px solid #bbb; padding-top: 0; }
+  .header h1, .section-title, summary { color: #16130f; }
+  .mesh { animation: none; }
+  .section-block { break-inside: avoid; max-width: none; }
+  pre, .output { background: #f6f4f0; border-color: #ccc; }
+  details:not([open]) > *:not(summary) { display: block; }
+  a { color: #16130f; }
+}
+
+</style>
+</head>
+<body>
+<header class="header">
+  <div class="header-content">
+    <div class="eyebrow"><span><a href="https://www.coursera.org/learn/regression-analysis-simplify-complex-data-relationships">Regression Analysis: Simplify Complex Data Relationships</a> / Module 4</span><a class="lang-switch" href="../index.html#regression-analysis-simplify-complex-data-relationships/m04_advanced-hypothesis-testing" target="_top" hreflang="es" lang="es" title="Leer esta página en español">Español</a></div>
+    <h1>Advanced hypothesis testing</h1>
+    <p class="subtitle">Two tests for two questions the t-test cannot answer, whether two categorical variables are related, with chi-square, and whether three groups or more have different means, with ANOVA. Both come out exact by hand here, and the post hoc shows why ANOVA alone is not enough.</p>
+    <div class="mesh" role="presentation"></div>
+    <div class="assay"><span><b>4 h</b> course time</span><span><b>9</b> videos</span><span><b>3</b> readings</span><span><b>4</b> assignments</span><span><b>3</b> practice</span></div>
+  </div>
+</header>
+<main class="container">
+<section class="section-block "><span class="kicker">Context</span><h2 class="section-title">What this module solves</h2><p>The previous course compared <strong>two</strong> groups with a t-test. Two very common questions were left out.</p><p>The first: <strong>are two variables that are categories related?</strong> For example, whether the shift and whether a lot passes or does not pass specification have anything to do with each other. There are no means to subtract there, only counts. That is chi-square.</p><p>The second: <strong>are the means of three groups or more different?</strong> And the obvious answer, chaining t-tests two at a time, is wrong for a reason that shows with simple arithmetic. That is ANOVA.</p></section>
+<section class="section-block is-toy"><span class="kicker">Example</span><h2 class="section-title">Before the theory: a toy example</h2><p>There are two, one per test, with the numbers chosen so they come out whole.</p><h3 class="sub h3">Example A. Chi-square: does the shift influence passing specification?</h3><p>A hundred lots, split by shift and by result:</p><div class="table-wrap"><table><thead><tr><th></th><th>In specification</th><th>Out</th><th>Total</th></tr></thead><tbody><tr><td><strong>Day shift</strong></td><td>40</td><td>10</td><td>50</td></tr><tr><td><strong>Night shift</strong></td><td>30</td><td>20</td><td>50</td></tr><tr><td><strong>Total</strong></td><td>70</td><td>30</td><td><strong>100</strong></td></tr></tbody></table></div><h4 class="sub h4">Step 1. What we would expect if the shift made no difference</h4><p>In total, 70 of 100 lots pass, that is 70%. <strong>If the shift had no influence</strong>, that 70% should appear in both shifts equally:</p><pre><code>día,   en spec:  50 × 0,70 = 35        día,   fuera:  50 × 0,30 = 15
+noche, en spec:  50 × 0,70 = 35        noche, fuera:  50 × 0,30 = 15</code></pre><p>Those four numbers are the <strong>expected</strong> ones. The general rule is the same one we just used: row total times column total, divided by the grand total.</p><h4 class="sub h4">Step 2. How far reality departs from that</h4><div class="table-wrap"><table><thead><tr><th>Cell</th><th>Observed</th><th>Expected</th><th>Difference</th><th>Difference² / expected</th></tr></thead><tbody><tr><td>Day, in spec</td><td>40</td><td>35</td><td>+5</td><td>25 / 35 = 0.714</td></tr><tr><td>Day, out</td><td>10</td><td>15</td><td>−5</td><td>25 / 15 = 1.667</td></tr><tr><td>Night, in spec</td><td>30</td><td>35</td><td>−5</td><td>25 / 35 = 0.714</td></tr><tr><td>Night, out</td><td>20</td><td>15</td><td>+5</td><td>25 / 15 = 1.667</td></tr></tbody></table></div><p>The four differences are exactly 5, and not by chance: in a two-by-two table, <strong>if the totals are fixed, the deviation is necessarily the same in all four cells</strong>, with alternating signs.</p><p>They are divided by the expected value so that a deviation of 5 weighs more when 15 were expected than when 35 were expected. Adding the last column:</p><pre><code>chi² = 0,714 + 1,667 + 0,714 + 1,667 = 4,762</code></pre><h4 class="sub h4">Step 3. Decide</h4><p>With a two-by-two table there is <strong>one degree of freedom</strong>: once the totals are fixed, knowing one cell is enough to deduce the other three. With one degree of freedom, the 5% threshold is 3.841, and our 4.762 passes it. The exact p-value is <strong>0.0291</strong>.</p><p><strong>Conclusion: the shift and passing specification are not independent.</strong> The night shift has twice the lots out of spec.</p><h3 class="sub h3">Example B. ANOVA: three shifts, do they have the same mean?</h3><p>Three recovery measurements in each of three shifts:</p><pre><code>Turno A    84   86   88      media 86
+Turno B    80   82   84      media 82
+Turno C    88   90   92      media 90</code></pre><p>The mean of the nine measurements is 86.</p><h4 class="sub h4">Step 1. The variation there is between the groups</h4><p>How far the group means depart from the overall mean, weighted by the size of each group:</p><pre><code>A:  3 × (86 − 86)² = 3 × 0  =  0
+B:  3 × (82 − 86)² = 3 × 16 = 48
+C:  3 × (90 − 86)² = 3 × 16 = 48
+
+variación entre grupos = 96,  con 2 grados de libertad (3 grupos − 1)
+96 / 2 = 48</code></pre><h4 class="sub h4">Step 2. The variation there is within each group</h4><p>Within each shift, the three measurements deviate from their own mean by −2, 0 and +2:</p><pre><code>por grupo:  (−2)² + 0² + (+2)² = 8
+los tres:   8 + 8 + 8 = 24,  con 6 grados de libertad (9 datos − 3 grupos)
+24 / 6 = 4</code></pre><h4 class="sub h4">Step 3. Compare them, which is the whole idea of ANOVA</h4><pre><code>F = variación entre grupos / variación dentro de los grupos = 48 / 4 = 12</code></pre><p><strong>That ratio is the whole method.</strong> If the three shifts were equal, the group means would be separated only by the same chance that separates the measurements within a group, and F would hover around 1. An F of 12 means the groups are <strong>twelve times more separated from each other</strong> than the internal noise justifies.</p><p>The p-value is <strong>0.0080</strong>, so the equality of the three means is rejected.</p><h4 class="sub h4">Step 4. What ANOVA does not say</h4><p>ANOVA says that there <strong>is</strong> a difference. <strong>It does not say where.</strong> With three shifts there are three possible pairs, and finding out which one or ones differ is a second step, the post hoc, which is in the code and which in this example gives a very instructive surprise.</p></section>
+<section class="section-block "><span class="kicker">Terms</span><h2 class="section-title">Glossary</h2><ul><li><strong>Chi-square.</strong> The test for categorical variables, which works with counts and not with means. It is written χ².</li><li><strong>Observed frequency.</strong> What you actually counted. The 40, 10, 30 and 20 of the table.</li><li><strong>Expected frequency.</strong> What there would be if the null hypothesis were true. The four 35 and 15.</li><li><strong>Test of independence.</strong> The version of chi-square with two categorical variables, which asks whether they are related. Example A.</li><li><strong>Goodness-of-fit test.</strong> The version with a single variable, which asks whether the observed split matches one expected in advance.</li><li><strong>ANOVA.</strong> Analysis of variance. It compares the means of three groups or more.</li><li><strong>One-way ANOVA.</strong> When the groups are defined by a single grouping variable, like the shift.</li><li><strong>Two-way ANOVA.</strong> When there are two grouping variables at once, like shift and ore type.</li><li><strong>Interaction.</strong> That the effect of one factor depends on the level of the other. It only appears in the two-way one, and it is usually the interesting finding.</li><li><strong>F statistic.</strong> The ratio of step 3: variation between groups divided by variation within the groups.</li><li><strong>Post hoc.</strong> The pairwise comparisons made <strong>after</strong> ANOVA comes out significant, to know which groups differ.</li><li><strong>Family-wise error rate.</strong> The total risk of a false positive when several tests are run in a row. It is the reason ANOVA and post hoc adjustments exist.</li><li><strong>ANCOVA.</strong> ANOVA with a numeric control variable put inside, to discount its effect.</li><li><strong>MANOVA.</strong> ANOVA with several dependent variables at once.</li></ul></section>
+<section class="section-block is-recipe"><span class="kicker">Method</span><h2 class="section-title">Step by step</h2><h3 class="sub h3">Step 1. Choose which of the two tests</h3><p>The decision comes from the type of the variables, just as in module 1:</p><div class="table-wrap"><table><thead><tr><th>Question</th><th>Variables</th><th>Test</th></tr></thead><tbody><tr><td>Are two categories related?</td><td>Two categorical</td><td>Chi-square of independence</td></tr><tr><td>Does a split match the expected one?</td><td>One categorical</td><td>Chi-square goodness of fit</td></tr><tr><td>Do the means of 3 groups or more differ?</td><td>One categorical, one numeric</td><td>One-way ANOVA</td></tr><tr><td>And with two grouping variables?</td><td>Two categorical, one numeric</td><td>Two-way ANOVA</td></tr></tbody></table></div><p>The two variants of chi-square get confused a lot, and the difference is simple: <strong>the one of independence compares two columns of your table with each other; goodness of fit compares one column against an expectation you bring from outside</strong>, like &quot;the supplier promises a 25/25/25/25 split&quot;.</p><h3 class="sub h3">Step 2. Why t-tests are not chained</h3><p>With three groups there are three pairs: A against B, A against C, B against C. Tempting, and wrong.</p><p>Each test at 5% gets it right 95% of the time when there is no real difference. Three independent tests all get it right:</p><pre><code>0,95 × 0,95 × 0,95 = 0,857</code></pre><p>So the risk that <strong>at least one</strong> gives a false positive is <code>1 − 0,857 = 0,143</code>, that is <strong>14%, not 5%</strong>. With five groups there are ten pairs and the real risk rises to 40%.</p><p>ANOVA solves that by running <strong>a single</strong> test for the whole question. And when it is necessary to go down to the detail, the post hoc does it with the adjustment that compensates for the multiple comparisons.</p><h3 class="sub h3">Step 3. The assumptions, which exist here too</h3><p>For ANOVA there are three, and the first two are old acquaintances from the previous course:</p><div class="table-wrap"><table><thead><tr><th>Assumption</th><th>How it is checked</th></tr></thead><tbody><tr><td>Normality within each group</td><td>Histogram or quantile plot per group</td></tr><tr><td>Similar variances between groups</td><td>Levene&#x27;s test, the same one as in the Automatidata case</td></tr><tr><td>Independent observations</td><td>By how the data was collected</td></tr></tbody></table></div><p>For chi-square the assumption is different and very concrete: <strong>the expected frequencies have to be sufficient</strong>. The usual rule is that no expected cell falls below 5, and with bigger tables, that no more than 20% of the cells do. With small expected values the result stops being reliable and categories have to be merged or Fisher&#x27;s exact test used.</p><p>Mind this: <strong>the assumption is checked on the expected values, not on the observed ones.</strong> A cell with 2 observed is not a problem if its expected value is 15.</p><h3 class="sub h3">Step 4. After ANOVA, the post hoc</h3><p>If ANOVA comes out significant, the question becomes which differs from which. The usual test is <strong>Tukey&#x27;s</strong>, which compares all the pairs and adjusts the threshold so that the total risk stays at 5%.</p><p>That adjustment has a consequence that surprises and that shows in the code: <strong>it can happen that ANOVA comes out significant and no specific pair is</strong>, or that only one is. It is not a contradiction, it is the price of comparing many things at once honestly.</p><h3 class="sub h3">Step 5. The extensions the syllabus names</h3><p>Four names worth being able to place, even though the course does not develop them:</p><div class="table-wrap"><table><thead><tr><th>Name</th><th>What it adds</th><th>Example</th></tr></thead><tbody><tr><td><strong>Two-way ANOVA</strong></td><td>Two grouping variables, and their interaction</td><td>Shift and ore type at once</td></tr><tr><td><strong>ANCOVA</strong></td><td>A numeric control variable that gets discounted</td><td>Comparing shifts discounting the head grade</td></tr><tr><td><strong>MANOVA</strong></td><td>Several dependent variables at once</td><td>Comparing shifts by recovery <strong>and</strong> concentrate grade</td></tr><tr><td><strong>MANCOVA</strong></td><td>The two previous things together</td><td>The above discounting the head grade</td></tr></tbody></table></div><p>Of the four, the one most used at the plant is ANCOVA, and for a recognisable reason: you can almost never compare two shifts cleanly, because they did not process the same ore. ANCOVA is the way of discounting that difference, and it is the same idea of &quot;holding everything else constant&quot; from module 3, applied to a comparison of groups.</p></section>
+<section class="section-block is-recipe"><span class="kicker">Code</span><h2 class="section-title">The code, in parts</h2><h3 class="sub h3">Step 1. Chi-square of independence</h3><p>The contingency table goes in as is, and scipy calculates the expected values on its own.</p><pre><code class="language-python">import numpy as np
+from scipy import stats
+
+observed = np.array([[40, 10],
+                     [30, 20]])
+
+chi2, p_value, dof, expected = stats.chi2_contingency(observed, correction=False)
+
+print(f&quot;esperados =\n{expected}&quot;)
+print(f&quot;chi2 = {chi2:.4f}   gl = {dof}   p = {p_value:.4f}&quot;)</code></pre><dl class="annot"><div class="annot-head">line by line</div><dt><code>np.array([[40, 10], [30, 20]])</code></dt><dd>A list <strong>of lists</strong>: each inner list is a row of the table. The double brackets are the sign that there are two dimensions.</dd><dt><code>stats.chi2_contingency(...)</code></dt><dd>Returns four things at once, so there are four names on the left and the order they come in has to be respected.</dd><dt><code>correction=False</code></dt><dd>Turns off Yates&#x27; correction, which scipy applies by default in two-by-two tables. It is turned off here <strong>so the result matches the calculation done by hand</strong>; in a real analysis it is better left on, because it is somewhat more conservative.</dd><dt><code>expected</code></dt><dd>The four expected values. They are always printed, because they are the check of the assumption: none should fall below 5.</dd><dt><code>\n</code></dt><dd>Inside a string, it means line break. Here it serves so the table of expected values starts on its own line.</dd></dl><div class="output"><span class="output-tag">prints</span><pre>esperados =
+[[35. 15.]
+ [35. 15.]]
+chi2 = 4.7619   gl = 1   p = 0.0291</pre></div><p>The same 35 and 15 as on paper, the same 4.762 and the same degree of freedom. No expected value falls below 5, so the test is applicable.</p><h3 class="sub h3">Step 2. Chi-square goodness of fit</h3><p>The other variant. A supplier claims their ore comes in equal parts from four zones. 100 lots are taken and where each one came from is counted.</p><pre><code class="language-python">counts = np.array([30, 20, 28, 22])
+promised = np.array([25, 25, 25, 25])
+
+chi2_fit, p_fit = stats.chisquare(counts, promised)
+print(f&quot;chi2 = {chi2_fit:.2f}   p = {p_fit:.4f}&quot;)</code></pre><dl class="annot"><div class="annot-head">line by line</div><dt><code>stats.chisquare(...)</code></dt><dd>A different function from the previous one. This one compares <strong>one</strong> list of counts against an expectation you give it; the one in step 1 compares rows against columns of a table.</dd><dt><code>promised</code></dt><dd>The expected values do not come out of the data, they come from outside: the supplier&#x27;s promise. That is the whole difference between the two tests.</dd></dl><div class="output"><span class="output-tag">prints</span><pre>chi2 = 2.72   p = 0.4368</pre></div><p>A p of 0.44 gives no reason at all to doubt the supplier: <strong>a difference of 30 against 20 between two zones is perfectly normal with 100 lots</strong>, and the eye tends to see a pattern there that is not there.</p><h3 class="sub h3">Step 3. One-way ANOVA</h3><pre><code class="language-python">shift_a = np.array([84, 86, 88])
+shift_b = np.array([80, 82, 84])
+shift_c = np.array([88, 90, 92])
+
+f_stat, p_anova = stats.f_oneway(shift_a, shift_b, shift_c)
+print(f&quot;F = {f_stat:.4f}   p = {p_anova:.4f}&quot;)</code></pre><dl class="annot"><div class="annot-head">line by line</div><dt><code>stats.f_oneway(a, b, c)</code></dt><dd>The groups are passed as separate arguments, separated by commas, not as a list. It admits as many as you like.</dd><dt><code>f_stat</code></dt><dd>The ratio we calculated by hand: 48 divided by 4.</dd></dl><div class="output"><span class="output-tag">prints</span><pre>F = 12.0000   p = 0.0080</pre></div><p>The exact 12 of step 3 of the example.</p><h3 class="sub h3">Step 4. The post hoc, and the surprise</h3><pre><code class="language-python">tukey = stats.tukey_hsd(shift_a, shift_b, shift_c)
+print(tukey)</code></pre><dl class="annot"><div class="annot-head">line by line</div><dt><code>stats.tukey_hsd(...)</code></dt><dd>Compares <strong>all</strong> the pairs and adjusts the threshold by the number of comparisons. Short for <em>honestly significant difference</em>.</dd><dt><code>print(tukey)</code></dt><dd>The object prints already formatted as a table. The groups appear numbered from 0 in the order in which they were passed: 0 is A, 1 is B and 2 is C.</dd></dl><div class="output"><span class="output-tag">prints</span><pre>Pairwise Group Comparisons (95.0% Confidence Interval)
+Comparison  Statistic  p-value  Lower CI  Upper CI
+ (0 - 1)      4.000     0.109    -1.010     9.010
+ (0 - 2)     -4.000     0.109    -9.010     1.010
+ (1 - 0)     -4.000     0.109    -9.010     1.010
+ (1 - 2)     -8.000     0.006   -13.010    -2.990
+ (2 - 0)      4.000     0.109    -1.010     9.010
+ (2 - 1)      8.000     0.006     2.990    13.010</pre></div><p>Read it calmly, because it is the lesson of the module:</p><ul><li><strong>ANOVA said there is a difference</strong> between the shifts, with a p of 0.0080.</li><li><strong>The only pair that differs is B against C</strong>, with a p of 0.006 and an interval that runs from 2.99 to 13.01, without touching zero.</li><li><strong>A differs from neither of the two.</strong> Its p against B and against C is 0.109, and both intervals cross zero.</li></ul><p>In other words, the difference ANOVA detected is between the worst shift and the best, and the middle one cannot be told from either. Reporting only &quot;yes, there is a difference between shifts&quot; would have implied that all three are different, which is false.</p><h3 class="sub h3">Step 5. What cannot be run here, and what to do</h3><p><strong>Two-way ANOVA is not in scipy.</strong> The usual tool is <code>statsmodels</code>, which is not installed on this machine, so this notebook does not run it. The honest options are three: install <code>statsmodels</code> when needed, calculate the sums of squares by hand with the same scheme as example B, or stay with the one-way one, which answers most questions.</p><p>What is <strong>not</strong> valid is replacing it with two separate one-way ANOVAs, one per grouping variable: that leaves out precisely the interaction, which is usually the interesting part.</p></section>
+<section class="section-block is-warning"><span class="kicker">Traps</span><h2 class="section-title">Watch out</h2><ul><li><strong>Chaining t-tests with three groups inflates the risk from 5% to 14%.</strong> With five groups, to 40%. That is what ANOVA is for.</li><li><strong>ANOVA does not say which groups differ.</strong> It only says that some do. The rest is the post hoc, and it can contradict the impression the overall result leaves.</li><li><strong>There can be a significant ANOVA with no significant pair</strong>, or with only one, as in the example. It is not an error, it is the multiple comparisons adjustment doing its job.</li><li><strong>The chi-square assumption is checked on the expected values, not the observed ones.</strong> No expected cell below 5.</li><li><strong>Chi-square says there is a relationship, not how strong it is.</strong> With huge amounts of data, an irrelevant association comes out significant. For the size, other measures are needed.</li><li><strong>Do not confuse the two variants of chi-square.</strong> Independence compares two variables with each other; goodness of fit compares one against an external expectation.</li><li><strong>A large F does not mean a large effect in real units.</strong> It means the separation between groups is large <strong>compared with the internal noise</strong>, which is something else.</li><li><strong>Chi-square on counts, never on percentages.</strong> Putting percentages in the table changes the result completely, because the test uses the sample size.</li></ul></section>
+<section class="section-block is-bridge"><span class="kicker">Analogy</span><h2 class="section-title">Metallurgical bridge</h2><p>These two tests answer two questions you already ask yourself at the plant, and the second one also spares you an expensive mistake.</p><p><strong>Chi-square is the quality control question</strong>: of the lots that came out of specification, are they split equally between shifts, or is there one shift that concentrates the failures? Example A says the night shift has twice as many, and that that difference is not chance.</p><p><strong>ANOVA is the comparison of three reagents.</strong> And here is the mistake it avoids: the natural habit is to test A against B, then B against C, then A against C, and keep the comparison that came out well. With three tests at 5%, the risk that one of them gives a false positive is 14%, so <strong>one in every seven test campaigns is going to hand you a winner that does not exist</strong>. Changing reagent because of that costs money.</p><p>The translation table:</p><div class="table-wrap"><table><thead><tr><th>At the plant</th><th>In the module</th></tr></thead><tbody><tr><td>Do the failures concentrate in one shift?</td><td>Chi-square of independence</td></tr><tr><td>Does the ore arrive in the agreed proportion of zones?</td><td>Chi-square goodness of fit</td></tr><tr><td>Do three collectors perform differently?</td><td>One-way ANOVA</td></tr><tr><td>And if the ore type matters as well?</td><td>Two-way ANOVA</td></tr><tr><td>And discounting that each shift had another head grade?</td><td>ANCOVA</td></tr><tr><td>Testing two at a time and keeping whatever comes out</td><td>The 14% mistake</td></tr></tbody></table></div><p>And the post hoc has its exact equivalent: it is the difference between saying &quot;the three reagents are not equal&quot; and saying <strong>which one</strong> to buy. The first does not serve to sign a purchase order.</p></section>
+<section class="section-block is-review"><span class="kicker">Review</span><h2 class="section-title">Review</h2><details><summary>Why can three groups not be compared with three t-tests?</summary><p>Because each test carries its own risk of a false positive and the risks accumulate. With three comparisons at 5%, the probability that all three get it right when there is no real difference is 0.95 to the power of 3, that is 0.857, so the risk that at least one gives a false positive is 14% and not 5%. With five groups there are ten pairs and the real risk rises to about 40%. ANOVA answers the question with a single test, and if it is necessary to go down to the detail, the post hoc compares the pairs adjusting the threshold so that the total risk stays as declared.</p></details><details><summary>What exactly does the F statistic compare?</summary><p>The variation <strong>between</strong> the groups against the variation <strong>within</strong> the groups. In the example, the shift means depart from the overall mean enough to produce a between-groups variation of 48 per degree of freedom, while the measurements within each shift depart from their own mean only 4 per degree of freedom. The ratio, 12, says the groups are twelve times more separated than the internal noise justifies. If the groups were really equal, both variations would measure the same thing and F would hover around 1.</p></details><details><summary>ANOVA comes out significant but no pair in the post hoc does. Is there a contradiction?</summary><p>No. They are different tests with different thresholds: Tukey&#x27;s post hoc adjusts its own so that the total risk of the three comparisons is 5%, so it demands more evidence from each pair than ANOVA demands from the whole. When the overall evidence sits right at the limit, it can get spread among the pairs without any of them reaching its individual threshold. In the module&#x27;s example something similar happens in a mild version: ANOVA comes out with a p of 0.0080 and only the pair B against C is significant, while shift A cannot be told from either of the other two.</p></details><details><summary>How do the two chi-square tests differ?</summary><p>In where the expected frequencies come from. The test of independence works with two categorical variables in a table and calculates the expected values <strong>from the table&#x27;s own totals</strong>, to ask whether the two variables are related: it is the case of the shift against passing specification. Goodness of fit works with a single variable and compares the observed counts against an expectation that comes <strong>from outside</strong>, like the split a supplier promises. The arithmetic afterwards is identical in both: squared difference divided by the expected value, summed over all the cells.</p></details><details><summary>When is ANCOVA used instead of ANOVA?</summary><p>When there is a numeric variable that affects the result and is not equalised between the groups, and you want to discount its effect before comparing the means. The typical case at the plant is comparing the performance of three shifts that did not process the same ore: if one shift received a higher head grade, part of its better recovery belongs to the ore and not to the shift. ANCOVA puts that variable in as a control and compares the already adjusted means, which is the same idea of &quot;holding everything else constant&quot; from module 3 applied to a comparison of groups.</p></details></section>
+</main>
+<footer class="footer">
+  Concentra / distilled from the public syllabus of the course / 2026-08-23
+</footer>
+</body>
+</html>

@@ -1,10 +1,10 @@
 <!doctype html>
-<html lang="es">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>The Power of Statistics · el curso</title>
-<link rel="alternate" hreflang="en" href="curso.en.html">
+<title>TikTok · Regression Analysis: Simplify Complex Data Relationships</title>
+<link rel="alternate" hreflang="es" href="case_tiktok.html">
 <style>
 /* ============================================================================
    Concentra — design tokens and shared components.
@@ -452,248 +452,41 @@ figure.fig figcaption {
   a { color: #16130f; }
 }
 
-
-/* The brain file, ready to be copied into an assistant's memory. */
-.brain { max-width: 880px; margin-top: 1.2rem; }
-.brain-bar {
-  display: flex; align-items: center; gap: .8rem; flex-wrap: wrap;
-  border: 1px solid var(--seam); border-bottom: 0;
-  padding: .6rem .9rem; background: var(--bench);
-}
-.brain-bar .name {
-  font-family: var(--data); font-size: .76rem; color: var(--brass); letter-spacing: .06em;
-}
-.brain-bar .size { font-family: var(--data); font-size: .72rem; color: var(--shadowed); }
-.brain-bar .spacer { flex: 1; }
-.brain-bar button, .brain-bar a.btn {
-  background: none; border: 1px solid var(--seam); border-radius: 2px;
-  color: var(--dust); font-family: var(--data); font-size: .72rem;
-  letter-spacing: .06em; padding: .3rem .7rem; cursor: pointer;
-  text-decoration: none; white-space: nowrap;
-}
-.brain-bar button:hover, .brain-bar a.btn:hover { color: var(--brass); border-color: var(--brass); }
-.brain-bar button.done { color: var(--malachite); border-color: var(--malachite); }
-.brain pre {
-  margin: 0; max-height: 26rem; overflow: auto;
-  border-radius: 0; border-color: var(--seam);
-}
-.brain pre code { font-size: .8rem; }
 </style>
 </head>
 <body>
 <header class="header">
   <div class="header-content">
-    <div class="eyebrow"><span>Curso 3 / <a href="https://www.coursera.org/learn/the-power-of-statistics">ver en Coursera</a></span><a class="lang-switch" href="../index.en.html#the-power-of-statistics/curso" target="_top" hreflang="en" lang="en" title="Read this page in English">English</a></div>
-    <h1>The Power of Statistics</h1>
-    <p class="subtitle"></p>
+    <div class="eyebrow"><span>Course 4 · Regression Analysis: Simplify Complex Data Relationships / Case study</span><a class="lang-switch" href="../index.html#regression-analysis-simplify-complex-data-relationships/case_tiktok" target="_top" hreflang="es" lang="es" title="Leer esta página en español">Español</a></div>
+    <h1>TikTok</h1>
+    <p class="subtitle">A threshold that decides nothing, because the model sends everyone to one of two piles and there is nobody in between.</p>
     <div class="mesh" role="presentation"></div>
-    <div class="assay"><span>6 módulos</span><span>34 h de curso</span><span>154 tasks</span><span>3 casos propios</span></div>
+    <div class="assay"><span>19,084 videos</span><span>binomial logistic</span><span>classes 93.7 against 6.3</span><span>AUC 0.697</span></div>
   </div>
 </header>
 <main class="container">
-<section class="section-block "><span class="kicker">Resumen</span><h2 class="section-title">De qué va este curso</h2><p>Es el curso donde el análisis deja de describir y empieza a <strong>decidir</strong>. Los cursos anteriores enseñan a mirar los datos y contar lo que se ve. Este responde a la pregunta que viene después y que es la que paga: <strong>¿la diferencia que estoy viendo es real, o es casualidad de esta muestra?</strong></p><p>Toda la maquinaria del curso existe para eso. La probabilidad da el lenguaje, el muestreo explica por qué una parte puede hablar por el todo, los intervalos de confianza ponen números a lo que no sabemos, y las pruebas de hipótesis convierten todo eso en un sí o un no defendible frente a alguien que va a gastar dinero según tu respuesta.</p><p>Termina en un proyecto de portafolio que es un A/B test completo sobre datos reales de empresa. Ahí es donde se ve si lo anterior se entendió.</p></section>
-<section class="section-block is-recipe"><span class="kicker">Recorrido</span><h2 class="section-title">El recorrido, módulo a módulo</h2><ol><li><strong>Introducción a la estadística con Python.</strong> El vocabulario: descriptiva frente a inferencial, y las tres familias de estadísticos (centro, dispersión, posición).</li><li><strong>Probabilidad.</strong> Reglas básicas, probabilidad condicional, teorema de Bayes y las distribuciones que modelan datos reales: binomial, Poisson y normal.</li><li><strong>Muestreo.</strong> Métodos de selección, el sesgo que ningún cálculo posterior arregla, y el teorema del límite central, que es el resultado que sostiene todo lo demás.</li><li><strong>Intervalos de confianza.</strong> Cómo pasar de un número suelto a un rango honesto, y la interpretación del 95 % que casi todo el mundo dice mal.</li><li><strong>Pruebas de hipótesis.</strong> H₀ y Hₐ, errores tipo I y II, pruebas de una y dos muestras, y el A/B testing.</li><li><strong>Proyecto final.</strong> Un escenario de empresa, un análisis completo y un documento PACE.</li></ol></section>
-<section class="section-block is-decision"><span class="kicker">Resultado</span><h2 class="section-title">Qué sabes hacer al terminar</h2><ul><li>Decidir si una diferencia entre dos grupos es real o ruido, con la prueba adecuada y sus supuestos verificados.</li><li>Acompañar cualquier resultado del tamaño del efecto y su intervalo de confianza, que es lo que distingue un análisis profesional de un valor p suelto.</li><li>Detectar cuándo un resultado significativo es irrelevante en la práctica.</li><li>Convertir todo eso en una recomendación que alguien sin formación estadística pueda ejecutar.</li></ul></section>
-<section class="section-block is-toy"><span class="kicker">Para qué sirve</span><h2 class="section-title">El cerebro de este curso</h2><p>Debajo está el archivo para copiar y pegar como memoria de un asistente. <strong>No es un resumen de las lecciones</strong>: es el manual de operación, con el procedimiento en orden, los umbrales, las reglas de decisión, las trampas conocidas y los tres casos propios con sus números reales para calibrar.</p><p>Esa diferencia es deliberada. Un resumen de las clases le da material de estudio a algo que no necesita estudiar, y gasta contexto sin cambiar cómo trabaja. El manual de operación ocupa una fracción y sí cambia el resultado.</p></section>
-<section class="section-block">
-  <span class="kicker">Memoria</span>
-  <h2 class="section-title">El archivo, listo para copiar</h2>
-  <div class="brain">
-    <div class="brain-bar">
-      <span class="name">cerebro-curso-3.md</span>
-      <span class="size">7.5 KB</span>
-      <span class="spacer"></span>
-      <button id="copy" type="button" data-copy="Copiar todo" data-copied="Copiado" data-selected="Seleccionado: pulsa Ctrl+C">Copiar todo</button>
-      <a class="btn" href="cerebro-curso-3.md" download>Descargar</a>
-    </div>
-    <pre><code id="brain"># Cerebro: inferencia estadística para decisiones de negocio
-
-Manual de operación, no material de estudio. Describe cómo trabajo una pregunta del tipo
-&quot;¿esta diferencia es real?&quot;: el orden, los umbrales, lo que siempre reporto y lo que nunca
-hago. Pégalo como memoria y asume estas reglas sin volver a preguntarlas.
-
-## Qué resuelvo con esto
-
-Comparar dos grupos y decidir si la diferencia observada justifica actuar. Tasas de
-conversión, tiempos, importes, métricas de uso, recuperación de un proceso. La respuesta
-siempre es una decisión de negocio, nunca un número suelto.
-
-## El procedimiento, en este orden
-
-1. **Escribir H₀ y Hₐ en lenguaje de negocio, antes de mirar los datos.** Si se formulan
-   después de ver el resultado, la prueba no vale.
-2. **Fijar α antes también.** Por defecto 0,05. Se baja a 0,01 cuando un falso positivo
-   sale caro.
-3. **Explorar**: tamaño de cada grupo, medias, medianas, desviaciones, y mirar la forma con
-   histograma y diagrama de caja.
-4. **Comprobar supuestos**: Levene para igualdad de varianzas, y tamaño de muestra para
-   apoyarse en el teorema del límite central.
-5. **Elegir la prueba** según la tabla de decisión de abajo.
-6. **Validar el resultado** con al menos dos respaldos: repetir sin atípicos y añadir una
-   prueba no paramétrica.
-7. **Reportar** el bloque completo de la sección &quot;lo que siempre se reporta&quot;.
-8. **Traducir a una recomendación accionable** y declarar las limitaciones.
-
-## Reglas de decisión
-
-### Qué prueba usar
-
-| Lo que comparo | Prueba |
-|---|---|
-| Una media contra un valor de referencia | t de una muestra |
-| Medias de dos grupos independientes | t de dos muestras (Welch por defecto) |
-| Dos proporciones o tasas | prueba z de proporciones |
-| Confirmar sin asumir normalidad | Mann-Whitney U |
-| Igualdad de varianzas | Levene |
-| Reparto de la asignación | chi cuadrado (SRM) |
-
-### Welch o Student
-
-Welch por defecto, siempre. Si Levene da `p &lt; 0,05` las varianzas son desiguales y Student
-queda descartado. Si Levene da `p ≥ 0,05` Student sería válido, pero Welch da
-prácticamente el mismo resultado, así que no se gana nada cambiando. En código:
-`stats.ttest_ind(a, b, equal_var=False)`.
-
-### t o z
-
-Se usa **t** siempre que la variabilidad de la población se estime desde la muestra, que
-es el caso real. La **z** solo si esa variabilidad se conoce de verdad. Con n grande las
-dos convergen: con n=100 el multiplicador es 1,984 frente a 1,960.
-
-### Atípicos
-
-No se borran por defecto. Se detectan con la regla del IQR (`Q1 − 1,5·IQR` a
-`Q3 + 1,5·IQR`), se decide con criterio de dominio, y **se repite el análisis con y sin
-ellos** reportando ambos. Solo se eliminan si son físicamente imposibles, y entonces se
-documenta cuántas filas y qué porcentaje.
-
-### Datos faltantes
-
-Primero se investiga **por qué** faltan. Eliminar filas si son pocas y al azar; imputar con
-mediana antes que con media; dejarlos como nulos si el modelo los maneja. Cualquier
-imputación se calcula **después** de partir en entrenamiento y prueba, nunca antes, o se
-mete fuga de datos.
-
-## Lo que siempre se reporta
-
-Nunca un valor p solo. El bloque mínimo es:
-
-| Elemento | Por qué |
-|---|---|
-| Tamaño de cada grupo | Determina cuánta confianza merece la estimación |
-| Medias y desviaciones | El dato crudo que sostiene todo lo demás |
-| Estadístico y valor p | La evidencia contra H₀ |
-| **Tamaño del efecto (Cohen&#x27;s d)** | Impide confundir significativo con importante |
-| **Intervalo de confianza de la diferencia** | Si cruza el cero, no hay diferencia demostrada |
-| Prueba de respaldo | Descarta que el resultado sea artefacto de la forma o los extremos |
-| Limitaciones | Las encuentro yo antes de que las encuentre quien revisa |
-
-**Escala de Cohen&#x27;s d**: por debajo de 0,2 es despreciable; alrededor de 0,5 es medio;
-por encima de 0,8 es grande.
-
-## Trampas que ya conozco
-
-- **El valor p no es la probabilidad de que H₀ sea verdadera.** Es la probabilidad de ver
-  un resultado así de extremo si H₀ lo fuera.
-- **Con muestra grande, cualquier diferencia trivial sale significativa.** Por eso el
-  tamaño del efecto es obligatorio.
-- **&quot;No rechazar H₀&quot; no es &quot;demostrar que son iguales&quot;.** Puede ser falta de poder
-  estadístico. Se dice &quot;no hay evidencia suficiente&quot;.
-- **Un intervalo de confianza no dice que el parámetro esté ahí con 95 % de probabilidad.**
-  El 95 % describe el método a la larga, no ese intervalo concreto.
-- **Elegir prueba de una cola después de ver los datos es hacer trampa.** La dirección se
-  decide antes y con razón de negocio.
-- **Más muestra no arregla el sesgo de selección.** Solo un método de muestreo mejor.
-- **Asociación no es causa.** En estudios observacionales se nombran los factores de
-  confusión plausibles de forma explícita.
-- **`scale` recibe el error estándar, no la desviación estándar**, al construir intervalos
-  con `scipy`.
-- **`ppf(0.975)` para un intervalo del 95 %**, porque el 5 % se reparte en dos colas.
-
-## Casos de referencia, con números reales
-
-Sirven para calibrar qué es grande y qué no. Son análisis propios, ya ejecutados.
-
-| Caso | Comparación | Resultado | Lectura |
-|---|---|---|---|
-| **TikTok** | Cuentas verificadas contra no verificadas, sobre visualizaciones. n=19.084 | `t = 25,4994`, `p = 2,61e-120`, `d = −0,544`, IC [−187.626, −160.823] | Diferencia real y de magnitud media. Hallazgo secundario más fuerte: vídeos con reclamación 501.029 visualizaciones frente a 4.956 de opinión |
-| **Automatidata** | Tarjeta contra efectivo, sobre tarifa de taxi. n=22.532 | `t = 6,8668`, `p = 6,80e-12`, `d = 0,0922`, IC [0,87 $, 1,56 $] | Diferencia real pero **despreciable**. El caso que demuestra que un p diminuto no implica un efecto grande |
-| **Waze** | iPhone contra Android, sobre número de viajes. n=14.999 | `t = 1,4635`, `p = 0,1434`, `d = 0,0247`, IC [−0,55, 3,81] | Sin evidencia de diferencia. El intervalo cruza el cero y las tres validaciones coinciden |
-
-Los tres se validaron igual: Levene, luego Welch, luego repetición sin atípicos, luego
-Mann-Whitney. En los tres, las tres validaciones coincidieron entre sí.
-
-## Cómo quiero los entregables
-
-- **Documento PACE** (Plan, Analyze, Construct, Execute) como entregable escrito. Pesa más
-  que el notebook, porque es lo que lee quien decide.
-- **Resumen ejecutivo de una página**: hallazgo, evidencia, recomendación, limitaciones.
-- **Cada decisión de limpieza documentada** con criterio, número de filas y porcentaje. No
-  vale &quot;limpié los datos&quot;.
-- **La recomendación en una frase que alguien sin formación estadística pueda ejecutar.**
-  &quot;p = 0,03&quot; no es una recomendación.
-- **Código en inglés**, explicaciones en español.
-- **Ningún resultado cuenta como hecho** si no está explicado en palabras simples en el
-  entregable visible, aunque el número ya esté calculado en un script o un JSON.
-
-## Vocabulario, español e inglés
-
-Los cursos y la documentación vienen en inglés; los entregables van en español.
-
-| Español | Inglés |
-|---|---|
-| Hipótesis nula / alternativa | null / alternative hypothesis |
-| Nivel de significancia | significance level, alpha |
-| Valor p | p-value |
-| Tamaño del efecto | effect size |
-| Intervalo de confianza | confidence interval |
-| Error estándar | standard error |
-| Grados de libertad | degrees of freedom |
-| Distribución muestral | sampling distribution |
-| Teorema del límite central | central limit theorem |
-| Error tipo I / tipo II | type I / type II error |
-| Poder estadístico | statistical power |
-| Muestreo estratificado | stratified sampling |
-| Sesgo de muestreo | sampling bias |
-| Valor atípico | outlier |
-</code></pre>
-  </div>
-</section>
+<section class="section-block "><span class="kicker">Brief</span><h2 class="section-title">The brief</h2><p><strong>TikTok</strong> has a queue of user claims waiting for human review, and wants to clear it. The final goal, which arrives in the next course, is to classify automatically whether a video contains a <strong>claim</strong> or an <strong>opinion</strong>.</p><p>This project is the previous step: setting up a complete logistic regression on a binary variable that is already known, <code>verified_status</code>, and learning what can be expected of it.</p></section>
+<section class="section-block is-question"><span class="kicker">Question</span><h2 class="section-title">The question</h2><blockquote>Can you tell whether an account is verified by looking at the video it posted?</blockquote></section>
+<section class="section-block is-data"><span class="kicker">Data</span><h2 class="section-title">The data</h2><p><code>tiktok_dataset_raw.csv</code>, <strong>19,382 videos</strong> and 12 columns. Synthetic data created by TikTok for the certificate.</p><p>And a warning that goes up front because it decides how everything else is measured:</p><figure class="fig"><img src="../../projects/curso4/tiktok/03_figures/01_desbalance.9d29fb5f.png" alt="01_desbalance" loading="lazy"><figcaption>01_desbalance.png</figcaption></figure><p><strong>93.7% of the accounts are not verified.</strong> A model that always answers &quot;not verified&quot; is right 93.7% of the time and detects nobody. With this split, accuracy stops being a metric and becomes a trap. It is the example of module 5, now with real data.</p></section>
+<section class="section-block is-data"><span class="kicker">Cleaning</span><h2 class="section-title">What had to be fixed</h2><p><strong>298 rows have missing data</strong>, always in the same block of seven columns, and they get removed. 19,084 remain. There are no duplicates.</p><p><strong>The majority class gets undersampled</strong> down to match the minority: 1,200 and 1,200, that is 2,400 rows, discarding 16,684 videos. Without that, the shortest path the model has to reduce its error is never to predict &quot;verified&quot;.</p><p>A consequence to keep in mind when reading the results: <strong>the accuracy reported is compared against the 50% of a coin</strong>, not against the 93.7% of the original file.</p><p><strong>The categories get encoded</strong> with one column of ones and zeros per level minus one: <code>is_claim</code> with opinion as the reference, and <code>banned</code> and <code>under_review</code> with the active account as the reference.</p></section>
+<section class="section-block is-figures"><span class="kicker">Exploration</span><h2 class="section-title">What the exploration showed</h2><p>The course material points at the video duration as the interesting variable. In this data the mean duration is <strong>31.77 seconds on verified accounts and 32.47 on unverified ones</strong>: seven tenths of a second on half-minute videos.</p><p>The signal is somewhere else:</p><figure class="fig"><img src="../../projects/curso4/tiktok/03_figures/02_senal.f3c6d765.png" alt="02_senal" loading="lazy"><figcaption>02_senal.png</figcaption></figure><p>The proportion flips over. Unverified accounts post claims a little over half the time; verified ones post <strong>opinions four times out of five</strong>.</p></section>
+<section class="section-block is-recipe"><span class="kicker">Model</span><h2 class="section-title">The model, and why this model</h2><p>The variable to predict is a yes or a no, so <strong>binomial logistic regression</strong> applies, fitted by maximum likelihood on 1,800 rows, with 600 held out.</p><figure class="fig"><img src="../../projects/curso4/tiktok/03_figures/03b_correlaciones.6d620f21.png" alt="03b_correlaciones" loading="lazy"><figcaption>03b_correlaciones.png</figcaption></figure><p>The five interaction counters (views, likes, shares, downloads and comments) are correlated with each other <strong>above 0.55</strong>, and downloads with comments reaches <strong>0.83</strong>. The duration, on the other hand, resembles none of them: <strong>0.013</strong> is the most it reaches, so it measures something different and that is why it stays in the model.</p><p>Translated into variance inflation factors, which is the number that decides:</p><figure class="fig"><img src="../../projects/curso4/tiktok/03_figures/03_multicolinealidad.7677fd35.png" alt="03_multicolinealidad" loading="lazy"><figcaption>03_multicolinealidad.png</figcaption></figure><p>Those of the five counters run from 3.8 to 7.8. <strong>None reaches the threshold of 10</strong>, so keeping only one was a criterion of our own and not an obligation: they contribute noise and none turned out significant.</p><p><strong>Of the five variables in the model, a single one has a demonstrated effect:</strong></p><figure class="fig"><img src="../../projects/curso4/tiktok/03_figures/04_momios.b26796ef.png" alt="04_momios" loading="lazy"><figcaption>04_momios.png</figcaption></figure><div class="table-wrap"><table><thead><tr><th>Variable</th><th>Odds ratio</th><th>95% interval</th><th>p</th></tr></thead><tbody><tr><td><strong>The video is a claim</strong></td><td><strong>0.20</strong></td><td>0.13 to 0.29</td><td>1.9e-16</td></tr><tr><td>Author under review</td><td>0.78</td><td>0.54 to 1.13</td><td>0.196</td></tr><tr><td>Author banned</td><td>0.76</td><td>0.48 to 1.20</td><td>0.234</td></tr><tr><td>Each second of video</td><td>1.00</td><td>0.99 to 1.00</td><td>0.63</td></tr><tr><td>Each view</td><td>1.00</td><td>1.00 to 1.00</td><td>0.886</td></tr></tbody></table></div><p>The last four intervals cross 1, which is the no-effect line when talking about odds. Posting a claim <strong>multiplies by 0.20 the odds</strong> of being a verified account.</p></section>
+<section class="section-block is-recipe"><span class="kicker">Assumptions</span><h2 class="section-title">The assumptions, one by one</h2><div class="table-wrap"><table><thead><tr><th>Assumption</th><th>Status</th></tr></thead><tbody><tr><td>Binary outcome</td><td>Holds: verified or not</td></tr><tr><td>Independent observations</td><td>Reasonable: different videos</td></tr><tr><td>No multicollinearity</td><td>Holds after removing four counters, maximum 3.0</td></tr><tr><td>Linearity in the logit</td><td>Not checkable in a useful way: the only variable with an effect is binary</td></tr></tbody></table></div><p>The last one deserves a line. The assumption requires the relationship to be straight <strong>on the logit scale</strong>, not in probability. With a binary variable as the only predictor with an effect, there are only two possible values and a line always passes through two points, so the assumption holds by construction and says nothing.</p></section>
+<section class="section-block is-result"><span class="kicker">Result</span><h2 class="section-title">The result, translated</h2><p>On the 600 test accounts:</p><figure class="fig"><img src="../../projects/curso4/tiktok/03_figures/05_matriz_confusion.d3bceef4.png" alt="05_matriz_confusion" loading="lazy"><figcaption>05_matriz_confusion.png</figcaption></figure><div class="table-wrap"><table><thead><tr><th>Metric</th><th>Value</th><th>What it means</th></tr></thead><tbody><tr><td>Recall</td><td><strong>0.827</strong></td><td>Of every 100 verified accounts, it catches 83</td></tr><tr><td>Precision</td><td><strong>0.641</strong></td><td>Of every 100 alarms, 64 are right</td></tr><tr><td>F1</td><td>0.722</td><td></td></tr><tr><td>Accuracy</td><td>0.682</td><td>Against the 50% of a coin</td></tr><tr><td>AUC</td><td>0.697</td><td>0.5 would be chance</td></tr></tbody></table></div><p><strong>And here is the finding of the case</strong>, which came out of a result that looked like a bug: the thresholds 0.4 and 0.5 gave identical metrics down to the last decimal.</p><figure class="fig is-live"><iframe src="../../projects/curso4/tiktok/03_figures/06_probabilidades.9d22e1b6.html" loading="lazy" title="06_probabilidades"></iframe><figcaption>interactive: hover and zoom</figcaption></figure><p>It was not a bug. The probabilities the model predicts run from 0.204 to 0.651 and fall into <strong>two piles separated by an empty band</strong>: zero cases between 0.28 and 0.56. Cutting at 0.30, at 0.40 or at 0.55 produces exactly the same 387 flagged accounts and the same 248 hits.</p><p>The cause is that the model leans on a single binary variable, so <strong>it has turned into the rule &quot;is it a claim?&quot; with two steps of arithmetic in between</strong>. The threshold, which module 5 presents as a business decision, decides nothing here.</p><p>It is the same shape as the Course 3 finding in this same scenario, where the views turned out to be two populations with a gap between them. There it was in the data; here, in the output of the model.</p></section>
+<section class="section-block is-decision"><span class="kicker">Decision</span><h2 class="section-title">What gets decided with this</h2><ol><li><strong>Do not use it as an automatic classifier.</strong> An AUC of 0.697 and one in three alarms false do not support a decision without a person in front of it.</li><li><strong>Do use the finding.</strong> What separates the two groups is the kind of content, not the activity of the account or the duration of the video. That redirects where to look for signal.</li><li><strong>Move on to the real problem.</strong> The variable that here turned out to be the only one that matters is precisely the one that has to be predicted in the next course, and the complete pipeline is already set up.</li></ol></section>
+<section class="section-block is-warning"><span class="kicker">Limits</span><h2 class="section-title">Limitations</h2><ul><li>Balancing the classes discarded <strong>16,684 videos</strong>. The model learns from a sample that does not resemble the real split of the platform.</li><li>The pseudo R² is <strong>0.1046</strong>: the model explains little. It is a result, not a failure of the procedure.</li><li><code>claim_status</code> is what the next course has to predict. Using it here as a predictor is correct for this exercise, but <strong>the two projects are not independent</strong> and it is worth remembering when comparing results.</li><li>The data is synthetic. The conclusions hold as an exercise and do not describe TikTok.</li></ul></section><section class="section-block is-material"><span class="kicker">Files</span><h2 class="section-title">Full material</h2><p>These three projects did not exist: they were built here. The CSVs are read from your Course 3 folder without touching them, and everything else is new.</p><h3 class="sub">Reports and notes</h3><ul class="res"><li><a href="../../projects/curso4/tiktok/04_reports/pace_plan.md" target="_blank" rel="noopener">pace_plan.md</a> <span class="path">04_reports/pace_plan.md</span> <span class="size">5.1 KB</span></li><li><a href="../../projects/curso4/tiktok/04_reports/executive_summary.md" target="_blank" rel="noopener">executive_summary.md</a> <span class="path">04_reports/executive_summary.md</span> <span class="size">3.8 KB</span></li><li><a href="../../projects/curso4/tiktok/04_reports/model_results.json" target="_blank" rel="noopener">model_results.json</a> <span class="path">04_reports/model_results.json</span> <span class="size">3.1 KB</span></li></ul><h3 class="sub">Code</h3><ul class="res"><li><a href="../../projects/curso4/tiktok/02_scripts/tiktok_logistic.py" target="_blank" rel="noopener">tiktok_logistic.py</a> <span class="path">02_scripts/tiktok_logistic.py</span> <span class="size">29.6 KB</span></li><li><a href="../../projects/curso4/tiktok/tiktok_curso4.ipynb" target="_blank" rel="noopener">tiktok_curso4.ipynb</a> <span class="path">tiktok_curso4.ipynb</span> <span class="size">13.9 KB</span></li></ul></section>
 </main>
 <footer class="footer">
-  Concentra / 2026-08-23
+  Concentra / this sheet links the files where they already were / 2026-08-23
 </footer>
 <script>
-const button = document.getElementById('copy');
-const source = document.getElementById('brain');
-
-function selectSource() {
-  const range = document.createRange();
-  range.selectNodeContents(source);
-  const selection = window.getSelection();
-  selection.removeAllRanges();
-  selection.addRange(range);
-}
-
-button.addEventListener('click', async () => {
-  const text = source.textContent;
-  let copied = false;
-  // The clipboard API needs a secure context, which file:// is not, so fall back to
-  // selecting the text and letting the old command (or the reader's Ctrl+C) do it.
-  try {
-    await navigator.clipboard.writeText(text);
-    copied = true;
-  } catch {
-    selectSource();
-    try { copied = document.execCommand('copy'); } catch { copied = false; }
-  }
-  button.textContent = copied ? button.dataset.copied : button.dataset.selected;
-  button.classList.toggle('done', copied);
-  if (!copied) selectSource();
-  setTimeout(() => {
-    button.textContent = button.dataset.copy;
-    button.classList.remove('done');
-  }, 2600);
+// Same-frame links replace the current entry instead of pushing a new one, so the
+// browser's back button keeps following the sidebar routes of the shell.
+document.querySelectorAll('a.lead-link').forEach(link => {
+  link.addEventListener('click', event => {
+    event.preventDefault();
+    location.replace(link.getAttribute('href'));
+  });
 });
 </script>
 </body>
