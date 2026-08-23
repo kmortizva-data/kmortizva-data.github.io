@@ -449,8 +449,8 @@ def contact_ways(data: dict, ui: dict) -> str:
     A mailto: link is all the page had, and on a machine where the only mail is Gmail in
     a browser tab it opens nothing. So: the address in plain sight, a button that copies
     it (JavaScript only, so it is hidden without it and the mailto link stands in),
-    LinkedIn once the URL is set, GitHub, and a Formspree form once its endpoint is set.
-    Both slots are empty until Kevin fills them; nothing half-built is printed.
+    LinkedIn once the URL is set, and GitHub. No form, by decision: the calls to action
+    just bring people here, where the address and LinkedIn already are.
     """
     email = esc(data["email"])
     links = ""
@@ -459,28 +459,13 @@ def contact_ways(data: dict, ui: dict) -> str:
                   f'{esc(ui["linkedin_label"])}</a></li>')
     links += (f'<li><a href="https://github.com/{esc(data["github_user"])}" target="_blank" '
               f'rel="noopener">github.com/{esc(data["github_user"])}</a></li>')
-    form = ""
-    if data.get("form_endpoint"):
-        form = f"""
-  <form class="contact-form reveal" action="{esc(data["form_endpoint"])}" method="POST">
-    <p class="eyebrow">{esc(ui["form_title"])}</p>
-    <label><span>{esc(ui["form_name"])}</span><input type="text" name="name" autocomplete="name" required></label>
-    <label><span>{esc(ui["form_email"])}</span><input type="email" name="email" autocomplete="email" required></label>
-    <label><span>{esc(ui["form_message"])}</span><textarea name="message" rows="5" required></textarea></label>
-    <input class="gotcha" type="text" name="_gotcha" tabindex="-1" autocomplete="off" aria-hidden="true">
-    <input type="hidden" name="_subject" value="Portfolio message">
-    <p class="form-actions">
-      <button class="cta" type="submit">{esc(ui["form_send"])}</button>
-      <span class="form-status" role="status" aria-live="polite" data-sent="{esc(ui["form_sent"])}" data-error="{esc(ui["form_error"])}"></span>
-    </p>
-  </form>"""
     return f"""<div class="contact-ways reveal">
     <p class="contact-email">
       <a class="contact-address" href="mailto:{email}">{email}</a>
       <button class="copy-email" type="button" data-email="{email}" data-copied="{esc(ui["copied"])}">{esc(ui["copy_email"])}</button>
     </p>
     <ul class="contact-links">{links}</ul>
-  </div>{form}"""
+  </div>"""
 
 
 def home_page(data: dict, lang: str) -> str:
