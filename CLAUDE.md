@@ -53,7 +53,30 @@ python src/build.py && python src/check_site.py
 | Página de proyecto | Estado, título, tagline, captura, bloque «Measured», **figura calculada** si `inline_figure` (Geoestadística trae su variograma dibujado con las reglas `.dibujar`), prosa, stack, botón abrir | `project_page()`, `inline_figure()` |
 | Get in touch | Texto, **dirección grande con `mailto:`**, botón **Copy address** (solo con JS; si el portapapeles se niega, selecciona la dirección), LinkedIn y GitHub. **Sin formulario, por decisión de Kevin (2026-08-23)**: las tres llamadas a la acción (cabecera, héroe y páginas de proyecto) bajan a esta sección, donde están el correo y LinkedIn. El formulario Formspree se quitó entero (generador, `site.json`, JS y CSS) para no dejar código muerto | `contact_ways()`, `theme.js`, `.contact-*` |
 | Pie | © año, correo, GitHub | `shell()` |
+| Tarjeta social | `og:image` (absoluta, la exige el que la lee), `og:image:alt` y `twitter:card`. La imagen **es la portada** a 1200×630, capturada por `python src\shoot.py home` con `--force-prefers-reduced-motion` (sin eso headless caza la cortina a medias y sale negro). La URL base sigue el interruptor `publish_domain`: github.io mientras el dominio no se pague | `site_base()`, `shell()`, `shoot.py` entrada `home` |
 | Móvil (≤40rem) | Cabecera de dos filas (marca + botón / enlaces), cifras en una fila de tres, filas de proyecto con el número sobre la miniatura 2:1 y botón de abrir a todo el ancho con el acento, credenciales justas, pie centrado; medido a 375 px: cabecera 96 px, cifras 101 px, filas 436 a 459 px, sin desbordes | bloque «Mobile craft» al final de `style.css` |
+
+## El portafolio en LinkedIn (2026-08-23)
+
+Kevin: «no sé por qué no puedo poner mi página así de primerazo como mi amigo».
+
+- **La causa era un duplicado**: tenía el sitio dos veces en «Información de contacto»
+  (uno con `/index.html`, otro sin), los dos como tipo «Blog». Con dos, LinkedIn no
+  destaca ninguno bajo el nombre. Ahora hay **uno solo**, `https://kmortizva-data.github.io/`,
+  tipo **Personal**.
+- **Y una trampa de la interfaz**: LinkedIn **no pinta ese enlace en tu propia vista del
+  perfil**, solo en la de los demás. Por eso lo veía en el perfil de su amigo y no en el
+  suyo. Se comprueba en `linkedin.com/public-profile/settings/`, que muestra la vista
+  pública real. Ahí sale «Sitio web personal ↗» y todos los interruptores («Sitios web»
+  incluido) están en verde.
+- **Sección «Destacado» montada** con el portafolio: título *Portfolio: four projects in
+  mineral processing and data*, descripción en prosa hablada y la tarjeta social de
+  imagen. Vive bajo «Acerca de» y esa sí la ve él.
+- **Al montarla se destapó que faltaba `og:image`**, así que cualquier enlace suyo salía
+  con un rectángulo gris en LinkedIn, WhatsApp o Slack. Arreglado en el generador (ver
+  el inventario). Para forzar a LinkedIn a releer una URL cacheada:
+  `linkedin.com/post-inspector/`.
+- Si Kevin quiere otro texto en la tarjeta: perfil → Destacado → lápiz → Editar.
 
 ## Decisiones de Kevin cerradas (2026-08-23)
 
