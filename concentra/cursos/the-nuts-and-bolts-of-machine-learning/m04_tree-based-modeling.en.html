@@ -1,0 +1,562 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tree-based modeling · The Nuts and Bolts of Machine Learning</title>
+<link rel="alternate" hreflang="es" href="m04_tree-based-modeling.html">
+<style>
+/* ============================================================================
+   Concentra — design tokens and shared components.
+   Inlined into every generated page by load_style(), so pages stay self-contained
+   and work offline from file:// with no external requests.
+
+   Direction: an assay lab, not a tech dashboard. The palette is taken from ore
+   and lab materials (chalcopyrite brass, malachite, hematite, quartz) on warm
+   graphite rather than the blue-black + neon of a generic dark UI. Type is
+   Bahnschrift, the DIN-descended grotesque that Windows ships and that lives on
+   machinery plates and technical drawings, over Corbel for reading.
+   ========================================================================== */
+
+:root {
+  /* Ground and surfaces: warm graphite, the colour of rock dust, not blue-black */
+  --rock: #1a1714;
+  --bench: #221e19;
+  --core: #2b251f;
+  --seam: #3d352c;
+
+  /* Ore palette. No blue and no purple anywhere: those are the tones that make a
+     page read as generated, and this palette comes from the ores instead. */
+  --brass: #c9a227;      /* chalcopyrite, the primary accent */
+  --malachite: #5d9b7a;  /* verified output, results that came out right */
+  --hematite: #b04a35;   /* iron oxide, pitfalls and warnings */
+
+  /* Text */
+  --quartz: #ece7de;
+  --dust: #9a9186;
+  --shadowed: #6f675c;
+
+  --display: Bahnschrift, 'DIN Alternate', 'Segoe UI Semibold', system-ui, sans-serif;
+  --body: Corbel, Candara, 'Segoe UI', system-ui, sans-serif;
+  --data: Consolas, 'Cascadia Mono', ui-monospace, monospace;
+
+  /* In px, not ch: ch scales with font-size, so a heading ended up wider than a
+     paragraph and the page had four different right edges instead of two. */
+  --measure: 640px;
+  --wide: 900px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--rock);
+  color: var(--quartz);
+  font-family: var(--body);
+  font-size: 16px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection { background: var(--brass); color: var(--rock); }
+
+:focus-visible {
+  outline: 2px solid var(--brass);
+  outline-offset: 3px;
+}
+
+/* --------------------------------------------------------------- the signature
+   A sieve series: ticks that get finer from left to right, coarse feed to fine
+   concentrate. It is the one ornament on the page and appears exactly twice —
+   under the wordmark and under a page title. */
+.mesh {
+  height: 10px;
+  background-image:
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 16px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 9px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 5px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 3px);
+  background-size: 25% 100%;
+  background-position: 0 0, 25% 0, 50% 0, 75% 0;
+  background-repeat: no-repeat;
+  opacity: .8;
+  transform-origin: left center;
+  animation: sieve .55s cubic-bezier(.2, .8, .3, 1) both;
+}
+@keyframes sieve { from { transform: scaleX(0); opacity: 0; } to { transform: scaleX(1); opacity: .8; } }
+@media (prefers-reduced-motion: reduce) {
+  .mesh { animation: none; }
+  * { transition: none !important; }
+}
+
+/* ------------------------------------------------------------------ page head */
+.header {
+  border-bottom: 1px solid var(--seam);
+  padding: 3.2rem 2rem 0;
+  background: linear-gradient(180deg, #221d16 0%, var(--rock) 100%);
+}
+.header-content { max-width: 1080px; margin: 0 auto; }
+
+.eyebrow {
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--brass);
+  margin-bottom: 1rem;
+  display: flex; flex-wrap: wrap; align-items: center;
+  justify-content: space-between; gap: .6rem 1rem;
+}
+.eyebrow a { color: inherit; text-decoration: none; border-bottom: 1px solid transparent; }
+.eyebrow a:hover { border-bottom-color: var(--brass); }
+/* The way to the other edition of this page. It targets the shell, not the bare
+   page, so the sidebar follows the language too. */
+.eyebrow .lang-switch {
+  margin-left: auto; border: 1px solid var(--seam); border-radius: 2px;
+  padding: .22rem .6rem; color: var(--dust); font-size: .68rem; letter-spacing: .1em;
+}
+.eyebrow .lang-switch:hover { color: var(--brass); border-color: var(--brass); }
+
+.header h1 {
+  font-family: var(--display);
+  font-size: clamp(2rem, 4.5vw, 3.1rem);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -.015em;
+  color: var(--quartz);
+  max-width: 20ch;
+}
+.header .subtitle {
+  color: var(--dust);
+  max-width: var(--measure);
+  margin-top: 1rem;
+  font-size: 1.02rem;
+}
+.header .mesh { margin: 1.8rem 0 0; }
+
+/* An assay line: the real composition of the module, in lab-report shorthand. */
+.assay {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.4rem;
+  font-family: var(--data);
+  font-size: .78rem;
+  color: var(--shadowed);
+  padding: .9rem 0 1.6rem;
+  letter-spacing: .04em;
+}
+.assay b { color: var(--dust); font-weight: 400; }
+
+/* --------------------------------------------------------------------- layout */
+/* The container hugs the widest block, so there is no orphan edge past the content. */
+.container { max-width: var(--wide); margin: 3rem auto 5rem; padding: 0 2rem; }
+
+/* Two deliberate right edges and no more: prose stops at the reading measure, and
+   only the things that genuinely need room (code, output, figures, big tables) run
+   out to the full column. */
+.section-block {
+  border-top: 1px solid var(--seam);
+  padding: 2rem 0 2.4rem;
+}
+.section-block > p,
+.section-block > ul,
+.section-block > ol,
+.section-block h3.sub,
+.section-block h4.sub,
+.section-block blockquote,
+details > *:not(summary) { max-width: var(--measure); }
+.section-block:first-child { border-top: 0; padding-top: .5rem; }
+
+/* The kicker names what kind of content follows: context, method, pitfalls.
+   It replaces decorative icons with something that actually classifies. */
+.kicker {
+  font-family: var(--data);
+  font-size: .68rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  display: block;
+  margin-bottom: .5rem;
+}
+.section-title {
+  font-family: var(--display);
+  font-size: 1.55rem;
+  font-weight: 600;
+  letter-spacing: -.01em;
+  line-height: 1.2;
+  margin-bottom: 1.2rem;
+  color: var(--quartz);
+}
+.is-warning .kicker { color: var(--hematite); }
+.is-warning .section-title { color: #e8c4b8; }
+.is-bridge .kicker, .is-decision .kicker { color: var(--malachite); }
+.is-toy .kicker, .is-result .kicker, .is-question .kicker { color: var(--brass); }
+
+/* ---------------------------------------------------------------------- prose */
+/* Justified with hyphenation. In Spanish, justifying without hyphens opens rivers of
+   white space and reads worse than ragged right; lang="es" is what feeds the
+   dictionary. Tables, code, captions and summaries stay ragged on purpose. */
+.section-block p,
+.section-block li,
+details > *:not(summary) {
+  text-align: justify;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+}
+.section-block p { margin-bottom: 1rem; }
+.section-block p:last-child { margin-bottom: 0; }
+/* Indent with padding, not margin, so the bullet sits inside the measure instead of
+   pushing the list 1.2rem past the right edge of the paragraphs. */
+.section-block ul, .section-block ol { margin: 0 0 1rem; padding-left: 1.2rem; }
+.section-block li { margin-bottom: .55rem; padding-left: .2rem; }
+.section-block li::marker { color: var(--brass); }
+td, th, figcaption, .res li, .assay { text-align: left; hyphens: manual; }
+a { color: var(--brass); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+a:hover { text-decoration-thickness: 2px; }
+strong { color: #fff; font-weight: 700; }
+em { color: var(--dust); font-style: italic; }
+
+h3.sub {
+  font-family: var(--display);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--brass);
+  margin: 2rem 0 .7rem;
+  letter-spacing: -.005em;
+}
+h3.sub:first-child { margin-top: 0; }
+h4.sub {
+  font-family: var(--display);
+  font-size: .98rem;
+  font-weight: 600;
+  color: var(--dust);
+  margin: 1.3rem 0 .5rem;
+}
+
+code {
+  font-family: var(--data);
+  font-size: .9em;
+  background: var(--core);
+  border-radius: 3px;
+  padding: .08rem .32rem;
+  color: var(--brass);
+}
+pre {
+  background: #14110e;
+  border: 1px solid var(--seam);
+  border-left: 2px solid var(--seam);
+  border-radius: 2px;
+  padding: 1.1rem 1.2rem;
+  overflow-x: auto;
+  margin-bottom: 1rem;
+}
+pre code {
+  background: none; padding: 0; color: var(--quartz);
+  font-size: .87rem; line-height: 1.6;
+}
+
+/* What the code prints. Malachite: the material that came out of the process. */
+.output {
+  position: relative;
+  border: 1px solid rgba(93, 155, 122, .32);
+  border-left: 2px solid var(--malachite);
+  border-radius: 2px;
+  background: rgba(93, 155, 122, .06);
+  padding: 1.7rem 1.2rem 1rem;
+  margin-bottom: 1rem;
+  overflow-x: auto;
+}
+.output-tag {
+  position: absolute; top: .5rem; left: 1.2rem;
+  font-family: var(--data); font-size: .64rem;
+  letter-spacing: .18em; text-transform: uppercase; color: var(--malachite);
+}
+.output pre {
+  background: none; border: 0; padding: 0; margin: 0;
+  font-family: var(--data); font-size: .85rem;
+  color: var(--quartz); white-space: pre-wrap;
+}
+
+/* Line by line explanation of a code block, for a reader new to programming.
+   Two columns: the fragment of code, and what it does. */
+.annot {
+  display: grid;
+  grid-template-columns: minmax(9rem, auto) 1fr;
+  gap: .1rem 1.2rem;
+  align-items: baseline;
+  max-width: var(--wide);
+  margin: -.4rem 0 1.4rem;
+  padding: .9rem 1.1rem 1rem;
+  border: 1px solid var(--seam);
+  border-top: 0;
+  border-radius: 0 0 2px 2px;
+  background: rgba(201, 162, 39, .04);
+}
+.annot-head {
+  grid-column: 1 / -1;
+  font-family: var(--data);
+  font-size: .64rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  margin-bottom: .5rem;
+}
+.annot dt { padding: .35rem 0; }
+.annot dt code {
+  background: var(--core);
+  color: var(--brass);
+  font-size: .82rem;
+  white-space: nowrap;
+}
+.annot dd {
+  padding: .35rem 0;
+  margin: 0;
+  color: var(--dust);
+  font-size: .93rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(61, 53, 44, .5);
+}
+.annot dt { border-bottom: 1px solid rgba(61, 53, 44, .5); }
+.annot dt:last-of-type, .annot dd:last-of-type { border-bottom: 0; }
+/* The code block sits directly on top of its annotation, as one unit. */
+pre:has(+ .annot) { margin-bottom: 0; border-radius: 2px 2px 0 0; }
+
+@media (max-width: 640px) {
+  .annot { grid-template-columns: 1fr; gap: 0; }
+  .annot dt { border-bottom: 0; padding-bottom: 0; }
+  .annot dd { padding-top: .15rem; }
+}
+
+blockquote {
+  border-left: 2px solid var(--brass);
+  padding: .3rem 0 .3rem 1.3rem;
+  margin: 0 0 1rem;
+  font-family: var(--display);
+  font-size: 1.2rem;
+  font-weight: 400;
+  line-height: 1.4;
+  color: var(--quartz);
+}
+
+/* Tables read as assay data: mono figures, hairline rules, no zebra fill.
+   They take the width they need instead of being stretched to the full column,
+   which is what left a two-column table floating in empty space. */
+.table-wrap { overflow-x: auto; margin-bottom: 1rem; }
+table { border-collapse: collapse; width: auto; max-width: 100%; font-size: .93rem; }
+th, td {
+  border-bottom: 1px solid var(--seam);
+  padding: .55rem .8rem .55rem 0;
+  text-align: left;
+  vertical-align: top;
+}
+th {
+  font-family: var(--data);
+  font-size: .7rem;
+  font-weight: 400;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  border-bottom-color: var(--brass);
+}
+td:first-child { color: var(--quartz); }
+
+/* Review questions: closed by default, so they work as recall practice. */
+details {
+  border-top: 1px solid var(--seam);
+  padding: .9rem 0;
+}
+details:last-child { border-bottom: 1px solid var(--seam); }
+summary {
+  cursor: pointer;
+  font-family: var(--display);
+  font-size: 1.02rem;
+  font-weight: 600;
+  color: var(--quartz);
+  list-style: none;
+  display: flex;
+  gap: .7rem;
+  align-items: baseline;
+}
+summary::-webkit-details-marker { display: none; }
+summary::before {
+  content: '+';
+  font-family: var(--data);
+  color: var(--brass);
+  font-size: .95rem;
+}
+details[open] summary::before { content: '−'; }
+details[open] summary { color: var(--brass); margin-bottom: .7rem; }
+details > *:not(summary) { color: var(--dust); }
+
+figure.fig {
+  margin: 1.6rem 0;
+  border: 1px solid var(--seam);
+  padding: .7rem;
+  background: var(--bench);
+}
+figure.fig img { width: 100%; height: auto; display: block; }
+/* The interactive twin of a figure. Its aspect matches the still one, 10 by 4.4, so a
+   case sheet keeps the same rhythm whichever kind of figure comes next. */
+figure.fig.is-live iframe {
+  width: 100%;
+  /* Matches INTERACTIVE_HEIGHT in src/make_figures.py. It used to be an aspect ratio, and
+     that made the figure's height depend on the window: the caption and the legend are
+     placed at fractions of the plot area, so on a wide screen they were pushed past the
+     bottom margin, clipping the caption and covering the x-axis title. */
+  height: 520px;
+  border: 0;
+  display: block;
+}
+figure.fig figcaption {
+  font-family: var(--data);
+  font-size: .72rem;
+  color: var(--shadowed);
+  margin-top: .6rem;
+  letter-spacing: .04em;
+}
+
+/* File listings on a case sheet */
+.res { list-style: none; margin-left: 0 !important; }
+.res li {
+  display: flex; align-items: baseline; gap: .8rem; flex-wrap: wrap;
+  padding: .5rem 0; border-bottom: 1px solid var(--seam); margin-bottom: 0;
+}
+.res .path { font-family: var(--data); font-size: .74rem; color: var(--shadowed); }
+.res .size { font-family: var(--data); font-size: .74rem; color: var(--shadowed); margin-left: auto; }
+.res .gone { font-family: var(--data); font-size: .74rem; color: var(--hematite); }
+
+.footer {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 2rem 4rem;
+  color: var(--shadowed);
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .03em;
+}
+
+@media (max-width: 640px) {
+  body { font-size: 15px; }
+  .header { padding: 2rem 1.2rem 0; }
+  .container { padding: 0 1.2rem; margin-top: 2rem; }
+  .footer { padding: 0 1.2rem 3rem; }
+}
+
+@media print {
+  body { background: #fff; color: #16130f; }
+  .header { background: none; border-bottom: 1px solid #bbb; padding-top: 0; }
+  .header h1, .section-title, summary { color: #16130f; }
+  .mesh { animation: none; }
+  .section-block { break-inside: avoid; max-width: none; }
+  pre, .output { background: #f6f4f0; border-color: #ccc; }
+  details:not([open]) > *:not(summary) { display: block; }
+  a { color: #16130f; }
+}
+
+</style>
+</head>
+<body>
+<header class="header">
+  <div class="header-content">
+    <div class="eyebrow"><span><a href="https://www.coursera.org/learn/the-nuts-and-bolts-of-machine-learning">The Nuts and Bolts of Machine Learning</a> / Module 4</span><a class="lang-switch" href="../index.html#the-nuts-and-bolts-of-machine-learning/m04_tree-based-modeling" target="_top" hreflang="es" lang="es" title="Leer esta página en español">Español</a></div>
+    <h1>Tree-based modeling</h1>
+    <p class="subtitle">A tree split calculated by hand with ten lots, and then the demonstration of why an unlimited tree gets 100% right in training and 54% in test. Out of that come the two ways of putting many trees together, and the warning that two columns of pure noise take 43% of the importance.</p>
+    <div class="mesh" role="presentation"></div>
+    <div class="assay"><span><b>10 h</b> course time</span><span><b>17</b> videos</span><span><b>11</b> readings</span><span><b>5</b> assignments</span><span><b>10</b> practice</span><span><b>2</b> interactive</span></div>
+  </div>
+</header>
+<main class="container">
+<section class="section-block "><span class="kicker">Context</span><h2 class="section-title">What this module solves</h2><p>A decision tree is the easiest model to explain there is: a chain of yes-or-no questions. It gets drawn, read out loud and understood without knowing mathematics.</p><p>And it has a serious flaw that this module attacks head on: <strong>if you let it grow, it memorises</strong>. An unlimited tree can end up asking one question per row of your data, get 100% of what it already saw right, and be of no use with a new case.</p><p>Out of that flaw come the two big ideas of the module. The first is <strong>putting limits</strong> on the tree, and choosing those limits with data instead of by eye. The second is <strong>using many trees instead of one</strong>, which can be done in two different ways and with opposite logics.</p></section>
+<section class="section-block is-toy"><span class="kicker">Example</span><h2 class="section-title">Before the theory: a toy example</h2><p>Ten lots processed. Of each one it is known whether reagent was dosed, and whether it passed specification:</p><div class="table-wrap"><table><thead><tr><th></th><th>Passed</th><th>Did not pass</th><th>Total</th></tr></thead><tbody><tr><td><strong>Without reagent</strong></td><td>1</td><td>4</td><td>5</td></tr><tr><td><strong>With reagent</strong></td><td>5</td><td>0</td><td>5</td></tr><tr><td><strong>Total</strong></td><td><strong>6</strong></td><td><strong>4</strong></td><td><strong>10</strong></td></tr></tbody></table></div><p>The tree has to decide whether it is worth asking about the reagent. And it decides with a number, the <strong>Gini impurity</strong>, which measures how mixed up a group is.</p><h3 class="sub h3">Step 1. The formula, in words</h3><p>The Gini impurity answers: <strong>if I picked two lots at random from this group, what is the probability that one passes and the other does not?</strong> Zero means they are all the same; the higher, the more mixed.</p><p>It is calculated by subtracting from 1 the sum of the squares of the proportions:</p><pre><code>Gini = 1 − (proporción que pasa)² − (proporción que no pasa)²</code></pre><h3 class="sub h3">Step 2. How mixed up the whole group is</h3><p>Before asking anything, there are 6 that pass and 4 that do not, out of 10:</p><pre><code>Gini de la raíz = 1 − (6/10)² − (4/10)²
+                = 1 − 0,36 − 0,16
+                = 0,48</code></pre><p><strong>0.48.</strong> Close to 0.5, which is the maximum with two classes, that is very mixed. It makes sense: almost half and half.</p><h3 class="sub h3">Step 3. How mixed up the two pieces are left</h3><p>If we ask about the reagent, the group splits in two.</p><p><strong>The five without reagent</strong>, of which one passed:</p><pre><code>Gini izquierda = 1 − (1/5)² − (4/5)²
+               = 1 − 0,04 − 0,64
+               = 0,32</code></pre><p><strong>The five with reagent</strong>, of which all five passed:</p><pre><code>Gini derecha = 1 − (5/5)² − (0/5)²
+             = 1 − 1 − 0
+             = 0</code></pre><p><strong>Exactly zero.</strong> That group is pure: they all passed, and there is no need to ask anything more about them. When a tree reaches a zero, it stops splitting there.</p><h3 class="sub h3">Step 4. Was it worth it?</h3><p>The two pieces have five lots each, so the impurity left after asking is the average of the two:</p><pre><code>impureza después = (5/10) × 0,32 + (5/10) × 0
+                 = 0,16 + 0
+                 = 0,16</code></pre><p>And the <strong>gain</strong> is what got cleaned up:</p><pre><code>ganancia = 0,48 − 0,16 = 0,32</code></pre><p><strong>Going from 0.48 to 0.16 is cutting the mixing to a third with a single question.</strong> That is all a tree does as it grows: it tries every possible question, calculates the gain of each one, and <strong>keeps the biggest</strong>. Then it repeats the same thing inside each piece.</p><h3 class="sub h3">Step 5. And here the problem starts</h3><p>Look at the left piece, which was left with Gini 0.32: four that do not pass and one that does. The tree is not satisfied. It is going to look for another question that separates that one from the other four, and <strong>it is going to find it</strong>, even if it is by asking about something irrelevant like the truck number.</p><p>If you let it, it will go on until each leaf has a single lot and every impurity is zero. It will have got 100% of what it saw right, and it will have learned that truck 47 produces good lots. That is overfitting, and the rest of the module is about containing it.</p></section>
+<section class="section-block "><span class="kicker">Terms</span><h2 class="section-title">Glossary</h2><ul><li><strong>Decision tree.</strong> A model that asks chained yes-or-no questions. Each answer takes you to another question, until reaching a final answer.</li><li><strong>Root node.</strong> The first question, at the very top.</li><li><strong>Leaf.</strong> An end of the tree, where no more is asked and the answer is given.</li><li><strong>Depth.</strong> How many chained questions there are at most from the root to a leaf.</li><li><strong>Gini impurity.</strong> How mixed up a group is, from 0 (all the same) to 0.5 (half and half with two classes).</li><li><strong>Gain.</strong> How much impurity a question removes. The tree chooses the question that gains most.</li><li><strong>Overfitting.</strong> The model learning the particulars of your specific data instead of the general rule. It is recognised because it gets far more right in training than in test.</li><li><strong>Hyperparameter.</strong> A knob you fix before training and that the model does not learn: the maximum depth, how many trees, how much each one corrects. Here I call them knobs.</li><li><strong>Grid search.</strong> Trying every combination of a list of knob values and keeping the best.</li><li><strong>Bootstrap.</strong> Drawing a sample of the same size as the original <strong>with replacement</strong>, so some rows come out repeated and others do not come out.</li><li><strong>Random forest.</strong> Many trees trained on different resamples and with only some variables available at each split. Everyone votes.</li><li><strong>Boosting.</strong> Many trees trained <strong>in a chain</strong>, each one devoted to correcting what the previous one got wrong.</li><li><strong>Variable importance.</strong> How much each column contributed to the splits of the model. <strong>It is not a significance test.</strong></li></ul></section>
+<section class="section-block is-recipe"><span class="kicker">Method</span><h2 class="section-title">Step by step</h2><h3 class="sub h3">Step 1. How a tree grows</h3><ol><li>It looks at every possible question on every column.</li><li>It calculates the gain of each one, as in the example.</li><li>It keeps the best and splits the group in two.</li><li>It repeats inside each piece.</li><li>It stops when a piece is pure, or when some knob prevents it.</li></ol><p>Two things that come free and are worth knowing. <strong>There is no need to scale</strong>, because the tree compares each variable with itself and never measures distances between different variables: it is exactly the opposite of k-means. And <strong>curved relationships do not bother it</strong>, because a curve gets approximated with steps.</p><h3 class="sub h3">Step 2. Why it memorises, and how it shows</h3><p>Step 5 of the list is the culprit: if nothing prevents it, the tree splits until each leaf has a single case. With 300 training lots that is about 77 leaves, each one saying &quot;this specific lot passed&quot;.</p><p>And it is recognised with a comparison that always has to be made:</p><div class="table-wrap"><table><thead><tr><th></th><th>Training</th><th>Test</th></tr></thead><tbody><tr><td>Unlimited tree</td><td><strong>1.0000</strong></td><td><strong>0.5400</strong></td></tr><tr><td>Tree of depth 3</td><td>0.7267</td><td>0.6100</td></tr></tbody></table></div><p><strong>The first gets everything it already saw right and little more than a coin toss with what it did not.</strong> The second gets less right in training and more in test, which is the only thing that matters.</p><p>If your model gets far more right in training than in test, it is memorising. The distance between those two columns is the diagnosis.</p><h3 class="sub h3">Step 3. The knobs, and how they are chosen</h3><p>The ones that contain a tree:</p><div class="table-wrap"><table><thead><tr><th>Knob</th><th>What it does</th><th>Effect</th></tr></thead><tbody><tr><td><code>max_depth</code></td><td>How many chained questions at most</td><td>The most direct</td></tr><tr><td><code>min_samples_leaf</code></td><td>How many cases at minimum in a leaf</td><td>Prevents single-case leaves</td></tr><tr><td><code>min_samples_split</code></td><td>How many cases are needed to split</td><td>Similar to the previous one</td></tr><tr><td><code>max_features</code></td><td>How many columns it can look at in each split</td><td>Gives variety, key in the forest</td></tr></tbody></table></div><p>And how they are chosen: <strong>not by eye</strong>. A list of values is made for each one, every combination is tried with cross-validation, and whichever wins is looked at. That is grid search.</p><p>With 6 depths and 4 leaf sizes there are 24 combinations, and with 5 folds each there are 120 trainings. It sounds like a lot and it takes less than a second with 300 rows. With a hundred thousand rows and a grid of a thousand combinations it takes hours, and that is why <strong>the grid gets bounded and it is said how long it took</strong>.</p><h3 class="sub h3">Step 4. The first way of putting trees together: the forest</h3><p>The idea is of a disarming honesty. <strong>If a single tree only goes wrong by memorising its data, train many on slightly different data and let them vote.</strong> Each one will memorise different things, and their errors cancel each other out.</p><p>Variety is achieved in two ways at once:</p><ol><li><strong>Resampling.</strong> Each tree is trained with a sample of the same size drawn at random <strong>with replacement</strong>, so it sees some rows repeated and others not at all.</li><li><strong>Limited columns.</strong> At each split, each tree can only look at a few columns chosen at random. Without this, they would all start with the same question and resemble each other too much.</li></ol><p>That second point is what turns plain resampling into a <strong>random forest</strong>, and it is the part most people skip when explaining it.</p><p>What you gain: much less overfitting, and knobs that forgive. What you lose: you can no longer draw the model on a whiteboard, because it is three hundred trees.</p><h3 class="sub h3">Step 5. The second way: boosting</h3><p>Here the logic is the opposite, and that is why they are different families and not variants.</p><p>In the forest, the trees are <strong>independent</strong>: they could all be trained at once and each one ignores the others. In boosting they go <strong>in a chain</strong>: one is trained, where it went wrong is looked at, and <strong>the next one is devoted to those cases</strong>. Then another on what still fails, and so on.</p><div class="table-wrap"><table><thead><tr><th></th><th>Random forest</th><th>Boosting</th></tr></thead><tbody><tr><td>The trees are trained</td><td>At once, independent</td><td>In a chain, one after the other</td></tr><tr><td>Each tree is</td><td>Deep and powerful</td><td>Tiny, sometimes a single split</td></tr><tr><td>It combines</td><td>By voting</td><td>By adding corrections</td></tr><tr><td>It attacks</td><td>Variance: the model wobbling</td><td>Bias: the model falling short</td></tr><tr><td>If it has too many trees</td><td>It plateaus, does not get worse</td><td><strong>It starts memorising</strong></td></tr></tbody></table></div><p>That last row decides which to use when in a hurry. <strong>A forest can have extra trees without penalty</strong>; a boosting cannot, and that is why its most important knob is <code>learning_rate</code>, which says how much attention is paid to each correction.</p><p>Names you will see: <strong>AdaBoost</strong> was the first and gives more weight to the cases that were got wrong; <strong>gradient boosting</strong> is the general version and the one used today; <strong>XGBoost</strong> is a highly optimised implementation of that idea, and it is the one the course teaches by name.</p><h3 class="sub h3">Step 6. Where tree-based models really get used</h3><p>The course brings here a <strong>case study of Booz Allen Hamilton</strong>, a large consultancy, on how a machine learning model uncovered findings for them about <strong>how they assign their people to projects</strong>. The detail is on the platform; what is transferable is why the problem calls for a tree and not a regression, and that can be reasoned.</p><p>A staff assignment problem has three characteristics that tree-based models handle well and a regression handles badly:</p><div class="table-wrap"><table><thead><tr><th>What the problem is like</th><th>Why it fits a tree</th></tr></thead><tbody><tr><td>Almost everything is <strong>categories</strong>: role, office, client, project type</td><td>The tree asks about them directly, without turning them into dozens of columns</td></tr><tr><td>The rules are <strong>conditional</strong>: what matters for one role does not matter for another</td><td>A tree is literally a chain of nested conditions</td></tr><tr><td>The response is not <strong>straight</strong>: experience helps up to a point and then stops helping</td><td>The steps approximate any shape without anyone declaring it</td></tr></tbody></table></div><p>And a warning this particular case forces us to repeat: <strong>a model that decides about people&#x27;s careers falls squarely into module 1</strong>. The third question of that step, whether the affected person can know why, has an uncomfortable answer here, because a forest does not answer it well. An aggregate finding about how people get assigned is one thing; a model that decides who goes to which project is another, and the second needs much more than good accuracy.</p><h3 class="sub h3">Step 7. Variable importance, with its warning</h3><p>A forest cannot be drawn, but it can tell you <strong>which columns it used most to split</strong>. It is what returns it to the realm of the explainable, and it is among the first things looked at.</p><p>And it carries a warning that is almost never given. In the code example there are four columns: two that really influence and two of <strong>pure noise generated at random</strong>, which by construction mean nothing. The importance comes out like this:</p><div class="table-wrap"><table><thead><tr><th>Variable</th><th>Importance</th></tr></thead><tbody><tr><td>pH</td><td>0.3020</td></tr><tr><td>Reagent</td><td>0.2664</td></tr><tr><td><strong>Noise 2</strong></td><td><strong>0.2186</strong></td></tr><tr><td><strong>Noise 1</strong></td><td><strong>0.2130</strong></td></tr></tbody></table></div><p><strong>The two noise columns take 43% of the total.</strong> It is not a bug: the tree needs to split somewhere, and a random column sometimes separates a little by chance.</p><p>So the importance ranks the real variables correctly above the noise, and <strong>it does not say that the ones at the bottom are irrelevant nor that the ones at the top cause anything</strong>. It is a clue, not a proof.</p></section>
+<section class="section-block is-recipe"><span class="kicker">Code</span><h2 class="section-title">The code, in parts</h2><h3 class="sub h3">Step 1. The split by hand, checked</h3><p>The ten lots of the example, to see that the machine calculates the same Ginis.</p><pre><code class="language-python">import numpy as np
+from sklearn.tree import DecisionTreeClassifier
+
+# columna unica: reactivo dosificado (1) o no (0)
+batches = np.array([[0]] * 5 + [[1]] * 5)
+passed = np.array([1, 0, 0, 0, 0] + [1] * 5)
+
+tree = DecisionTreeClassifier(max_depth=1).fit(batches, passed)
+print(f&quot;Gini raiz      {tree.tree_.impurity[0]:.4f}&quot;)
+print(f&quot;Gini izquierda {tree.tree_.impurity[1]:.4f}&quot;)
+print(f&quot;Gini derecha   {tree.tree_.impurity[2]:.4f}&quot;)</code></pre><dl class="annot"><div class="annot-head">line by line</div><dt><code>[[0]] * 5 + [[1]] * 5</code></dt><dd>Multiplying a list by 5 repeats it five times, and the <code>+</code> glues them. It is the short way of writing ten rows without typing them.</dd><dt><code>max_depth=1</code></dt><dd>A single split, which is exactly the example. Without this knob the tree would go on splitting the left piece.</dd><dt><code>tree.tree_.impurity</code></dt><dd>The vector of impurities of all the nodes. Position 0 is the root, 1 the left child and 2 the right one, which is the order in which a tree is walked.</dd></dl><div class="output"><span class="output-tag">prints</span><pre>Gini raiz      0.4800
+Gini izquierda 0.3200
+Gini derecha   0.0000</pre></div><p>The three numbers of the example by hand: <strong>0.48, 0.32 and exactly 0</strong>.</p><h3 class="sub h3">Step 2. Overfitting, measured</h3><p>Four hundred lots where only two of the four columns really influence.</p><pre><code class="language-python">from sklearn.model_selection import train_test_split
+
+rng = np.random.default_rng(7)
+n = 400
+reagent = rng.normal(30, 8, n)
+ph = rng.normal(10.5, 1.2, n)
+noise = rng.normal(0, 1, (n, 2))
+chance = 1 / (1 + np.exp(-(0.10 * (reagent - 30) + 0.8 * (ph - 10.5))))
+passed = (rng.random(n) &lt; chance).astype(int)
+features = np.column_stack([reagent, ph, noise])
+
+train_x, test_x, train_y, test_y = train_test_split(
+    features, passed, test_size=0.25, random_state=42, stratify=passed)
+
+for name, model in [(&quot;sin limite&quot;, DecisionTreeClassifier(random_state=0)),
+                    (&quot;profundidad 3&quot;, DecisionTreeClassifier(max_depth=3, random_state=0))]:
+    model.fit(train_x, train_y)
+    print(f&quot;{name:14} entrenamiento {model.score(train_x, train_y):.4f}   &quot;
+          f&quot;prueba {model.score(test_x, test_y):.4f}   hojas {model.get_n_leaves()}&quot;)</code></pre><dl class="annot"><div class="annot-head">line by line</div><dt><code>rng.normal(30, 8, n)</code></dt><dd>Four hundred bell-shaped values with mean 30 and deviation 8. It is the simulated reagent dose.</dd><dt><code>1 / (1 + np.exp(-(...)))</code></dt><dd>The logistic function of Course 4, used backwards: here the probability of passing gets <strong>manufactured</strong> from the two variables that influence. That way we know for certain which ones matter, which is what the example wants to prove.</dd><dt><code>rng.random(n) &lt; chance</code></dt><dd>Turns that probability into a yes or a no, rolling a die per lot. Without this step the data would be deterministic and there would be nothing to learn.</dd><dt><code>np.column_stack([...])</code></dt><dd>Glues the vectors as columns of a table. <code>reagent</code> and <code>ph</code> are one column each and <code>noise</code> contributes two, so four come out.</dd><dt><code>model.score(...)</code></dt><dd>Accuracy, which is what <code>score</code> returns by default in a classifier. It is called twice, on training and on test, and <strong>the comparison between the two is the diagnosis</strong>.</dd><dt><code>model.get_n_leaves()</code></dt><dd>How many leaves the tree has. It is the most direct measure of how complicated it has become.</dd></dl><div class="output"><span class="output-tag">prints</span><pre>sin limite     entrenamiento 1.0000   prueba 0.5400   hojas 77
+profundidad 3  entrenamiento 0.7267   prueba 0.6100   hojas 8</pre></div><p><strong>Seventy-seven leaves for three hundred lots</strong>, perfect accuracy in training and 0.54 in test, which with almost balanced classes is barely better than a coin.</p><p>The depth 3 one gets <strong>less</strong> right in training and <strong>more</strong> in test. A model worse on what it already knows and better on what it does not: that is exactly what is sought.</p><h3 class="sub h3">Step 3. Choosing the knobs with the grid</h3><pre><code class="language-python">from sklearn.model_selection import GridSearchCV
+
+grid = {&quot;max_depth&quot;: [2, 3, 4, 5, 6, None],
+        &quot;min_samples_leaf&quot;: [1, 5, 10, 20]}
+
+search = GridSearchCV(DecisionTreeClassifier(random_state=0), grid, cv=5,
+                      scoring=&quot;roc_auc&quot;).fit(train_x, train_y)
+
+print(&quot;mejor combinacion:&quot;, search.best_params_)
+print(f&quot;AUC en validacion cruzada: {search.best_score_:.4f}&quot;)
+print(f&quot;AUC en prueba:             {search.score(test_x, test_y):.4f}&quot;)</code></pre><dl class="annot"><div class="annot-head">line by line</div><dt><code>grid = {...}</code></dt><dd>A dictionary: each key is the exact name of a knob and each value the list to try. <strong>Every combination</strong> gets tried, that is 6 times 4 equals 24.</dd><dt><code>None en max_depth</code></dt><dd>No limit. It is included on purpose so the search can choose it if it really were the best, instead of ruling it out by prejudice.</dd><dt><code>cv=5</code></dt><dd>Five-fold cross-validation. Each combination is trained five times, so there are 120 trainings in total.</dd><dt><code>scoring=&quot;roc_auc&quot;</code></dt><dd>What decides who wins. <strong>If you do not set it, it uses accuracy</strong>, which with unbalanced classes would choose the wrong model.</dd><dt><code>.fit(train_x, train_y)</code></dt><dd>On the training set, never on the test set. The grid splits the training set into five internally, and the test set stays untouched.</dd><dt><code>search.best_params_</code></dt><dd>The winning combination. And <code>search.best_estimator_</code> is that model already retrained with the whole training set.</dd></dl><div class="output"><span class="output-tag">prints</span><pre>mejor combinacion: {&#x27;max_depth&#x27;: 5, &#x27;min_samples_leaf&#x27;: 5}
+AUC en validacion cruzada: 0.7013
+AUC en prueba:             0.6556</pre></div><p>Two things to read here. The first: it chose depth 5 and leaves of at least 5 cases, that is, <strong>it contained the tree without anyone telling it by hand</strong>.</p><p>The second is more important. <strong>Validation gave 0.7013 and test 0.6556.</strong> Validation comes out more optimistic, and it is no coincidence: it is the set used to choose among 24 candidates, so the winner is one partly by luck with those folds. <strong>That is why the figure published is the test one</strong>, and that is why there are three sets and not two.</p><h3 class="sub h3">Step 4. The three families, on the same data</h3><pre><code class="language-python">from sklearn.ensemble import RandomForestClassifier, HistGradientBoostingClassifier
+from sklearn.metrics import roc_auc_score
+from xgboost import XGBClassifier
+
+models = {
+    &quot;un arbol, ajustado&quot;:      search.best_estimator_,
+    &quot;bosque aleatorio&quot;:        RandomForestClassifier(n_estimators=300, random_state=0),
+    &quot;refuerzo (scikit-learn)&quot;: HistGradientBoostingClassifier(random_state=0),
+    &quot;refuerzo (xgboost)&quot;:      XGBClassifier(n_estimators=100, max_depth=3,
+                                             learning_rate=0.1, eval_metric=&quot;logloss&quot;,
+                                             random_state=0),
+}
+for name, model in models.items():
+    model.fit(train_x, train_y)
+    print(f&quot;{name:24} AUC {roc_auc_score(test_y, model.predict_proba(test_x)[:, 1]):.4f}&quot;)</code></pre><dl class="annot"><div class="annot-head">line by line</div><dt><code>n_estimators=300</code></dt><dd>Three hundred trees in the forest. More almost never makes it worse, it only takes longer, and that is why this knob of the forest forgives.</dd><dt><code>learning_rate=0.1</code></dt><dd>How much attention is paid to each correction of the boosting. Lowering it forces putting in more trees and usually generalises better. <strong>It is the knob that decides in this family.</strong></dd><dt><code>eval_metric=&quot;logloss&quot;</code></dt><dd>xgboost asks you to declare what it is measured with during training. Without this it prints a warning.</dd><dt><code>model.predict_proba(test_x)[:, 1]</code></dt><dd>All the rows, column 1: the probability of the positive class. The bare colon means &quot;all&quot;.</dd><dt><code>roc_auc_score(...)</code></dt><dd>Compares the truth with those probabilities. It is used here because it does not depend on the threshold, so it compares models and not decisions.</dd></dl><div class="output"><span class="output-tag">prints</span><pre>un arbol, ajustado       AUC 0.6556
+bosque aleatorio         AUC 0.6759
+refuerzo (scikit-learn)  AUC 0.6787
+refuerzo (xgboost)       AUC 0.6868</pre></div><p>The order is the textbook one: <strong>a tree loses to the forest, and the forest to the boosting</strong>. The differences are of two or three hundredths, which with a hundred test cases is little margin.</p><p>Keep that reservation, because in the Waze project this same order <strong>does not hold</strong> and the logistic regression of Course 4 beats all three.</p><h3 class="sub h3">Step 5. What the forest used, and what that does not mean</h3><pre><code class="language-python">forest = RandomForestClassifier(n_estimators=300, random_state=0).fit(train_x, train_y)
+names = [&quot;reactivo&quot;, &quot;pH&quot;, &quot;ruido 1&quot;, &quot;ruido 2&quot;]
+
+for position in np.argsort(forest.feature_importances_)[::-1]:
+    print(f&quot;{names[position]:10} {forest.feature_importances_[position]:.4f}&quot;)</code></pre><dl class="annot"><div class="annot-head">line by line</div><dt><code>np.argsort(...)</code></dt><dd>Returns <strong>the positions</strong> that would sort the vector from smallest to largest, not the values. It serves to sort the names by their importance.</dd><dt><code>[::-1]</code></dt><dd>Reversing a list. Since <code>argsort</code> sorts from smallest to largest and we want the opposite, it gets reversed.</dd><dt><code>forest.feature_importances_</code></dt><dd>How much each column contributed to lowering the impurity, summed over the three hundred trees and normalised to add up to 1.</dd></dl><div class="output"><span class="output-tag">prints</span><pre>pH         0.3020
+reactivo   0.2664
+ruido 2    0.2186
+ruido 1    0.2130</pre></div><p>The two that really influence stay on top, so the order is correct. But look at the numbers: <strong>the two columns of pure noise take 0.4316 between them, 43% of the total.</strong></p><p>Those two columns are random values that have absolutely no relationship with the result, by construction, because we manufactured them. And still they score almost like the good ones.</p><p>The reason is that the tree has to split somewhere, and a random column sometimes separates a little by pure chance. <strong>Importance ranks; it does not rule out.</strong> If you use it to decide which columns to drop, drop the ones at the bottom carefully and check that the model does not get worse.</p></section>
+<section class="section-block is-warning"><span class="kicker">Traps</span><h2 class="section-title">Watch out</h2><ul><li><strong>An unlimited tree always memorises.</strong> It is not a risk: it is what it does by design if nothing prevents it.</li><li><strong>Always compare training against test.</strong> A model with 1.0000 in training is suspicious, not good.</li><li><strong>The validation figure is optimistic.</strong> It came out 0.7013 against 0.6556 in test, because the winner was chosen by looking at that validation.</li><li><strong>Variable importance is not significance.</strong> Two columns of pure noise added up to 43%.</li><li><strong>Nor is it cause.</strong> That pH comes out on top does not say that moving it changes the result.</li><li><strong>A forest can have extra trees without penalty; a boosting cannot.</strong> Putting a thousand trees in a boosting with a high <code>learning_rate</code> is a recipe for overfitting.</li><li><strong>Trees do not need scaling</strong>, the opposite of k-means. Scaling does them no harm, it just does nothing.</li><li><strong>A tree is unstable.</strong> Change a few rows and you can get a completely different tree with similar accuracy. That is why drawing &quot;the&quot; tree and telling it as if it were the truth is risky.</li><li><strong>That the forest beats the tree is not guaranteed.</strong> It is the usual thing, and in the Waze project of this same course it does not happen.</li></ul></section>
+<section class="section-block is-bridge"><span class="kicker">Analogy</span><h2 class="section-title">Metallurgical bridge</h2><p>The decision tree does not need explaining to you: <strong>it already exists, written on a whiteboard next to the control panel</strong>. It is the plant&#x27;s operating tree.</p><pre><code>¿La ley de cabeza pasa de 0,8 %?
+├── sí  → ¿El pH está por encima de 10,5?
+│         ├── sí  → dosis normal de colector
+│         └── no  → subir cal antes de nada
+└── no  → ¿Hay finos por encima del 30 %?
+          ├── sí  → bajar tonelaje
+          └── no  → dosis reforzada</code></pre><p>That is literally a decision tree, with its nodes, its branches and its leaves. The difference is where the questions come from: <strong>the one on the whiteboard was written by someone with twenty years at the plant, and the model&#x27;s comes from calculating the Gini gain of every possible question</strong>.</p><p>And the traps travel too. A shift supervisor who added a rule for every odd incident they have seen would end up with an enormous tree, with one branch for the day it rained and another for the lot from truck 47. <strong>That tree describes the last three years perfectly and is of no use for tomorrow</strong>, which is exactly overfitting in overalls.</p><p>The way of containing it is the same in both places: <strong>no branch gets added for a single case</strong>. That is <code>min_samples_leaf</code>, and at the plant it is called common sense.</p><p>And the forest also has its equivalent, which is the reason important decisions are taken in committee. You ask five people who have seen different plants, each one goes wrong on different things, and the joint decision is better than any one of them separately. What is lost is just as real: afterwards you can no longer write in the minutes a single clean reason for why that was decided.</p></section>
+<section class="section-block is-review"><span class="kicker">Review</span><h2 class="section-title">Review</h2><details><summary>In the example of the ten lots, why is the gain 0.32 and what does it mean?</summary><p>Because the whole group, with 6 that pass and 4 that do not, has a Gini impurity of 1 − 0.36 − 0.16 = 0.48, very close to the maximum of 0.5 that corresponds to half and half. On asking about the reagent, the piece without reagent is left with 1 of 5 and an impurity of 0.32, and the piece with reagent is left with 5 of 5 and an impurity of exactly 0, because it is pure. Since the two pieces have five lots, the impurity left is the average, 0.16, and the gain is the difference: 0.48 − 0.16 = 0.32. It means that that single question cut the mixing to a third, and the tree always chooses the question with the biggest gain.</p></details><details><summary>A tree gets 100% right in training and 54% in test. What has happened and how is it fixed?</summary><p>It has memorised. Without any knob to stop it, the tree went on splitting until each leaf held almost a single case, 77 leaves for 300 lots, so it can recite the training set and has learned no general rule. The 54% in test, with almost balanced classes, is barely better than a coin. It is fixed by putting limits on it: with depth 3 the same tree drops to 0.7267 in training and rises to 0.6100 in test, that is a model worse on what it already knew and better on what it did not. And those limits are chosen with a grid search and cross-validation, not by eye.</p></details><details><summary>What real difference is there between a random forest and gradient boosting?</summary><p>That their trees relate in opposite ways. In the forest they are independent: each one is trained on a different resample and seeing only some columns at each split, and at the end they vote, so that their errors, which are different, cancel out. In boosting they go in a chain: one is trained, where it failed is looked at, and the next one is devoted to those cases, adding corrections. The practical consequence is the one that decides: a forest can have extra trees and at worst plateaus, while a boosting with too many trees starts memorising, and that is why its critical knob is how much attention is paid to each correction.</p></details><details><summary>The grid search gave 0.7013 and the test 0.6556. Which gets published and why?</summary><p>The test one, 0.6556. The cross-validation figure is inflated because it is the set on which the 24 combinations were compared and the winner chosen, so part of its advantage is having fitted well with those particular folds. Choosing the maximum of twenty-four noisy measures produces an optimistic number even if no combination were really better. The test set took part in no decision, and that is the whole reason it exists and gets set aside before starting.</p></details><details><summary>Two columns of pure noise obtained 43% of the importance. What conclusion has to be drawn?</summary><p>That variable importance ranks but does not rule out, and is certainly not a test of significance or of cause. Those two columns were generated at random and have no relationship with the result, but the tree needs to split somewhere and a random column separates a little by chance every now and then, so it accumulates importance. What did work is the order: the two variables that really influence stayed above the two noise ones. The correct reading is to treat it as a clue about what to look at, and if it is going to be used to remove columns, remove them and check that the performance on test does not get worse.</p></details></section>
+</main>
+<footer class="footer">
+  Concentra / distilled from the public syllabus of the course / 2026-08-23
+</footer>
+</body>
+</html>

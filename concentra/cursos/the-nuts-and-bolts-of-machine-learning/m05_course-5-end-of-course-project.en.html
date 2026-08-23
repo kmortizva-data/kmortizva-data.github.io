@@ -1,0 +1,496 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Course 5 end-of-course project · The Nuts and Bolts of Machine Learning</title>
+<link rel="alternate" hreflang="es" href="m05_course-5-end-of-course-project.html">
+<style>
+/* ============================================================================
+   Concentra — design tokens and shared components.
+   Inlined into every generated page by load_style(), so pages stay self-contained
+   and work offline from file:// with no external requests.
+
+   Direction: an assay lab, not a tech dashboard. The palette is taken from ore
+   and lab materials (chalcopyrite brass, malachite, hematite, quartz) on warm
+   graphite rather than the blue-black + neon of a generic dark UI. Type is
+   Bahnschrift, the DIN-descended grotesque that Windows ships and that lives on
+   machinery plates and technical drawings, over Corbel for reading.
+   ========================================================================== */
+
+:root {
+  /* Ground and surfaces: warm graphite, the colour of rock dust, not blue-black */
+  --rock: #1a1714;
+  --bench: #221e19;
+  --core: #2b251f;
+  --seam: #3d352c;
+
+  /* Ore palette. No blue and no purple anywhere: those are the tones that make a
+     page read as generated, and this palette comes from the ores instead. */
+  --brass: #c9a227;      /* chalcopyrite, the primary accent */
+  --malachite: #5d9b7a;  /* verified output, results that came out right */
+  --hematite: #b04a35;   /* iron oxide, pitfalls and warnings */
+
+  /* Text */
+  --quartz: #ece7de;
+  --dust: #9a9186;
+  --shadowed: #6f675c;
+
+  --display: Bahnschrift, 'DIN Alternate', 'Segoe UI Semibold', system-ui, sans-serif;
+  --body: Corbel, Candara, 'Segoe UI', system-ui, sans-serif;
+  --data: Consolas, 'Cascadia Mono', ui-monospace, monospace;
+
+  /* In px, not ch: ch scales with font-size, so a heading ended up wider than a
+     paragraph and the page had four different right edges instead of two. */
+  --measure: 640px;
+  --wide: 900px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--rock);
+  color: var(--quartz);
+  font-family: var(--body);
+  font-size: 16px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection { background: var(--brass); color: var(--rock); }
+
+:focus-visible {
+  outline: 2px solid var(--brass);
+  outline-offset: 3px;
+}
+
+/* --------------------------------------------------------------- the signature
+   A sieve series: ticks that get finer from left to right, coarse feed to fine
+   concentrate. It is the one ornament on the page and appears exactly twice —
+   under the wordmark and under a page title. */
+.mesh {
+  height: 10px;
+  background-image:
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 16px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 9px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 5px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 3px);
+  background-size: 25% 100%;
+  background-position: 0 0, 25% 0, 50% 0, 75% 0;
+  background-repeat: no-repeat;
+  opacity: .8;
+  transform-origin: left center;
+  animation: sieve .55s cubic-bezier(.2, .8, .3, 1) both;
+}
+@keyframes sieve { from { transform: scaleX(0); opacity: 0; } to { transform: scaleX(1); opacity: .8; } }
+@media (prefers-reduced-motion: reduce) {
+  .mesh { animation: none; }
+  * { transition: none !important; }
+}
+
+/* ------------------------------------------------------------------ page head */
+.header {
+  border-bottom: 1px solid var(--seam);
+  padding: 3.2rem 2rem 0;
+  background: linear-gradient(180deg, #221d16 0%, var(--rock) 100%);
+}
+.header-content { max-width: 1080px; margin: 0 auto; }
+
+.eyebrow {
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--brass);
+  margin-bottom: 1rem;
+  display: flex; flex-wrap: wrap; align-items: center;
+  justify-content: space-between; gap: .6rem 1rem;
+}
+.eyebrow a { color: inherit; text-decoration: none; border-bottom: 1px solid transparent; }
+.eyebrow a:hover { border-bottom-color: var(--brass); }
+/* The way to the other edition of this page. It targets the shell, not the bare
+   page, so the sidebar follows the language too. */
+.eyebrow .lang-switch {
+  margin-left: auto; border: 1px solid var(--seam); border-radius: 2px;
+  padding: .22rem .6rem; color: var(--dust); font-size: .68rem; letter-spacing: .1em;
+}
+.eyebrow .lang-switch:hover { color: var(--brass); border-color: var(--brass); }
+
+.header h1 {
+  font-family: var(--display);
+  font-size: clamp(2rem, 4.5vw, 3.1rem);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -.015em;
+  color: var(--quartz);
+  max-width: 20ch;
+}
+.header .subtitle {
+  color: var(--dust);
+  max-width: var(--measure);
+  margin-top: 1rem;
+  font-size: 1.02rem;
+}
+.header .mesh { margin: 1.8rem 0 0; }
+
+/* An assay line: the real composition of the module, in lab-report shorthand. */
+.assay {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.4rem;
+  font-family: var(--data);
+  font-size: .78rem;
+  color: var(--shadowed);
+  padding: .9rem 0 1.6rem;
+  letter-spacing: .04em;
+}
+.assay b { color: var(--dust); font-weight: 400; }
+
+/* --------------------------------------------------------------------- layout */
+/* The container hugs the widest block, so there is no orphan edge past the content. */
+.container { max-width: var(--wide); margin: 3rem auto 5rem; padding: 0 2rem; }
+
+/* Two deliberate right edges and no more: prose stops at the reading measure, and
+   only the things that genuinely need room (code, output, figures, big tables) run
+   out to the full column. */
+.section-block {
+  border-top: 1px solid var(--seam);
+  padding: 2rem 0 2.4rem;
+}
+.section-block > p,
+.section-block > ul,
+.section-block > ol,
+.section-block h3.sub,
+.section-block h4.sub,
+.section-block blockquote,
+details > *:not(summary) { max-width: var(--measure); }
+.section-block:first-child { border-top: 0; padding-top: .5rem; }
+
+/* The kicker names what kind of content follows: context, method, pitfalls.
+   It replaces decorative icons with something that actually classifies. */
+.kicker {
+  font-family: var(--data);
+  font-size: .68rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  display: block;
+  margin-bottom: .5rem;
+}
+.section-title {
+  font-family: var(--display);
+  font-size: 1.55rem;
+  font-weight: 600;
+  letter-spacing: -.01em;
+  line-height: 1.2;
+  margin-bottom: 1.2rem;
+  color: var(--quartz);
+}
+.is-warning .kicker { color: var(--hematite); }
+.is-warning .section-title { color: #e8c4b8; }
+.is-bridge .kicker, .is-decision .kicker { color: var(--malachite); }
+.is-toy .kicker, .is-result .kicker, .is-question .kicker { color: var(--brass); }
+
+/* ---------------------------------------------------------------------- prose */
+/* Justified with hyphenation. In Spanish, justifying without hyphens opens rivers of
+   white space and reads worse than ragged right; lang="es" is what feeds the
+   dictionary. Tables, code, captions and summaries stay ragged on purpose. */
+.section-block p,
+.section-block li,
+details > *:not(summary) {
+  text-align: justify;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+}
+.section-block p { margin-bottom: 1rem; }
+.section-block p:last-child { margin-bottom: 0; }
+/* Indent with padding, not margin, so the bullet sits inside the measure instead of
+   pushing the list 1.2rem past the right edge of the paragraphs. */
+.section-block ul, .section-block ol { margin: 0 0 1rem; padding-left: 1.2rem; }
+.section-block li { margin-bottom: .55rem; padding-left: .2rem; }
+.section-block li::marker { color: var(--brass); }
+td, th, figcaption, .res li, .assay { text-align: left; hyphens: manual; }
+a { color: var(--brass); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+a:hover { text-decoration-thickness: 2px; }
+strong { color: #fff; font-weight: 700; }
+em { color: var(--dust); font-style: italic; }
+
+h3.sub {
+  font-family: var(--display);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--brass);
+  margin: 2rem 0 .7rem;
+  letter-spacing: -.005em;
+}
+h3.sub:first-child { margin-top: 0; }
+h4.sub {
+  font-family: var(--display);
+  font-size: .98rem;
+  font-weight: 600;
+  color: var(--dust);
+  margin: 1.3rem 0 .5rem;
+}
+
+code {
+  font-family: var(--data);
+  font-size: .9em;
+  background: var(--core);
+  border-radius: 3px;
+  padding: .08rem .32rem;
+  color: var(--brass);
+}
+pre {
+  background: #14110e;
+  border: 1px solid var(--seam);
+  border-left: 2px solid var(--seam);
+  border-radius: 2px;
+  padding: 1.1rem 1.2rem;
+  overflow-x: auto;
+  margin-bottom: 1rem;
+}
+pre code {
+  background: none; padding: 0; color: var(--quartz);
+  font-size: .87rem; line-height: 1.6;
+}
+
+/* What the code prints. Malachite: the material that came out of the process. */
+.output {
+  position: relative;
+  border: 1px solid rgba(93, 155, 122, .32);
+  border-left: 2px solid var(--malachite);
+  border-radius: 2px;
+  background: rgba(93, 155, 122, .06);
+  padding: 1.7rem 1.2rem 1rem;
+  margin-bottom: 1rem;
+  overflow-x: auto;
+}
+.output-tag {
+  position: absolute; top: .5rem; left: 1.2rem;
+  font-family: var(--data); font-size: .64rem;
+  letter-spacing: .18em; text-transform: uppercase; color: var(--malachite);
+}
+.output pre {
+  background: none; border: 0; padding: 0; margin: 0;
+  font-family: var(--data); font-size: .85rem;
+  color: var(--quartz); white-space: pre-wrap;
+}
+
+/* Line by line explanation of a code block, for a reader new to programming.
+   Two columns: the fragment of code, and what it does. */
+.annot {
+  display: grid;
+  grid-template-columns: minmax(9rem, auto) 1fr;
+  gap: .1rem 1.2rem;
+  align-items: baseline;
+  max-width: var(--wide);
+  margin: -.4rem 0 1.4rem;
+  padding: .9rem 1.1rem 1rem;
+  border: 1px solid var(--seam);
+  border-top: 0;
+  border-radius: 0 0 2px 2px;
+  background: rgba(201, 162, 39, .04);
+}
+.annot-head {
+  grid-column: 1 / -1;
+  font-family: var(--data);
+  font-size: .64rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  margin-bottom: .5rem;
+}
+.annot dt { padding: .35rem 0; }
+.annot dt code {
+  background: var(--core);
+  color: var(--brass);
+  font-size: .82rem;
+  white-space: nowrap;
+}
+.annot dd {
+  padding: .35rem 0;
+  margin: 0;
+  color: var(--dust);
+  font-size: .93rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(61, 53, 44, .5);
+}
+.annot dt { border-bottom: 1px solid rgba(61, 53, 44, .5); }
+.annot dt:last-of-type, .annot dd:last-of-type { border-bottom: 0; }
+/* The code block sits directly on top of its annotation, as one unit. */
+pre:has(+ .annot) { margin-bottom: 0; border-radius: 2px 2px 0 0; }
+
+@media (max-width: 640px) {
+  .annot { grid-template-columns: 1fr; gap: 0; }
+  .annot dt { border-bottom: 0; padding-bottom: 0; }
+  .annot dd { padding-top: .15rem; }
+}
+
+blockquote {
+  border-left: 2px solid var(--brass);
+  padding: .3rem 0 .3rem 1.3rem;
+  margin: 0 0 1rem;
+  font-family: var(--display);
+  font-size: 1.2rem;
+  font-weight: 400;
+  line-height: 1.4;
+  color: var(--quartz);
+}
+
+/* Tables read as assay data: mono figures, hairline rules, no zebra fill.
+   They take the width they need instead of being stretched to the full column,
+   which is what left a two-column table floating in empty space. */
+.table-wrap { overflow-x: auto; margin-bottom: 1rem; }
+table { border-collapse: collapse; width: auto; max-width: 100%; font-size: .93rem; }
+th, td {
+  border-bottom: 1px solid var(--seam);
+  padding: .55rem .8rem .55rem 0;
+  text-align: left;
+  vertical-align: top;
+}
+th {
+  font-family: var(--data);
+  font-size: .7rem;
+  font-weight: 400;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  border-bottom-color: var(--brass);
+}
+td:first-child { color: var(--quartz); }
+
+/* Review questions: closed by default, so they work as recall practice. */
+details {
+  border-top: 1px solid var(--seam);
+  padding: .9rem 0;
+}
+details:last-child { border-bottom: 1px solid var(--seam); }
+summary {
+  cursor: pointer;
+  font-family: var(--display);
+  font-size: 1.02rem;
+  font-weight: 600;
+  color: var(--quartz);
+  list-style: none;
+  display: flex;
+  gap: .7rem;
+  align-items: baseline;
+}
+summary::-webkit-details-marker { display: none; }
+summary::before {
+  content: '+';
+  font-family: var(--data);
+  color: var(--brass);
+  font-size: .95rem;
+}
+details[open] summary::before { content: '−'; }
+details[open] summary { color: var(--brass); margin-bottom: .7rem; }
+details > *:not(summary) { color: var(--dust); }
+
+figure.fig {
+  margin: 1.6rem 0;
+  border: 1px solid var(--seam);
+  padding: .7rem;
+  background: var(--bench);
+}
+figure.fig img { width: 100%; height: auto; display: block; }
+/* The interactive twin of a figure. Its aspect matches the still one, 10 by 4.4, so a
+   case sheet keeps the same rhythm whichever kind of figure comes next. */
+figure.fig.is-live iframe {
+  width: 100%;
+  /* Matches INTERACTIVE_HEIGHT in src/make_figures.py. It used to be an aspect ratio, and
+     that made the figure's height depend on the window: the caption and the legend are
+     placed at fractions of the plot area, so on a wide screen they were pushed past the
+     bottom margin, clipping the caption and covering the x-axis title. */
+  height: 520px;
+  border: 0;
+  display: block;
+}
+figure.fig figcaption {
+  font-family: var(--data);
+  font-size: .72rem;
+  color: var(--shadowed);
+  margin-top: .6rem;
+  letter-spacing: .04em;
+}
+
+/* File listings on a case sheet */
+.res { list-style: none; margin-left: 0 !important; }
+.res li {
+  display: flex; align-items: baseline; gap: .8rem; flex-wrap: wrap;
+  padding: .5rem 0; border-bottom: 1px solid var(--seam); margin-bottom: 0;
+}
+.res .path { font-family: var(--data); font-size: .74rem; color: var(--shadowed); }
+.res .size { font-family: var(--data); font-size: .74rem; color: var(--shadowed); margin-left: auto; }
+.res .gone { font-family: var(--data); font-size: .74rem; color: var(--hematite); }
+
+.footer {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 2rem 4rem;
+  color: var(--shadowed);
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .03em;
+}
+
+@media (max-width: 640px) {
+  body { font-size: 15px; }
+  .header { padding: 2rem 1.2rem 0; }
+  .container { padding: 0 1.2rem; margin-top: 2rem; }
+  .footer { padding: 0 1.2rem 3rem; }
+}
+
+@media print {
+  body { background: #fff; color: #16130f; }
+  .header { background: none; border-bottom: 1px solid #bbb; padding-top: 0; }
+  .header h1, .section-title, summary { color: #16130f; }
+  .mesh { animation: none; }
+  .section-block { break-inside: avoid; max-width: none; }
+  pre, .output { background: #f6f4f0; border-color: #ccc; }
+  details:not([open]) > *:not(summary) { display: block; }
+  a { color: #16130f; }
+}
+
+</style>
+</head>
+<body>
+<header class="header">
+  <div class="header-content">
+    <div class="eyebrow"><span><a href="https://www.coursera.org/learn/the-nuts-and-bolts-of-machine-learning">The Nuts and Bolts of Machine Learning</a> / Module 5</span><a class="lang-switch" href="../index.html#the-nuts-and-bolts-of-machine-learning/m05_course-5-end-of-course-project" target="_top" hreflang="es" lang="es" title="Leer esta página en español">Español</a></div>
+    <h1>Course 5 end-of-course project</h1>
+    <p class="subtitle">The three projects, delivered. And a question that can only be answered with all three side by side, the complicated model faced three different amounts of signal and won in none of the three.</p>
+    <div class="mesh" role="presentation"></div>
+    <div class="assay"><span><b>10 h</b> course time</span><span><b>5</b> videos</span><span><b>10</b> readings</span><span><b>4</b> assignments</span><span><b>6</b> practice</span></div>
+  </div>
+</header>
+<main class="container">
+<section class="section-block "><span class="kicker">Context</span><h2 class="section-title">What this module solves</h2><p>This module is the delivery. The usual three scenarios, now with tree models, with the three-way split of module 2, the clustering of module 3 and the knob tuning of module 4.</p><p>And it brings something no previous course could bring. The three projects were done with the same method and <strong>landed in three completely different situations</strong>: one with just enough signal, another with an enormous signal and another with no signal at all. That turns the three together into an experiment on the question of the course, and the answer is uncomfortable.</p></section>
+<section class="section-block "><span class="kicker">Note</span><h2 class="section-title">The arc of the course</h2><p>Three projects, three amounts of signal, and <strong>the complicated model wins in none of them</strong>.</p><div class="table-wrap"><table><thead><tr><th>Project</th><th>How much signal there is</th><th>What happened</th></tr></thead><tbody><tr><td><strong>Waze</strong></td><td>Little</td><td>Tuning the forest gains 0.0276 and stops <strong>0.0019</strong> short of the logistic</td></tr><tr><td><strong>TikTok</strong></td><td>Enormous</td><td>A single question ties with 300 trees: <strong>+0.0000</strong></td></tr><tr><td><strong>Automatidata</strong></td><td>None</td><td>Two of three models decide <strong>exactly the same</strong> as always answering &quot;no&quot;</td></tr></tbody></table></div><h3 class="sub h3">Waze: it almost closes the gap, and does not close it</h3><p>It is the only one of the three that can really be compared with the previous course, because Course 4 predicted the same thing on the same file. The split is built for that: the first cut is the same 25% with the same seed, so <strong>the 3,575 test users are literally the same ones</strong>.</p><p>On them, and looking at the test set a single time:</p><div class="table-wrap"><table><thead><tr><th>Model</th><th>AUC</th><th>Recall</th></tr></thead><tbody><tr><td>Logistic of Course 4</td><td>0.7368</td><td>0.0820</td></tr><tr><td><strong>Logistic of this course</strong></td><td><strong>0.7379</strong></td><td><strong>0.0962</strong></td></tr><tr><td>Tuned forest</td><td>0.7318</td><td>0.0710</td></tr><tr><td>Tuned boosting</td><td>0.7348</td><td>0.0489</td></tr></tbody></table></div><p>The interesting part is not the verdict, it is the margin. <strong>Tuning the forest gave it 0.0276 of AUC</strong>, from 0.7129 to 0.7405, which is a big improvement for what is at stake here. And it stopped <strong>0.0019</strong> short of a model that has not a single knob to tune.</p><p>That is the result in one sentence: <strong>tuning the complicated model almost closes the gap, and does not close it.</strong></p><h3 class="sub h3">TikTok: the credit did not belong to the model</h3><p>Here the signal is enormous and it was known since Course 2: a claim is viewed 101 times more than an opinion. So the project was designed with a control fixed <strong>before</strong> touching anything: a tree with a single question on a single column.</p><div class="table-wrap"><table><thead><tr><th>Model</th><th>Variables</th><th>Accuracy</th></tr></thead><tbody><tr><td><strong>One question</strong></td><td><strong>1</strong></td><td><strong>0.9958</strong></td></tr><tr><td>Logistic regression</td><td>9</td><td>0.9940</td></tr><tr><td><strong>Tuned forest, 300 trees</strong></td><td><strong>9</strong></td><td><strong>0.9958</strong></td></tr></tbody></table></div><p><strong>Nine variables and three hundred trees contribute 0.0000 of accuracy</strong> over one question. The logistic, with all nine, gets less.</p><p>And the reason any algorithm finds it: the most-viewed opinion in the whole file has <strong>9,998</strong> views and the cut the model learns falls at <strong>10,031</strong>. The two classes are separated by a line.</p><p>That leads to a place the official exemplar does not step on. <strong>A gap like that does not exist on a real platform</strong>; no opinion video has a ceiling of ten thousand views. It appears when someone generates two populations with different ranges, and this data is synthetic. A model with 99.58% here has measured <strong>how the file was manufactured</strong>.</p><h3 class="sub h3">Automatidata: there is nothing to find</h3><p>The brief was to predict who leaves a generous tip. Before modelling, two things appeared that decided the whole project.</p><p><strong>The cash tip is never recorded</strong>: the 7,434 trips that are not by card have a zero tip in 100% of the cases. Training with the whole file teaches the model &quot;cash, therefore no tip&quot;, which is a property of the meter disguised as a finding.</p><p><strong>And &quot;generous&quot; had to be defined by looking at the distribution</strong>: 4,363 trips leave exactly 20.00%, which is the machine&#x27;s default button, and the median falls right there. Whoever presses the button did not decide to be generous: they accepted.</p><p>With that settled, the result:</p><div class="table-wrap"><table><thead><tr><th>Model</th><th>Accuracy</th><th>Recall</th><th>AUC</th></tr></thead><tbody><tr><td>Always answering &quot;no&quot;</td><td>0.7688</td><td>0.0000</td><td>0.5000</td></tr><tr><td>Logistic regression</td><td>0.7688</td><td><strong>0.0000</strong></td><td>0.5395</td></tr><tr><td>Tuned forest</td><td>0.7688</td><td><strong>0.0000</strong></td><td>0.6073</td></tr><tr><td>Tuned boosting</td><td>0.7708</td><td>0.0128</td><td>0.6104</td></tr></tbody></table></div><p><strong>Two of the three models flag nobody.</strong> Their accuracy coincides with the lazy model&#x27;s down to the fourth decimal because they take exactly the same decisions.</p><p>And here, for the first and only time in the course, <strong>the trees beat the logistic</strong>: 0.6073 and 0.6104 against 0.5395. They rank the cases better. And still they decide nothing different.</p><p><strong>A better AUC is not a usable model.</strong> The AUC measures whether you know how to rank; recall measures whether you are any use for deciding.</p></section>
+<section class="section-block "><span class="kicker">Terms</span><h2 class="section-title">Glossary</h2><ul><li><strong>Baseline model.</strong> The simplest result that can be achieved without effort, and against which everything else is measured. It can be always answering the majority class, or a tree with a single question.</li><li><strong>Signal.</strong> How much information about the answer there really is in the variables. It is not a property of the model: it is a property of the file.</li><li><strong>Champion model.</strong> The one that wins in validation, chosen before touching the test set.</li><li><strong>Information leak.</strong> Something reaching the model that would not exist at the real moment of predicting. In Automatidata, the total amount contains the tip.</li><li><strong>Generation artefact.</strong> A pattern that exists because the data was manufactured that way, not because it describes the world. TikTok&#x27;s gap is one.</li><li><strong>Threshold.</strong> The probability cut from which the answer is yes. Changing it changes the decisions without changing the model.</li></ul></section>
+<section class="section-block is-recipe"><span class="kicker">Method</span><h2 class="section-title">Step by step</h2><h3 class="sub h3">Step 1. Write what you expect before tuning anything</h3><p>The three projects do it in their PACE document, and it is not a formality: <strong>an expectation written after seeing the result is not an expectation</strong>, it is a rationalisation.</p><p>In Waze it was written that the trees would probably not win. In TikTok, that a result above 99% would not be a success but a confirmation. In Automatidata, that the tip is a decision of the person and not of the trip. All three came true, but that does not matter: what makes them worth something is that they were written beforehand.</p><h3 class="sub h3">Step 2. Fix the baseline model before the good model</h3><p>It is the step that changes a report most, and the one most people skip.</p><div class="table-wrap"><table><thead><tr><th>Project</th><th>Baseline</th><th>What it uncovered</th></tr></thead><tbody><tr><td>TikTok</td><td>A one-question tree</td><td>That the full model contributed nothing</td></tr><tr><td>Automatidata</td><td>Always answering &quot;no&quot;</td><td>That two models decided nothing</td></tr><tr><td>Waze</td><td>The Course 4 model</td><td>That tuning was not enough</td></tr></tbody></table></div><p>And it gets fixed <strong>before</strong>. Choosing what counts as a good baseline once you have already seen your result is how a project convinces itself of being impressive.</p><h3 class="sub h3">Step 3. Tune both families, not only the one you like</h3><p>An unbounded forest does not represent forests. In Waze, the lone tree gets 0.5717, which is one step from tossing a coin; the tuned forest gets 0.7405.</p><p>If you are going to conclude that the trees do not win, you have to have given them their chance, or the conclusion is worthless. That is why the three projects tune forest and boosting with grid search, and report how many combinations they tried and how long it took.</p><h3 class="sub h3">Step 4. Look at the test set once, and publish that figure</h3><p>In Waze the cross-validation gave 0.7529 and the test 0.7379. That difference is not noise: validation is the set on which the choice among 88 combinations was made, so the winner is one partly by luck with those folds.</p><h3 class="sub h3">Step 5. Tell what did not work in the same detail</h3><p>The three reports do it, and it is what makes them credible:</p><ul><li>In Waze, <strong>the segmentation of module 3 found no groups</strong>. The best silhouette was 0.2588, and the variable came last of nine with 0.0026 of importance.</li><li>In TikTok, the good model <strong>ties with one question</strong>.</li><li>In Automatidata, <strong>the brief cannot be fulfilled</strong> with the data available.</li></ul><p>That third one is the hardest to deliver and the most valuable. Knowing that something cannot be done with what there is saves building it.</p></section>
+<section class="section-block is-recipe"><span class="kicker">Code</span><h2 class="section-title">The code, in parts</h2><h3 class="sub h3">Step 1. The three projects, read in one go</h3><p>Each script writes its <code>model_results.json</code>, and <strong>neither the report nor the sheet can quote a number that is not in there</strong>.</p><pre><code class="language-python">import json
+from pathlib import Path
+
+for slug in (&quot;waze&quot;, &quot;tiktok&quot;, &quot;automatidata&quot;):
+    report = Path(f&quot;projects/curso5/{slug}/04_reports/model_results.json&quot;)
+    numbers = json.loads(report.read_text(encoding=&quot;utf-8&quot;))
+    print(f&quot;{slug:14} campeon: {numbers[&#x27;champion&#x27;]}&quot;)</code></pre><dl class="annot"><div class="annot-head">line by line</div><dt><code>Path(f&quot;projects/...&quot;)</code></dt><dd>An f-string inside <code>Path</code>, to build the three paths changing only the name. <code>Path</code> understands forward slashes on Windows too.</dd><dt><code>.read_text(encoding=&quot;utf-8&quot;)</code></dt><dd>Reading the whole file as text. <strong>The <code>encoding</code> is not optional</strong>: without it Windows uses cp1252 and blows up on the accents in the labels.</dd><dt><code>json.loads(...)</code></dt><dd>Turns that text into Python dictionaries and lists. With the <code>s</code> at the end it is &quot;load string&quot;; without the <code>s</code>, <code>json.load</code>, it receives an open file instead of text.</dd><dt><code>numbers[&#x27;champion&#x27;]</code></dt><dd>The key each script wrote with the model that won in validation. It is in the JSON because no published figure can come from anywhere else.</dd></dl><div class="output"><span class="output-tag">prints</span><pre>waze           campeon: logistica
+tiktok         campeon: bosque
+automatidata   campeon: xgboost</pre></div><p>Three different champions, and still the same conclusion. That is what makes the arc mean something: <strong>it did not come out of repeating one model three times</strong>.</p><h3 class="sub h3">Step 2. The question of the course, answered with all three</h3><pre><code class="language-python">for slug in (&quot;waze&quot;, &quot;tiktok&quot;, &quot;automatidata&quot;):
+    report = Path(f&quot;projects/curso5/{slug}/04_reports/model_results.json&quot;)
+    test = json.loads(report.read_text(encoding=&quot;utf-8&quot;))[&quot;test&quot;]
+    simple = test.get(&quot;logistica&quot;, test.get(&quot;lone&quot;))[&quot;auc&quot;]
+    complicated = max(test[name][&quot;auc&quot;] for name in (&quot;bosque&quot;, &quot;xgboost&quot;) if name in test)
+    print(f&quot;{slug:14} {complicated - simple:+.4f}&quot;)</code></pre><dl class="annot"><div class="annot-head">line by line</div><dt><code>test.get(&quot;logistica&quot;, test.get(&quot;lone&quot;))</code></dt><dd><code>get</code> with two arguments returns the second if the key does not exist. It is needed because in TikTok the simple model is called <code>lone</code>, which is the one-question tree.</dd><dt><code>max(... for name in (...) if name in test)</code></dt><dd>A generator expression with a filter inside <code>max</code>: it walks the two complicated models, skips whichever is not there, and keeps the bigger AUC.</dd><dt><code>{... :+.4f}</code></dt><dd>The <code>+</code> forces the sign to be written even when the number is positive, which is exactly what has to be seen at a glance.</dd></dl><div class="output"><span class="output-tag">prints</span><pre>waze           -0.0031
+tiktok         +0.0028
+automatidata   +0.0709</pre></div><p>And here you have to read carefully, because <strong>the number says one thing and the project says another</strong>.</p><p>In TikTok the forest gains 0.0028 of AUC and <strong>ties in accuracy</strong>, so it does not decide better. In Automatidata it gains 0.0709, which looks like a lot, and <strong>it flags nobody</strong>: its recall is zero.</p><p>The AUC only measures whether the model ranks well. A model that ranks better and decides the same is not a better model. That is why the table of the arc looks at recall and accuracy, not only AUC.</p></section>
+<section class="section-block is-warning"><span class="kicker">Traps</span><h2 class="section-title">Watch out</h2><ul><li><strong>A baseline model chosen afterwards is not a baseline</strong>, it is an excuse.</li><li><strong>A better AUC is not a better model.</strong> In Automatidata the trees gain 0.07 of AUC and still detect nobody.</li><li><strong>Almost perfect smells bad.</strong> TikTok&#x27;s 0.9958 measures how the file was generated.</li><li><strong>Do not compare a tuned forest against a lone tree.</strong> Waze&#x27;s lone tree gets 0.5717 and does not represent tree models.</li><li><strong>The validation figure is optimistic</strong>, because the winner was chosen on it.</li><li><strong>Variable importance shares out the total even if the model does not work.</strong> Automatidata&#x27;s forest gives a presentable split with an AUC of 0.6073.</li><li><strong>A well-done negative result is a deliverable</strong>, not a failure. It costs more to defend and is worth more.</li></ul></section>
+<section class="section-block is-bridge"><span class="kicker">Analogy</span><h2 class="section-title">Metallurgical bridge</h2><p>The three projects are the three test campaigns you have already lived through, in the same order.</p><p><strong>Waze is the campaign that improves little.</strong> You test a new reagent, tune dose, pH and conditioning time, and get half a point of recovery over what you were already doing. The question then is not whether the result is real, it is <strong>whether half a point pays for the reagent, the change of procedure and the risk</strong>. A forest of three hundred trees that gains 0.0019 has exactly that problem: it has to be maintained, and the regression does not.</p><p><strong>TikTok is the test that comes out perfect and has to be distrusted.</strong> A spotless separation in the laboratory with a prepared sample. The result is correct and does not describe the plant, because the sample is not the real feed. Nobody with experience takes that number to a committee without first saying where the sample came from.</p><p><strong>Automatidata is the campaign that proves it cannot be done.</strong> You test everything you can think of and the ore does not respond. That report exists, gets delivered and is useful: it stops the company from building a circuit for something that is not going to work. And the good recommendation is not &quot;more tests&quot;, it is <strong>looking at another lever</strong>: in the project, moving the machine&#x27;s default button, which decides 28.7% of the tips and needs no model at all.</p><p>The underlying lesson is the same as that of the reference sample of module 2: <strong>the method does not guarantee a good result, it guarantees that you know which one you have</strong>.</p></section>
+<section class="section-block is-review"><span class="kicker">Review</span><h2 class="section-title">Review</h2><details><summary>The three projects had different champions and the same conclusion. Why does that matter?</summary><p>Because it rules out the conclusion coming from the model. If all three had won with the logistic regression, the reasonable reading would be that this data favours linear models. But the logistic won in Waze, the forest in TikTok and the boosting in Automatidata, and in all three the complicated model contributed no better decision: it tied in accuracy in TikTok, lost by 0.0031 of AUC in Waze and flagged nobody in Automatidata. Three different paths to the same place is what turns three anecdotes into an arc.</p></details><details><summary>What makes the baseline model have to be fixed before and not after?</summary><p>That afterwards you already know your result, and then you choose, without meaning to, a baseline your model beats. In TikTok the control was written before training anything: a one-question tree on one column. It got 0.9958 of accuracy, and the tuned forest with nine variables and three hundred trees got exactly the same. If that control had been thought up at the end, the temptation would have been to compare against something weaker and close the report celebrating a 99.6%.</p></details><details><summary>In Automatidata the trees beat the logistic by 0.07 of AUC. Why does the report say they are no use?</summary><p>Because the AUC measures whether the model ranks the cases well and recall measures whether it flags anyone. With the default threshold, the logistic and the forest have zero recall: they flag not a single generous passenger, so they take exactly the same decisions as always answering no, and their accuracy coincides with that lazy model&#x27;s down to the fourth decimal. Ranking better and deciding the same is not a better model. What could be done with that AUC is lowering the threshold, and that is a business decision about how many false alarms are accepted.</p></details><details><summary>Why can 99.58% accuracy be bad news?</summary><p>Because it forces you to ask where it comes from. In TikTok it came from the most-viewed opinion in the whole file having 9,998 views and the learned cut falling at 10,031: the two classes are separated by a line. A gap like that does not exist on a real platform, where opinion videos have no ceiling of ten thousand views; it appears when two populations are generated with different ranges, and that data is synthetic. So the model measured how the file was manufactured, not how TikTok behaves, and deploying it would be deploying a threshold that only exists in the practice material.</p></details><details><summary>The segmentation of module 3 found no groups in Waze. Why was it left in the model anyway?</summary><p>Because whether it is worth anything or not is decided by the model, not by whoever builds it. The silhouette was already warning: 0.2588 at best, and below 0.35 the groups touch each other, so those users are a continuum and not separate families. Even so the variable went in, and it came last of nine with 0.0026 of importance. Taking it out before measuring it would have been deciding in advance what had to be checked; leaving it in turns a suspicion into a data point that can be reported.</p></details></section>
+</main>
+<footer class="footer">
+  Concentra / distilled from the public syllabus of the course / 2026-08-23
+</footer>
+</body>
+</html>
