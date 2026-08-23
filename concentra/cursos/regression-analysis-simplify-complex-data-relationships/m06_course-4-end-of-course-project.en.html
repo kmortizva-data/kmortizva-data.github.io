@@ -1,0 +1,484 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Course 4 end-of-course project · Regression Analysis: Simplify Complex Data Relationships</title>
+<link rel="alternate" hreflang="es" href="m06_course-4-end-of-course-project.html">
+<style>
+/* ============================================================================
+   Concentra — design tokens and shared components.
+   Inlined into every generated page by load_style(), so pages stay self-contained
+   and work offline from file:// with no external requests.
+
+   Direction: an assay lab, not a tech dashboard. The palette is taken from ore
+   and lab materials (chalcopyrite brass, malachite, hematite, quartz) on warm
+   graphite rather than the blue-black + neon of a generic dark UI. Type is
+   Bahnschrift, the DIN-descended grotesque that Windows ships and that lives on
+   machinery plates and technical drawings, over Corbel for reading.
+   ========================================================================== */
+
+:root {
+  /* Ground and surfaces: warm graphite, the colour of rock dust, not blue-black */
+  --rock: #1a1714;
+  --bench: #221e19;
+  --core: #2b251f;
+  --seam: #3d352c;
+
+  /* Ore palette. No blue and no purple anywhere: those are the tones that make a
+     page read as generated, and this palette comes from the ores instead. */
+  --brass: #c9a227;      /* chalcopyrite, the primary accent */
+  --malachite: #5d9b7a;  /* verified output, results that came out right */
+  --hematite: #b04a35;   /* iron oxide, pitfalls and warnings */
+
+  /* Text */
+  --quartz: #ece7de;
+  --dust: #9a9186;
+  --shadowed: #6f675c;
+
+  --display: Bahnschrift, 'DIN Alternate', 'Segoe UI Semibold', system-ui, sans-serif;
+  --body: Corbel, Candara, 'Segoe UI', system-ui, sans-serif;
+  --data: Consolas, 'Cascadia Mono', ui-monospace, monospace;
+
+  /* In px, not ch: ch scales with font-size, so a heading ended up wider than a
+     paragraph and the page had four different right edges instead of two. */
+  --measure: 640px;
+  --wide: 900px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--rock);
+  color: var(--quartz);
+  font-family: var(--body);
+  font-size: 16px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection { background: var(--brass); color: var(--rock); }
+
+:focus-visible {
+  outline: 2px solid var(--brass);
+  outline-offset: 3px;
+}
+
+/* --------------------------------------------------------------- the signature
+   A sieve series: ticks that get finer from left to right, coarse feed to fine
+   concentrate. It is the one ornament on the page and appears exactly twice —
+   under the wordmark and under a page title. */
+.mesh {
+  height: 10px;
+  background-image:
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 16px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 9px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 5px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 3px);
+  background-size: 25% 100%;
+  background-position: 0 0, 25% 0, 50% 0, 75% 0;
+  background-repeat: no-repeat;
+  opacity: .8;
+  transform-origin: left center;
+  animation: sieve .55s cubic-bezier(.2, .8, .3, 1) both;
+}
+@keyframes sieve { from { transform: scaleX(0); opacity: 0; } to { transform: scaleX(1); opacity: .8; } }
+@media (prefers-reduced-motion: reduce) {
+  .mesh { animation: none; }
+  * { transition: none !important; }
+}
+
+/* ------------------------------------------------------------------ page head */
+.header {
+  border-bottom: 1px solid var(--seam);
+  padding: 3.2rem 2rem 0;
+  background: linear-gradient(180deg, #221d16 0%, var(--rock) 100%);
+}
+.header-content { max-width: 1080px; margin: 0 auto; }
+
+.eyebrow {
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--brass);
+  margin-bottom: 1rem;
+  display: flex; flex-wrap: wrap; align-items: center;
+  justify-content: space-between; gap: .6rem 1rem;
+}
+.eyebrow a { color: inherit; text-decoration: none; border-bottom: 1px solid transparent; }
+.eyebrow a:hover { border-bottom-color: var(--brass); }
+/* The way to the other edition of this page. It targets the shell, not the bare
+   page, so the sidebar follows the language too. */
+.eyebrow .lang-switch {
+  margin-left: auto; border: 1px solid var(--seam); border-radius: 2px;
+  padding: .22rem .6rem; color: var(--dust); font-size: .68rem; letter-spacing: .1em;
+}
+.eyebrow .lang-switch:hover { color: var(--brass); border-color: var(--brass); }
+
+.header h1 {
+  font-family: var(--display);
+  font-size: clamp(2rem, 4.5vw, 3.1rem);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -.015em;
+  color: var(--quartz);
+  max-width: 20ch;
+}
+.header .subtitle {
+  color: var(--dust);
+  max-width: var(--measure);
+  margin-top: 1rem;
+  font-size: 1.02rem;
+}
+.header .mesh { margin: 1.8rem 0 0; }
+
+/* An assay line: the real composition of the module, in lab-report shorthand. */
+.assay {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.4rem;
+  font-family: var(--data);
+  font-size: .78rem;
+  color: var(--shadowed);
+  padding: .9rem 0 1.6rem;
+  letter-spacing: .04em;
+}
+.assay b { color: var(--dust); font-weight: 400; }
+
+/* --------------------------------------------------------------------- layout */
+/* The container hugs the widest block, so there is no orphan edge past the content. */
+.container { max-width: var(--wide); margin: 3rem auto 5rem; padding: 0 2rem; }
+
+/* Two deliberate right edges and no more: prose stops at the reading measure, and
+   only the things that genuinely need room (code, output, figures, big tables) run
+   out to the full column. */
+.section-block {
+  border-top: 1px solid var(--seam);
+  padding: 2rem 0 2.4rem;
+}
+.section-block > p,
+.section-block > ul,
+.section-block > ol,
+.section-block h3.sub,
+.section-block h4.sub,
+.section-block blockquote,
+details > *:not(summary) { max-width: var(--measure); }
+.section-block:first-child { border-top: 0; padding-top: .5rem; }
+
+/* The kicker names what kind of content follows: context, method, pitfalls.
+   It replaces decorative icons with something that actually classifies. */
+.kicker {
+  font-family: var(--data);
+  font-size: .68rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  display: block;
+  margin-bottom: .5rem;
+}
+.section-title {
+  font-family: var(--display);
+  font-size: 1.55rem;
+  font-weight: 600;
+  letter-spacing: -.01em;
+  line-height: 1.2;
+  margin-bottom: 1.2rem;
+  color: var(--quartz);
+}
+.is-warning .kicker { color: var(--hematite); }
+.is-warning .section-title { color: #e8c4b8; }
+.is-bridge .kicker, .is-decision .kicker { color: var(--malachite); }
+.is-toy .kicker, .is-result .kicker, .is-question .kicker { color: var(--brass); }
+
+/* ---------------------------------------------------------------------- prose */
+/* Justified with hyphenation. In Spanish, justifying without hyphens opens rivers of
+   white space and reads worse than ragged right; lang="es" is what feeds the
+   dictionary. Tables, code, captions and summaries stay ragged on purpose. */
+.section-block p,
+.section-block li,
+details > *:not(summary) {
+  text-align: justify;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+}
+.section-block p { margin-bottom: 1rem; }
+.section-block p:last-child { margin-bottom: 0; }
+/* Indent with padding, not margin, so the bullet sits inside the measure instead of
+   pushing the list 1.2rem past the right edge of the paragraphs. */
+.section-block ul, .section-block ol { margin: 0 0 1rem; padding-left: 1.2rem; }
+.section-block li { margin-bottom: .55rem; padding-left: .2rem; }
+.section-block li::marker { color: var(--brass); }
+td, th, figcaption, .res li, .assay { text-align: left; hyphens: manual; }
+a { color: var(--brass); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+a:hover { text-decoration-thickness: 2px; }
+strong { color: #fff; font-weight: 700; }
+em { color: var(--dust); font-style: italic; }
+
+h3.sub {
+  font-family: var(--display);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--brass);
+  margin: 2rem 0 .7rem;
+  letter-spacing: -.005em;
+}
+h3.sub:first-child { margin-top: 0; }
+h4.sub {
+  font-family: var(--display);
+  font-size: .98rem;
+  font-weight: 600;
+  color: var(--dust);
+  margin: 1.3rem 0 .5rem;
+}
+
+code {
+  font-family: var(--data);
+  font-size: .9em;
+  background: var(--core);
+  border-radius: 3px;
+  padding: .08rem .32rem;
+  color: var(--brass);
+}
+pre {
+  background: #14110e;
+  border: 1px solid var(--seam);
+  border-left: 2px solid var(--seam);
+  border-radius: 2px;
+  padding: 1.1rem 1.2rem;
+  overflow-x: auto;
+  margin-bottom: 1rem;
+}
+pre code {
+  background: none; padding: 0; color: var(--quartz);
+  font-size: .87rem; line-height: 1.6;
+}
+
+/* What the code prints. Malachite: the material that came out of the process. */
+.output {
+  position: relative;
+  border: 1px solid rgba(93, 155, 122, .32);
+  border-left: 2px solid var(--malachite);
+  border-radius: 2px;
+  background: rgba(93, 155, 122, .06);
+  padding: 1.7rem 1.2rem 1rem;
+  margin-bottom: 1rem;
+  overflow-x: auto;
+}
+.output-tag {
+  position: absolute; top: .5rem; left: 1.2rem;
+  font-family: var(--data); font-size: .64rem;
+  letter-spacing: .18em; text-transform: uppercase; color: var(--malachite);
+}
+.output pre {
+  background: none; border: 0; padding: 0; margin: 0;
+  font-family: var(--data); font-size: .85rem;
+  color: var(--quartz); white-space: pre-wrap;
+}
+
+/* Line by line explanation of a code block, for a reader new to programming.
+   Two columns: the fragment of code, and what it does. */
+.annot {
+  display: grid;
+  grid-template-columns: minmax(9rem, auto) 1fr;
+  gap: .1rem 1.2rem;
+  align-items: baseline;
+  max-width: var(--wide);
+  margin: -.4rem 0 1.4rem;
+  padding: .9rem 1.1rem 1rem;
+  border: 1px solid var(--seam);
+  border-top: 0;
+  border-radius: 0 0 2px 2px;
+  background: rgba(201, 162, 39, .04);
+}
+.annot-head {
+  grid-column: 1 / -1;
+  font-family: var(--data);
+  font-size: .64rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  margin-bottom: .5rem;
+}
+.annot dt { padding: .35rem 0; }
+.annot dt code {
+  background: var(--core);
+  color: var(--brass);
+  font-size: .82rem;
+  white-space: nowrap;
+}
+.annot dd {
+  padding: .35rem 0;
+  margin: 0;
+  color: var(--dust);
+  font-size: .93rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(61, 53, 44, .5);
+}
+.annot dt { border-bottom: 1px solid rgba(61, 53, 44, .5); }
+.annot dt:last-of-type, .annot dd:last-of-type { border-bottom: 0; }
+/* The code block sits directly on top of its annotation, as one unit. */
+pre:has(+ .annot) { margin-bottom: 0; border-radius: 2px 2px 0 0; }
+
+@media (max-width: 640px) {
+  .annot { grid-template-columns: 1fr; gap: 0; }
+  .annot dt { border-bottom: 0; padding-bottom: 0; }
+  .annot dd { padding-top: .15rem; }
+}
+
+blockquote {
+  border-left: 2px solid var(--brass);
+  padding: .3rem 0 .3rem 1.3rem;
+  margin: 0 0 1rem;
+  font-family: var(--display);
+  font-size: 1.2rem;
+  font-weight: 400;
+  line-height: 1.4;
+  color: var(--quartz);
+}
+
+/* Tables read as assay data: mono figures, hairline rules, no zebra fill.
+   They take the width they need instead of being stretched to the full column,
+   which is what left a two-column table floating in empty space. */
+.table-wrap { overflow-x: auto; margin-bottom: 1rem; }
+table { border-collapse: collapse; width: auto; max-width: 100%; font-size: .93rem; }
+th, td {
+  border-bottom: 1px solid var(--seam);
+  padding: .55rem .8rem .55rem 0;
+  text-align: left;
+  vertical-align: top;
+}
+th {
+  font-family: var(--data);
+  font-size: .7rem;
+  font-weight: 400;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  border-bottom-color: var(--brass);
+}
+td:first-child { color: var(--quartz); }
+
+/* Review questions: closed by default, so they work as recall practice. */
+details {
+  border-top: 1px solid var(--seam);
+  padding: .9rem 0;
+}
+details:last-child { border-bottom: 1px solid var(--seam); }
+summary {
+  cursor: pointer;
+  font-family: var(--display);
+  font-size: 1.02rem;
+  font-weight: 600;
+  color: var(--quartz);
+  list-style: none;
+  display: flex;
+  gap: .7rem;
+  align-items: baseline;
+}
+summary::-webkit-details-marker { display: none; }
+summary::before {
+  content: '+';
+  font-family: var(--data);
+  color: var(--brass);
+  font-size: .95rem;
+}
+details[open] summary::before { content: '−'; }
+details[open] summary { color: var(--brass); margin-bottom: .7rem; }
+details > *:not(summary) { color: var(--dust); }
+
+figure.fig {
+  margin: 1.6rem 0;
+  border: 1px solid var(--seam);
+  padding: .7rem;
+  background: var(--bench);
+}
+figure.fig img { width: 100%; height: auto; display: block; }
+/* The interactive twin of a figure. Its aspect matches the still one, 10 by 4.4, so a
+   case sheet keeps the same rhythm whichever kind of figure comes next. */
+figure.fig.is-live iframe {
+  width: 100%;
+  /* Matches INTERACTIVE_HEIGHT in src/make_figures.py. It used to be an aspect ratio, and
+     that made the figure's height depend on the window: the caption and the legend are
+     placed at fractions of the plot area, so on a wide screen they were pushed past the
+     bottom margin, clipping the caption and covering the x-axis title. */
+  height: 520px;
+  border: 0;
+  display: block;
+}
+figure.fig figcaption {
+  font-family: var(--data);
+  font-size: .72rem;
+  color: var(--shadowed);
+  margin-top: .6rem;
+  letter-spacing: .04em;
+}
+
+/* File listings on a case sheet */
+.res { list-style: none; margin-left: 0 !important; }
+.res li {
+  display: flex; align-items: baseline; gap: .8rem; flex-wrap: wrap;
+  padding: .5rem 0; border-bottom: 1px solid var(--seam); margin-bottom: 0;
+}
+.res .path { font-family: var(--data); font-size: .74rem; color: var(--shadowed); }
+.res .size { font-family: var(--data); font-size: .74rem; color: var(--shadowed); margin-left: auto; }
+.res .gone { font-family: var(--data); font-size: .74rem; color: var(--hematite); }
+
+.footer {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 2rem 4rem;
+  color: var(--shadowed);
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .03em;
+}
+
+@media (max-width: 640px) {
+  body { font-size: 15px; }
+  .header { padding: 2rem 1.2rem 0; }
+  .container { padding: 0 1.2rem; margin-top: 2rem; }
+  .footer { padding: 0 1.2rem 3rem; }
+}
+
+@media print {
+  body { background: #fff; color: #16130f; }
+  .header { background: none; border-bottom: 1px solid #bbb; padding-top: 0; }
+  .header h1, .section-title, summary { color: #16130f; }
+  .mesh { animation: none; }
+  .section-block { break-inside: avoid; max-width: none; }
+  pre, .output { background: #f6f4f0; border-color: #ccc; }
+  details:not([open]) > *:not(summary) { display: block; }
+  a { color: #16130f; }
+}
+
+</style>
+</head>
+<body>
+<header class="header">
+  <div class="header-content">
+    <div class="eyebrow"><span><a href="https://www.coursera.org/learn/regression-analysis-simplify-complex-data-relationships">Regression Analysis: Simplify Complex Data Relationships</a> / Module 6</span><a class="lang-switch" href="../index.html#regression-analysis-simplify-complex-data-relationships/m06_course-4-end-of-course-project" target="_top" hreflang="es" lang="es" title="Leer esta página en español">Español</a></div>
+    <h1>Course 4 end-of-course project</h1>
+    <p class="subtitle">The deliverable of the course is three regression models on three company scenarios. They are done, and all three ended up teaching the same thing by different paths, the number that shines in a notebook is not the one that survives in production.</p>
+    <div class="mesh" role="presentation"></div>
+    <div class="assay"><span><b>7 h</b> course time</span><span><b>5</b> videos</span><span><b>10</b> readings</span><span><b>4</b> assignments</span><span><b>6</b> practice</span></div>
+  </div>
+</header>
+<main class="container">
+<section class="section-block "><span class="kicker">Context</span><h2 class="section-title">What this module solves</h2><p>The five previous modules taught how to fit a model. This is the delivery, and its job is another one: <strong>defending the model in front of someone who is going to make a decision with it</strong>.</p><p>They are three company scenarios, one for each kind of regression in the course. And all three are done, with their data, their figures and their reports, so this module does not explain how they would be done: it links to what came out.</p></section>
+<section class="section-block "><span class="kicker">Note</span><h2 class="section-title">The arc of the course</h2><p>The three projects started as three textbook exercises and ended up telling the same story from three different places. <strong>In all three, the result that gets published is not the one that comes out of the first fit</strong>, and in all three the reason is different.</p><div class="table-wrap"><table><thead><tr><th>Project</th><th>Model</th><th>What it looked like</th><th>What it was</th></tr></thead><tbody><tr><td><strong>Automatidata</strong></td><td>Multiple linear</td><td>R² of 0.88</td><td>R² of 0.67 without the information leak</td></tr><tr><td><strong>TikTok</strong></td><td>Logistic</td><td>A classifier with its threshold</td><td>A single binary rule in disguise</td></tr><tr><td><strong>Waze</strong></td><td>Logistic</td><td>A bad model, 8% detection</td><td>A decent model with the threshold in the wrong place</td></tr></tbody></table></div><h3 class="sub h3">Automatidata: the model that predicts best is the one that cannot be delivered</h3><p>The distance travelled explains the fare almost perfectly, and <strong>it does not exist when the price has to be given</strong>. Replacing it with the mean distance of the route is correct, but calculating that mean over all the data puts information from the test set into the training.</p><p>The difference was not claimed, it was measured: <strong>0.2101 of R² and $2.40 of hidden error</strong>. And the honest model locates where it fails, which is what makes it actionable: $2.42 of error on known routes against $11.11 on new routes.</p><h3 class="sub h3">TikTok: a threshold that decides nothing</h3><p>With the classes at 93.7 against 6.3, accuracy was a trap before starting. But the finding appeared afterwards, on seeing that the thresholds 0.4 and 0.5 gave identical metrics.</p><p>The predicted probabilities fall in <strong>two piles with an empty band in the middle</strong>: zero cases between 0.28 and 0.56. The model rests on a single binary variable, so it has turned into the rule &quot;is it a claim?&quot; with two steps of arithmetic in between.</p><h3 class="sub h3">Waze: the model was fine, the threshold was not</h3><p>It gets 82.3% right and detects 8.2% of those who leave, which is almost the same as doing nothing would achieve. And yet its <strong>AUC is 0.737</strong>: it does rank people by risk.</p><p>Lowering the cut to 0.20 it detects 62.3%. There is the lesson of modules 5 and 6 together: <strong>a badly calibrated model and a bad model look very much alike in the metrics table</strong>, and they are only told apart by looking at the AUC and moving the threshold.</p><h3 class="sub h3">And a variable that disappeared</h3><p>In Waze, professional drivers churned at 7.56% against 19.88%. Inside the model, with the activity days present, their effect is <strong>0.993 with a p of 0.952</strong>: nothing.</p><p>It is the paradox of module 3 in its mild version. The sign did not change, but an apparently solid finding evaporated on controlling for what was already being measured.</p></section>
+<section class="section-block "><span class="kicker">Terms</span><h2 class="section-title">Glossary</h2><ul><li><strong>PACE strategy document.</strong> The written deliverable of the project: what was planned, what was analysed, what was built and what is recommended.</li><li><strong>Executive summary.</strong> One page for whoever is not going to read the analysis. Finding, number with units, decision and limits.</li><li><strong>Information leak.</strong> When the model is evaluated using something it will not have in production. It inflates the result without any warning going off.</li><li><strong>Available at decision time.</strong> The filter every variable should pass before entering a model: will it exist when the prediction has to be made?</li><li><strong>Calibration.</strong> Whether the probabilities the model gives correspond to the real frequencies. A model can rank well and be badly calibrated.</li><li><strong>Classification threshold.</strong> The cut that turns a probability into a decision. It belongs to the business, not to the model, except when it changes nothing.</li><li><strong>Deployable model.</strong> The one that can actually be put to work, which is not always the one that scores best.</li></ul></section>
+<section class="section-block is-recipe"><span class="kicker">Method</span><h2 class="section-title">Step by step</h2><p>What has to be done to deliver each project, in the order it was done.</p><h3 class="sub h3">Step 1. Read the brief looking for the hidden constraint</h3><p>In Automatidata the constraint was in four words, &quot;before it starts&quot;, and it decided which variables could go in. <strong>Before looking at the data, you have to know what will be known at decision time.</strong></p><h3 class="sub h3">Step 2. Look at the split of the variable to predict</h3><p>It is the first thing, and in two of the three projects it changed how everything is measured. TikTok with 93.7% of one class and Waze with 82.3%: in both, accuracy becomes useless before fitting anything.</p><h3 class="sub h3">Step 3. Clean saying every decision out loud</h3><p>The three that appeared, and none is cosmetic:</p><ul><li><strong>165 impossible trips</strong> in Automatidata, and the extremes clipped instead of deleted.</li><li><strong>298 incomplete rows</strong> in TikTok.</li><li><strong>700 missing labels</strong> in Waze, compared against the rest <strong>before</strong> excluding them, and 983 divisions by zero that would have put infinities into the fit.</li></ul><h3 class="sub h3">Step 4. Check multicollinearity before reading a single coefficient</h3><p>In Waze, sessions and drives gave inflation factors of <strong>159</strong>. With that inside, no coefficient means what it seems to.</p><h3 class="sub h3">Step 5. Fit, and then check the assumptions</h3><p>Those of the linear and those of the logistic are not the same, and dragging one set into the other is the classic mistake. In Automatidata two of the four failed, and it was said.</p><h3 class="sub h3">Step 6. Translate the coefficient into a unit someone can picture</h3><p>In Waze, per single unit all the odds ratios came out 1.000 with an interval from 1.000 to 1.000, <strong>with p-values of 3e-48</strong>. The effect was real and the unit was absurd. Per year of tenure, the ratio is 0.864 and it explains itself.</p><h3 class="sub h3">Step 7. Write the executive summary starting with the limitation</h3><p>All three summaries lead with what the model cannot do, not with its R². It is not modesty: it is that the business decision depends on that.</p></section>
+<section class="section-block is-recipe"><span class="kicker">Code</span><h2 class="section-title">The code, in parts</h2><h3 class="sub h3">Step 1. Reproduce any of the three projects</h3><p>The three scripts run on their own, read the CSVs from your Course 3 folder without touching them and write their figures and their numbers.</p><pre><code class="language-python"># desde la carpeta del proyecto Concentra
+python projects/curso4/automatidata/02_scripts/automatidata_regression.py
+python projects/curso4/tiktok/02_scripts/tiktok_logistic.py
+python projects/curso4/waze/02_scripts/waze_logistic.py</code></pre><dl class="annot"><div class="annot-head">line by line</div><dt><code>python projects/...</code></dt><dd>They are launched from the root of Concentra, not from their own folder. The scripts look for the root of the project on their own, so the relative path is always the same.</dd><dt><code>02_scripts/</code></dt><dd>The folder numbering is the one you already used in Course 3, so both folders are walked the same way.</dd></dl><div class="output"><span class="output-tag">prints</span><pre>Números publicables -&gt; projects\curso4\automatidata\04_reports\model_results.json</pre></div><p>Each one ends by writing that file, and <strong>the rule of the project is that neither the report nor the sheet can quote a number that is not in there</strong>. It is the demand to verify before writing, turned into something mechanical.</p><h3 class="sub h3">Step 2. Rebuild the notebooks</h3><pre><code class="language-python">python projects/curso4/automatidata/build_notebook.py</code></pre><dl class="annot"><div class="annot-head">line by line</div><dt><code>build_notebook.py</code></dt><dd>Builds the <code>.ipynb</code> and <strong>runs every cell</strong>, saving its output. There is no need to have Jupyter installed: the cells run in an ordinary interpreter and the result is saved in the format a notebook expects.</dd></dl><div class="output"><span class="output-tag">prints</span><pre>automatidata_curso4.ipynb: 9 celdas de código con todas las celdas ejecutadas</pre></div><p>A notebook with empty cells is worth nothing to whoever opens it, so they are delivered executed.</p></section>
+<section class="section-block is-warning"><span class="kicker">Traps</span><h2 class="section-title">Watch out</h2><ul><li><strong>A high R² can be an information leak, not an achievement.</strong> If the model is evaluated with something it will not have in production, the number is inflated and nothing warns.</li><li><strong>Always ask yourself whether the variable will exist at decision time.</strong> It is the filter that discarded the two best variables of Automatidata.</li><li><strong>With unbalanced classes, accuracy measures nothing.</strong> In Waze, the model&#x27;s 82.3% is the 82.26% of doing nothing.</li><li><strong>A badly calibrated model looks like a bad model.</strong> Look at the AUC before discarding it, and try moving the threshold.</li><li><strong>The threshold belongs to the business, except when it changes nothing.</strong> Check it by looking at the split of the predicted probabilities, not by taking it for granted.</li><li><strong>A strong raw predictor can evaporate inside the model.</strong> Waze&#x27;s professional driver went from looking decisive to a p of 0.952.</li><li><strong>An odds ratio of 1.000 does not mean there is no effect.</strong> It can mean the unit is too small. Look at the p-value and scale the variable.</li><li><strong>The assumptions of the linear are not those of the logistic.</strong> Normality of residuals and constant variance do not apply to the second.</li></ul></section>
+<section class="section-block is-bridge"><span class="kicker">Analogy</span><h2 class="section-title">Metallurgical bridge</h2><p>These three reports are <strong>the campaign report</strong> you already know how to write, in other clothes.</p><p>When you close a flotation test campaign, you do not deliver the best result you got: you deliver the one that can be sustained at the plant. And the difference between the two is exactly what separates the three delivered models from the three that scored best.</p><div class="table-wrap"><table><thead><tr><th>In the campaign</th><th>In these projects</th></tr></thead><tbody><tr><td>A laboratory result is not a plant result</td><td>Automatidata&#x27;s model A, which cannot be deployed</td></tr><tr><td>Scaling from bench to plant loses points of recovery</td><td>The R² that drops 0.21 on removing the leak</td></tr><tr><td>Comparing campaigns with different ore</td><td>The professional driver that evaporates</td></tr><tr><td>Where to set the alarm for a lot out of spec</td><td>Waze&#x27;s threshold</td></tr><tr><td>The validity range of the test</td><td>The routes the model never saw</td></tr></tbody></table></div><p>And the most important row is the first one. <strong>A metallurgist who reports the laboratory recovery as if it were the plant&#x27;s loses credibility only once.</strong> Reporting the R² with an information leak is the same class of mistake, and that is why the Automatidata report carries both numbers and explains the difference.</p></section>
+<section class="section-block is-review"><span class="kicker">Review</span><h2 class="section-title">Review</h2><details><summary>What is an information leak and how is it detected before publishing a result?</summary><p>It is using for training or for evaluating something the model will not have available when it has to predict for real. In Automatidata it was produced by the per-route means calculated over the whole set, which carried information from the test trips into the training and inflated the R² by 0.2101. It is detected with a question that has to be asked variable by variable: will this value exist at the moment the decision has to be made? And it is quantified by fitting the model both ways and comparing, which is more convincing than claiming that one is wrong.</p></details><details><summary>A model has 82% accuracy and 8% recall. Is it a bad model?</summary><p>Not necessarily, and confusing the two things is expensive. That 82% is what you would get by always answering the majority class, so accuracy contributes nothing. But the Waze model with those figures has an AUC of 0.737, which means it does rank users by risk: what was wrong was the threshold. Lowering it from 0.50 to 0.20 the recall goes to 62.3%, in exchange for two out of every three alerts being false. Before discarding a classifier you have to look at the AUC and try moving the cut.</p></details><details><summary>Why was the classification threshold no use at all in TikTok?</summary><p>Because the probabilities the model predicts are not spread over a continuous fan, but fall into two groups, one around 0.25 and another around 0.64, with no case between 0.28 and 0.56. Any cut inside that empty band flags exactly the same accounts. The cause is that the model leans on a single binary variable, so in practice it has turned into a yes-or-no rule. The way to check it is to draw the split of the predicted probabilities instead of taking for granted that the threshold is a useful knob.</p></details><details><summary>In Waze, professional drivers churn at 7.56% against 19.88%, and the model says being professional has no influence. How can that be?</summary><p>Because the two sentences answer different questions. The first compares two groups without controlling for anything else, and the second says how much being professional contributes <strong>holding the other variables of the model constant</strong>. A professional driver is one because they use the app a lot, and the activity days, which are already inside the model, capture that whole effect. When that variable is present, being professional adds no information of its own, and its odds ratio drops to 0.993 with a p of 0.952. It is the same mechanism as the Simpson&#x27;s paradox of module 3, here without getting as far as changing the sign.</p></details><details><summary>Why do the three executive summaries start with what the model cannot do?</summary><p>Because it is what changes the decision of whoever reads them. A manager who only sees &quot;R² of 0.67&quot; does not know whether they can deploy the model; one who reads &quot;it gets within $2.42 on 90.9% of routes and misses by 11.11 on the rest&quot; already knows what to do and what to fix first. Besides, it protects the analysis: the limitations one declares are part of the result, and the ones someone else discovers later are a credibility problem. Reporting the pretty number and hoping nobody looks is exactly the mistake this course teaches not to make.</p></details></section>
+</main>
+<footer class="footer">
+  Concentra / distilled from the public syllabus of the course / 2026-08-23
+</footer>
+</body>
+</html>

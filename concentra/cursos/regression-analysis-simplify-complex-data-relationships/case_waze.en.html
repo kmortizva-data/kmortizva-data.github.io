@@ -1,10 +1,10 @@
 <!doctype html>
-<html lang="es">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>The Power of Statistics · el curso</title>
-<link rel="alternate" hreflang="en" href="curso.en.html">
+<title>Waze · Regression Analysis: Simplify Complex Data Relationships</title>
+<link rel="alternate" hreflang="es" href="case_waze.html">
 <style>
 /* ============================================================================
    Concentra — design tokens and shared components.
@@ -452,248 +452,41 @@ figure.fig figcaption {
   a { color: #16130f; }
 }
 
-
-/* The brain file, ready to be copied into an assistant's memory. */
-.brain { max-width: 880px; margin-top: 1.2rem; }
-.brain-bar {
-  display: flex; align-items: center; gap: .8rem; flex-wrap: wrap;
-  border: 1px solid var(--seam); border-bottom: 0;
-  padding: .6rem .9rem; background: var(--bench);
-}
-.brain-bar .name {
-  font-family: var(--data); font-size: .76rem; color: var(--brass); letter-spacing: .06em;
-}
-.brain-bar .size { font-family: var(--data); font-size: .72rem; color: var(--shadowed); }
-.brain-bar .spacer { flex: 1; }
-.brain-bar button, .brain-bar a.btn {
-  background: none; border: 1px solid var(--seam); border-radius: 2px;
-  color: var(--dust); font-family: var(--data); font-size: .72rem;
-  letter-spacing: .06em; padding: .3rem .7rem; cursor: pointer;
-  text-decoration: none; white-space: nowrap;
-}
-.brain-bar button:hover, .brain-bar a.btn:hover { color: var(--brass); border-color: var(--brass); }
-.brain-bar button.done { color: var(--malachite); border-color: var(--malachite); }
-.brain pre {
-  margin: 0; max-height: 26rem; overflow: auto;
-  border-radius: 0; border-color: var(--seam);
-}
-.brain pre code { font-size: .8rem; }
 </style>
 </head>
 <body>
 <header class="header">
   <div class="header-content">
-    <div class="eyebrow"><span>Curso 3 / <a href="https://www.coursera.org/learn/the-power-of-statistics">ver en Coursera</a></span><a class="lang-switch" href="../index.en.html#the-power-of-statistics/curso" target="_top" hreflang="en" lang="en" title="Read this page in English">English</a></div>
-    <h1>The Power of Statistics</h1>
-    <p class="subtitle"></p>
+    <div class="eyebrow"><span>Course 4 · Regression Analysis: Simplify Complex Data Relationships / Case study</span><a class="lang-switch" href="../index.html#regression-analysis-simplify-complex-data-relationships/case_waze" target="_top" hreflang="es" lang="es" title="Leer esta página en español">Español</a></div>
+    <h1>Waze</h1>
+    <p class="subtitle">It gets 82% right and detects almost nobody. The model was not wrong; the threshold was.</p>
     <div class="mesh" role="presentation"></div>
-    <div class="assay"><span>6 módulos</span><span>34 h de curso</span><span>154 tasks</span><span>3 casos propios</span></div>
+    <div class="assay"><span>14,299 users</span><span>binomial logistic</span><span>churn 17.74%</span><span>AUC 0.737</span></div>
   </div>
 </header>
 <main class="container">
-<section class="section-block "><span class="kicker">Resumen</span><h2 class="section-title">De qué va este curso</h2><p>Es el curso donde el análisis deja de describir y empieza a <strong>decidir</strong>. Los cursos anteriores enseñan a mirar los datos y contar lo que se ve. Este responde a la pregunta que viene después y que es la que paga: <strong>¿la diferencia que estoy viendo es real, o es casualidad de esta muestra?</strong></p><p>Toda la maquinaria del curso existe para eso. La probabilidad da el lenguaje, el muestreo explica por qué una parte puede hablar por el todo, los intervalos de confianza ponen números a lo que no sabemos, y las pruebas de hipótesis convierten todo eso en un sí o un no defendible frente a alguien que va a gastar dinero según tu respuesta.</p><p>Termina en un proyecto de portafolio que es un A/B test completo sobre datos reales de empresa. Ahí es donde se ve si lo anterior se entendió.</p></section>
-<section class="section-block is-recipe"><span class="kicker">Recorrido</span><h2 class="section-title">El recorrido, módulo a módulo</h2><ol><li><strong>Introducción a la estadística con Python.</strong> El vocabulario: descriptiva frente a inferencial, y las tres familias de estadísticos (centro, dispersión, posición).</li><li><strong>Probabilidad.</strong> Reglas básicas, probabilidad condicional, teorema de Bayes y las distribuciones que modelan datos reales: binomial, Poisson y normal.</li><li><strong>Muestreo.</strong> Métodos de selección, el sesgo que ningún cálculo posterior arregla, y el teorema del límite central, que es el resultado que sostiene todo lo demás.</li><li><strong>Intervalos de confianza.</strong> Cómo pasar de un número suelto a un rango honesto, y la interpretación del 95 % que casi todo el mundo dice mal.</li><li><strong>Pruebas de hipótesis.</strong> H₀ y Hₐ, errores tipo I y II, pruebas de una y dos muestras, y el A/B testing.</li><li><strong>Proyecto final.</strong> Un escenario de empresa, un análisis completo y un documento PACE.</li></ol></section>
-<section class="section-block is-decision"><span class="kicker">Resultado</span><h2 class="section-title">Qué sabes hacer al terminar</h2><ul><li>Decidir si una diferencia entre dos grupos es real o ruido, con la prueba adecuada y sus supuestos verificados.</li><li>Acompañar cualquier resultado del tamaño del efecto y su intervalo de confianza, que es lo que distingue un análisis profesional de un valor p suelto.</li><li>Detectar cuándo un resultado significativo es irrelevante en la práctica.</li><li>Convertir todo eso en una recomendación que alguien sin formación estadística pueda ejecutar.</li></ul></section>
-<section class="section-block is-toy"><span class="kicker">Para qué sirve</span><h2 class="section-title">El cerebro de este curso</h2><p>Debajo está el archivo para copiar y pegar como memoria de un asistente. <strong>No es un resumen de las lecciones</strong>: es el manual de operación, con el procedimiento en orden, los umbrales, las reglas de decisión, las trampas conocidas y los tres casos propios con sus números reales para calibrar.</p><p>Esa diferencia es deliberada. Un resumen de las clases le da material de estudio a algo que no necesita estudiar, y gasta contexto sin cambiar cómo trabaja. El manual de operación ocupa una fracción y sí cambia el resultado.</p></section>
-<section class="section-block">
-  <span class="kicker">Memoria</span>
-  <h2 class="section-title">El archivo, listo para copiar</h2>
-  <div class="brain">
-    <div class="brain-bar">
-      <span class="name">cerebro-curso-3.md</span>
-      <span class="size">7.5 KB</span>
-      <span class="spacer"></span>
-      <button id="copy" type="button" data-copy="Copiar todo" data-copied="Copiado" data-selected="Seleccionado: pulsa Ctrl+C">Copiar todo</button>
-      <a class="btn" href="cerebro-curso-3.md" download>Descargar</a>
-    </div>
-    <pre><code id="brain"># Cerebro: inferencia estadística para decisiones de negocio
-
-Manual de operación, no material de estudio. Describe cómo trabajo una pregunta del tipo
-&quot;¿esta diferencia es real?&quot;: el orden, los umbrales, lo que siempre reporto y lo que nunca
-hago. Pégalo como memoria y asume estas reglas sin volver a preguntarlas.
-
-## Qué resuelvo con esto
-
-Comparar dos grupos y decidir si la diferencia observada justifica actuar. Tasas de
-conversión, tiempos, importes, métricas de uso, recuperación de un proceso. La respuesta
-siempre es una decisión de negocio, nunca un número suelto.
-
-## El procedimiento, en este orden
-
-1. **Escribir H₀ y Hₐ en lenguaje de negocio, antes de mirar los datos.** Si se formulan
-   después de ver el resultado, la prueba no vale.
-2. **Fijar α antes también.** Por defecto 0,05. Se baja a 0,01 cuando un falso positivo
-   sale caro.
-3. **Explorar**: tamaño de cada grupo, medias, medianas, desviaciones, y mirar la forma con
-   histograma y diagrama de caja.
-4. **Comprobar supuestos**: Levene para igualdad de varianzas, y tamaño de muestra para
-   apoyarse en el teorema del límite central.
-5. **Elegir la prueba** según la tabla de decisión de abajo.
-6. **Validar el resultado** con al menos dos respaldos: repetir sin atípicos y añadir una
-   prueba no paramétrica.
-7. **Reportar** el bloque completo de la sección &quot;lo que siempre se reporta&quot;.
-8. **Traducir a una recomendación accionable** y declarar las limitaciones.
-
-## Reglas de decisión
-
-### Qué prueba usar
-
-| Lo que comparo | Prueba |
-|---|---|
-| Una media contra un valor de referencia | t de una muestra |
-| Medias de dos grupos independientes | t de dos muestras (Welch por defecto) |
-| Dos proporciones o tasas | prueba z de proporciones |
-| Confirmar sin asumir normalidad | Mann-Whitney U |
-| Igualdad de varianzas | Levene |
-| Reparto de la asignación | chi cuadrado (SRM) |
-
-### Welch o Student
-
-Welch por defecto, siempre. Si Levene da `p &lt; 0,05` las varianzas son desiguales y Student
-queda descartado. Si Levene da `p ≥ 0,05` Student sería válido, pero Welch da
-prácticamente el mismo resultado, así que no se gana nada cambiando. En código:
-`stats.ttest_ind(a, b, equal_var=False)`.
-
-### t o z
-
-Se usa **t** siempre que la variabilidad de la población se estime desde la muestra, que
-es el caso real. La **z** solo si esa variabilidad se conoce de verdad. Con n grande las
-dos convergen: con n=100 el multiplicador es 1,984 frente a 1,960.
-
-### Atípicos
-
-No se borran por defecto. Se detectan con la regla del IQR (`Q1 − 1,5·IQR` a
-`Q3 + 1,5·IQR`), se decide con criterio de dominio, y **se repite el análisis con y sin
-ellos** reportando ambos. Solo se eliminan si son físicamente imposibles, y entonces se
-documenta cuántas filas y qué porcentaje.
-
-### Datos faltantes
-
-Primero se investiga **por qué** faltan. Eliminar filas si son pocas y al azar; imputar con
-mediana antes que con media; dejarlos como nulos si el modelo los maneja. Cualquier
-imputación se calcula **después** de partir en entrenamiento y prueba, nunca antes, o se
-mete fuga de datos.
-
-## Lo que siempre se reporta
-
-Nunca un valor p solo. El bloque mínimo es:
-
-| Elemento | Por qué |
-|---|---|
-| Tamaño de cada grupo | Determina cuánta confianza merece la estimación |
-| Medias y desviaciones | El dato crudo que sostiene todo lo demás |
-| Estadístico y valor p | La evidencia contra H₀ |
-| **Tamaño del efecto (Cohen&#x27;s d)** | Impide confundir significativo con importante |
-| **Intervalo de confianza de la diferencia** | Si cruza el cero, no hay diferencia demostrada |
-| Prueba de respaldo | Descarta que el resultado sea artefacto de la forma o los extremos |
-| Limitaciones | Las encuentro yo antes de que las encuentre quien revisa |
-
-**Escala de Cohen&#x27;s d**: por debajo de 0,2 es despreciable; alrededor de 0,5 es medio;
-por encima de 0,8 es grande.
-
-## Trampas que ya conozco
-
-- **El valor p no es la probabilidad de que H₀ sea verdadera.** Es la probabilidad de ver
-  un resultado así de extremo si H₀ lo fuera.
-- **Con muestra grande, cualquier diferencia trivial sale significativa.** Por eso el
-  tamaño del efecto es obligatorio.
-- **&quot;No rechazar H₀&quot; no es &quot;demostrar que son iguales&quot;.** Puede ser falta de poder
-  estadístico. Se dice &quot;no hay evidencia suficiente&quot;.
-- **Un intervalo de confianza no dice que el parámetro esté ahí con 95 % de probabilidad.**
-  El 95 % describe el método a la larga, no ese intervalo concreto.
-- **Elegir prueba de una cola después de ver los datos es hacer trampa.** La dirección se
-  decide antes y con razón de negocio.
-- **Más muestra no arregla el sesgo de selección.** Solo un método de muestreo mejor.
-- **Asociación no es causa.** En estudios observacionales se nombran los factores de
-  confusión plausibles de forma explícita.
-- **`scale` recibe el error estándar, no la desviación estándar**, al construir intervalos
-  con `scipy`.
-- **`ppf(0.975)` para un intervalo del 95 %**, porque el 5 % se reparte en dos colas.
-
-## Casos de referencia, con números reales
-
-Sirven para calibrar qué es grande y qué no. Son análisis propios, ya ejecutados.
-
-| Caso | Comparación | Resultado | Lectura |
-|---|---|---|---|
-| **TikTok** | Cuentas verificadas contra no verificadas, sobre visualizaciones. n=19.084 | `t = 25,4994`, `p = 2,61e-120`, `d = −0,544`, IC [−187.626, −160.823] | Diferencia real y de magnitud media. Hallazgo secundario más fuerte: vídeos con reclamación 501.029 visualizaciones frente a 4.956 de opinión |
-| **Automatidata** | Tarjeta contra efectivo, sobre tarifa de taxi. n=22.532 | `t = 6,8668`, `p = 6,80e-12`, `d = 0,0922`, IC [0,87 $, 1,56 $] | Diferencia real pero **despreciable**. El caso que demuestra que un p diminuto no implica un efecto grande |
-| **Waze** | iPhone contra Android, sobre número de viajes. n=14.999 | `t = 1,4635`, `p = 0,1434`, `d = 0,0247`, IC [−0,55, 3,81] | Sin evidencia de diferencia. El intervalo cruza el cero y las tres validaciones coinciden |
-
-Los tres se validaron igual: Levene, luego Welch, luego repetición sin atípicos, luego
-Mann-Whitney. En los tres, las tres validaciones coincidieron entre sí.
-
-## Cómo quiero los entregables
-
-- **Documento PACE** (Plan, Analyze, Construct, Execute) como entregable escrito. Pesa más
-  que el notebook, porque es lo que lee quien decide.
-- **Resumen ejecutivo de una página**: hallazgo, evidencia, recomendación, limitaciones.
-- **Cada decisión de limpieza documentada** con criterio, número de filas y porcentaje. No
-  vale &quot;limpié los datos&quot;.
-- **La recomendación en una frase que alguien sin formación estadística pueda ejecutar.**
-  &quot;p = 0,03&quot; no es una recomendación.
-- **Código en inglés**, explicaciones en español.
-- **Ningún resultado cuenta como hecho** si no está explicado en palabras simples en el
-  entregable visible, aunque el número ya esté calculado en un script o un JSON.
-
-## Vocabulario, español e inglés
-
-Los cursos y la documentación vienen en inglés; los entregables van en español.
-
-| Español | Inglés |
-|---|---|
-| Hipótesis nula / alternativa | null / alternative hypothesis |
-| Nivel de significancia | significance level, alpha |
-| Valor p | p-value |
-| Tamaño del efecto | effect size |
-| Intervalo de confianza | confidence interval |
-| Error estándar | standard error |
-| Grados de libertad | degrees of freedom |
-| Distribución muestral | sampling distribution |
-| Teorema del límite central | central limit theorem |
-| Error tipo I / tipo II | type I / type II error |
-| Poder estadístico | statistical power |
-| Muestreo estratificado | stratified sampling |
-| Sesgo de muestreo | sampling bias |
-| Valor atípico | outlier |
-</code></pre>
-  </div>
-</section>
+<section class="section-block "><span class="kicker">Brief</span><h2 class="section-title">The brief</h2><p><strong>Waze</strong> wants to grow, and for that it needs people not to leave. The brief is a model that flags who is about to abandon the app, so as to act before they do.</p><p>It is the same scenario as Course 3, where the question was whether the kind of phone influenced how much the app gets used and the answer was no. Now the question is more ambitious.</p></section>
+<section class="section-block is-question"><span class="kicker">Question</span><h2 class="section-title">The question</h2><blockquote>Can you tell who is going to abandon the app by looking at how they use it?</blockquote><p><strong>And an expectation, written before fitting anything precisely so it cannot be adjusted afterwards:</strong> only 17.74% of users churn, the available variables describe behaviour and not causes, and there is not a single piece of data in the file about why anyone left. The likely thing is that the model lets most of those who leave escape. If that happens, it gets reported as a result.</p><p>It happened.</p></section>
+<section class="section-block is-data"><span class="kicker">Data</span><h2 class="section-title">The data</h2><p><code>waze_dataset.csv</code>, <strong>14,999 users</strong> and 13 columns. Synthetic data created by Waze for the certificate. The variable to predict is <code>label</code>: churned or stayed.</p></section>
+<section class="section-block is-data"><span class="kicker">Cleaning</span><h2 class="section-title">What had to be fixed</h2><p><strong>700 users have no label</strong>, 4.7%. Throwing them out without looking would be a mistake: excluding a group is only harmless if that group resembles the rest.</p><figure class="fig"><img src="../../projects/curso4/waze/03_figures/01_ausentes.d63f095f.png" alt="01_ausentes" loading="lazy"><figcaption>01_ausentes.png</figcaption></figure><p>The largest difference in medians is <strong>6.2%</strong>, and the device split is practically identical: 63.9% iPhone among those without a label against 64.5% among the rest. They can be excluded without biasing anything. <strong>14,299 users</strong> remain, of whom <strong>2,536 churn</strong>.</p><p><strong>A hidden division by zero.</strong> 983 users drove zero days. Calculating kilometres per driving day on them gives infinity, which enters the model without warning and breaks the fit. Since they did not drive at all, their ratio is zero.</p><p><strong>Multicollinearity, and here it is serious.</strong></p><figure class="fig"><img src="../../projects/curso4/waze/03_figures/03b_correlaciones.d704eaae.png" alt="03b_correlaciones" loading="lazy"><figcaption>03b_correlaciones.png</figcaption></figure><p>Of the <strong>55 pairs</strong> of variables, <strong>40 do not reach 0.10</strong>: almost nothing has to do with almost anything. What shows is a few pairs, and two of them give away a redundant variable.</p><p>Sessions and drives correlate at <strong>0.997</strong>, and active days with driving days at <strong>0.948</strong>. Translated into the number that decides:</p><figure class="fig"><img src="../../projects/curso4/waze/03_figures/03_multicolinealidad.a828908f.png" alt="03_multicolinealidad" loading="lazy"><figcaption>03_multicolinealidad.png</figcaption></figure><p>Their variance inflation factors are <strong>159.3 and 159.1</strong>, far above the threshold of 10: they are the same information counted twice. Drives and active days stay. In the final model no variable goes past 1.8.</p></section>
+<section class="section-block is-figures"><span class="kicker">Exploration</span><h2 class="section-title">What the exploration showed</h2><figure class="fig"><img src="../../projects/curso4/waze/03_figures/02_actividad.fd699b07.png" alt="02_actividad" loading="lazy"><figcaption>02_actividad.png</figcaption></figure><p>Whoever churns has a median of <strong>8 days of activity</strong> in the last month. Whoever stays, <strong>17</strong>. The two panels share both axes, so the heights can be compared: those who leave crowd on the left and those who stay spread across the whole month.</p><p>And a piece of the exploration that later turns out to be a trap: the 2,488 <strong>professional drivers</strong> (60 or more drives in 15 or more days) churn at <strong>7.56%</strong> against <strong>19.88%</strong> for the rest. It looks like the best predictor in the file.</p></section>
+<section class="section-block is-recipe"><span class="kicker">Model</span><h2 class="section-title">The model, and why this model</h2><p>The variable to predict is a yes or a no, so <strong>binomial logistic</strong>, fitted on 10,724 users with 3,575 held out.</p><figure class="fig"><img src="../../projects/curso4/waze/03_figures/04_momios.206df441.png" alt="04_momios" loading="lazy"><figcaption>04_momios.png</figcaption></figure><p>The coefficients are <strong>scaled to units that can be pictured</strong>. Per single unit almost all of them come out 1.000 with an interval from 1.000 to 1.000, even though their p-value is 3e-48: the problem is the unit, not the effect. One day out of two thousand since sign-up moves nothing; a year does.</p><div class="table-wrap"><table><thead><tr><th>Variable</th><th>Odds ratio</th><th>p</th></tr></thead><tbody><tr><td><strong>Each extra year of tenure</strong></td><td><strong>0.864</strong></td><td>3.09e-48</td></tr><tr><td><strong>Each extra day of activity</strong></td><td><strong>0.901</strong></td><td>5.03e-139</td></tr><tr><td>Each 10 extra drives</td><td>1.016</td><td>0.00132</td></tr><tr><td>Each extra hour at the wheel</td><td>1.004</td><td>9.46e-05</td></tr><tr><td>Each 10 historical sessions</td><td>1.003</td><td>0.247</td></tr><tr><td>Each 100 km per driving day</td><td>1.002</td><td>0.497</td></tr><tr><td>Using iPhone</td><td>1.017</td><td>0.773</td></tr><tr><td>Being a professional driver</td><td>0.993</td><td>0.952</td></tr></tbody></table></div><p><strong>Two readings worth the whole case.</strong></p><p><strong>The professional driver disappears.</strong> Raw, they churned at less than half the rate of the rest; inside the model their odds ratio is 0.993 with a p of 0.952, that is nothing. The explanation is the one of module 3: the activity days already captured that effect, and being professional added nothing of its own. It was <strong>a confounding variable disguised as a finding</strong>.</p><p><strong>The device does not matter either</strong>, with a p of 0.773. It is exactly the same conclusion the Course 3 project reached with a t-test, now controlling for seven other variables at once. The two courses agree.</p></section>
+<section class="section-block is-recipe"><span class="kicker">Assumptions</span><h2 class="section-title">The assumptions, one by one</h2><div class="table-wrap"><table><thead><tr><th>Assumption</th><th>Status</th></tr></thead><tbody><tr><td>Binary outcome</td><td>Holds: churns or stays</td></tr><tr><td>Independent observations</td><td>Reasonable: different users</td></tr><tr><td>No multicollinearity</td><td>Holds after removing three variables, maximum 1.8</td></tr><tr><td>Linearity in the logit</td><td>Acceptable, though not checked variable by variable</td></tr></tbody></table></div><p>The last one is declared with its caveat instead of taken as given: it was not checked with partial logit plots for each continuous variable, which would be the rigorous thing.</p></section>
+<section class="section-block is-result"><span class="kicker">Result</span><h2 class="section-title">The result, translated</h2><p>On 3,575 test users, with the default threshold:</p><div class="table-wrap"><table><thead><tr><th>Metric</th><th>Value</th></tr></thead><tbody><tr><td>Accuracy</td><td>0.823</td></tr><tr><td>Precision</td><td>0.505</td></tr><tr><td><strong>Recall</strong></td><td><strong>0.082</strong></td></tr><tr><td>F1</td><td>0.141</td></tr></tbody></table></div><p><strong>582 of the 634 users who churn escape it.</strong> And that 82.3% accuracy is almost exactly what would be achieved by always answering &quot;stays&quot;, which would be right 82.26% of the time.</p><p><strong>But the model is not useless, and the distinction is the case:</strong></p><figure class="fig"><img src="../../projects/curso4/waze/03_figures/06_roc.3ea9193b.png" alt="06_roc" loading="lazy"><figcaption>06_roc.png</figcaption></figure><p>Its <strong>AUC is 0.737</strong>, so it ranks users by risk quite a bit better than chance. What is wrong is not the model, it is where the cut is placed.</p><figure class="fig is-live"><iframe src="../../projects/curso4/waze/03_figures/05_umbral.df9a0e87.html" loading="lazy" title="05_umbral"></iframe><figcaption>interactive: hover and zoom</figcaption></figure><div class="table-wrap"><table><thead><tr><th>Threshold</th><th>Alerts</th><th>Detects</th><th>Right</th></tr></thead><tbody><tr><td>0.50</td><td>103</td><td>52 of 634</td><td>50.5%</td></tr><tr><td>0.30</td><td>725</td><td>279 of 634</td><td>38.5%</td></tr><tr><td><strong>0.20</strong></td><td>1,262</td><td><strong>395 of 634 (62.3%)</strong></td><td>31.3%</td></tr></tbody></table></div></section>
+<section class="section-block is-decision"><span class="kicker">Decision</span><h2 class="section-title">What gets decided with this</h2><ol><li><strong>Lower the threshold to 0.20</strong>, and measure the real cost of a false alarm before fixing it for good. It goes from detecting 52 at-risk users to detecting 395.</li><li><strong>Aim retention at the new and low-activity user</strong>, which is where the two demonstrated effects are.</li><li><strong>Do not segment by professional driver.</strong> Their apparent advantage is explained by the activity days, which are already being measured.</li><li><strong>Start recording why people leave.</strong> It is the underlying limitation, and no model fixes it from the inside.</li></ol></section>
+<section class="section-block is-warning"><span class="kicker">Limits</span><h2 class="section-title">Limitations</h2><ul><li>The pseudo R² is <strong>0.1348</strong>: the model explains a small part of what happens.</li><li>The file <strong>contains no cause of churn</strong>, only behaviour. With this data you detect who is disengaging, not why.</li><li>700 users without a label were excluded after checking that they resemble the rest. Had that not been so, it would have changed whom the model describes.</li><li>The 983 users with zero driving days carry a kilometres ratio fixed at zero instead of infinity. It is defensible and it is worth knowing that it was decided.</li><li>The data is synthetic.</li></ul></section><section class="section-block is-material"><span class="kicker">Files</span><h2 class="section-title">Full material</h2><p>These three projects did not exist: they were built here. The CSVs are read from your Course 3 folder without touching them, and everything else is new.</p><h3 class="sub">Reports and notes</h3><ul class="res"><li><a href="../../projects/curso4/waze/04_reports/pace_plan.md" target="_blank" rel="noopener">pace_plan.md</a> <span class="path">04_reports/pace_plan.md</span> <span class="size">4.9 KB</span></li><li><a href="../../projects/curso4/waze/04_reports/executive_summary.md" target="_blank" rel="noopener">executive_summary.md</a> <span class="path">04_reports/executive_summary.md</span> <span class="size">3.8 KB</span></li><li><a href="../../projects/curso4/waze/04_reports/model_results.json" target="_blank" rel="noopener">model_results.json</a> <span class="path">04_reports/model_results.json</span> <span class="size">5.0 KB</span></li></ul><h3 class="sub">Code</h3><ul class="res"><li><a href="../../projects/curso4/waze/02_scripts/waze_logistic.py" target="_blank" rel="noopener">waze_logistic.py</a> <span class="path">02_scripts/waze_logistic.py</span> <span class="size">29.5 KB</span></li><li><a href="../../projects/curso4/waze/waze_curso4.ipynb" target="_blank" rel="noopener">waze_curso4.ipynb</a> <span class="path">waze_curso4.ipynb</span> <span class="size">16.1 KB</span></li></ul></section>
 </main>
 <footer class="footer">
-  Concentra / 2026-08-23
+  Concentra / this sheet links the files where they already were / 2026-08-23
 </footer>
 <script>
-const button = document.getElementById('copy');
-const source = document.getElementById('brain');
-
-function selectSource() {
-  const range = document.createRange();
-  range.selectNodeContents(source);
-  const selection = window.getSelection();
-  selection.removeAllRanges();
-  selection.addRange(range);
-}
-
-button.addEventListener('click', async () => {
-  const text = source.textContent;
-  let copied = false;
-  // The clipboard API needs a secure context, which file:// is not, so fall back to
-  // selecting the text and letting the old command (or the reader's Ctrl+C) do it.
-  try {
-    await navigator.clipboard.writeText(text);
-    copied = true;
-  } catch {
-    selectSource();
-    try { copied = document.execCommand('copy'); } catch { copied = false; }
-  }
-  button.textContent = copied ? button.dataset.copied : button.dataset.selected;
-  button.classList.toggle('done', copied);
-  if (!copied) selectSource();
-  setTimeout(() => {
-    button.textContent = button.dataset.copy;
-    button.classList.remove('done');
-  }, 2600);
+// Same-frame links replace the current entry instead of pushing a new one, so the
+// browser's back button keeps following the sidebar routes of the shell.
+document.querySelectorAll('a.lead-link').forEach(link => {
+  link.addEventListener('click', event => {
+    event.preventDefault();
+    location.replace(link.getAttribute('href'));
+  });
 });
 </script>
 </body>

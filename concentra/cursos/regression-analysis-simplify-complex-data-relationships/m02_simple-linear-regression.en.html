@@ -1,0 +1,534 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Simple linear regression · Regression Analysis: Simplify Complex Data Relationships</title>
+<link rel="alternate" hreflang="es" href="m02_simple-linear-regression.html">
+<style>
+/* ============================================================================
+   Concentra — design tokens and shared components.
+   Inlined into every generated page by load_style(), so pages stay self-contained
+   and work offline from file:// with no external requests.
+
+   Direction: an assay lab, not a tech dashboard. The palette is taken from ore
+   and lab materials (chalcopyrite brass, malachite, hematite, quartz) on warm
+   graphite rather than the blue-black + neon of a generic dark UI. Type is
+   Bahnschrift, the DIN-descended grotesque that Windows ships and that lives on
+   machinery plates and technical drawings, over Corbel for reading.
+   ========================================================================== */
+
+:root {
+  /* Ground and surfaces: warm graphite, the colour of rock dust, not blue-black */
+  --rock: #1a1714;
+  --bench: #221e19;
+  --core: #2b251f;
+  --seam: #3d352c;
+
+  /* Ore palette. No blue and no purple anywhere: those are the tones that make a
+     page read as generated, and this palette comes from the ores instead. */
+  --brass: #c9a227;      /* chalcopyrite, the primary accent */
+  --malachite: #5d9b7a;  /* verified output, results that came out right */
+  --hematite: #b04a35;   /* iron oxide, pitfalls and warnings */
+
+  /* Text */
+  --quartz: #ece7de;
+  --dust: #9a9186;
+  --shadowed: #6f675c;
+
+  --display: Bahnschrift, 'DIN Alternate', 'Segoe UI Semibold', system-ui, sans-serif;
+  --body: Corbel, Candara, 'Segoe UI', system-ui, sans-serif;
+  --data: Consolas, 'Cascadia Mono', ui-monospace, monospace;
+
+  /* In px, not ch: ch scales with font-size, so a heading ended up wider than a
+     paragraph and the page had four different right edges instead of two. */
+  --measure: 640px;
+  --wide: 900px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--rock);
+  color: var(--quartz);
+  font-family: var(--body);
+  font-size: 16px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection { background: var(--brass); color: var(--rock); }
+
+:focus-visible {
+  outline: 2px solid var(--brass);
+  outline-offset: 3px;
+}
+
+/* --------------------------------------------------------------- the signature
+   A sieve series: ticks that get finer from left to right, coarse feed to fine
+   concentrate. It is the one ornament on the page and appears exactly twice —
+   under the wordmark and under a page title. */
+.mesh {
+  height: 10px;
+  background-image:
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 16px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 9px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 5px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 3px);
+  background-size: 25% 100%;
+  background-position: 0 0, 25% 0, 50% 0, 75% 0;
+  background-repeat: no-repeat;
+  opacity: .8;
+  transform-origin: left center;
+  animation: sieve .55s cubic-bezier(.2, .8, .3, 1) both;
+}
+@keyframes sieve { from { transform: scaleX(0); opacity: 0; } to { transform: scaleX(1); opacity: .8; } }
+@media (prefers-reduced-motion: reduce) {
+  .mesh { animation: none; }
+  * { transition: none !important; }
+}
+
+/* ------------------------------------------------------------------ page head */
+.header {
+  border-bottom: 1px solid var(--seam);
+  padding: 3.2rem 2rem 0;
+  background: linear-gradient(180deg, #221d16 0%, var(--rock) 100%);
+}
+.header-content { max-width: 1080px; margin: 0 auto; }
+
+.eyebrow {
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--brass);
+  margin-bottom: 1rem;
+  display: flex; flex-wrap: wrap; align-items: center;
+  justify-content: space-between; gap: .6rem 1rem;
+}
+.eyebrow a { color: inherit; text-decoration: none; border-bottom: 1px solid transparent; }
+.eyebrow a:hover { border-bottom-color: var(--brass); }
+/* The way to the other edition of this page. It targets the shell, not the bare
+   page, so the sidebar follows the language too. */
+.eyebrow .lang-switch {
+  margin-left: auto; border: 1px solid var(--seam); border-radius: 2px;
+  padding: .22rem .6rem; color: var(--dust); font-size: .68rem; letter-spacing: .1em;
+}
+.eyebrow .lang-switch:hover { color: var(--brass); border-color: var(--brass); }
+
+.header h1 {
+  font-family: var(--display);
+  font-size: clamp(2rem, 4.5vw, 3.1rem);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -.015em;
+  color: var(--quartz);
+  max-width: 20ch;
+}
+.header .subtitle {
+  color: var(--dust);
+  max-width: var(--measure);
+  margin-top: 1rem;
+  font-size: 1.02rem;
+}
+.header .mesh { margin: 1.8rem 0 0; }
+
+/* An assay line: the real composition of the module, in lab-report shorthand. */
+.assay {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.4rem;
+  font-family: var(--data);
+  font-size: .78rem;
+  color: var(--shadowed);
+  padding: .9rem 0 1.6rem;
+  letter-spacing: .04em;
+}
+.assay b { color: var(--dust); font-weight: 400; }
+
+/* --------------------------------------------------------------------- layout */
+/* The container hugs the widest block, so there is no orphan edge past the content. */
+.container { max-width: var(--wide); margin: 3rem auto 5rem; padding: 0 2rem; }
+
+/* Two deliberate right edges and no more: prose stops at the reading measure, and
+   only the things that genuinely need room (code, output, figures, big tables) run
+   out to the full column. */
+.section-block {
+  border-top: 1px solid var(--seam);
+  padding: 2rem 0 2.4rem;
+}
+.section-block > p,
+.section-block > ul,
+.section-block > ol,
+.section-block h3.sub,
+.section-block h4.sub,
+.section-block blockquote,
+details > *:not(summary) { max-width: var(--measure); }
+.section-block:first-child { border-top: 0; padding-top: .5rem; }
+
+/* The kicker names what kind of content follows: context, method, pitfalls.
+   It replaces decorative icons with something that actually classifies. */
+.kicker {
+  font-family: var(--data);
+  font-size: .68rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  display: block;
+  margin-bottom: .5rem;
+}
+.section-title {
+  font-family: var(--display);
+  font-size: 1.55rem;
+  font-weight: 600;
+  letter-spacing: -.01em;
+  line-height: 1.2;
+  margin-bottom: 1.2rem;
+  color: var(--quartz);
+}
+.is-warning .kicker { color: var(--hematite); }
+.is-warning .section-title { color: #e8c4b8; }
+.is-bridge .kicker, .is-decision .kicker { color: var(--malachite); }
+.is-toy .kicker, .is-result .kicker, .is-question .kicker { color: var(--brass); }
+
+/* ---------------------------------------------------------------------- prose */
+/* Justified with hyphenation. In Spanish, justifying without hyphens opens rivers of
+   white space and reads worse than ragged right; lang="es" is what feeds the
+   dictionary. Tables, code, captions and summaries stay ragged on purpose. */
+.section-block p,
+.section-block li,
+details > *:not(summary) {
+  text-align: justify;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+}
+.section-block p { margin-bottom: 1rem; }
+.section-block p:last-child { margin-bottom: 0; }
+/* Indent with padding, not margin, so the bullet sits inside the measure instead of
+   pushing the list 1.2rem past the right edge of the paragraphs. */
+.section-block ul, .section-block ol { margin: 0 0 1rem; padding-left: 1.2rem; }
+.section-block li { margin-bottom: .55rem; padding-left: .2rem; }
+.section-block li::marker { color: var(--brass); }
+td, th, figcaption, .res li, .assay { text-align: left; hyphens: manual; }
+a { color: var(--brass); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+a:hover { text-decoration-thickness: 2px; }
+strong { color: #fff; font-weight: 700; }
+em { color: var(--dust); font-style: italic; }
+
+h3.sub {
+  font-family: var(--display);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--brass);
+  margin: 2rem 0 .7rem;
+  letter-spacing: -.005em;
+}
+h3.sub:first-child { margin-top: 0; }
+h4.sub {
+  font-family: var(--display);
+  font-size: .98rem;
+  font-weight: 600;
+  color: var(--dust);
+  margin: 1.3rem 0 .5rem;
+}
+
+code {
+  font-family: var(--data);
+  font-size: .9em;
+  background: var(--core);
+  border-radius: 3px;
+  padding: .08rem .32rem;
+  color: var(--brass);
+}
+pre {
+  background: #14110e;
+  border: 1px solid var(--seam);
+  border-left: 2px solid var(--seam);
+  border-radius: 2px;
+  padding: 1.1rem 1.2rem;
+  overflow-x: auto;
+  margin-bottom: 1rem;
+}
+pre code {
+  background: none; padding: 0; color: var(--quartz);
+  font-size: .87rem; line-height: 1.6;
+}
+
+/* What the code prints. Malachite: the material that came out of the process. */
+.output {
+  position: relative;
+  border: 1px solid rgba(93, 155, 122, .32);
+  border-left: 2px solid var(--malachite);
+  border-radius: 2px;
+  background: rgba(93, 155, 122, .06);
+  padding: 1.7rem 1.2rem 1rem;
+  margin-bottom: 1rem;
+  overflow-x: auto;
+}
+.output-tag {
+  position: absolute; top: .5rem; left: 1.2rem;
+  font-family: var(--data); font-size: .64rem;
+  letter-spacing: .18em; text-transform: uppercase; color: var(--malachite);
+}
+.output pre {
+  background: none; border: 0; padding: 0; margin: 0;
+  font-family: var(--data); font-size: .85rem;
+  color: var(--quartz); white-space: pre-wrap;
+}
+
+/* Line by line explanation of a code block, for a reader new to programming.
+   Two columns: the fragment of code, and what it does. */
+.annot {
+  display: grid;
+  grid-template-columns: minmax(9rem, auto) 1fr;
+  gap: .1rem 1.2rem;
+  align-items: baseline;
+  max-width: var(--wide);
+  margin: -.4rem 0 1.4rem;
+  padding: .9rem 1.1rem 1rem;
+  border: 1px solid var(--seam);
+  border-top: 0;
+  border-radius: 0 0 2px 2px;
+  background: rgba(201, 162, 39, .04);
+}
+.annot-head {
+  grid-column: 1 / -1;
+  font-family: var(--data);
+  font-size: .64rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  margin-bottom: .5rem;
+}
+.annot dt { padding: .35rem 0; }
+.annot dt code {
+  background: var(--core);
+  color: var(--brass);
+  font-size: .82rem;
+  white-space: nowrap;
+}
+.annot dd {
+  padding: .35rem 0;
+  margin: 0;
+  color: var(--dust);
+  font-size: .93rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(61, 53, 44, .5);
+}
+.annot dt { border-bottom: 1px solid rgba(61, 53, 44, .5); }
+.annot dt:last-of-type, .annot dd:last-of-type { border-bottom: 0; }
+/* The code block sits directly on top of its annotation, as one unit. */
+pre:has(+ .annot) { margin-bottom: 0; border-radius: 2px 2px 0 0; }
+
+@media (max-width: 640px) {
+  .annot { grid-template-columns: 1fr; gap: 0; }
+  .annot dt { border-bottom: 0; padding-bottom: 0; }
+  .annot dd { padding-top: .15rem; }
+}
+
+blockquote {
+  border-left: 2px solid var(--brass);
+  padding: .3rem 0 .3rem 1.3rem;
+  margin: 0 0 1rem;
+  font-family: var(--display);
+  font-size: 1.2rem;
+  font-weight: 400;
+  line-height: 1.4;
+  color: var(--quartz);
+}
+
+/* Tables read as assay data: mono figures, hairline rules, no zebra fill.
+   They take the width they need instead of being stretched to the full column,
+   which is what left a two-column table floating in empty space. */
+.table-wrap { overflow-x: auto; margin-bottom: 1rem; }
+table { border-collapse: collapse; width: auto; max-width: 100%; font-size: .93rem; }
+th, td {
+  border-bottom: 1px solid var(--seam);
+  padding: .55rem .8rem .55rem 0;
+  text-align: left;
+  vertical-align: top;
+}
+th {
+  font-family: var(--data);
+  font-size: .7rem;
+  font-weight: 400;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  border-bottom-color: var(--brass);
+}
+td:first-child { color: var(--quartz); }
+
+/* Review questions: closed by default, so they work as recall practice. */
+details {
+  border-top: 1px solid var(--seam);
+  padding: .9rem 0;
+}
+details:last-child { border-bottom: 1px solid var(--seam); }
+summary {
+  cursor: pointer;
+  font-family: var(--display);
+  font-size: 1.02rem;
+  font-weight: 600;
+  color: var(--quartz);
+  list-style: none;
+  display: flex;
+  gap: .7rem;
+  align-items: baseline;
+}
+summary::-webkit-details-marker { display: none; }
+summary::before {
+  content: '+';
+  font-family: var(--data);
+  color: var(--brass);
+  font-size: .95rem;
+}
+details[open] summary::before { content: '−'; }
+details[open] summary { color: var(--brass); margin-bottom: .7rem; }
+details > *:not(summary) { color: var(--dust); }
+
+figure.fig {
+  margin: 1.6rem 0;
+  border: 1px solid var(--seam);
+  padding: .7rem;
+  background: var(--bench);
+}
+figure.fig img { width: 100%; height: auto; display: block; }
+/* The interactive twin of a figure. Its aspect matches the still one, 10 by 4.4, so a
+   case sheet keeps the same rhythm whichever kind of figure comes next. */
+figure.fig.is-live iframe {
+  width: 100%;
+  /* Matches INTERACTIVE_HEIGHT in src/make_figures.py. It used to be an aspect ratio, and
+     that made the figure's height depend on the window: the caption and the legend are
+     placed at fractions of the plot area, so on a wide screen they were pushed past the
+     bottom margin, clipping the caption and covering the x-axis title. */
+  height: 520px;
+  border: 0;
+  display: block;
+}
+figure.fig figcaption {
+  font-family: var(--data);
+  font-size: .72rem;
+  color: var(--shadowed);
+  margin-top: .6rem;
+  letter-spacing: .04em;
+}
+
+/* File listings on a case sheet */
+.res { list-style: none; margin-left: 0 !important; }
+.res li {
+  display: flex; align-items: baseline; gap: .8rem; flex-wrap: wrap;
+  padding: .5rem 0; border-bottom: 1px solid var(--seam); margin-bottom: 0;
+}
+.res .path { font-family: var(--data); font-size: .74rem; color: var(--shadowed); }
+.res .size { font-family: var(--data); font-size: .74rem; color: var(--shadowed); margin-left: auto; }
+.res .gone { font-family: var(--data); font-size: .74rem; color: var(--hematite); }
+
+.footer {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 2rem 4rem;
+  color: var(--shadowed);
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .03em;
+}
+
+@media (max-width: 640px) {
+  body { font-size: 15px; }
+  .header { padding: 2rem 1.2rem 0; }
+  .container { padding: 0 1.2rem; margin-top: 2rem; }
+  .footer { padding: 0 1.2rem 3rem; }
+}
+
+@media print {
+  body { background: #fff; color: #16130f; }
+  .header { background: none; border-bottom: 1px solid #bbb; padding-top: 0; }
+  .header h1, .section-title, summary { color: #16130f; }
+  .mesh { animation: none; }
+  .section-block { break-inside: avoid; max-width: none; }
+  pre, .output { background: #f6f4f0; border-color: #ccc; }
+  details:not([open]) > *:not(summary) { display: block; }
+  a { color: #16130f; }
+}
+
+</style>
+</head>
+<body>
+<header class="header">
+  <div class="header-content">
+    <div class="eyebrow"><span><a href="https://www.coursera.org/learn/regression-analysis-simplify-complex-data-relationships">Regression Analysis: Simplify Complex Data Relationships</a> / Module 2</span><a class="lang-switch" href="../index.html#regression-analysis-simplify-complex-data-relationships/m02_simple-linear-regression" target="_top" hreflang="es" lang="es" title="Leer esta página en español">Español</a></div>
+    <h1>Simple linear regression</h1>
+    <p class="subtitle">The line that best passes through the points, built by hand with the same five values of the previous module. Where the slope and the intercept come from, what R² really measures, how much uncertainty that coefficient carries, and the four assumptions without which none of this is defensible.</p>
+    <div class="mesh" role="presentation"></div>
+    <div class="assay"><span><b>6 h</b> course time</span><span><b>9</b> videos</span><span><b>8</b> readings</span><span><b>5</b> assignments</span><span><b>5</b> practice</span></div>
+  </div>
+</header>
+<main class="container">
+<section class="section-block "><span class="kicker">Context</span><h2 class="section-title">What this module solves</h2><p>The previous module ended with a number, 0.9877, which says that the dose and the recovery move together and <strong>does not say how much</strong>. This module turns that relationship into an actionable sentence: for every gram per tonne, 0.4 points of recovery.</p><p>For that, a line is fitted to the points. It sounds simple, and the calculation is. What is not simple, and is where the real work is, are the three questions that come behind it: <strong>how much can I trust that 0.4?</strong>, <strong>is the line any good?</strong>, and <strong>did I even have the right to fit a line to this data?</strong></p></section>
+<section class="section-block is-toy"><span class="kicker">Example</span><h2 class="section-title">Before the theory: a toy example</h2><p>The same five values of module 1, now to build their line:</p><pre><code>dosis (g/t)        10    20    30    40    50
+recuperación (%)   69    75    79    81    86</code></pre><h3 class="sub h3">Step 1. The line passes through the centre</h3><p>We already know the centre of the cloud is (30, 78), because those are the two means. <strong>The least-squares line always passes through there.</strong> So all that is missing is the tilt.</p><h3 class="sub h3">Step 2. The slope, with two numbers we already calculated</h3><p>From module 1 we have the two ingredients:</p><pre><code>suma de los productos de las distancias  = 400
+suma de las distancias de la dosis al cuadrado = 1000
+
+pendiente = 400 / 1000 = 0,4</code></pre><p>And with the slope, the intercept comes out by solving from the centre:</p><pre><code>78 = intercepto + 0,4 × 30    →    intercepto = 78 − 12 = 66</code></pre><p><strong>The line is: recovery = 66 + 0.4 × dose.</strong></p><h3 class="sub h3">Step 3. What it predicts and by how much it is wrong</h3><div class="table-wrap"><table><thead><tr><th>Dose</th><th>Measured recovery</th><th>What the line predicts</th><th>Residual</th></tr></thead><tbody><tr><td>10</td><td>69</td><td>66 + 4 = <strong>70</strong></td><td>−1</td></tr><tr><td>20</td><td>75</td><td>66 + 8 = <strong>74</strong></td><td>+1</td></tr><tr><td>30</td><td>79</td><td>66 + 12 = <strong>78</strong></td><td>+1</td></tr><tr><td>40</td><td>81</td><td>66 + 16 = <strong>82</strong></td><td>−1</td></tr><tr><td>50</td><td>86</td><td>66 + 20 = <strong>86</strong></td><td>0</td></tr></tbody></table></div><p>The <strong>residual</strong> is what each point has over or under relative to the line: the measured minus the predicted. Here they are four of length 1 and one of 0.</p><figure class="fig"><img src="../../figures/curso4/regresion_residuos.c2c2251a.png" alt="regresion_residuos" loading="lazy"><figcaption>regresion_residuos.png</figcaption></figure><p>Notice that the residuals <strong>add up to exactly zero</strong>: −1 +1 +1 −1 +0. It is not a coincidence of this data, it always happens. The line shares the error out to both sides by construction, and that is why adding them up measures nothing: they have to be squared first.</p><h3 class="sub h3">Step 4. Why &quot;least squares&quot;</h3><p>We square each residual and add:</p><pre><code>(−1)² + (1)² + (1)² + (−1)² + 0² = 1 + 1 + 1 + 1 + 0 = 4</code></pre><p><strong>That sum, 4, is what the method minimises.</strong> Of all the lines that could be drawn over these five points, the one with slope 0.4 and intercept 66 is the only one that leaves that sum at 4. Any other leaves it higher. Hence the name: least squares.</p><p>And why squared and not in absolute value? For two reasons. One, which we already saw: without squaring, the errors cancel out. Two: squaring <strong>punishes one large error much more than several small ones</strong>. A residual of 4 weighs 16, while four residuals of 1 weigh 4 in total. The line strives not to leave anyone very far away.</p><h3 class="sub h3">Step 5. The R², which is a comparison, not a grade</h3><p>The R² answers a specific question: <strong>how much better is my line than having no line?</strong></p><p>If we had no model, the best we could do is always predict the mean, 78. With that, the errors would be the distances to the centre we already calculated in module 1:</p><pre><code>sin recta (prediciendo siempre 78):   81 + 9 + 1 + 9 + 64 = 164
+con la recta:                                                4</code></pre><pre><code>R² = 1 − 4 / 164 = 1 − 0,0244 = 0,9756</code></pre><p>Translated: <strong>the line removes 97.56% of the error we had without it.</strong> That is the R², and nothing else. In particular it is not a percentage of hits nor a grade for the model.</p><h3 class="sub h3">Step 6. How much that 0.4 can be trusted</h3><p>The 0.4 came out of five points. With another five tests something similar but not identical would have come out, and it has to be said how much it can dance. It is done in three steps of arithmetic:</p><pre><code>varianza que sobra   = 4 / (5 − 2)      = 1,333
+dividida entre la dispersión de la dosis = 1,333 / 1000 = 0,001333
+raíz cuadrada                             = 0,0365</code></pre><p>That 0.0365 is the <strong>standard error of the slope</strong>: how much the 0.4 would dance if we repeated the experiment. It is divided by 3 and not by 5 because the line already consumed two values, one for the slope and another for the intercept.</p><p>And with it the interval gets built, just as in the previous course but with the multiplier for three degrees of freedom, which is 3.182:</p><pre><code>0,4 ± 3,182 × 0,0365 = 0,4 ± 0,116    →    de 0,284 a 0,516</code></pre><p><strong>The complete result is this: the recovery rises between 0.28 and 0.52 points for every gram per tonne of collector.</strong> And what matters is that that interval <strong>does not cross zero</strong>, so the effect is demonstrated, even though its size is quite imprecise with only five tests.</p></section>
+<section class="section-block "><span class="kicker">Terms</span><h2 class="section-title">Glossary</h2><ul><li><strong>Ordinary least squares.</strong> The method of step 4: choosing the line that makes the sum of the squared residuals smallest. OLS for short, and the initials show up everywhere.</li><li><strong>Residual.</strong> The measured minus the predicted, for a specific point. The five of the example are −1, +1, +1, −1 and 0.</li><li><strong>Slope.</strong> How much Y rises per unit of X. Our 0.4. <strong>It is the result of the analysis</strong> and it is always stated with its units.</li><li><strong>Intercept.</strong> What the model predicts when X is zero. Our 66. It only makes sense to interpret it if zero is inside the measured range.</li><li><strong>Residual sum of squares.</strong> The 4 of step 4. What the method minimises.</li><li><strong>R².</strong> The proportion of the error the line removes relative to always predicting the mean. Our 0.9756.</li><li><strong>Standard error of the slope.</strong> How much the slope would vary if you repeated the experiment. Our 0.0365.</li><li><strong>Confidence interval of the coefficient.</strong> The range of slopes compatible with the data, from 0.284 to 0.516. If it includes zero, the effect is not demonstrated.</li><li><strong>p-value of the coefficient.</strong> The probability of seeing a slope this large if the true one were zero. It is the one-number version of the same thing the interval says.</li><li><strong>Homoscedasticity.</strong> That the size of the error does not change according to where you are on the line. The word is ugly, the idea is simple, and it is checked by looking at a drawing.</li><li><strong>Mean squared error.</strong> The average of the squared residuals. Its root, the RMSE, returns to the original units and that is why it is reported more.</li></ul></section>
+<section class="section-block is-recipe"><span class="kicker">Method</span><h2 class="section-title">Step by step</h2><h3 class="sub h3">Step 1. Fit the line</h3><p>It is what the toy example does: slope and then intercept. In practice one line of code does it, and what has to be known is what it is minimising underneath, because that is where its quirks come from. In particular, <strong>a single very distant point pulls the line with a lot of force</strong>, precisely because the errors get squared.</p><h3 class="sub h3">Step 2. Check the four assumptions</h3><p>This is the step almost everyone skips and the one that makes the model defensible or not. There are four, and none is checked with a button:</p><div class="table-wrap"><table><thead><tr><th>Assumption</th><th>What it requires</th><th>How it is checked</th></tr></thead><tbody><tr><td><strong>Linearity</strong></td><td>That the relationship be approximately straight</td><td>Scatter plot of X against Y</td></tr><tr><td><strong>Independence</strong></td><td>That each observation be its own case</td><td>By thinking about how the data was taken, not with a test</td></tr><tr><td><strong>Normality of the residuals</strong></td><td>That the errors be bell-shaped</td><td>Histogram or quantile plot <strong>of the residuals</strong></td></tr><tr><td><strong>Constant variance</strong></td><td>That the error not grow with the prediction</td><td>Residuals against predicted values: no funnel should be visible</td></tr></tbody></table></div><p>Three things worth fixing here:</p><p><strong>Normality is required of the residuals, not of the data.</strong> It is the most common misunderstanding of the whole subject. The recovery can have whatever distribution it likes; what has to look like a bell is what is left over after fitting.</p><p><strong>The plot of residuals against predicted values is the most informative of all.</strong> If a shapeless cloud comes out, fine. If a U comes out, the relationship was curved and the linearity assumption is broken. If a funnel that opens up comes out, the error grows with the prediction and the variance is not constant.</p><p><strong>Independence breaks almost always with data over time.</strong> If you measure the same cell every hour, the measurement at 10 resembles the one at 9 for reasons that have nothing to do with your X, and the confidence intervals come out too narrow.</p><h3 class="sub h3">Step 3. Read the uncertainty of the coefficient</h3><p>The slope alone is half an answer. Three things always go with it:</p><ul><li><strong>Its standard error</strong>, which says how much it would dance on repeating.</li><li><strong>Its confidence interval</strong>, which is the defensible range.</li><li><strong>Its p-value</strong>, which tests the hypothesis that the true slope is zero.</li></ul><p>All three say the same thing with a different face. The practical rule is to look at the interval: <strong>if it crosses zero, you cannot claim an effect exists</strong>, because a slope of zero is compatible with your data. And mind the opposite case, which is subtler: an interval that does not cross zero but runs from 0.28 to 0.52 confirms there is an effect and admits that <strong>you do not know its size well</strong>. That has to be said, not hidden behind the 0.4.</p><h3 class="sub h3">Step 4. Evaluate the model with more than one metric</h3><div class="table-wrap"><table><thead><tr><th>Metric</th><th>What it is</th><th>How it is read</th></tr></thead><tbody><tr><td><strong>R²</strong></td><td>Proportion of the error removed relative to predicting the mean</td><td>No units, from 0 to 1. It serves to compare models on the same data</td></tr><tr><td><strong>MSE</strong></td><td>Average of the squared residuals</td><td>In squared units, so it is not interpreted directly</td></tr><tr><td><strong>RMSE</strong></td><td>The root of the previous one</td><td><strong>In the units of Y</strong>, and that is why it is the one reported</td></tr><tr><td><strong>MAE</strong></td><td>Average of the residuals in absolute value</td><td>Also in units of Y, and less sensitive to an extreme point</td></tr></tbody></table></div><p>In the example, the RMSE is 0.894: <strong>the model is typically wrong by nine tenths of a point of recovery</strong>. That sentence is much more useful for deciding than an R² of 0.9756, because it is in units a metallurgist can judge.</p><p>And hence the rule: <strong>the R² serves to compare, the RMSE to decide.</strong></p><h3 class="sub h3">Step 5. Present the result</h3><p>The complete block that goes to the report, no more and no less:</p><ol><li>The sentence with units: for every gram per tonne, 0.4 more points of recovery.</li><li>The interval: between 0.28 and 0.52.</li><li>How wrong the model is: RMSE of 0.894 points.</li><li>How much it explains: R² of 0.9756.</li><li>How much data: five tests, which is very little.</li><li>The assumptions checked, one by one.</li><li>The limits: the measured range and what lies outside it.</li></ol><p>And one thing that is never written without having earned it: <strong>&quot;the collector causes the increase in recovery&quot;</strong>. With five tests done by varying the dose on purpose, this does get close to an experiment and the causal claim is more defensible than with observed data. With plant data collected without controlling anything, you write &quot;is associated with&quot;.</p></section>
+<section class="section-block is-recipe"><span class="kicker">Code</span><h2 class="section-title">The code, in parts</h2><h3 class="sub h3">Step 1. Fit and pull out everything that is needed</h3><p><code>linregress</code> returns, in a single object, almost everything we have calculated by hand.</p><pre><code class="language-python">import numpy as np
+from scipy import stats
+
+dose = np.array([10, 20, 30, 40, 50])
+recovery = np.array([69, 75, 79, 81, 86])
+
+fit = stats.linregress(dose, recovery)
+
+print(f&quot;pendiente  = {fit.slope}&quot;)
+print(f&quot;intercepto = {fit.intercept}&quot;)
+print(f&quot;R2         = {fit.rvalue ** 2:.4f}&quot;)
+print(f&quot;error estandar de la pendiente = {fit.stderr:.4f}&quot;)
+print(f&quot;p de la pendiente = {fit.pvalue:.4f}&quot;)</code></pre><dl class="annot"><div class="annot-head">line by line</div><dt><code>fit.stderr</code></dt><dd>The standard error of the slope, the 0.0365 we got with three divisions and a root. It is the one used to build the interval of the next step.</dd><dt><code>fit.pvalue</code></dt><dd>The p-value <strong>of the slope</strong>, which tests whether the true one could be zero. Not to be confused with a p-value of the whole model.</dd><dt><code>fit.rvalue ** 2</code></dt><dd>It has to be squared by hand. <code>linregress</code> gives the correlation, not the R², and it is a classic slip to report 0.9877 where 0.9756 should go.</dd></dl><div class="output"><span class="output-tag">prints</span><pre>pendiente  = 0.4
+intercepto = 66.0
+R2         = 0.9756
+error estandar de la pendiente = 0.0365
+p de la pendiente = 0.0016</pre></div><p>The same numbers as on paper, standard error included.</p><h3 class="sub h3">Step 2. The confidence interval of the slope</h3><p><code>linregress</code> does not give it ready-made, so it is assembled with the standard error and the t multiplier, exactly as in the previous course.</p><pre><code class="language-python">t_star = stats.t.ppf(0.975, df=len(dose) - 2)
+low = fit.slope - t_star * fit.stderr
+high = fit.slope + t_star * fit.stderr
+
+print(f&quot;multiplicador t = {t_star:.3f}&quot;)
+print(f&quot;IC 95% de la pendiente = [{low:.3f}, {high:.3f}]&quot;)</code></pre><dl class="annot"><div class="annot-head">line by line</div><dt><code>df=len(dose) - 2</code></dt><dd><strong>Minus 2, not minus 1.</strong> In a regression two things are estimated, the slope and the intercept, so two degrees of freedom are lost. In the previous course it was minus 1 because only the mean was estimated.</dd><dt><code>stats.t.ppf(0.975, ...)</code></dt><dd>The same 0.975 of course 3: the 5% left outside is split between the two tails, so the point that leaves 97.5% below is asked for.</dd><dt><code>fit.slope - t_star * fit.stderr</code></dt><dd>Estimate minus multiplier times error. The pattern is identical to that of any confidence interval; the only thing that changes is what is estimated.</dd></dl><div class="output"><span class="output-tag">prints</span><pre>multiplicador t = 3.182
+IC 95% de la pendiente = [0.284, 0.516]</pre></div><p>It does not cross zero, so the effect is demonstrated. And it is wide, so the exact size is not.</p><h3 class="sub h3">Step 3. Look at the residuals, which is the step everyone skips</h3><pre><code class="language-python">predicted = fit.intercept + fit.slope * dose
+residuals = recovery - predicted
+
+print(f&quot;predichos = {predicted}&quot;)
+print(f&quot;residuos  = {residuals}&quot;)
+print(f&quot;suma de los residuos = {residuals.sum():.1f}&quot;)</code></pre><dl class="annot"><div class="annot-head">line by line</div><dt><code>fit.intercept + fit.slope * dose</code></dt><dd>Arithmetic with a whole vector: numpy multiplies the five values by 0.4 and adds 66 to them in one go, without a loop. It is the advantage of having used <code>np.array</code> instead of a list.</dd><dt><code>recovery - predicted</code></dt><dd>Element-by-element subtraction, again without a loop. The result is the vector of the five residuals.</dd><dt><code>residuals.sum()</code></dt><dd>It should give zero, or something like 0.0000000001 due to machine rounding. <strong>If it gives anything else, there is an error in the fit</strong>, so it serves as a check.</dd></dl><div class="output"><span class="output-tag">prints</span><pre>predichos = [70. 74. 78. 82. 86.]
+residuos  = [-1.  1.  1. -1.  0.]
+suma de los residuos = 0.0</pre></div><p>With five points the residuals are read at a glance. With five hundred they have to be drawn against the predicted values, looking for three shapes: a U, a funnel, or a point very far from the rest.</p><h3 class="sub h3">Step 4. The metrics, in units that can be judged</h3><pre><code class="language-python">mse = (residuals ** 2).mean()
+
+print(f&quot;MSE  = {mse:.2f}&quot;)
+print(f&quot;RMSE = {np.sqrt(mse):.3f}&quot;)
+print(f&quot;MAE  = {np.abs(residuals).mean():.3f}&quot;)</code></pre><dl class="annot"><div class="annot-head">line by line</div><dt><code>(residuals ** 2).mean()</code></dt><dd>Two chained operations on the vector: first it squares the five, then it averages. It reads from left to right.</dd><dt><code>np.sqrt(mse)</code></dt><dd>The square root returns the number to the original units. The MSE is in points of recovery <strong>squared</strong>, which means nothing to anyone; the RMSE is in points.</dd><dt><code>np.abs(residuals)</code></dt><dd>The absolute value, that is removing the sign. It is the alternative to squaring when you do not want a distant point to dominate the metric.</dd></dl><div class="output"><span class="output-tag">prints</span><pre>MSE  = 0.80
+RMSE = 0.894
+MAE  = 0.800</pre></div><p>The sentence that goes to the report is the RMSE one: <strong>the model is wrong by about nine tenths of a point of recovery</strong>.</p><h3 class="sub h3">Step 5. Package the model in a function, with its documentation</h3><p>So far everything has been loose lines. As soon as something is going to be used more than once, it goes into a <strong>function</strong>: a piece of code with a name, which you pass data to and which returns a result.</p><pre><code class="language-python">def predict_recovery(fit, dose_value: float) -&gt; float:
+    &quot;&quot;&quot;Return the recovery the fitted line predicts for one collector dose.
+
+    The dose has to stay inside the measured range, 10 to 50 g/t: outside it the
+    line still returns a number, and that number means nothing.
+    &quot;&quot;&quot;
+    return fit.intercept + fit.slope * dose_value
+
+
+print(f&quot;a 35 g/t: {predict_recovery(fit, 35):.1f} %&quot;)
+print(f&quot;a 200 g/t: {predict_recovery(fit, 200):.1f} %  &lt;- fuera de rango, imposible&quot;)</code></pre><dl class="annot"><div class="annot-head">line by line</div><dt><code>def predict_recovery(...):</code></dt><dd><code>def</code> starts the definition of a function and what follows is its name. Everything indented below belongs to the function and does not run until someone calls it.</dd><dt><code>fit, dose_value</code></dt><dd>The parameters: what has to be given to it so it can work. Inside the function they are ordinary names; outside they do not exist.</dd><dt><code>dose_value: float</code></dt><dd>A <strong>type annotation</strong>: it warns whoever reads that a number with decimals goes there. Python does not check it, but your editor does, and it is the convention of the project.</dd><dt><code>-&gt; float</code></dt><dd>The same idea for what it returns: a number with decimals.</dd><dt><code>&quot;&quot;&quot;...&quot;&quot;&quot;</code></dt><dd>The <strong>docstring</strong>: the documentation of the function, in triple quotes and right below the definition. It is not just any comment; it is stored in the object itself and it is what <code>help(predict_recovery)</code> shows.</dd><dt><code>return</code></dt><dd>Hands the result back to whoever called. Without <code>return</code>, the function calculates and delivers nothing.</dd><dt><code>predict_recovery(fit, 35)</code></dt><dd>The call: the two parameters are passed in the same order in which they were defined.</dd></dl><div class="output"><span class="output-tag">prints</span><pre>a 35 g/t: 80.0 %
+a 200 g/t: 146.0 %  &lt;- fuera de rango, imposible</pre></div><p>The two lines of the output teach the lesson at a stroke. At 35 g/t, inside the measured range, the model predicts a reasonable 80%. At 200 g/t it predicts a <strong>146% recovery</strong>, which does not exist, and it does so without the slightest complaint. That is why the warning lives in the docstring: <strong>the warning has to travel with the code</strong>, not stay in the head of whoever wrote it.</p><p>And hence also the habit of reading the documentation before using someone else&#x27;s function. <code>help(stats.linregress)</code> is what clarifies that <code>stderr</code> is the standard error of the slope and not that of the model, which is exactly the kind of confusion that produces a badly written report.</p></section>
+<section class="section-block is-warning"><span class="kicker">Traps</span><h2 class="section-title">Watch out</h2><ul><li><strong>The R² is not a grade.</strong> It is the comparison against always predicting the mean. An R² of 0.97 on a curved relationship means the line is much better than nothing, not that the line is correct.</li><li><strong>Normality is required of the residuals, not of the data.</strong> The most repeated mistake of the module, and it leads people to transform variables that did not need transforming.</li><li><strong>Never extrapolate outside the measured range.</strong> With doses between 10 and 50, the model says nothing about 200 g/t. The line will give you the number all the same, and it will predict a recovery of 146%, which is impossible.</li><li><strong>The intercept is almost never interpreted.</strong> Our 66 would be the recovery with zero collector, and we did not even measure there. It is a mathematical anchor of the line, not a data point.</li><li><strong>A single extreme point pulls the line.</strong> Squared errors punish large distances heavily, so the line deviates to get closer to the odd point. You always have to look for one.</li><li><strong><code>fit.rvalue</code> is not the R².</strong> It has to be squared. Reporting 0.9877 instead of 0.9756 is a silent and frequent mistake.</li><li><strong>The degrees of freedom are n − 2 in regression.</strong> Two parameters are estimated, not one. Using n − 1 gives intervals slightly too narrow.</li><li><strong>A small p does not mean a large effect.</strong> With a lot of data, an irrelevant slope comes out with a tiny p. The size is told by the slope and its interval, not by the p.</li></ul></section>
+<section class="section-block is-bridge"><span class="kicker">Analogy</span><h2 class="section-title">Metallurgical bridge</h2><p>A simple linear regression is, literally, <strong>the calibration line</strong> you already use.</p><p>When you calibrate a grade analyser with standards of known concentration and plot the response line against concentration, you are doing least squares with the same arithmetic as this module. And the laboratory&#x27;s precautions are, one by one, the assumptions:</p><div class="table-wrap"><table><thead><tr><th>In the laboratory</th><th>In the module</th></tr></thead><tbody><tr><td>The calibration curve only holds within its range of standards</td><td>Do not extrapolate outside the measured range</td></tr><tr><td>A calibration with a point far out of line gets rejected</td><td>An extreme value pulls the line</td></tr><tr><td>If the response curves at the high end, the range gets trimmed</td><td>Linearity assumption</td></tr><tr><td>The instrument&#x27;s error grows with concentration, and gets weighted</td><td>Constant variance assumption</td></tr><tr><td>Each standard is prepared separately, not by diluting the previous one</td><td>Independence assumption</td></tr></tbody></table></div><p>Look at the last row, because it is the most forgotten one. If you prepare the standards by serial dilution, an error in the first one contaminates all the others, and the five measurements stop being five independent data points. In statistics that is called breaking the independence assumption; in the laboratory it is called ruining the calibration. It is the same problem with two names.</p><p>And the RMSE also has its exact equivalent: it is the <strong>precision of the method</strong>, in the same units as the analysis. An RMSE of 0.894 points of recovery is the same kind of number as a &quot;± 0.05% Cu&quot; on a certificate.</p></section>
+<section class="section-block is-review"><span class="kicker">Review</span><h2 class="section-title">Review</h2><details><summary>What exactly does the least-squares method minimise, and why squared?</summary><p>It minimises the sum of the residuals squared, where the residual is the measured minus the predicted for each point. In the example that sum is 4, and no other line leaves it lower. They are squared for two reasons: without doing so the positive and negative errors cancel out, since by construction they add up to zero, and besides the square penalises one large error much more than several small ones, so that the line avoids leaving points very far away. The side effect of that is that a single extreme value pulls the line with force.</p></details><details><summary>A model has an R² of 0.97. Does that mean it is a good model?</summary><p>Not on its own. The R² only says how much error the line removes compared with always predicting the mean, and it can be high in a misspecified model: a curved relationship fitted with a line can give 0.97 and be systematically wrong at the ends. To judge the model three more things are needed: looking at the plot of residuals against predicted values for a U or a funnel, checking the four assumptions, and reading the RMSE, which is in the units of Y and says how wrong the model is in practice.</p></details><details><summary>What are the four assumptions of simple linear regression and how is each one checked?</summary><p>Linearity, which is checked with the scatter plot of X against Y. Independence of the observations, which is not checked with a test but by thinking about how the data was collected, and which breaks almost always with series over time. Normality of the residuals, with a histogram or a quantile plot of the residuals, never of the original data. And constant variance, by drawing the residuals against the predicted values and checking that no funnel appears. The plot of residuals against predicted values covers two of the four on its own.</p></details><details><summary>The confidence interval of a slope runs from −0.1 to 0.7. What can be claimed?</summary><p>That the effect is not demonstrated, because the interval includes zero and therefore a slope of zero is compatible with the data. It cannot be claimed that no effect exists: that would be confusing absence of evidence with evidence of absence, and such a wide interval is also compatible with a slope of 0.7, which would be large. The honest thing is to say that with this data nothing can be concluded, and that the uncertainty is too high, which usually means more observations are needed.</p></details><details><summary>Why is the RMSE reported if the R² is already available?</summary><p>Because they measure different things and only one serves to decide. The R² has no units and compares the model against predicting the mean, so it serves to compare models on the same dataset. The RMSE is in the units of the dependent variable and says how wrong the model typically is: in the example, 0.894 points of recovery. A metallurgist can judge whether being wrong by nine tenths of a point is acceptable for their decision, and on the other hand cannot directly judge whether a 0.9756 is enough.</p></details></section>
+</main>
+<footer class="footer">
+  Concentra / distilled from the public syllabus of the course / 2026-08-23
+</footer>
+</body>
+</html>

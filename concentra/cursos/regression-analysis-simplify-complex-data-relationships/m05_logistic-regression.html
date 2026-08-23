@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Logistic regression · Regression Analysis: Simplify Complex Data Relationships</title>
-
+<link rel="alternate" hreflang="en" href="m05_logistic-regression.en.html">
 <style>
 /* ============================================================================
    Concentra — design tokens and shared components.
@@ -457,7 +457,7 @@ figure.fig figcaption {
 <body>
 <header class="header">
   <div class="header-content">
-    <div class="eyebrow"><span><a href="https://www.coursera.org/learn/regression-analysis-simplify-complex-data-relationships">Regression Analysis: Simplify Complex Data Relationships</a> / Módulo 5</span></div>
+    <div class="eyebrow"><span><a href="https://www.coursera.org/learn/regression-analysis-simplify-complex-data-relationships">Regression Analysis: Simplify Complex Data Relationships</a> / Módulo 5</span><a class="lang-switch" href="../index.en.html#regression-analysis-simplify-complex-data-relationships/m05_logistic-regression" target="_top" hreflang="en" lang="en" title="Read this page in English">English</a></div>
     <h1>Logistic regression</h1>
     <p class="subtitle">Cuando lo que quieres predecir no es un número sino un sí o un no. La escalera de probabilidad a momios y a logit, hecha con tres números redondos; por qué el coeficiente no es una probabilidad; y las cuatro métricas de una clasificación, con el caso donde acertar el 70 % es un mal resultado.</p>
     <div class="mesh" role="presentation"></div>
@@ -517,7 +517,7 @@ F1           = 0.727</pre></div><p>Y aquí está el resultado que hay que saber 
 <section class="section-block is-review"><span class="kicker">Repaso</span><h2 class="section-title">Repaso</h2><details><summary>¿Por qué no se puede usar una regresión lineal para predecir un sí o un no?</summary><p>Porque una recta no tiene límites y una probabilidad sí. Codificando el sí como 1 y el no como 0, la recta ajustada seguirá subiendo indefinidamente y predecirá valores por encima de 1 o por debajo de 0, que no existen como probabilidades. Además supondría que cada unidad de X cambia la probabilidad en la misma cantidad en todo el rango, cuando en la práctica el efecto es pequeño en los extremos y grande en el centro. La logística resuelve las dos cosas modelando el logit, que sí es una escala sin extremos, y devolviendo la probabilidad a través de una curva en S que se aplasta contra el 0 y el 1.</p></details><details><summary>Un coeficiente logístico vale 0,7. ¿Qué significa?</summary><p>Que por cada unidad que sube esa variable, los momios del sí se multiplican por e elevado a 0,7, o sea por 2, manteniendo constantes las demás variables. No significa que la probabilidad suba 0,7, ni que se duplique la probabilidad: lo que se duplica son los momios. El efecto sobre la probabilidad depende de dónde se parta, y es mayor cerca de 0,5 que en los extremos. La forma correcta de reportarlo es en momios o traduciendo a probabilidades concretas de casos de interés.</p></details><details><summary>¿Qué diferencia hay entre precisión y sensibilidad, y cuándo importa cada una?</summary><p>Las dos se calculan con los mismos aciertos positivos arriba y cambian el denominador. La precisión divide entre todo lo que el modelo marcó como positivo, y responde a cuánto se puede uno fiar de una alarma. La sensibilidad divide entre todos los positivos que existían de verdad, y responde a cuántos casos reales se detectaron. Importa más la sensibilidad cuando un caso no detectado es caro, como un lote fuera de especificación que llega al cliente, y más la precisión cuando una falsa alarma es cara, como parar una línea. Se compran una con la otra moviendo el umbral, y por eso se reportan juntas o resumidas en el F1.</p></details><details><summary>Un modelo tiene una exactitud del 98 %. ¿Es bueno?</summary><p>No se sabe sin conocer el reparto de las clases. Si solo el 2 % de los casos son positivos, un modelo que responda siempre &quot;negativo&quot; alcanza justo ese 98 % sin detectar ni un solo caso real, y su sensibilidad es cero. La exactitud es la métrica que más engaña precisamente en los problemas donde el positivo es raro, que suelen ser los importantes: fallos, fraudes, rechazos. Hay que mirar la matriz de confusión entera y reportar precisión, sensibilidad y F1.</p></details><details><summary>¿Qué se elige al fijar el umbral de clasificación, y por qué 0,5 no es la respuesta por defecto?</summary><p>Se elige qué tipo de error se prefiere cometer. Bajar el umbral marca más casos como positivos, así que sube la sensibilidad y baja la precisión: más alarmas, menos escapes. Subirlo hace lo contrario. El 0,5 es solo una convención heredada de suponer que los dos errores cuestan lo mismo y que las dos clases son igual de frecuentes, y casi nunca se cumplen las dos cosas. En control de calidad, dejar pasar un lote defectuoso cuesta bastante más que revisar uno bueno, así que el umbral correcto está por debajo de 0,5, y esa es una decisión del negocio y no del modelo.</p></details></section>
 </main>
 <footer class="footer">
-  Concentra / destilado del temario público del curso / 2026-08-22
+  Concentra / destilado del temario público del curso / 2026-08-23
 </footer>
 </body>
 </html>

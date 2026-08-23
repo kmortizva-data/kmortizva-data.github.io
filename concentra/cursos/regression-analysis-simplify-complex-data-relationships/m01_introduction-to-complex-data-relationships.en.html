@@ -1,0 +1,502 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Introduction to complex data relationships · Regression Analysis: Simplify Complex Data Relationships</title>
+<link rel="alternate" hreflang="es" href="m01_introduction-to-complex-data-relationships.html">
+<style>
+/* ============================================================================
+   Concentra — design tokens and shared components.
+   Inlined into every generated page by load_style(), so pages stay self-contained
+   and work offline from file:// with no external requests.
+
+   Direction: an assay lab, not a tech dashboard. The palette is taken from ore
+   and lab materials (chalcopyrite brass, malachite, hematite, quartz) on warm
+   graphite rather than the blue-black + neon of a generic dark UI. Type is
+   Bahnschrift, the DIN-descended grotesque that Windows ships and that lives on
+   machinery plates and technical drawings, over Corbel for reading.
+   ========================================================================== */
+
+:root {
+  /* Ground and surfaces: warm graphite, the colour of rock dust, not blue-black */
+  --rock: #1a1714;
+  --bench: #221e19;
+  --core: #2b251f;
+  --seam: #3d352c;
+
+  /* Ore palette. No blue and no purple anywhere: those are the tones that make a
+     page read as generated, and this palette comes from the ores instead. */
+  --brass: #c9a227;      /* chalcopyrite, the primary accent */
+  --malachite: #5d9b7a;  /* verified output, results that came out right */
+  --hematite: #b04a35;   /* iron oxide, pitfalls and warnings */
+
+  /* Text */
+  --quartz: #ece7de;
+  --dust: #9a9186;
+  --shadowed: #6f675c;
+
+  --display: Bahnschrift, 'DIN Alternate', 'Segoe UI Semibold', system-ui, sans-serif;
+  --body: Corbel, Candara, 'Segoe UI', system-ui, sans-serif;
+  --data: Consolas, 'Cascadia Mono', ui-monospace, monospace;
+
+  /* In px, not ch: ch scales with font-size, so a heading ended up wider than a
+     paragraph and the page had four different right edges instead of two. */
+  --measure: 640px;
+  --wide: 900px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--rock);
+  color: var(--quartz);
+  font-family: var(--body);
+  font-size: 16px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection { background: var(--brass); color: var(--rock); }
+
+:focus-visible {
+  outline: 2px solid var(--brass);
+  outline-offset: 3px;
+}
+
+/* --------------------------------------------------------------- the signature
+   A sieve series: ticks that get finer from left to right, coarse feed to fine
+   concentrate. It is the one ornament on the page and appears exactly twice —
+   under the wordmark and under a page title. */
+.mesh {
+  height: 10px;
+  background-image:
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 16px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 9px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 5px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 3px);
+  background-size: 25% 100%;
+  background-position: 0 0, 25% 0, 50% 0, 75% 0;
+  background-repeat: no-repeat;
+  opacity: .8;
+  transform-origin: left center;
+  animation: sieve .55s cubic-bezier(.2, .8, .3, 1) both;
+}
+@keyframes sieve { from { transform: scaleX(0); opacity: 0; } to { transform: scaleX(1); opacity: .8; } }
+@media (prefers-reduced-motion: reduce) {
+  .mesh { animation: none; }
+  * { transition: none !important; }
+}
+
+/* ------------------------------------------------------------------ page head */
+.header {
+  border-bottom: 1px solid var(--seam);
+  padding: 3.2rem 2rem 0;
+  background: linear-gradient(180deg, #221d16 0%, var(--rock) 100%);
+}
+.header-content { max-width: 1080px; margin: 0 auto; }
+
+.eyebrow {
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--brass);
+  margin-bottom: 1rem;
+  display: flex; flex-wrap: wrap; align-items: center;
+  justify-content: space-between; gap: .6rem 1rem;
+}
+.eyebrow a { color: inherit; text-decoration: none; border-bottom: 1px solid transparent; }
+.eyebrow a:hover { border-bottom-color: var(--brass); }
+/* The way to the other edition of this page. It targets the shell, not the bare
+   page, so the sidebar follows the language too. */
+.eyebrow .lang-switch {
+  margin-left: auto; border: 1px solid var(--seam); border-radius: 2px;
+  padding: .22rem .6rem; color: var(--dust); font-size: .68rem; letter-spacing: .1em;
+}
+.eyebrow .lang-switch:hover { color: var(--brass); border-color: var(--brass); }
+
+.header h1 {
+  font-family: var(--display);
+  font-size: clamp(2rem, 4.5vw, 3.1rem);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -.015em;
+  color: var(--quartz);
+  max-width: 20ch;
+}
+.header .subtitle {
+  color: var(--dust);
+  max-width: var(--measure);
+  margin-top: 1rem;
+  font-size: 1.02rem;
+}
+.header .mesh { margin: 1.8rem 0 0; }
+
+/* An assay line: the real composition of the module, in lab-report shorthand. */
+.assay {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.4rem;
+  font-family: var(--data);
+  font-size: .78rem;
+  color: var(--shadowed);
+  padding: .9rem 0 1.6rem;
+  letter-spacing: .04em;
+}
+.assay b { color: var(--dust); font-weight: 400; }
+
+/* --------------------------------------------------------------------- layout */
+/* The container hugs the widest block, so there is no orphan edge past the content. */
+.container { max-width: var(--wide); margin: 3rem auto 5rem; padding: 0 2rem; }
+
+/* Two deliberate right edges and no more: prose stops at the reading measure, and
+   only the things that genuinely need room (code, output, figures, big tables) run
+   out to the full column. */
+.section-block {
+  border-top: 1px solid var(--seam);
+  padding: 2rem 0 2.4rem;
+}
+.section-block > p,
+.section-block > ul,
+.section-block > ol,
+.section-block h3.sub,
+.section-block h4.sub,
+.section-block blockquote,
+details > *:not(summary) { max-width: var(--measure); }
+.section-block:first-child { border-top: 0; padding-top: .5rem; }
+
+/* The kicker names what kind of content follows: context, method, pitfalls.
+   It replaces decorative icons with something that actually classifies. */
+.kicker {
+  font-family: var(--data);
+  font-size: .68rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  display: block;
+  margin-bottom: .5rem;
+}
+.section-title {
+  font-family: var(--display);
+  font-size: 1.55rem;
+  font-weight: 600;
+  letter-spacing: -.01em;
+  line-height: 1.2;
+  margin-bottom: 1.2rem;
+  color: var(--quartz);
+}
+.is-warning .kicker { color: var(--hematite); }
+.is-warning .section-title { color: #e8c4b8; }
+.is-bridge .kicker, .is-decision .kicker { color: var(--malachite); }
+.is-toy .kicker, .is-result .kicker, .is-question .kicker { color: var(--brass); }
+
+/* ---------------------------------------------------------------------- prose */
+/* Justified with hyphenation. In Spanish, justifying without hyphens opens rivers of
+   white space and reads worse than ragged right; lang="es" is what feeds the
+   dictionary. Tables, code, captions and summaries stay ragged on purpose. */
+.section-block p,
+.section-block li,
+details > *:not(summary) {
+  text-align: justify;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+}
+.section-block p { margin-bottom: 1rem; }
+.section-block p:last-child { margin-bottom: 0; }
+/* Indent with padding, not margin, so the bullet sits inside the measure instead of
+   pushing the list 1.2rem past the right edge of the paragraphs. */
+.section-block ul, .section-block ol { margin: 0 0 1rem; padding-left: 1.2rem; }
+.section-block li { margin-bottom: .55rem; padding-left: .2rem; }
+.section-block li::marker { color: var(--brass); }
+td, th, figcaption, .res li, .assay { text-align: left; hyphens: manual; }
+a { color: var(--brass); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+a:hover { text-decoration-thickness: 2px; }
+strong { color: #fff; font-weight: 700; }
+em { color: var(--dust); font-style: italic; }
+
+h3.sub {
+  font-family: var(--display);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--brass);
+  margin: 2rem 0 .7rem;
+  letter-spacing: -.005em;
+}
+h3.sub:first-child { margin-top: 0; }
+h4.sub {
+  font-family: var(--display);
+  font-size: .98rem;
+  font-weight: 600;
+  color: var(--dust);
+  margin: 1.3rem 0 .5rem;
+}
+
+code {
+  font-family: var(--data);
+  font-size: .9em;
+  background: var(--core);
+  border-radius: 3px;
+  padding: .08rem .32rem;
+  color: var(--brass);
+}
+pre {
+  background: #14110e;
+  border: 1px solid var(--seam);
+  border-left: 2px solid var(--seam);
+  border-radius: 2px;
+  padding: 1.1rem 1.2rem;
+  overflow-x: auto;
+  margin-bottom: 1rem;
+}
+pre code {
+  background: none; padding: 0; color: var(--quartz);
+  font-size: .87rem; line-height: 1.6;
+}
+
+/* What the code prints. Malachite: the material that came out of the process. */
+.output {
+  position: relative;
+  border: 1px solid rgba(93, 155, 122, .32);
+  border-left: 2px solid var(--malachite);
+  border-radius: 2px;
+  background: rgba(93, 155, 122, .06);
+  padding: 1.7rem 1.2rem 1rem;
+  margin-bottom: 1rem;
+  overflow-x: auto;
+}
+.output-tag {
+  position: absolute; top: .5rem; left: 1.2rem;
+  font-family: var(--data); font-size: .64rem;
+  letter-spacing: .18em; text-transform: uppercase; color: var(--malachite);
+}
+.output pre {
+  background: none; border: 0; padding: 0; margin: 0;
+  font-family: var(--data); font-size: .85rem;
+  color: var(--quartz); white-space: pre-wrap;
+}
+
+/* Line by line explanation of a code block, for a reader new to programming.
+   Two columns: the fragment of code, and what it does. */
+.annot {
+  display: grid;
+  grid-template-columns: minmax(9rem, auto) 1fr;
+  gap: .1rem 1.2rem;
+  align-items: baseline;
+  max-width: var(--wide);
+  margin: -.4rem 0 1.4rem;
+  padding: .9rem 1.1rem 1rem;
+  border: 1px solid var(--seam);
+  border-top: 0;
+  border-radius: 0 0 2px 2px;
+  background: rgba(201, 162, 39, .04);
+}
+.annot-head {
+  grid-column: 1 / -1;
+  font-family: var(--data);
+  font-size: .64rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  margin-bottom: .5rem;
+}
+.annot dt { padding: .35rem 0; }
+.annot dt code {
+  background: var(--core);
+  color: var(--brass);
+  font-size: .82rem;
+  white-space: nowrap;
+}
+.annot dd {
+  padding: .35rem 0;
+  margin: 0;
+  color: var(--dust);
+  font-size: .93rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(61, 53, 44, .5);
+}
+.annot dt { border-bottom: 1px solid rgba(61, 53, 44, .5); }
+.annot dt:last-of-type, .annot dd:last-of-type { border-bottom: 0; }
+/* The code block sits directly on top of its annotation, as one unit. */
+pre:has(+ .annot) { margin-bottom: 0; border-radius: 2px 2px 0 0; }
+
+@media (max-width: 640px) {
+  .annot { grid-template-columns: 1fr; gap: 0; }
+  .annot dt { border-bottom: 0; padding-bottom: 0; }
+  .annot dd { padding-top: .15rem; }
+}
+
+blockquote {
+  border-left: 2px solid var(--brass);
+  padding: .3rem 0 .3rem 1.3rem;
+  margin: 0 0 1rem;
+  font-family: var(--display);
+  font-size: 1.2rem;
+  font-weight: 400;
+  line-height: 1.4;
+  color: var(--quartz);
+}
+
+/* Tables read as assay data: mono figures, hairline rules, no zebra fill.
+   They take the width they need instead of being stretched to the full column,
+   which is what left a two-column table floating in empty space. */
+.table-wrap { overflow-x: auto; margin-bottom: 1rem; }
+table { border-collapse: collapse; width: auto; max-width: 100%; font-size: .93rem; }
+th, td {
+  border-bottom: 1px solid var(--seam);
+  padding: .55rem .8rem .55rem 0;
+  text-align: left;
+  vertical-align: top;
+}
+th {
+  font-family: var(--data);
+  font-size: .7rem;
+  font-weight: 400;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  border-bottom-color: var(--brass);
+}
+td:first-child { color: var(--quartz); }
+
+/* Review questions: closed by default, so they work as recall practice. */
+details {
+  border-top: 1px solid var(--seam);
+  padding: .9rem 0;
+}
+details:last-child { border-bottom: 1px solid var(--seam); }
+summary {
+  cursor: pointer;
+  font-family: var(--display);
+  font-size: 1.02rem;
+  font-weight: 600;
+  color: var(--quartz);
+  list-style: none;
+  display: flex;
+  gap: .7rem;
+  align-items: baseline;
+}
+summary::-webkit-details-marker { display: none; }
+summary::before {
+  content: '+';
+  font-family: var(--data);
+  color: var(--brass);
+  font-size: .95rem;
+}
+details[open] summary::before { content: '−'; }
+details[open] summary { color: var(--brass); margin-bottom: .7rem; }
+details > *:not(summary) { color: var(--dust); }
+
+figure.fig {
+  margin: 1.6rem 0;
+  border: 1px solid var(--seam);
+  padding: .7rem;
+  background: var(--bench);
+}
+figure.fig img { width: 100%; height: auto; display: block; }
+/* The interactive twin of a figure. Its aspect matches the still one, 10 by 4.4, so a
+   case sheet keeps the same rhythm whichever kind of figure comes next. */
+figure.fig.is-live iframe {
+  width: 100%;
+  /* Matches INTERACTIVE_HEIGHT in src/make_figures.py. It used to be an aspect ratio, and
+     that made the figure's height depend on the window: the caption and the legend are
+     placed at fractions of the plot area, so on a wide screen they were pushed past the
+     bottom margin, clipping the caption and covering the x-axis title. */
+  height: 520px;
+  border: 0;
+  display: block;
+}
+figure.fig figcaption {
+  font-family: var(--data);
+  font-size: .72rem;
+  color: var(--shadowed);
+  margin-top: .6rem;
+  letter-spacing: .04em;
+}
+
+/* File listings on a case sheet */
+.res { list-style: none; margin-left: 0 !important; }
+.res li {
+  display: flex; align-items: baseline; gap: .8rem; flex-wrap: wrap;
+  padding: .5rem 0; border-bottom: 1px solid var(--seam); margin-bottom: 0;
+}
+.res .path { font-family: var(--data); font-size: .74rem; color: var(--shadowed); }
+.res .size { font-family: var(--data); font-size: .74rem; color: var(--shadowed); margin-left: auto; }
+.res .gone { font-family: var(--data); font-size: .74rem; color: var(--hematite); }
+
+.footer {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 2rem 4rem;
+  color: var(--shadowed);
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .03em;
+}
+
+@media (max-width: 640px) {
+  body { font-size: 15px; }
+  .header { padding: 2rem 1.2rem 0; }
+  .container { padding: 0 1.2rem; margin-top: 2rem; }
+  .footer { padding: 0 1.2rem 3rem; }
+}
+
+@media print {
+  body { background: #fff; color: #16130f; }
+  .header { background: none; border-bottom: 1px solid #bbb; padding-top: 0; }
+  .header h1, .section-title, summary { color: #16130f; }
+  .mesh { animation: none; }
+  .section-block { break-inside: avoid; max-width: none; }
+  pre, .output { background: #f6f4f0; border-color: #ccc; }
+  details:not([open]) > *:not(summary) { display: block; }
+  a { color: #16130f; }
+}
+
+</style>
+</head>
+<body>
+<header class="header">
+  <div class="header-content">
+    <div class="eyebrow"><span><a href="https://www.coursera.org/learn/regression-analysis-simplify-complex-data-relationships">Regression Analysis: Simplify Complex Data Relationships</a> / Module 1</span><a class="lang-switch" href="../index.html#regression-analysis-simplify-complex-data-relationships/m01_introduction-to-complex-data-relationships" target="_top" hreflang="es" lang="es" title="Leer esta página en español">Español</a></div>
+    <h1>Introduction to complex data relationships</h1>
+    <p class="subtitle">The previous course asked whether two groups are different. This one asks how much one thing changes when another changes. Here the map gets drawn, what a relationship is, how its strength is measured with five numbers worked by hand, and which of the two models of the course, linear or logistic, belongs to each question.</p>
+    <div class="mesh" role="presentation"></div>
+    <div class="assay"><span><b>2 h</b> course time</span><span><b>8</b> videos</span><span><b>3</b> readings</span><span><b>4</b> assignments</span><span><b>2</b> interactive</span></div>
+  </div>
+</header>
+<main class="container">
+<section class="section-block "><span class="kicker">Context</span><h2 class="section-title">What this module solves</h2><p>In the statistics course the question was binary: <strong>is there a difference or is there not?</strong> Out came a yes or a no, with its p-value next to it. Useful for deciding, poor for acting.</p><p>The question of this course is another one: <strong>how much?</strong> Not &quot;the collector improves the recovery&quot;, but &quot;for every gram per tonne of collector the recovery rises 0.4 points&quot;. The first informs; the second tells you how much to dose tomorrow.</p><p>This module is the map of the course. It does not calculate any complete model yet; it fixes three things: what a relationship between variables is, how its strength is measured with a single number, and <strong>how to decide which of the two models of the course corresponds to each question</strong>.</p></section>
+<section class="section-block is-toy"><span class="kicker">Example</span><h2 class="section-title">Before the theory: a toy example</h2><p>Five flotation tests. In each one the collector dose was changed and the recovery was measured:</p><pre><code>dosis (g/t)        10    20    30    40    50
+recuperación (%)   69    75    79    81    86</code></pre><p>It is plain to see that they rise together. What we want is <strong>to put a number on that &quot;rise together&quot;</strong>, and it is done with primary-school arithmetic. These same five points reappear in module 2, so it is worth understanding them well now.</p><h3 class="sub h3">Step 1. The centre of each variable</h3><pre><code>media de la dosis        = (10 + 20 + 30 + 40 + 50) / 5 = 150 / 5 = 30
+media de la recuperación = (69 + 75 + 79 + 81 + 86) / 5 = 390 / 5 = 78</code></pre><p>The point (30, 78) is the centre of the cloud. <strong>Every regression line passes through that point</strong>, and we will use that in module 2.</p><h3 class="sub h3">Step 2. How far each test is from the centre</h3><div class="table-wrap"><table><thead><tr><th>Test</th><th>Dose</th><th>Distance to 30</th><th>Recovery</th><th>Distance to 78</th><th>Product</th></tr></thead><tbody><tr><td>1</td><td>10</td><td>−20</td><td>69</td><td>−9</td><td>+180</td></tr><tr><td>2</td><td>20</td><td>−10</td><td>75</td><td>−3</td><td>+30</td></tr><tr><td>3</td><td>30</td><td>0</td><td>79</td><td>+1</td><td>0</td></tr><tr><td>4</td><td>40</td><td>+10</td><td>81</td><td>+3</td><td>+30</td></tr><tr><td>5</td><td>50</td><td>+20</td><td>86</td><td>+8</td><td>+160</td></tr></tbody></table></div><p>Look at the last column, which is where the whole idea is. <strong>The product is positive when the two distances have the same sign</strong>: dose below the mean with recovery also below, or both above. If the two variables moved in opposite directions, those products would come out negative.</p><p>Here the five products are positive or zero, and they add up to <strong>400</strong>. That number, positive and large, is the sign that the two variables move in the same direction.</p><h3 class="sub h3">Step 3. The problem of units, and how it is removed</h3><p>400 means nothing on its own. If the dose were in kilograms per tonne instead of grams, the same experiment would give 0.4 instead of 400, and the relationship would be exactly the same. <strong>It has to be divided by something that carries the units</strong>, and that something is the distances themselves, squared and added:</p><pre><code>distancias de la dosis al cuadrado         = 400 + 100 + 0 + 100 + 400 = 1000
+distancias de la recuperación al cuadrado  = 81 + 9 + 1 + 9 + 64      = 164</code></pre><p>And now the division:</p><pre><code>r = 400 / √(1000 × 164) = 400 / √164000 = 400 / 404,97 = 0,9877</code></pre><p><strong>That 0.9877 is the correlation coefficient.</strong> By dividing by the two spreads, the units cancel out and the result always stays enclosed between −1 and +1, whether you measure in grams, in kilos or in ounces.</p><h3 class="sub h3">Step 4. Reading the number</h3><div class="table-wrap"><table><thead><tr><th>Value of r</th><th>What it means</th></tr></thead><tbody><tr><td>+1</td><td>The points fall exactly on a line that rises</td></tr><tr><td>+0.9877</td><td><strong>Our case.</strong> Almost a perfect rising line</td></tr><tr><td>0</td><td>No <strong>straight</strong> relationship between the two variables</td></tr><tr><td>−1</td><td>The points fall exactly on a line that falls</td></tr></tbody></table></div><p>With 0.9877 the relationship is strong and positive. And incidentally, the last column of step 2 already contains the slope of module 2: <strong>400 divided by 1000 gives 0.4</strong>, which is exactly the &quot;rises 0.4 points for every gram per tonne&quot; from the start. Correlation and regression come out of the same two numbers, arranged differently.</p></section>
+<section class="section-block "><span class="kicker">Terms</span><h2 class="section-title">Glossary</h2><ul><li><strong>Independent variable.</strong> The one you control or choose, the dose in the example. Also called predictor, explanatory or simply X.</li><li><strong>Dependent variable.</strong> The one you want to explain or predict, the recovery. Also called response, outcome or Y. **The question is always written like this: how does X affect Y**, and not the other way round.</li><li><strong>Linear relationship.</strong> That as X increases, Y increases or decreases at an approximately constant rate. Put another way, that the points let themselves be summed up with a line.</li><li><strong>Correlation.</strong> The number between −1 and +1 that measures the strength and direction of a linear relationship. The example&#x27;s is 0.9877.</li><li><strong>Pearson coefficient.</strong> The formal name of that correlation, in case it appears that way in the course. It is the one calculated by default everywhere.</li><li><strong>Scatter plot.</strong> The chart of points X against Y. It is the first thing drawn, always, before calculating anything.</li><li><strong>Linear regression.</strong> The model that sums up the relationship with a line and returns a <strong>number</strong> as the prediction, for example 79.3% recovery.</li><li><strong>Logistic regression.</strong> The model for when the response is not a number but a **yes or a no**, and it returns the probability of that yes.</li><li><strong>Continuous variable.</strong> One that can take any value within a range: recovery, grade, tonnage.</li><li><strong>Categorical variable.</strong> One that takes labels: passes or does not pass, day or night shift, ore type.</li><li><strong>PACE.</strong> The framework of the certificate, with its four stages: Plan, Analyze, Construct, Execute. In this course each stage has specific content, seen further down.</li></ul></section>
+<section class="section-block is-recipe"><span class="kicker">Method</span><h2 class="section-title">Step by step</h2><h3 class="sub h3">Step 1. Name who is X and who is Y</h3><p>Before touching anything you have to decide <strong>what you want to explain</strong>. That is Y. What is used to explain it is X. It sounds trivial and it is not: swapping the roles changes the model and changes the final sentence of the report.</p><p>In the example, Y is the recovery because it is what we care about improving, and X is the dose because it is the knob we can move. The practical rule: <strong>X is what you decide, Y is what you suffer</strong>.</p><h3 class="sub h3">Step 2. Draw before calculating</h3><p>A scatter plot before any formula. Three things get looked at:</p><ol><li><strong>Does it rise, fall, or is nothing visible?</strong> That gives the expected sign of the correlation.</li><li><strong>Is it a line or is it a curve?</strong> If it is a curve, the correlation is going to lie, and the whole of module 2 cannot be applied as is.</li><li><strong>Is there a stray point far from the rest?</strong> A single extreme value can move the whole line.</li></ol><p>Skipping this step is the most expensive mistake of the course, because <strong>no formula complains</strong>. Fitting a line to a U-shaped cloud returns a slope perfectly calculated and perfectly useless.</p><h3 class="sub h3">Step 3. Measure the strength with the correlation</h3><p>It is what we did by hand. Two warnings about how that number is read.</p><p><strong>The correlation only sees lines.</strong> An r of 0 does not mean &quot;there is no relationship&quot;, it means &quot;there is no <strong>straight</strong> relationship&quot;. In the code below there is a case where the relationship is perfect, deterministic and obvious in the drawing, and r comes out exactly 0.</p><p><strong>The correlation does not tell causes apart.</strong> That two things move together admits four different explanations, and only one is the one we usually assume:</p><div class="table-wrap"><table><thead><tr><th>Explanation</th><th>Example</th></tr></thead><tbody><tr><td>X causes Y</td><td>More collector, more recovery. What we believe</td></tr><tr><td>Y causes X</td><td>The operator raises the dose <strong>when</strong> they see the lot is performing well</td></tr><tr><td>A third variable causes both</td><td>The easy ore arrives in summer, and in summer the water is warmer</td></tr><tr><td>Chance</td><td>With enough variables, some correlate by chance</td></tr></tbody></table></div><p>Only an experiment with random assignment rules out the last three. With observed data, what is claimed is <strong>association</strong>, and that is how it has to be written in the report.</p><h3 class="sub h3">Step 4. Choose the model, which is the central content of the module</h3><p>The whole decision depends on <strong>what Y is like</strong>, not on what X is like:</p><div class="table-wrap"><table><thead><tr><th>If Y is</th><th>Model</th><th>What it returns</th><th>Example</th></tr></thead><tbody><tr><td>A continuous number</td><td><strong>Linear</strong> regression</td><td>A value</td><td>Recovery of 79.3%</td></tr><tr><td>A yes or a no</td><td><strong>Logistic</strong> regression</td><td>A probability of yes</td><td>82% that the lot passes spec</td></tr></tbody></table></div><p>The typical confusion is looking at X. It does not matter: a number can be predicted from a category, and a yes or a no can be predicted from a number. <strong>Y is in charge.</strong></p><p>And why not use the line for the yes or no too, coding yes as 1 and no as 0? Because a line has no brake. It keeps rising, and with a high enough dose it predicts a probability of 1.4, which does not exist. The logistic is the same idea with an S-shaped curve that flattens against 0 and against 1 without ever overshooting. It is seen in module 5.</p><h3 class="sub h3">Step 5. Place it in PACE</h3><p>The four stages of the certificate&#x27;s framework, with what each one means <strong>in a concrete regression analysis</strong>:</p><div class="table-wrap"><table><thead><tr><th>Stage</th><th>In regression</th></tr></thead><tbody><tr><td><strong>Plan</strong></td><td>Define who Y is, which X are available, and which decision the result is going to change</td></tr><tr><td><strong>Analyze</strong></td><td>Draw, clean, look at correlations and check that the relationship looks straight</td></tr><tr><td><strong>Construct</strong></td><td>Fit the model <strong>and verify its assumptions</strong>, which is half the work</td></tr><tr><td><strong>Execute</strong></td><td>Translate the coefficient into a recommendation with units, and state its limits</td></tr></tbody></table></div><p>The trap is in Construct. Many people fit the model, read the R², and skip the verification of assumptions. A model without checked assumptions is not defensible, and the course insists on that from here to the final project.</p></section>
+<section class="section-block is-recipe"><span class="kicker">Code</span><h2 class="section-title">The code, in parts</h2><h3 class="sub h3">Step 1. Put a number on the relationship of the five tests</h3><p>The same five points we did with a pencil, to check that the computer says the same.</p><pre><code class="language-python">import numpy as np
+from scipy import stats
+
+dose = np.array([10, 20, 30, 40, 50])
+recovery = np.array([69, 75, 79, 81, 86])
+
+r, p_value = stats.pearsonr(dose, recovery)
+print(f&quot;r = {r:.4f}&quot;)
+print(f&quot;p = {p_value:.4f}&quot;)</code></pre><dl class="annot"><div class="annot-head">line by line</div><dt><code>import numpy as np</code></dt><dd>Brings in the library for computing with vectors and gives it the nickname <code>np</code>. It is the universal convention, and everyone who reads your code expects to see <code>np</code>.</dd><dt><code>from scipy import stats</code></dt><dd>From the scientific package, only the statistics drawer. It is the same <code>stats</code> as in the previous course, so you already know where to look.</dd><dt><code>np.array([...])</code></dt><dd>Turns a Python list into a numpy vector. The practical difference is that a vector knows how to do arithmetic on itself: subtracting its mean from all five values at once, for example.</dd><dt><code>r, p_value = stats.pearsonr(...)</code></dt><dd><code>pearsonr</code> returns <strong>two</strong> things, so two names are needed on the left. If you put only one, you get the whole pair and then you cannot format it.</dd><dt><code>p_value</code></dt><dd>The probability of seeing a correlation this strong if in fact there were no relationship at all. It is the same testing logic of the previous course, now applied to the correlation.</dd><dt><code>f&quot;r = {r:.4f}&quot;</code></dt><dd>An f-string: what goes between braces is replaced by its value. The <code>:.4f</code> asks for four decimals, which are needed here because the number is right up against 1.</dd></dl><div class="output"><span class="output-tag">prints</span><pre>r = 0.9877
+p = 0.0016</pre></div><p>The 0.9877 is exactly the one we got dividing 400 by 404.97. The p-value of 0.0016 says besides that a correlation this strong with five points is hard to get by pure chance.</p><h3 class="sub h3">Step 2. The case that proves r only sees lines</h3><p>Seven tests varying the pH, with the recovery measuring an optimum at pH 11, which is normal behaviour in flotation.</p><pre><code class="language-python">ph = np.array([8, 9, 10, 11, 12, 13, 14])
+rec_ph = np.array([71, 74, 79, 86, 79, 74, 71])
+
+print(f&quot;r con el pH = {stats.pearsonr(ph, rec_ph)[0]:.4f}&quot;)</code></pre><dl class="annot"><div class="annot-head">line by line</div><dt><code>rec_ph</code></dt><dd>A different name so as not to tread on the <code>recovery</code> variable of the previous step. Reusing a name overwrites what was there, without any warning.</dd><dt><code>stats.pearsonr(...)[0]</code></dt><dd>The brackets with a zero take <strong>the first</strong> element of the pair the function returns, that is the correlation, and discard the p-value. In Python counting starts at 0, not at 1.</dd></dl><div class="output"><span class="output-tag">prints</span><pre>r con el pH = 0.0000</pre></div><p><strong>Exactly zero</strong>, and yet the relationship is perfect: knowing the pH, the recovery is determined without any uncertainty. What happens is that the left half rises and the right half falls, and the products of step 2 of the toy example cancel each other out.</p><p>If you trust the number without drawing, you conclude that the pH does not affect the recovery, which is exactly the opposite of the truth. That is why step 2 of the method is drawing.</p><h3 class="sub h3">Step 3. A preview of the line that comes in module 2</h3><p><code>linregress</code> does in one line what module 2 takes apart piece by piece. It is worth seeing it now to recognise the numbers.</p><pre><code class="language-python">fit = stats.linregress(dose, recovery)
+
+print(f&quot;pendiente  = {fit.slope}&quot;)
+print(f&quot;intercepto = {fit.intercept}&quot;)
+print(f&quot;R2         = {fit.rvalue ** 2:.4f}&quot;)</code></pre><dl class="annot"><div class="annot-head">line by line</div><dt><code>fit = stats.linregress(...)</code></dt><dd>Returns a single object with all the results inside, instead of a list of loose values. It is stored under a name and then the pieces are asked of it with a dot.</dd><dt><code>fit.slope</code></dt><dd>The slope: how much Y rises per unit of X. <strong>This is the result of the analysis</strong>, the number that goes to the report.</dd><dt><code>fit.intercept</code></dt><dd>The intercept: what the model predicts when X is zero.</dd><dt><code>fit.rvalue</code></dt><dd>The correlation, the same 0.9877 as before. Careful, because it is not the R² yet.</dd><dt><code>fit.rvalue ** 2</code></dt><dd>Two asterisks are &quot;raised to&quot;. Squared, the correlation becomes the R², which is interpreted differently and is explained in module 2.</dd></dl><div class="output"><span class="output-tag">prints</span><pre>pendiente  = 0.4
+intercepto = 66.0
+R2         = 0.9756</pre></div><p>Translated into a report sentence: <strong>for every gram per tonne of collector, the recovery rises 0.4 percentage points</strong>. That is what the correlation on its own could not give you, because 0.9877 has no units and 0.4 does.</p></section>
+<section class="section-block is-warning"><span class="kicker">Traps</span><h2 class="section-title">Watch out</h2><ul><li><strong>Correlation is not cause.</strong> It is the most repeated sentence in data analysis and the most broken one in the conclusion of the report. With observed data you write &quot;is associated with&quot;, not &quot;causes&quot;.</li><li><strong>An r of 0 does not mean there is no relationship.</strong> It means there is no <strong>straight</strong> relationship. The pH case gives exactly zero with a perfect relationship underneath.</li><li><strong>A high r does not guarantee the line works either.</strong> A smooth curve can give an r of 0.9 and the line will still be systematically wrong at the ends.</li><li><strong>The correlation has no units and that is why it does not serve to decide.</strong> 0.9877 does not tell you how much to dose. The slope, 0.4 points per gram per tonne, does.</li><li><strong>A single extreme point moves the number.</strong> With five values, changing a single measurement can take the correlation from 0.98 to 0.60. The smaller the sample, the more fragile all of this.</li><li><strong>Y decides the model, not X.</strong> If Y is a number, linear; if Y is a yes or a no, logistic. Looking at the type of X to choose is the classic mistake of this module.</li><li><strong>A line cannot predict probabilities.</strong> It has no cap, so it will end up returning values below 0 or above 1, which do not exist. That is what the logistic is for.</li></ul></section>
+<section class="section-block is-bridge"><span class="kicker">Analogy</span><h2 class="section-title">Metallurgical bridge</h2><p>The relationship between two variables that move together you already know under another name: it is the <strong>grade-recovery curve</strong>, the first figure in any flotation report.</p><p>That curve says the same as this module, in plant vocabulary:</p><div class="table-wrap"><table><thead><tr><th>In the course</th><th>In the grade-recovery curve</th></tr></thead><tbody><tr><td>Independent variable X</td><td>The concentrate grade you set out to reach</td></tr><tr><td>Dependent variable Y</td><td>The recovery you get at that grade</td></tr><tr><td>Negative correlation</td><td>That raising the grade costs you recovery, always</td></tr><tr><td>Non-linear relationship</td><td>That the drop accelerates at the high-grade end</td></tr></tbody></table></div><p>And look at the bottom row, because it is the warning of the whole module. <strong>The grade-recovery curve is not a line</strong>: it is flat in the working zone and collapses when you push the grade. If you calculated a correlation on it over the whole range, the number would come out mediocre and would describe neither of the two zones well.</p><p>That is what a metallurgist does when they draw the curve before deciding the operating point, and it is exactly step 2 of the method: <strong>look at the shape before summing it up with a number</strong>.</p><p>And the difference between the two models of the course you also live at the plant: &quot;what recovery am I going to get?&quot; asks for a number and is answered with a linear regression. &quot;Is this lot going to pass the arsenic specification?&quot; asks for a yes or a no and is answered with a logistic one.</p></section>
+<section class="section-block is-review"><span class="kicker">Review</span><h2 class="section-title">Review</h2><details><summary>What exactly does the correlation coefficient measure and what does it not measure?</summary><p>It measures the strength and direction of the <strong>linear</strong> relationship between two variables, on a scale from −1 to +1 that does not depend on the units. It does not measure causality, it does not measure the size of the effect in real units, and it does not detect curved relationships. The pH example makes it clear: seven points with a perfect bell-shaped relationship give a correlation of exactly zero, because the rising half and the falling half cancel out. To know how much Y changes per unit of X you need the slope of the regression, which does have units.</p></details><details><summary>How is the choice between linear regression and logistic regression made?</summary><p>By looking at <strong>the dependent variable</strong>, never the independent one. If Y is a continuous number, like a recovery or a fare, linear regression applies, which returns a value. If Y is a yes or a no, like passing or not passing a specification, logistic applies, which returns the probability of that yes. The usual mistake is to look at the type of the X variables, which has no bearing on this decision: a number can be predicted from categories and a binary response from numbers.</p></details><details><summary>Two variables have a correlation of 0.95. Can it be claimed that one causes the other?</summary><p>No. A high correlation admits at least four explanations: that X causes Y, that Y causes X, that a third unmeasured variable causes both, or that it is chance. Only an experiment with random assignment allows ruling out the last three. With observed data the honest conclusion is written as association, and if a grouping variable is suspected, it has to go into the model, which is exactly what the multiple regression of module 3 does.</p></details><details><summary>Why does the method insist on drawing the data before calculating anything?</summary><p>Because no formula warns that it is being misapplied. A correlation or a line gets calculated without complaint on a U-shaped cloud, on data with an extreme value that pulls everything, or on two different groups mixed together. The scatter plot shows in a second three things the number hides: whether the relationship is straight or curved, whether there are stray points, and whether the cloud is in fact more than one cloud.</p></details><details><summary>In the example of the five tests, why is the correlation 0.9877 and the slope 0.4?</summary><p>Because they come out of the same ingredients divided by different things. The sum of the products of the distances to the centre is 400 and it is common to both. The slope divides that 400 by the spread of X alone, 1000, and gives 0.4, which keeps the units: points of recovery per gram per tonne. The correlation divides by the root of the product of the two spreads, 1000 and 164, and gives 0.9877, a number without units and bounded between −1 and +1. That is why the correlation serves to compare relationships with each other, and the slope to decide how much to dose.</p></details></section>
+</main>
+<footer class="footer">
+  Concentra / distilled from the public syllabus of the course / 2026-08-23
+</footer>
+</body>
+</html>
