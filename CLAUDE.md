@@ -83,8 +83,10 @@ python src/build.py && python src/check_site.py
 - ✅ **Sílice en inglés** (2026-08-22): 14 módulos + portada como gemelas `.en.html`, con
   interruptor de idioma en cada página y puerta de paridad de cifras. El botón de la
   portada abre la edición del idioma del lector.
-- **Siguiente tramo: Concentra al inglés** (25 módulos + 12 casos) con la misma receta
-  (gemelas por archivo, `check_english` con paridad de cifras). Hasta entonces su
-  cabecera lleva «English summary ↗» hacia su ficha en inglés.
+- ✅ **Concentra en inglés** (2026-08-23): 42 gemelas (5 portadas, 25 módulos, 12 casos)
+  con la misma receta; cáscara `index.en.html` con árbol, buscador y migas en inglés, y
+  un interruptor en cada página que conserva la ruta (`../index.en.html#<slug>/<stem>`,
+  `target="_top"` porque las páginas viven en un iframe). El botón de la portada abre la
+  edición del idioma del lector. **Los tres cursos publicados son ahora bilingües.**
 - Repo público para Geoestadística si Kevin quiere el botón «Read the code».
 - Retomar la captura de bg-remover cuando se arregle y se muestre.
