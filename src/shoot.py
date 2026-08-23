@@ -40,6 +40,12 @@ SETTLE_MS = 6000        # default: enough for a static page with figures
 # with an empty error banner. Short enough catches the clean idle state.
 SETTLE_BY_PROJECT = {"froth": 40000, "bg-remover": 2500}
 
+# The social card is not a project shot: it is the home page at the size link
+# previews expect, and it needs reduced motion or headless catches the curtain
+# mid-animation and writes a black rectangle.
+WINDOW_BY_PROJECT = {"home": (1200, 630)}
+FLAGS_BY_PROJECT = {"home": ["--force-prefers-reduced-motion"]}
+
 # Where each browser lives on Windows, most preferred first.
 BROWSERS = [
     r"C:\Program Files\Google\Chrome\Application\chrome.exe",
@@ -60,6 +66,9 @@ PROJECTS = {
                    "bg-remover. Arranca con .\\run.ps1 en su carpeta."),
     # Read straight from disk: the geostatistics site is static and its pages use
     # relative links, so no server is needed, only its own build_site.py having run.
+    # The site's own front page, read from disk like the geostatistics one.
+    "home": ((ROOT / "index.html").as_uri(), "og-card.png",
+             "La tarjeta social. Corre antes python src/build.py."),
     "geostat": ((ROOT.parent / "Geoestadistica" / "out" / "en" / "index.html").as_uri(),
                 "geostat-index.png",
                 "Oro bajo el ruido. Corre python src/build_site.py en Geoestadistica."),
@@ -87,12 +96,15 @@ def is_up(url: str) -> bool:
         return False
 
 
-def capture(browser: str, url: str, target: Path, settle: int = SETTLE_MS) -> bool:
+def capture(browser: str, url: str, target: Path, settle: int = SETTLE_MS,
+            window: tuple[int, int] = (WIDTH, HEIGHT),
+            extra: list[str] | None = None) -> bool:
     """One screenshot. Chrome needs its own profile directory or it refuses to write."""
     profile = SHOTS.parent / ".chrome-profile"
     finished = subprocess.run(
         [browser, "--headless=new", "--disable-gpu", "--no-sandbox", "--hide-scrollbars",
-         f"--window-size={WIDTH},{HEIGHT}", f"--user-data-dir={profile}",
+         f"--window-size={window[0]},{window[1]}", f"--user-data-dir={profile}",
+         *(extra or []),
          f"--screenshot={target}", f"--virtual-time-budget={settle}", url],
         capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=180,
     )
@@ -111,7 +123,7 @@ def main() -> None:
 
     browser = find_browser()
     SHOTS.mkdir(parents=True, exist_ok=True)
-    print(f"{Path(browser).name} · {WIDTH}x{HEIGHT}\n")
+    print(f"{Path(browser).name} · {WIDTH}x{HEIGHT} por defecto\n")
 
     taken, missing = 0, []
     for name in wanted:
@@ -122,7 +134,9 @@ def main() -> None:
             continue
         target = SHOTS / filename
         settle = SETTLE_BY_PROJECT.get(name, SETTLE_MS)
-        if capture(browser, url, target, settle):
+        if capture(browser, url, target, settle,
+                   WINDOW_BY_PROJECT.get(name, (WIDTH, HEIGHT)),
+                   FLAGS_BY_PROJECT.get(name)):
             size = target.stat().st_size / 1024
             # A near-empty PNG usually means the app was still painting its loader.
             flag = "  <- revisar, muy ligera" if size < 25 else ""
