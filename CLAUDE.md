@@ -51,16 +51,19 @@ python src/build.py && python src/check_site.py
 | The work | Índice con panel de imagen: filas numeradas (nombre, tagline, mark, área, botón abrir ↗); el panel **sigue al cursor ±6 px** y toma el acento del proyecto activo en el borde (solo con `hover: hover` y sin reduced-motion) | `work_index()`, `theme.js`, `.index-*` |
 | Proyectos visibles | Froth (amber) · Sílice (iron) · Concentra (mint) · **Oro bajo el ruido** (gold, sin repo público: el enlace al código no se imprime) | `site.json` `projects` |
 | Página de proyecto | Estado, título, tagline, captura, bloque «Measured», **figura calculada** si `inline_figure` (Geoestadística trae su variograma dibujado con las reglas `.dibujar`), prosa, stack, botón abrir | `project_page()`, `inline_figure()` |
-| Get in touch | Texto, **dirección grande con `mailto:`**, botón **Copy address** (solo con JS; si el portapapeles se niega, selecciona la dirección), LinkedIn (cuando `linkedin` tenga valor), GitHub, y **formulario Formspree** (cuando `form_endpoint` tenga valor; honeypot `_gotcha`, `_subject`, envío con `fetch` y respuesta en la página, POST normal sin JS) | `contact_ways()`, `theme.js`, `.contact-*` |
+| Get in touch | Texto, **dirección grande con `mailto:`**, botón **Copy address** (solo con JS; si el portapapeles se niega, selecciona la dirección), LinkedIn y GitHub. **Sin formulario, por decisión de Kevin (2026-08-23)**: las tres llamadas a la acción (cabecera, héroe y páginas de proyecto) bajan a esta sección, donde están el correo y LinkedIn. El formulario Formspree se quitó entero (generador, `site.json`, JS y CSS) para no dejar código muerto | `contact_ways()`, `theme.js`, `.contact-*` |
 | Pie | © año, correo, GitHub | `shell()` |
 | Móvil (≤40rem) | Cabecera de dos filas (marca + botón / enlaces), cifras en una fila de tres, filas de proyecto con el número sobre la miniatura 2:1 y botón de abrir a todo el ancho con el acento, credenciales justas, pie centrado; medido a 375 px: cabecera 96 px, cifras 101 px, filas 436 a 459 px, sin desbordes | bloque «Mobile craft» al final de `style.css` |
 
-## Huecos que solo Kevin puede llenar
+## Decisiones de Kevin cerradas (2026-08-23)
 
-- `site.json` → `"form_endpoint": ""` (`https://formspree.io/f/<ID>`; crear la cuenta
-  gratuita y **apuntar el límite mensual**, que no se pudo leer desde aquí).
-- Confirmar el mark nuevo de Froth («44 subtopics, named and bridged») o volver al de
-  1.290 vs 4.045.
+- **Contacto sin formulario**: «solo mándalos al final, que está mi email y LinkedIn».
+  Se eliminó la ranura `form_endpoint` y todo el código del formulario.
+- **El mark de Froth («44 subtopics, named and bridged») queda confirmado.**
+- **Geoestadística sin repo público**: el botón «Read the code» no se imprime y no se
+  propone más.
+- **bg-remover sigue oculto y sin recordatorio**: se borró la tarea programada de cada
+  8 días. Republicarlo es decisión suya, cuando lo arregle.
 
 ## Lecciones de verificación
 
@@ -88,5 +91,4 @@ python src/build.py && python src/check_site.py
   un interruptor en cada página que conserva la ruta (`../index.en.html#<slug>/<stem>`,
   `target="_top"` porque las páginas viven en un iframe). El botón de la portada abre la
   edición del idioma del lector. **Los tres cursos publicados son ahora bilingües.**
-- Repo público para Geoestadística si Kevin quiere el botón «Read the code».
-- Retomar la captura de bg-remover cuando se arregle y se muestre.
+- Retomar la captura de bg-remover cuando Kevin lo arregle y decida mostrarlo.

@@ -133,27 +133,6 @@
     });
   }
 
-  /* The form posts on its own without this; with it, the reply lands on the page
-     instead of on the form service's thank-you screen. */
-  var form = document.querySelector(".contact-form");
-  if (form && window.fetch && window.FormData) {
-    form.addEventListener("submit", function (event) {
-      event.preventDefault();
-      var status = form.querySelector(".form-status");
-      var button = form.querySelector("button[type=submit]");
-      button.disabled = true;
-      fetch(form.action, { method: "POST", body: new FormData(form),
-                           headers: { "Accept": "application/json" } })
-        .then(function (response) {
-          if (!response.ok) throw new Error(String(response.status));
-          form.reset();
-          status.textContent = status.getAttribute("data-sent");
-        })
-        .catch(function () { status.textContent = status.getAttribute("data-error"); })
-        .then(function () { button.disabled = false; });
-    });
-  }
-
   /* ------------------------------------------------------ self-drawing curves */
 
   /* The variogram lifted from the geostatistics course draws itself as it scrolls into
