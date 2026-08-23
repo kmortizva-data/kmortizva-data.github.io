@@ -1,0 +1,522 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Workflow for building complex models · The Nuts and Bolts of Machine Learning</title>
+<link rel="alternate" hreflang="es" href="m02_workflow-for-building-complex-models.html">
+<style>
+/* ============================================================================
+   Concentra — design tokens and shared components.
+   Inlined into every generated page by load_style(), so pages stay self-contained
+   and work offline from file:// with no external requests.
+
+   Direction: an assay lab, not a tech dashboard. The palette is taken from ore
+   and lab materials (chalcopyrite brass, malachite, hematite, quartz) on warm
+   graphite rather than the blue-black + neon of a generic dark UI. Type is
+   Bahnschrift, the DIN-descended grotesque that Windows ships and that lives on
+   machinery plates and technical drawings, over Corbel for reading.
+   ========================================================================== */
+
+:root {
+  /* Ground and surfaces: warm graphite, the colour of rock dust, not blue-black */
+  --rock: #1a1714;
+  --bench: #221e19;
+  --core: #2b251f;
+  --seam: #3d352c;
+
+  /* Ore palette. No blue and no purple anywhere: those are the tones that make a
+     page read as generated, and this palette comes from the ores instead. */
+  --brass: #c9a227;      /* chalcopyrite, the primary accent */
+  --malachite: #5d9b7a;  /* verified output, results that came out right */
+  --hematite: #b04a35;   /* iron oxide, pitfalls and warnings */
+
+  /* Text */
+  --quartz: #ece7de;
+  --dust: #9a9186;
+  --shadowed: #6f675c;
+
+  --display: Bahnschrift, 'DIN Alternate', 'Segoe UI Semibold', system-ui, sans-serif;
+  --body: Corbel, Candara, 'Segoe UI', system-ui, sans-serif;
+  --data: Consolas, 'Cascadia Mono', ui-monospace, monospace;
+
+  /* In px, not ch: ch scales with font-size, so a heading ended up wider than a
+     paragraph and the page had four different right edges instead of two. */
+  --measure: 640px;
+  --wide: 900px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--rock);
+  color: var(--quartz);
+  font-family: var(--body);
+  font-size: 16px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection { background: var(--brass); color: var(--rock); }
+
+:focus-visible {
+  outline: 2px solid var(--brass);
+  outline-offset: 3px;
+}
+
+/* --------------------------------------------------------------- the signature
+   A sieve series: ticks that get finer from left to right, coarse feed to fine
+   concentrate. It is the one ornament on the page and appears exactly twice —
+   under the wordmark and under a page title. */
+.mesh {
+  height: 10px;
+  background-image:
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 16px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 9px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 5px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 3px);
+  background-size: 25% 100%;
+  background-position: 0 0, 25% 0, 50% 0, 75% 0;
+  background-repeat: no-repeat;
+  opacity: .8;
+  transform-origin: left center;
+  animation: sieve .55s cubic-bezier(.2, .8, .3, 1) both;
+}
+@keyframes sieve { from { transform: scaleX(0); opacity: 0; } to { transform: scaleX(1); opacity: .8; } }
+@media (prefers-reduced-motion: reduce) {
+  .mesh { animation: none; }
+  * { transition: none !important; }
+}
+
+/* ------------------------------------------------------------------ page head */
+.header {
+  border-bottom: 1px solid var(--seam);
+  padding: 3.2rem 2rem 0;
+  background: linear-gradient(180deg, #221d16 0%, var(--rock) 100%);
+}
+.header-content { max-width: 1080px; margin: 0 auto; }
+
+.eyebrow {
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--brass);
+  margin-bottom: 1rem;
+  display: flex; flex-wrap: wrap; align-items: center;
+  justify-content: space-between; gap: .6rem 1rem;
+}
+.eyebrow a { color: inherit; text-decoration: none; border-bottom: 1px solid transparent; }
+.eyebrow a:hover { border-bottom-color: var(--brass); }
+/* The way to the other edition of this page. It targets the shell, not the bare
+   page, so the sidebar follows the language too. */
+.eyebrow .lang-switch {
+  margin-left: auto; border: 1px solid var(--seam); border-radius: 2px;
+  padding: .22rem .6rem; color: var(--dust); font-size: .68rem; letter-spacing: .1em;
+}
+.eyebrow .lang-switch:hover { color: var(--brass); border-color: var(--brass); }
+
+.header h1 {
+  font-family: var(--display);
+  font-size: clamp(2rem, 4.5vw, 3.1rem);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -.015em;
+  color: var(--quartz);
+  max-width: 20ch;
+}
+.header .subtitle {
+  color: var(--dust);
+  max-width: var(--measure);
+  margin-top: 1rem;
+  font-size: 1.02rem;
+}
+.header .mesh { margin: 1.8rem 0 0; }
+
+/* An assay line: the real composition of the module, in lab-report shorthand. */
+.assay {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.4rem;
+  font-family: var(--data);
+  font-size: .78rem;
+  color: var(--shadowed);
+  padding: .9rem 0 1.6rem;
+  letter-spacing: .04em;
+}
+.assay b { color: var(--dust); font-weight: 400; }
+
+/* --------------------------------------------------------------------- layout */
+/* The container hugs the widest block, so there is no orphan edge past the content. */
+.container { max-width: var(--wide); margin: 3rem auto 5rem; padding: 0 2rem; }
+
+/* Two deliberate right edges and no more: prose stops at the reading measure, and
+   only the things that genuinely need room (code, output, figures, big tables) run
+   out to the full column. */
+.section-block {
+  border-top: 1px solid var(--seam);
+  padding: 2rem 0 2.4rem;
+}
+.section-block > p,
+.section-block > ul,
+.section-block > ol,
+.section-block h3.sub,
+.section-block h4.sub,
+.section-block blockquote,
+details > *:not(summary) { max-width: var(--measure); }
+.section-block:first-child { border-top: 0; padding-top: .5rem; }
+
+/* The kicker names what kind of content follows: context, method, pitfalls.
+   It replaces decorative icons with something that actually classifies. */
+.kicker {
+  font-family: var(--data);
+  font-size: .68rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  display: block;
+  margin-bottom: .5rem;
+}
+.section-title {
+  font-family: var(--display);
+  font-size: 1.55rem;
+  font-weight: 600;
+  letter-spacing: -.01em;
+  line-height: 1.2;
+  margin-bottom: 1.2rem;
+  color: var(--quartz);
+}
+.is-warning .kicker { color: var(--hematite); }
+.is-warning .section-title { color: #e8c4b8; }
+.is-bridge .kicker, .is-decision .kicker { color: var(--malachite); }
+.is-toy .kicker, .is-result .kicker, .is-question .kicker { color: var(--brass); }
+
+/* ---------------------------------------------------------------------- prose */
+/* Justified with hyphenation. In Spanish, justifying without hyphens opens rivers of
+   white space and reads worse than ragged right; lang="es" is what feeds the
+   dictionary. Tables, code, captions and summaries stay ragged on purpose. */
+.section-block p,
+.section-block li,
+details > *:not(summary) {
+  text-align: justify;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+}
+.section-block p { margin-bottom: 1rem; }
+.section-block p:last-child { margin-bottom: 0; }
+/* Indent with padding, not margin, so the bullet sits inside the measure instead of
+   pushing the list 1.2rem past the right edge of the paragraphs. */
+.section-block ul, .section-block ol { margin: 0 0 1rem; padding-left: 1.2rem; }
+.section-block li { margin-bottom: .55rem; padding-left: .2rem; }
+.section-block li::marker { color: var(--brass); }
+td, th, figcaption, .res li, .assay { text-align: left; hyphens: manual; }
+a { color: var(--brass); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+a:hover { text-decoration-thickness: 2px; }
+strong { color: #fff; font-weight: 700; }
+em { color: var(--dust); font-style: italic; }
+
+h3.sub {
+  font-family: var(--display);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--brass);
+  margin: 2rem 0 .7rem;
+  letter-spacing: -.005em;
+}
+h3.sub:first-child { margin-top: 0; }
+h4.sub {
+  font-family: var(--display);
+  font-size: .98rem;
+  font-weight: 600;
+  color: var(--dust);
+  margin: 1.3rem 0 .5rem;
+}
+
+code {
+  font-family: var(--data);
+  font-size: .9em;
+  background: var(--core);
+  border-radius: 3px;
+  padding: .08rem .32rem;
+  color: var(--brass);
+}
+pre {
+  background: #14110e;
+  border: 1px solid var(--seam);
+  border-left: 2px solid var(--seam);
+  border-radius: 2px;
+  padding: 1.1rem 1.2rem;
+  overflow-x: auto;
+  margin-bottom: 1rem;
+}
+pre code {
+  background: none; padding: 0; color: var(--quartz);
+  font-size: .87rem; line-height: 1.6;
+}
+
+/* What the code prints. Malachite: the material that came out of the process. */
+.output {
+  position: relative;
+  border: 1px solid rgba(93, 155, 122, .32);
+  border-left: 2px solid var(--malachite);
+  border-radius: 2px;
+  background: rgba(93, 155, 122, .06);
+  padding: 1.7rem 1.2rem 1rem;
+  margin-bottom: 1rem;
+  overflow-x: auto;
+}
+.output-tag {
+  position: absolute; top: .5rem; left: 1.2rem;
+  font-family: var(--data); font-size: .64rem;
+  letter-spacing: .18em; text-transform: uppercase; color: var(--malachite);
+}
+.output pre {
+  background: none; border: 0; padding: 0; margin: 0;
+  font-family: var(--data); font-size: .85rem;
+  color: var(--quartz); white-space: pre-wrap;
+}
+
+/* Line by line explanation of a code block, for a reader new to programming.
+   Two columns: the fragment of code, and what it does. */
+.annot {
+  display: grid;
+  grid-template-columns: minmax(9rem, auto) 1fr;
+  gap: .1rem 1.2rem;
+  align-items: baseline;
+  max-width: var(--wide);
+  margin: -.4rem 0 1.4rem;
+  padding: .9rem 1.1rem 1rem;
+  border: 1px solid var(--seam);
+  border-top: 0;
+  border-radius: 0 0 2px 2px;
+  background: rgba(201, 162, 39, .04);
+}
+.annot-head {
+  grid-column: 1 / -1;
+  font-family: var(--data);
+  font-size: .64rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  margin-bottom: .5rem;
+}
+.annot dt { padding: .35rem 0; }
+.annot dt code {
+  background: var(--core);
+  color: var(--brass);
+  font-size: .82rem;
+  white-space: nowrap;
+}
+.annot dd {
+  padding: .35rem 0;
+  margin: 0;
+  color: var(--dust);
+  font-size: .93rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(61, 53, 44, .5);
+}
+.annot dt { border-bottom: 1px solid rgba(61, 53, 44, .5); }
+.annot dt:last-of-type, .annot dd:last-of-type { border-bottom: 0; }
+/* The code block sits directly on top of its annotation, as one unit. */
+pre:has(+ .annot) { margin-bottom: 0; border-radius: 2px 2px 0 0; }
+
+@media (max-width: 640px) {
+  .annot { grid-template-columns: 1fr; gap: 0; }
+  .annot dt { border-bottom: 0; padding-bottom: 0; }
+  .annot dd { padding-top: .15rem; }
+}
+
+blockquote {
+  border-left: 2px solid var(--brass);
+  padding: .3rem 0 .3rem 1.3rem;
+  margin: 0 0 1rem;
+  font-family: var(--display);
+  font-size: 1.2rem;
+  font-weight: 400;
+  line-height: 1.4;
+  color: var(--quartz);
+}
+
+/* Tables read as assay data: mono figures, hairline rules, no zebra fill.
+   They take the width they need instead of being stretched to the full column,
+   which is what left a two-column table floating in empty space. */
+.table-wrap { overflow-x: auto; margin-bottom: 1rem; }
+table { border-collapse: collapse; width: auto; max-width: 100%; font-size: .93rem; }
+th, td {
+  border-bottom: 1px solid var(--seam);
+  padding: .55rem .8rem .55rem 0;
+  text-align: left;
+  vertical-align: top;
+}
+th {
+  font-family: var(--data);
+  font-size: .7rem;
+  font-weight: 400;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  border-bottom-color: var(--brass);
+}
+td:first-child { color: var(--quartz); }
+
+/* Review questions: closed by default, so they work as recall practice. */
+details {
+  border-top: 1px solid var(--seam);
+  padding: .9rem 0;
+}
+details:last-child { border-bottom: 1px solid var(--seam); }
+summary {
+  cursor: pointer;
+  font-family: var(--display);
+  font-size: 1.02rem;
+  font-weight: 600;
+  color: var(--quartz);
+  list-style: none;
+  display: flex;
+  gap: .7rem;
+  align-items: baseline;
+}
+summary::-webkit-details-marker { display: none; }
+summary::before {
+  content: '+';
+  font-family: var(--data);
+  color: var(--brass);
+  font-size: .95rem;
+}
+details[open] summary::before { content: '−'; }
+details[open] summary { color: var(--brass); margin-bottom: .7rem; }
+details > *:not(summary) { color: var(--dust); }
+
+figure.fig {
+  margin: 1.6rem 0;
+  border: 1px solid var(--seam);
+  padding: .7rem;
+  background: var(--bench);
+}
+figure.fig img { width: 100%; height: auto; display: block; }
+/* The interactive twin of a figure. Its aspect matches the still one, 10 by 4.4, so a
+   case sheet keeps the same rhythm whichever kind of figure comes next. */
+figure.fig.is-live iframe {
+  width: 100%;
+  /* Matches INTERACTIVE_HEIGHT in src/make_figures.py. It used to be an aspect ratio, and
+     that made the figure's height depend on the window: the caption and the legend are
+     placed at fractions of the plot area, so on a wide screen they were pushed past the
+     bottom margin, clipping the caption and covering the x-axis title. */
+  height: 520px;
+  border: 0;
+  display: block;
+}
+figure.fig figcaption {
+  font-family: var(--data);
+  font-size: .72rem;
+  color: var(--shadowed);
+  margin-top: .6rem;
+  letter-spacing: .04em;
+}
+
+/* File listings on a case sheet */
+.res { list-style: none; margin-left: 0 !important; }
+.res li {
+  display: flex; align-items: baseline; gap: .8rem; flex-wrap: wrap;
+  padding: .5rem 0; border-bottom: 1px solid var(--seam); margin-bottom: 0;
+}
+.res .path { font-family: var(--data); font-size: .74rem; color: var(--shadowed); }
+.res .size { font-family: var(--data); font-size: .74rem; color: var(--shadowed); margin-left: auto; }
+.res .gone { font-family: var(--data); font-size: .74rem; color: var(--hematite); }
+
+.footer {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 2rem 4rem;
+  color: var(--shadowed);
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .03em;
+}
+
+@media (max-width: 640px) {
+  body { font-size: 15px; }
+  .header { padding: 2rem 1.2rem 0; }
+  .container { padding: 0 1.2rem; margin-top: 2rem; }
+  .footer { padding: 0 1.2rem 3rem; }
+}
+
+@media print {
+  body { background: #fff; color: #16130f; }
+  .header { background: none; border-bottom: 1px solid #bbb; padding-top: 0; }
+  .header h1, .section-title, summary { color: #16130f; }
+  .mesh { animation: none; }
+  .section-block { break-inside: avoid; max-width: none; }
+  pre, .output { background: #f6f4f0; border-color: #ccc; }
+  details:not([open]) > *:not(summary) { display: block; }
+  a { color: #16130f; }
+}
+
+</style>
+</head>
+<body>
+<header class="header">
+  <div class="header-content">
+    <div class="eyebrow"><span><a href="https://www.coursera.org/learn/the-nuts-and-bolts-of-machine-learning">The Nuts and Bolts of Machine Learning</a> / Module 2</span><a class="lang-switch" href="../index.html#the-nuts-and-bolts-of-machine-learning/m02_workflow-for-building-complex-models" target="_top" hreflang="es" lang="es" title="Leer esta página en español">Español</a></div>
+    <h1>Workflow for building complex models</h1>
+    <p class="subtitle">Eight lots, two yes-or-no questions, and a probability of 0.9 calculated by hand with the Bayes rule of Course 3. Here the discipline of the course gets set up, splitting the data in three, building variables that did not come in the file, and no longer looking at accuracy when one class is rare.</p>
+    <div class="mesh" role="presentation"></div>
+    <div class="assay"><span><b>6 h</b> course time</span><span><b>12</b> videos</span><span><b>6</b> readings</span><span><b>3</b> assignments</span><span><b>6</b> practice</span></div>
+  </div>
+</header>
+<main class="container">
+<section class="section-block "><span class="kicker">Context</span><h2 class="section-title">What this module solves</h2><p>The previous module left an uncomfortable idea: if you stop demanding that the model explain itself, <strong>you need another way of knowing it is not fooling you</strong>. This module is that way.</p><p>It is four pieces, and none is an algorithm. How the data gets split and why in three. How variables that did not come in the file get built. What to do when what you want to detect is 5% of the cases. And which number to look at to decide whether the model works, which is almost never the one that first comes to mind.</p><p>In the middle the first model of the course appears, <strong>Naive Bayes</strong>, which is the simplest there is and is calculated with a pencil. It serves as the perfect excuse: it is so simple that all the attention goes to the procedure, which is what this module teaches.</p></section>
+<section class="section-block is-toy"><span class="kicker">Example</span><h2 class="section-title">Before the theory: a toy example</h2><p>Eight lots processed. Of each one, two things were noted before processing it and one afterwards:</p><div class="table-wrap"><table><thead><tr><th>Lot</th><th>High grade?</th><th>Reagent dosed?</th><th>Passed specification?</th></tr></thead><tbody><tr><td>1</td><td>yes</td><td>yes</td><td><strong>yes</strong></td></tr><tr><td>2</td><td>yes</td><td>yes</td><td><strong>yes</strong></td></tr><tr><td>3</td><td>yes</td><td>no</td><td><strong>yes</strong></td></tr><tr><td>4</td><td>no</td><td>yes</td><td><strong>yes</strong></td></tr><tr><td>5</td><td>yes</td><td>yes</td><td>no</td></tr><tr><td>6</td><td>no</td><td>no</td><td>no</td></tr><tr><td>7</td><td>no</td><td>no</td><td>no</td></tr><tr><td>8</td><td>no</td><td>no</td><td>no</td></tr></tbody></table></div><p>A new lot arrives with <strong>high grade and reagent dosed</strong>. What probability does it have of passing?</p><p>Notice that lot 5 has exactly those two characteristics and <strong>did not pass</strong>. So the answer cannot be &quot;surely yes&quot;, and it cannot be answered by looking only at that lot either. All eight have to be used.</p><h3 class="sub h3">Step 1. Count, which is all this model does</h3><p>First, how many passed in total:</p><pre><code>pasan 4 de 8  -&gt;  probabilidad de partida = 4/8 = 1/2</code></pre><p>That 1/2 is what you would know <strong>without looking at anything about the lot</strong>. Now, among those that passed and among those that did not, how many had each characteristic:</p><div class="table-wrap"><table><thead><tr><th></th><th>Among the 4 that <strong>passed</strong></th><th>Among the 4 that <strong>did not pass</strong></th></tr></thead><tbody><tr><td>Had a high grade</td><td>3 of 4</td><td>1 of 4</td></tr><tr><td>Carried reagent</td><td>3 of 4</td><td>1 of 4</td></tr></tbody></table></div><p>That is all the information the model keeps. Six fractions.</p><h3 class="sub h3">Step 2. Score each possible answer</h3><p>Now, for each answer, <strong>a score</strong> is calculated: the starting probability multiplied by how typical each characteristic is within that group.</p><pre><code>a favor de que PASE:     1/2 × 3/4 × 3/4 = 9/32  = 0,28125
+a favor de que NO PASE:  1/2 × 1/4 × 1/4 = 1/32  = 0,03125</code></pre><p>Read the first line in words: <em>to start with, half the lots pass; and among those that pass, having a high grade is frequent (3 of 4) and carrying reagent is too (3 of 4)</em>. A lot with both things fits well with the group of those that pass.</p><p>The second line says the opposite: among those that do not pass, having a high grade is rare (1 of 4) and carrying reagent is too. A lot with both things fits badly with that group.</p><h3 class="sub h3">Step 3. Turn the scores into a probability</h3><p>The two scores are not probabilities yet, because they do not add up to 1. It is fixed by dividing each by the total:</p><pre><code>total = 9/32 + 1/32 = 10/32
+
+probabilidad de que pase = (9/32) / (10/32) = 9/10 = 0,9</code></pre><p><strong>90%.</strong> And the scores were in a 9 to 1 proportion, which is the same answer said in odds, as in the logistic of Course 4.</p><h3 class="sub h3">Step 4. Where the &quot;naive&quot; is, which is the part that has to be understood</h3><p>In step 2 we multiplied 3/4 by 3/4 as if having a high grade and carrying reagent were independent things within the group of those that pass. <strong>Let us check whether they are.</strong></p><p>Look at the four lots that passed: 1, 2, 3 and 4. How many had <strong>both</strong> things at once? Lots 1 and 2, that is 2 of 4:</p><pre><code>lo que dicen los datos:   2/4     = 0,5000
+lo que asumió el modelo:  3/4 × 3/4 = 0,5625</code></pre><p><strong>They do not match.</strong> The model assumed something its own data contradicts, and it still gave a reasonable answer. That is exactly what &quot;naive&quot; means: <strong>it takes for granted that the characteristics are unrelated to each other</strong>, knowing that it is almost never true.</p><p>It is surprising that it works, and it works for a concrete reason: to decide between two answers the scores do not need to be correct, only <strong>well ordered</strong>. The model usually gets the answer right and overstates the confidence. That is why Naive Bayes is used for classifying and not for reporting fine probabilities.</p></section>
+<section class="section-block "><span class="kicker">Terms</span><h2 class="section-title">Glossary</h2><ul><li><strong>Naive Bayes.</strong> The classifier that applies the Bayes rule of Course 3 assuming the variables are independent of each other within each class. Naive because of that assumption.</li><li><strong>Starting probability.</strong> What you know before looking at the specific case: here, that half the lots pass. In Course 3 it was called the prior probability.</li><li><strong>Feature engineering.</strong> Building new columns out of the ones you have, because the model does not invent them on its own.</li><li><strong>Unbalanced classes.</strong> One of the answers being much more frequent than the other: 95% against 5%, for example.</li><li><strong>Undersampling.</strong> Throwing away rows of the abundant class until it matches the rare one.</li><li><strong>Oversampling.</strong> Repeating or manufacturing rows of the rare class until it matches the abundant one.</li><li><strong>Training set.</strong> The one the model learns with.</li><li><strong>Validation set.</strong> The one you choose between models and tune knobs with. It wears out as it is used many times.</li><li><strong>Test set.</strong> The one that is set aside and <strong>not touched until the end</strong>. It is the only figure that gets published.</li><li><strong>Stratify.</strong> Splitting while keeping the same proportion of classes in each piece. Without this, with rare classes, a piece can be left without a single positive case.</li><li><strong>Information leak.</strong> Something reaching the training that would not be available at the real moment of predicting. It inflates the result and is only discovered in production.</li><li><strong>Accuracy.</strong> The proportion of hits over the total. <strong>It is the metric that lies most</strong> when the classes are unbalanced.</li><li><strong>Precision.</strong> Of everything the model flagged as positive, how much really was.</li><li><strong>Recall.</strong> Of all the positives there were, how many it found. Also called sensitivity.</li><li><strong>F1.</strong> A single figure that combines precision and recall, and that is only high if both are.</li></ul></section>
+<section class="section-block is-recipe"><span class="kicker">Method</span><h2 class="section-title">Step by step</h2><h3 class="sub h3">Step 1. PACE, applied to a model</h3><p>The usual framework, with what belongs to this course in each cell:</p><div class="table-wrap"><table><thead><tr><th>Stage</th><th>What is done here</th></tr></thead><tbody><tr><td><strong>Plan</strong></td><td>Deciding what gets predicted and <strong>what will be done with the prediction</strong>. If nobody is going to act on it, there is no project</td></tr><tr><td><strong>Analyze</strong></td><td>Exploring, cleaning and <strong>building the variables</strong>, which is where it is really won or lost</td></tr><tr><td><strong>Construct</strong></td><td>Splitting, training candidates, tuning knobs against validation</td></tr><tr><td><strong>Execute</strong></td><td>Measuring <strong>once</strong> on the test set, reporting with its limits and saying what to do</td></tr></tbody></table></div><p>The cell this course adds is the first one. Before anything you have to ask <strong>what each error costs</strong>, because that is where the metric to optimise comes from. A model that warns of a breakdown is not the same as one that rejects a lot.</p><h3 class="sub h3">Step 2. Split the data, and in three</h3><p>A piece is set aside <strong>before looking at anything</strong>. The reason is that any decision you take by looking at the data already uses that data, so measuring on it measures your memory, not your model.</p><div class="table-wrap"><table><thead><tr><th>Part</th><th>How much it usually takes</th><th>When it gets touched</th></tr></thead><tbody><tr><td>Training</td><td>60%</td><td>All the time</td></tr><tr><td>Validation</td><td>20%</td><td>Many times: choosing model and knobs</td></tr><tr><td><strong>Test</strong></td><td>20%</td><td><strong>Once, at the end</strong></td></tr></tbody></table></div><p>And why three and not two, which is the natural question: every time you look at the result on validation and change something, you leak a bit of information into it. After twenty tries, validation is no longer an independent measure, it is part of the tuning. <strong>The test set is only worth something as long as you have not looked at it.</strong></p><p>When there is little data, validation is replaced by <strong>cross-validation</strong>: the training is split into <em>k</em> pieces and trained <em>k</em> times, leaving one out each time. With three pieces that gave 3 of 4, 2 of 4 and 4 of 4 hits:</p><pre><code>media = (0,75 + 0,50 + 1,00) / 3 = 0,75
+recorrido = de 0,50 a 1,00</code></pre><p><strong>That 0.75 alone says nothing without the range.</strong> A model that goes from 0.50 to 1.00 depending on which piece it gets is not a model with 75% accuracy: it is a model you know almost nothing about. Reporting the mean without the spread is the classic mistake here.</p><h3 class="sub h3">Step 3. Build variables, which is where it is won</h3><p>A model does not invent columns. If the information is spread between two columns and the relationship between them is needed, <strong>you have to give it to it</strong>.</p><p>Four ways, with examples from this project:</p><div class="table-wrap"><table><thead><tr><th>What is done</th><th>Real example</th></tr></thead><tbody><tr><td><strong>Combining</strong> two columns</td><td>Kilometres over driving days gives kilometres per day, which is what distinguishes a delivery driver</td></tr><tr><td><strong>Extracting</strong> from a column</td><td>From a timestamp come the hour, the day of the week and whether it is rush hour</td></tr><tr><td><strong>Binning</strong> values into bands</td><td>Turning the grade into low, medium and high when what matters is the band</td></tr><tr><td><strong>Encoding</strong> categories into numbers</td><td>Turning &quot;iPhone&quot; and &quot;Android&quot; into a column of ones and zeros</td></tr></tbody></table></div><p>And the trap that goes with this: <strong>building a variable using information from the future</strong>. If you calculate the mean tip per driver over the whole file and use it as a variable, every trip carries inside it a summary that includes its own result. The model will shine and fail in production. Variables are built <strong>after splitting</strong>, with what is known at the moment of predicting.</p><h3 class="sub h3">Step 4. When one class is rare</h3><p>Suppose 5% of the lots fail. A model that always answers &quot;passes&quot; is right 95% of the time and does not detect a single failure. That is the whole problem.</p><p>Three ways out, and none is free:</p><div class="table-wrap"><table><thead><tr><th>Way out</th><th>What it does</th><th>What it costs</th></tr></thead><tbody><tr><td><strong>Undersampling</strong></td><td>Throwing away rows of the abundant class</td><td>You throw away good data</td></tr><tr><td><strong>Oversampling</strong></td><td>Repeating or manufacturing rows of the rare class</td><td>You may teach it noise as if it were signal</td></tr><tr><td><strong>Weighting the classes</strong></td><td>Telling the model that a failure costs more</td><td>Not always available</td></tr></tbody></table></div><p><strong>And a rule a lot of people skip: you balance after splitting, and only the training set.</strong> If you duplicate rows of the rare class and then split, the same row ends up in training and in test, and the test stops being a test. The test set is left as reality is, unbalanced, because that is what the model is going to meet.</p><h3 class="sub h3">Step 5. Choose the metric according to what a mistake costs</h3><p>There are two ways of failing and they do not cost the same:</p><div class="table-wrap"><table><thead><tr><th>Name</th><th>What happened</th><th>Example</th></tr></thead><tbody><tr><td><strong>False positive</strong></td><td>You said yes and it was no</td><td>You reject a lot that was fine</td></tr><tr><td><strong>False negative</strong></td><td>You said no and it was yes</td><td>You let a lot out of specification through</td></tr></tbody></table></div><p>From there come the metrics, and each one watches one kind of error:</p><div class="table-wrap"><table><thead><tr><th>Metric</th><th>What it answers</th><th>When it matters</th></tr></thead><tbody><tr><td>Accuracy</td><td>How much does it get right in total?</td><td>Only with balanced classes</td></tr><tr><td><strong>Precision</strong></td><td>Of those I flagged, how many were?</td><td>When a false alarm is expensive</td></tr><tr><td><strong>Recall</strong></td><td>Of those there were, how many did I catch?</td><td>When <strong>not detecting</strong> is expensive</td></tr><tr><td>F1</td><td>Both at once</td><td>When both errors matter</td></tr><tr><td>AUC</td><td>Does it rank the cases well?</td><td>For comparing models without fixing a threshold</td></tr></tbody></table></div><p>The question that decides is not statistical: <strong>which error hurts you more?</strong> If letting a bad lot through reaches the customer, recall rules. If rejecting a good lot throws production in the bin, precision rules.</p></section>
+<section class="section-block is-recipe"><span class="kicker">Code</span><h2 class="section-title">The code, in parts</h2><h3 class="sub h3">Step 1. The eight lots, with the machine</h3><p>The same thing we did with a pencil, to check the 0.9.</p><pre><code class="language-python">import numpy as np
+from sklearn.naive_bayes import CategoricalNB
+
+# columna 0: ley alta (1) o no (0).  columna 1: reactivo dosificado (1) o no (0).
+batches = np.array([[1, 1], [1, 1], [1, 0], [0, 1],
+                    [1, 1], [0, 0], [0, 0], [0, 0]])
+passed = np.array([1, 1, 1, 1, 0, 0, 0, 0])
+
+model = CategoricalNB(alpha=1e-10).fit(batches, passed)
+probability = model.predict_proba([[1, 1]])[0, 1]
+print(f&quot;probabilidad de que pase: {probability:.4f}&quot;)</code></pre><dl class="annot"><div class="annot-head">line by line</div><dt><code>CategoricalNB</code></dt><dd>The version of Naive Bayes for variables that are categories. There are others: <code>GaussianNB</code> for continuous numbers and <code>MultinomialNB</code> for counts, like words in a text.</dd><dt><code># columna 0: ...</code></dt><dd>A comment. Here it earns its keep: inside the table of ones and zeros there is no name at all, so without this line nobody knows what each column is a month from now.</dd><dt><code>alpha=1e-10</code></dt><dd>Turns off the smoothing, which is on by default, to reproduce the exact calculation by hand. The next block shows what it does when it is on.</dd><dt><code>.predict_proba(...)</code></dt><dd>Instead of the answer, <strong>the probability of each answer</strong>. It returns one row per case and one column per class.</dd><dt><code>[0, 1]</code></dt><dd>Of that table, row 0 and column 1: the first case, the probability of class 1. Two numbers between brackets index row and column at once.</dd></dl><div class="output"><span class="output-tag">prints</span><pre>probabilidad de que pase: 0.9000</pre></div><p><strong>0.9000</strong>, the same one that came out of dividing 9/32 by 10/32.</p><h3 class="sub h3">Step 2. The smoothing, which is a default with consequences</h3><pre><code class="language-python">smoothed = CategoricalNB().fit(batches, passed)
+print(f&quot;con el suavizado que trae puesto: {smoothed.predict_proba([[1, 1]])[0, 1]:.4f}&quot;)</code></pre><dl class="annot"><div class="annot-head">line by line</div><dt><code>CategoricalNB()</code></dt><dd>Without arguments, that is with everything the library brings from the factory. Here that means <code>alpha=1</code>.</dd></dl><div class="output"><span class="output-tag">prints</span><pre>con el suavizado que trae puesto: 0.8000</pre></div><p><strong>0.8 instead of 0.9</strong>, and we have not changed a single data point. The smoothing adds an imaginary case to every cell of the count, and it exists for a good reason: if a characteristic <strong>never</strong> appears in a class, its fraction is 0, and on multiplying it leaves the whole score at zero. A single zero kills all the remaining evidence.</p><p>With eight lots that imaginary case weighs a lot; with eight thousand it would not be noticed. <strong>The default is a decision someone took without knowing your data</strong>, and with small data it has to be looked at.</p><h3 class="sub h3">Step 3. Split in three</h3><p><code>train_test_split</code> only knows how to split in two, so it is called twice.</p><pre><code class="language-python">from sklearn.model_selection import train_test_split
+
+labels = np.array([0] * 80 + [1] * 20)
+features = np.arange(100).reshape(-1, 1)
+
+rest, test = train_test_split(features, test_size=0.2, random_state=42, stratify=labels)
+print(f&quot;prueba: {len(test)} filas&quot;)
+
+rest_labels = labels[rest.ravel()]
+train, validation = train_test_split(rest, test_size=0.25, random_state=42,
+                                     stratify=rest_labels)
+print(f&quot;entrenamiento: {len(train)} filas&quot;)
+print(f&quot;validacion: {len(validation)} filas&quot;)</code></pre><dl class="annot"><div class="annot-head">line by line</div><dt><code>np.arange(100).reshape(-1, 1)</code></dt><dd>A hundred numbers from 0 to 99, placed in one column. The <code>-1</code> means &quot;work out yourself how many rows are needed&quot;, so <code>reshape(-1, 1)</code> is the short way of saying &quot;a single column&quot;.</dd><dt><code>test_size=0.2</code></dt><dd>Sets aside 20% for the test. The rest is not spoken of again until the end.</dd><dt><code>stratify=labels</code></dt><dd>That each piece keep the proportion of classes. <strong>Without this, with rare classes, a piece can be left without a single positive</strong> and the measure means nothing.</dd><dt><code>test_size=0.25 en la segunda</code></dt><dd>Here is the detail that confuses. 25% <strong>of the 80% that remains</strong> is 20% of the total. If you put 0.2 again, the validation would come out smaller than you think.</dd><dt><code>labels[rest.ravel()]</code></dt><dd>The labels of the rows that survived the first cut, to be able to stratify the second one too.</dd></dl><div class="output"><span class="output-tag">prints</span><pre>prueba: 20 filas
+entrenamiento: 60 filas
+validacion: 20 filas</pre></div><p>60, 20 and 20. The 0.25 arithmetic is the one almost everyone gets wrong the first time.</p><h3 class="sub h3">Step 4. Why accuracy is no use here</h3><p>A hundred lots of which five fail, against a model that always answers &quot;passes&quot;.</p><pre><code class="language-python">from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
+
+truth = np.array([0] * 95 + [1] * 5)
+lazy = np.zeros(100, dtype=int)
+
+print(f&quot;exactitud     {accuracy_score(truth, lazy):.2f}&quot;)
+print(f&quot;precision     {precision_score(truth, lazy, zero_division=0):.2f}&quot;)
+print(f&quot;sensibilidad  {recall_score(truth, lazy):.2f}&quot;)
+print(f&quot;F1            {f1_score(truth, lazy):.2f}&quot;)</code></pre><dl class="annot"><div class="annot-head">line by line</div><dt><code>np.zeros(100, dtype=int)</code></dt><dd>A hundred zeros. It is the laziest model possible: it always answers &quot;does not fail&quot;, without looking at anything.</dd><dt><code>zero_division=0</code></dt><dd>What to answer when the calculation would be dividing by zero. This model flags not a single positive, so precision is not defined: it is asked to return 0 instead of blowing up.</dd></dl><div class="output"><span class="output-tag">prints</span><pre>exactitud     0.95
+precision     0.00
+sensibilidad  0.00
+F1            0.00</pre></div><p><strong>95% accuracy and a zero in everything else.</strong> The model has not detected a single one of the five failures, which is literally the only thing it was asked for.</p><p>If the report says &quot;the model gets 95% right&quot;, it is true and it is useless. That is why the last three lines always go together.</p></section>
+<section class="section-block is-warning"><span class="kicker">Traps</span><h2 class="section-title">Watch out</h2><ul><li><strong>Accuracy alone, with unbalanced classes, is always misleading.</strong> It is not that it is uninformative: it is that it rewards the model that does nothing.</li><li><strong>Balancing before splitting contaminates the test.</strong> You split first, balance only the training, and leave the test as reality is.</li><li><strong>Validation wears out.</strong> After twenty decisions taken by looking at it, it no longer measures.</li><li><strong>A cross-validation mean without its spread says nothing.</strong> 0.75 with a range from 0.50 to 1.00 and 0.75 with a range from 0.74 to 0.76 are two opposite situations.</li><li><strong>Building variables with the whole set is an information leak</strong>, even if it does not look like one. Any summary calculated before splitting carries test data inside.</li><li><strong>Naive Bayes overstates the confidence.</strong> Its answer is usually good and its probability is not. If you are going to use the number to decide a threshold, use another model.</li><li><strong>Defaults are other people&#x27;s decisions.</strong> The smoothing moved the result from 0.9 to 0.8 without changing a data point.</li><li><strong>Always stratify when there are rare classes</strong>, or a piece can be left without positives.</li></ul></section>
+<section class="section-block is-bridge"><span class="kicker">Analogy</span><h2 class="section-title">Metallurgical bridge</h2><p>The three-way split is exactly <strong>how sample gets reserved in a test campaign</strong>, and the laboratory rule is the same as this module&#x27;s.</p><p>When a big lot arrives for a flotation campaign, it is not processed whole. It gets quartered and kept:</p><div class="table-wrap"><table><thead><tr><th>In the campaign</th><th>In the model</th></tr></thead><tbody><tr><td>The sample you do the exploratory tests with</td><td>Training</td></tr><tr><td>The one you spend comparing conditions with each other</td><td>Validation</td></tr><tr><td><strong>The reference sample, sealed, which is not opened</strong></td><td><strong>Test</strong></td></tr></tbody></table></div><p>And the reference sample exists for the exact same reason. After thirty tests changing pH, dose and conditioning time, <strong>you have used that sample thirty times</strong> and you no longer know whether the winning condition is genuinely good or whether it simply fitted the quirks of that particular material. The reference sample, which has taken part in no decision, is the only one that can answer that.</p><p>And whoever opens the reference sample halfway through the campaign <strong>has destroyed it as a reference</strong>, even if physical material remains inside. The same happens with the test set: it does not get used up by looking at it, it gets invalidated.</p><p>Feature engineering also rings a bell. The head grade and the tonnage are on the shift report; <strong>the grams of metal fed are not</strong>, and they are the number you work with. Multiplying two columns to obtain the one that really explains the process is the same as dividing kilometres by driving days to find out who is a delivery driver.</p><p>And the imbalance is the quality control of your plant. If 2% of the lots come out of specification, an inspector who approves everything is right 98% of the time and is of no use at all. Nobody measures an inspector by their percentage of hits: they are measured by <strong>how many bad ones get past them</strong>, which is recall.</p></section>
+<section class="section-block is-review"><span class="kicker">Review</span><h2 class="section-title">Review</h2><details><summary>Why is the data split in three and not in two?</summary><p>Because the set you choose between models and tune knobs with wears out. Every time you look at a result on validation and change something, you leak information into it: after twenty decisions, that measure is no longer independent, it is part of the tuning. The test set exists to give a figure nobody has used to decide anything, and that is why it is set aside before starting and looked at a single time, at the end. As soon as you look at it and change something, it stops measuring, even though the rows are still there.</p></details><details><summary>In the example of the eight lots, where exactly is the &quot;naive&quot; part of the model?</summary><p>In multiplying 3/4 by 3/4 as if having a high grade and carrying reagent were independent within the group of those that pass. The data itself denies it: of the four lots that passed, only two had both characteristics at once, that is 0.5000, while the product assumes 0.5625. The model gave 0.9 even while assuming something false, and the reason is that to choose between two answers correct scores are not needed, only well-ordered ones. That is why Naive Bayes classifies well and reports overstated probabilities.</p></details><details><summary>A model has 95% accuracy detecting defective lots. Is it good?</summary><p>There is no knowing, and with that figure alone probably not. If the defective ones are 5%, a model that always answers &quot;correct&quot; gets that same 95% without detecting a single defect: its precision, its recall and its F1 are exactly zero. Accuracy rewards the model that does nothing when the classes are unbalanced. What has to be asked for is the recall, which says how many defective ones were found of those there were, and the precision, which says how many of the alarms were right.</p></details><details><summary>Why is the training set balanced and not the whole set?</summary><p>For two different reasons. The first is technical: if you duplicate rows of the rare class and then split, the same row can end up in training and in test, and then the model is being evaluated on something it already saw. The second is one of sense: the test set should resemble what the model will meet in production, and in production the defective ones will still be 5%. Balancing the test would give you a pretty figure that describes no real situation.</p></details><details><summary>When splitting 20% for the test and then wanting 20% for validation, why does the second cut use 0.25?</summary><p>Because the second cut is applied to what remained, which is 80% of the total and not 100%. 25% of that 80% is 20% of the original set, and that is how the three parts come out at 60, 20 and 20. If 0.2 were asked for again in the second call, validation would take 16% of the total and training 64%, which is not what was intended. It is a silent failure: it raises no error, it only leaves the proportions different from what the report says.</p></details></section>
+</main>
+<footer class="footer">
+  Concentra / distilled from the public syllabus of the course / 2026-08-23
+</footer>
+</body>
+</html>

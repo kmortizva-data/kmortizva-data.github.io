@@ -1,0 +1,520 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unsupervised learning techniques · The Nuts and Bolts of Machine Learning</title>
+<link rel="alternate" hreflang="es" href="m03_unsupervised-learning-techniques.html">
+<style>
+/* ============================================================================
+   Concentra — design tokens and shared components.
+   Inlined into every generated page by load_style(), so pages stay self-contained
+   and work offline from file:// with no external requests.
+
+   Direction: an assay lab, not a tech dashboard. The palette is taken from ore
+   and lab materials (chalcopyrite brass, malachite, hematite, quartz) on warm
+   graphite rather than the blue-black + neon of a generic dark UI. Type is
+   Bahnschrift, the DIN-descended grotesque that Windows ships and that lives on
+   machinery plates and technical drawings, over Corbel for reading.
+   ========================================================================== */
+
+:root {
+  /* Ground and surfaces: warm graphite, the colour of rock dust, not blue-black */
+  --rock: #1a1714;
+  --bench: #221e19;
+  --core: #2b251f;
+  --seam: #3d352c;
+
+  /* Ore palette. No blue and no purple anywhere: those are the tones that make a
+     page read as generated, and this palette comes from the ores instead. */
+  --brass: #c9a227;      /* chalcopyrite, the primary accent */
+  --malachite: #5d9b7a;  /* verified output, results that came out right */
+  --hematite: #b04a35;   /* iron oxide, pitfalls and warnings */
+
+  /* Text */
+  --quartz: #ece7de;
+  --dust: #9a9186;
+  --shadowed: #6f675c;
+
+  --display: Bahnschrift, 'DIN Alternate', 'Segoe UI Semibold', system-ui, sans-serif;
+  --body: Corbel, Candara, 'Segoe UI', system-ui, sans-serif;
+  --data: Consolas, 'Cascadia Mono', ui-monospace, monospace;
+
+  /* In px, not ch: ch scales with font-size, so a heading ended up wider than a
+     paragraph and the page had four different right edges instead of two. */
+  --measure: 640px;
+  --wide: 900px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--rock);
+  color: var(--quartz);
+  font-family: var(--body);
+  font-size: 16px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection { background: var(--brass); color: var(--rock); }
+
+:focus-visible {
+  outline: 2px solid var(--brass);
+  outline-offset: 3px;
+}
+
+/* --------------------------------------------------------------- the signature
+   A sieve series: ticks that get finer from left to right, coarse feed to fine
+   concentrate. It is the one ornament on the page and appears exactly twice —
+   under the wordmark and under a page title. */
+.mesh {
+  height: 10px;
+  background-image:
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 16px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 9px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 5px),
+    repeating-linear-gradient(90deg, var(--brass) 0 1px, transparent 1px 3px);
+  background-size: 25% 100%;
+  background-position: 0 0, 25% 0, 50% 0, 75% 0;
+  background-repeat: no-repeat;
+  opacity: .8;
+  transform-origin: left center;
+  animation: sieve .55s cubic-bezier(.2, .8, .3, 1) both;
+}
+@keyframes sieve { from { transform: scaleX(0); opacity: 0; } to { transform: scaleX(1); opacity: .8; } }
+@media (prefers-reduced-motion: reduce) {
+  .mesh { animation: none; }
+  * { transition: none !important; }
+}
+
+/* ------------------------------------------------------------------ page head */
+.header {
+  border-bottom: 1px solid var(--seam);
+  padding: 3.2rem 2rem 0;
+  background: linear-gradient(180deg, #221d16 0%, var(--rock) 100%);
+}
+.header-content { max-width: 1080px; margin: 0 auto; }
+
+.eyebrow {
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--brass);
+  margin-bottom: 1rem;
+  display: flex; flex-wrap: wrap; align-items: center;
+  justify-content: space-between; gap: .6rem 1rem;
+}
+.eyebrow a { color: inherit; text-decoration: none; border-bottom: 1px solid transparent; }
+.eyebrow a:hover { border-bottom-color: var(--brass); }
+/* The way to the other edition of this page. It targets the shell, not the bare
+   page, so the sidebar follows the language too. */
+.eyebrow .lang-switch {
+  margin-left: auto; border: 1px solid var(--seam); border-radius: 2px;
+  padding: .22rem .6rem; color: var(--dust); font-size: .68rem; letter-spacing: .1em;
+}
+.eyebrow .lang-switch:hover { color: var(--brass); border-color: var(--brass); }
+
+.header h1 {
+  font-family: var(--display);
+  font-size: clamp(2rem, 4.5vw, 3.1rem);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -.015em;
+  color: var(--quartz);
+  max-width: 20ch;
+}
+.header .subtitle {
+  color: var(--dust);
+  max-width: var(--measure);
+  margin-top: 1rem;
+  font-size: 1.02rem;
+}
+.header .mesh { margin: 1.8rem 0 0; }
+
+/* An assay line: the real composition of the module, in lab-report shorthand. */
+.assay {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.4rem;
+  font-family: var(--data);
+  font-size: .78rem;
+  color: var(--shadowed);
+  padding: .9rem 0 1.6rem;
+  letter-spacing: .04em;
+}
+.assay b { color: var(--dust); font-weight: 400; }
+
+/* --------------------------------------------------------------------- layout */
+/* The container hugs the widest block, so there is no orphan edge past the content. */
+.container { max-width: var(--wide); margin: 3rem auto 5rem; padding: 0 2rem; }
+
+/* Two deliberate right edges and no more: prose stops at the reading measure, and
+   only the things that genuinely need room (code, output, figures, big tables) run
+   out to the full column. */
+.section-block {
+  border-top: 1px solid var(--seam);
+  padding: 2rem 0 2.4rem;
+}
+.section-block > p,
+.section-block > ul,
+.section-block > ol,
+.section-block h3.sub,
+.section-block h4.sub,
+.section-block blockquote,
+details > *:not(summary) { max-width: var(--measure); }
+.section-block:first-child { border-top: 0; padding-top: .5rem; }
+
+/* The kicker names what kind of content follows: context, method, pitfalls.
+   It replaces decorative icons with something that actually classifies. */
+.kicker {
+  font-family: var(--data);
+  font-size: .68rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  display: block;
+  margin-bottom: .5rem;
+}
+.section-title {
+  font-family: var(--display);
+  font-size: 1.55rem;
+  font-weight: 600;
+  letter-spacing: -.01em;
+  line-height: 1.2;
+  margin-bottom: 1.2rem;
+  color: var(--quartz);
+}
+.is-warning .kicker { color: var(--hematite); }
+.is-warning .section-title { color: #e8c4b8; }
+.is-bridge .kicker, .is-decision .kicker { color: var(--malachite); }
+.is-toy .kicker, .is-result .kicker, .is-question .kicker { color: var(--brass); }
+
+/* ---------------------------------------------------------------------- prose */
+/* Justified with hyphenation. In Spanish, justifying without hyphens opens rivers of
+   white space and reads worse than ragged right; lang="es" is what feeds the
+   dictionary. Tables, code, captions and summaries stay ragged on purpose. */
+.section-block p,
+.section-block li,
+details > *:not(summary) {
+  text-align: justify;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+}
+.section-block p { margin-bottom: 1rem; }
+.section-block p:last-child { margin-bottom: 0; }
+/* Indent with padding, not margin, so the bullet sits inside the measure instead of
+   pushing the list 1.2rem past the right edge of the paragraphs. */
+.section-block ul, .section-block ol { margin: 0 0 1rem; padding-left: 1.2rem; }
+.section-block li { margin-bottom: .55rem; padding-left: .2rem; }
+.section-block li::marker { color: var(--brass); }
+td, th, figcaption, .res li, .assay { text-align: left; hyphens: manual; }
+a { color: var(--brass); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+a:hover { text-decoration-thickness: 2px; }
+strong { color: #fff; font-weight: 700; }
+em { color: var(--dust); font-style: italic; }
+
+h3.sub {
+  font-family: var(--display);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--brass);
+  margin: 2rem 0 .7rem;
+  letter-spacing: -.005em;
+}
+h3.sub:first-child { margin-top: 0; }
+h4.sub {
+  font-family: var(--display);
+  font-size: .98rem;
+  font-weight: 600;
+  color: var(--dust);
+  margin: 1.3rem 0 .5rem;
+}
+
+code {
+  font-family: var(--data);
+  font-size: .9em;
+  background: var(--core);
+  border-radius: 3px;
+  padding: .08rem .32rem;
+  color: var(--brass);
+}
+pre {
+  background: #14110e;
+  border: 1px solid var(--seam);
+  border-left: 2px solid var(--seam);
+  border-radius: 2px;
+  padding: 1.1rem 1.2rem;
+  overflow-x: auto;
+  margin-bottom: 1rem;
+}
+pre code {
+  background: none; padding: 0; color: var(--quartz);
+  font-size: .87rem; line-height: 1.6;
+}
+
+/* What the code prints. Malachite: the material that came out of the process. */
+.output {
+  position: relative;
+  border: 1px solid rgba(93, 155, 122, .32);
+  border-left: 2px solid var(--malachite);
+  border-radius: 2px;
+  background: rgba(93, 155, 122, .06);
+  padding: 1.7rem 1.2rem 1rem;
+  margin-bottom: 1rem;
+  overflow-x: auto;
+}
+.output-tag {
+  position: absolute; top: .5rem; left: 1.2rem;
+  font-family: var(--data); font-size: .64rem;
+  letter-spacing: .18em; text-transform: uppercase; color: var(--malachite);
+}
+.output pre {
+  background: none; border: 0; padding: 0; margin: 0;
+  font-family: var(--data); font-size: .85rem;
+  color: var(--quartz); white-space: pre-wrap;
+}
+
+/* Line by line explanation of a code block, for a reader new to programming.
+   Two columns: the fragment of code, and what it does. */
+.annot {
+  display: grid;
+  grid-template-columns: minmax(9rem, auto) 1fr;
+  gap: .1rem 1.2rem;
+  align-items: baseline;
+  max-width: var(--wide);
+  margin: -.4rem 0 1.4rem;
+  padding: .9rem 1.1rem 1rem;
+  border: 1px solid var(--seam);
+  border-top: 0;
+  border-radius: 0 0 2px 2px;
+  background: rgba(201, 162, 39, .04);
+}
+.annot-head {
+  grid-column: 1 / -1;
+  font-family: var(--data);
+  font-size: .64rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  margin-bottom: .5rem;
+}
+.annot dt { padding: .35rem 0; }
+.annot dt code {
+  background: var(--core);
+  color: var(--brass);
+  font-size: .82rem;
+  white-space: nowrap;
+}
+.annot dd {
+  padding: .35rem 0;
+  margin: 0;
+  color: var(--dust);
+  font-size: .93rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(61, 53, 44, .5);
+}
+.annot dt { border-bottom: 1px solid rgba(61, 53, 44, .5); }
+.annot dt:last-of-type, .annot dd:last-of-type { border-bottom: 0; }
+/* The code block sits directly on top of its annotation, as one unit. */
+pre:has(+ .annot) { margin-bottom: 0; border-radius: 2px 2px 0 0; }
+
+@media (max-width: 640px) {
+  .annot { grid-template-columns: 1fr; gap: 0; }
+  .annot dt { border-bottom: 0; padding-bottom: 0; }
+  .annot dd { padding-top: .15rem; }
+}
+
+blockquote {
+  border-left: 2px solid var(--brass);
+  padding: .3rem 0 .3rem 1.3rem;
+  margin: 0 0 1rem;
+  font-family: var(--display);
+  font-size: 1.2rem;
+  font-weight: 400;
+  line-height: 1.4;
+  color: var(--quartz);
+}
+
+/* Tables read as assay data: mono figures, hairline rules, no zebra fill.
+   They take the width they need instead of being stretched to the full column,
+   which is what left a two-column table floating in empty space. */
+.table-wrap { overflow-x: auto; margin-bottom: 1rem; }
+table { border-collapse: collapse; width: auto; max-width: 100%; font-size: .93rem; }
+th, td {
+  border-bottom: 1px solid var(--seam);
+  padding: .55rem .8rem .55rem 0;
+  text-align: left;
+  vertical-align: top;
+}
+th {
+  font-family: var(--data);
+  font-size: .7rem;
+  font-weight: 400;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--shadowed);
+  border-bottom-color: var(--brass);
+}
+td:first-child { color: var(--quartz); }
+
+/* Review questions: closed by default, so they work as recall practice. */
+details {
+  border-top: 1px solid var(--seam);
+  padding: .9rem 0;
+}
+details:last-child { border-bottom: 1px solid var(--seam); }
+summary {
+  cursor: pointer;
+  font-family: var(--display);
+  font-size: 1.02rem;
+  font-weight: 600;
+  color: var(--quartz);
+  list-style: none;
+  display: flex;
+  gap: .7rem;
+  align-items: baseline;
+}
+summary::-webkit-details-marker { display: none; }
+summary::before {
+  content: '+';
+  font-family: var(--data);
+  color: var(--brass);
+  font-size: .95rem;
+}
+details[open] summary::before { content: '−'; }
+details[open] summary { color: var(--brass); margin-bottom: .7rem; }
+details > *:not(summary) { color: var(--dust); }
+
+figure.fig {
+  margin: 1.6rem 0;
+  border: 1px solid var(--seam);
+  padding: .7rem;
+  background: var(--bench);
+}
+figure.fig img { width: 100%; height: auto; display: block; }
+/* The interactive twin of a figure. Its aspect matches the still one, 10 by 4.4, so a
+   case sheet keeps the same rhythm whichever kind of figure comes next. */
+figure.fig.is-live iframe {
+  width: 100%;
+  /* Matches INTERACTIVE_HEIGHT in src/make_figures.py. It used to be an aspect ratio, and
+     that made the figure's height depend on the window: the caption and the legend are
+     placed at fractions of the plot area, so on a wide screen they were pushed past the
+     bottom margin, clipping the caption and covering the x-axis title. */
+  height: 520px;
+  border: 0;
+  display: block;
+}
+figure.fig figcaption {
+  font-family: var(--data);
+  font-size: .72rem;
+  color: var(--shadowed);
+  margin-top: .6rem;
+  letter-spacing: .04em;
+}
+
+/* File listings on a case sheet */
+.res { list-style: none; margin-left: 0 !important; }
+.res li {
+  display: flex; align-items: baseline; gap: .8rem; flex-wrap: wrap;
+  padding: .5rem 0; border-bottom: 1px solid var(--seam); margin-bottom: 0;
+}
+.res .path { font-family: var(--data); font-size: .74rem; color: var(--shadowed); }
+.res .size { font-family: var(--data); font-size: .74rem; color: var(--shadowed); margin-left: auto; }
+.res .gone { font-family: var(--data); font-size: .74rem; color: var(--hematite); }
+
+.footer {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 2rem 4rem;
+  color: var(--shadowed);
+  font-family: var(--data);
+  font-size: .74rem;
+  letter-spacing: .03em;
+}
+
+@media (max-width: 640px) {
+  body { font-size: 15px; }
+  .header { padding: 2rem 1.2rem 0; }
+  .container { padding: 0 1.2rem; margin-top: 2rem; }
+  .footer { padding: 0 1.2rem 3rem; }
+}
+
+@media print {
+  body { background: #fff; color: #16130f; }
+  .header { background: none; border-bottom: 1px solid #bbb; padding-top: 0; }
+  .header h1, .section-title, summary { color: #16130f; }
+  .mesh { animation: none; }
+  .section-block { break-inside: avoid; max-width: none; }
+  pre, .output { background: #f6f4f0; border-color: #ccc; }
+  details:not([open]) > *:not(summary) { display: block; }
+  a { color: #16130f; }
+}
+
+</style>
+</head>
+<body>
+<header class="header">
+  <div class="header-content">
+    <div class="eyebrow"><span><a href="https://www.coursera.org/learn/the-nuts-and-bolts-of-machine-learning">The Nuts and Bolts of Machine Learning</a> / Module 3</span><a class="lang-switch" href="../index.html#the-nuts-and-bolts-of-machine-learning/m03_unsupervised-learning-techniques" target="_top" hreflang="es" lang="es" title="Leer esta página en español">Español</a></div>
+    <h1>Unsupervised learning techniques</h1>
+    <p class="subtitle">The same six lots of module 1, but now with the question that has no correct answer, how many groups there are. Inertia always falls and never tells you to stop; the silhouette does, and with this data it is 0.8505 and gets calculated by hand.</p>
+    <div class="mesh" role="presentation"></div>
+    <div class="assay"><span><b>4 h</b> course time</span><span><b>7</b> videos</span><span><b>4</b> readings</span><span><b>3</b> assignments</span><span><b>4</b> practice</span></div>
+  </div>
+</header>
+<main class="container">
+<section class="section-block "><span class="kicker">Context</span><h2 class="section-title">What this module solves</h2><p>Module 1 left a question open. When there is no label, <strong>there is nothing to compare with</strong>, so hits cannot be counted. And still you have to decide whether the result is any good, and above all you have to decide <strong>how many groups to ask for</strong>, which is a number the algorithm does not calculate: you give it.</p><p>This module is about that. The algorithm itself, k-means, is explained in five minutes and is done with a pencil. What takes up the module is <strong>how a result without a correct answer gets judged</strong>, and the answer is two measures that say different things and sometimes do not agree.</p></section>
+<section class="section-block is-toy"><span class="kicker">Example</span><h2 class="section-title">Before the theory: a toy example</h2><p>The same six lots of ore of module 1, with their gold grade:</p><pre><code>lote        1    2    3    4     5     6
+ley (g/t)   2    4    6    20    22    24</code></pre><p>There we asked for two groups because two could be seen. Now the question is another one: <strong>what if there are three? What if four?</strong> With real data they cannot be seen, so a criterion is needed.</p><h3 class="sub h3">Step 1. The first measure: how much each group spreads inside</h3><p>With two groups, we already know the centres end up at 4 and 22. <strong>Inertia</strong> measures how tight they are: the distance of each lot to its own centre is taken, squared, and all of them are added.</p><pre><code>grupo del 4:   (2−4)² + (4−4)² + (6−4)²  = 4 + 0 + 4 = 8
+grupo del 22:  (20−22)² + (22−22)² + (24−22)² = 4 + 0 + 4 = 8
+
+inercia total = 16</code></pre><p><strong>Sixteen.</strong> The smaller, the tighter the groups. So far, fine.</p><h3 class="sub h3">Step 2. And now the problem with that measure</h3><p>Let us try with three groups. The algorithm splits the top group and leaves the centres at 4, 20 and 23, with which the inertia drops to <strong>10</strong>. With four groups it drops to 4. With five, to 2.</p><div class="table-wrap"><table><thead><tr><th>Groups you ask for</th><th>Inertia</th></tr></thead><tbody><tr><td>2</td><td>16</td></tr><tr><td>3</td><td>10</td></tr><tr><td>4</td><td>4</td></tr><tr><td>5</td><td>2</td></tr><tr><td><strong>6</strong></td><td><strong>0</strong></td></tr></tbody></table></div><p>Look at the last row. <strong>With six groups and six lots, each lot is its own group and the inertia is exactly zero.</strong> Perfect, and completely useless.</p><p>There is the problem: <strong>inertia always drops when asking for more groups</strong>, so if you choose the number that minimises it, you always choose as many groups as data points. Inertia measures how tight the groups are, not whether the groups exist.</p><p>What is done with it is looking for <strong>the elbow</strong>: the point where it stops dropping fast. From 16 to 10 there is a big drop; from 4 to 2 it is already splitting hairs. It is a criterion by eye, and that is why the second one is needed.</p><h3 class="sub h3">Step 3. The second measure: is each lot in the right group?</h3><p>The <strong>silhouette</strong> asks a different and much better question: for each lot, is it closer to its own than to those of the neighbouring group? It is calculated lot by lot, and with lot 1 it comes out like this.</p><p>Its grade is 2. Its own are the 4 and the 6:</p><pre><code>distancia media a los SUYOS  = (|2−4| + |2−6|) / 2 = (2 + 4) / 2 = 3</code></pre><p>Those of the other group are the 20, the 22 and the 24:</p><pre><code>distancia media a los OTROS = (18 + 20 + 22) / 3 = 60 / 3 = 20</code></pre><p>And the silhouette is how much it has gained by being where it is, in proportion to the larger distance:</p><pre><code>silueta del lote 1 = (20 − 3) / 20 = 17 / 20 = 0,85</code></pre><p>Do it with all six and this comes out:</p><div class="table-wrap"><table><thead><tr><th>Lot</th><th>Grade</th><th>To its own</th><th>To the others</th><th>Silhouette</th></tr></thead><tbody><tr><td>1</td><td>2</td><td>3</td><td>20</td><td>0.8500</td></tr><tr><td>2</td><td>4</td><td>2</td><td>18</td><td><strong>0.8889</strong></td></tr><tr><td>3</td><td>6</td><td>3</td><td>16</td><td>0.8125</td></tr><tr><td>4</td><td>20</td><td>3</td><td>16</td><td>0.8125</td></tr><tr><td>5</td><td>22</td><td>2</td><td>18</td><td><strong>0.8889</strong></td></tr><tr><td>6</td><td>24</td><td>3</td><td>20</td><td>0.8500</td></tr></tbody></table></div><p>The average of those six is <strong>0.8505</strong>, and that is the number that gets reported.</p><p>Notice who gets the highest mark: <strong>those in the middle of each group</strong>, the 4 and the 22, which are exactly the centres. And the lowest, the 6 and the 20, which are the ones looking at the other group. It makes sense, and that is why the silhouette detects things inertia does not.</p><h3 class="sub h3">Step 4. The silhouette does know when to stop</h3><p>Repeating the calculation for each number of groups:</p><div class="table-wrap"><table><thead><tr><th>Groups</th><th>Inertia</th><th>Silhouette</th></tr></thead><tbody><tr><td><strong>2</strong></td><td>16</td><td><strong>0.8505</strong></td></tr><tr><td>3</td><td>10</td><td>0.4990</td></tr><tr><td>4</td><td>4</td><td>0.1667</td></tr><tr><td>5</td><td>2</td><td>0.0833</td></tr></tbody></table></div><p><strong>Inertia always drops and the silhouette collapses.</strong> Going from two to three groups the silhouette falls by half, because splitting a real group down the middle leaves its members as close to the neighbouring group as to their own.</p><p>The answer is <strong>two groups</strong>, and now it is justified with a number instead of by eye. Which is exactly what was needed.</p></section>
+<section class="section-block "><span class="kicker">Terms</span><h2 class="section-title">Glossary</h2><ul><li><strong>K-means.</strong> The algorithm that splits the data into <em>k</em> groups by moving <em>k</em> centres until they stop moving.</li><li><strong>Centroid.</strong> The centre of a group, which is the average of its members. It usually coincides with no real data point.</li><li><strong>Inertia.</strong> The sum of the squared distances of each point to its centre. It measures how tight the groups are. **It always drops as <em>k</em> grows.**</li><li><strong>Elbow method.</strong> Plotting the inertia against the number of groups and looking for where the curve stops falling fast.</li><li><strong>Silhouette coefficient.</strong> For each point, how much closer it is to its own than to those of the neighbouring group, on a scale from −1 to 1. It is averaged over all the points.</li><li><strong>Scaling.</strong> Putting all the variables on a comparable scale, usually by subtracting the mean and dividing by the deviation. <strong>Mandatory before k-means.</strong></li><li><strong>Convergence.</strong> The moment when no point changes group and the centres stop moving. There the algorithm stops.</li><li><strong>Initialisation.</strong> Where the centres get placed at the start. The result depends on it, so it is repeated several times from different starts.</li></ul></section>
+<section class="section-block is-recipe"><span class="kicker">Method</span><h2 class="section-title">Step by step</h2><h3 class="sub h3">Step 1. The algorithm, which is two steps repeated</h3><ol><li>**Choose <em>k</em> and place <em>k</em> centres**, usually on random points.</li><li><strong>Assign</strong> each point to the nearest centre.</li><li><strong>Move</strong> each centre to the average of the points it got.</li><li><strong>Repeat</strong> 2 and 3 until nobody changes group.</li></ol><p>You already did it by hand in module 1 with these same six lots: starting badly on purpose at 2 and at 4, it converged in three rounds to the centres 4 and 22.</p><p>Two properties worth having clear. <strong>It always stops</strong>, because every round reduces the inertia and it cannot go below zero. And <strong>it does not always stop at the best place</strong>: depending on where the centres start, it can get stuck in a worse split. That is why the whole process is repeated several times and the one with the lowest inertia is kept, which is what <code>n_init</code> does.</p><h3 class="sub h3">Step 2. Scaling, which is not optional</h3><p>K-means measures distances, so <strong>the variable with the biggest numbers decides the split</strong>. And it is not a subtle effect.</p><p>Three lots with two variables, tonnage and grade:</p><div class="table-wrap"><table><thead><tr><th>Lot</th><th>Tonnage</th><th>Grade</th></tr></thead><tbody><tr><td>A</td><td>1000 t</td><td>2%</td></tr><tr><td>B</td><td>1000 t</td><td>24%</td></tr><tr><td>C</td><td>1500 t</td><td>2%</td></tr></tbody></table></div><p>A and B have opposite grades and the same tonnage. A and C have the same grade and different tonnage. The distances:</p><pre><code>A con B = 22      (solo cambia la ley)
+A con C = 500     (solo cambia el tonelaje)</code></pre><p><strong>A resembles B, which has the opposite grade, twenty-three times more than C, which has the same grade.</strong> Without scaling, it is not that tonnage weighs more: it is that grade weighs nothing.</p><p>Scaling, the two differences are worth 2.12 each, and now the algorithm can decide.</p><h3 class="sub h3">Step 3. Choosing <em>k</em>, which is the real decision</h3><p>The procedure, and there is no shortcut:</p><ol><li>**Run k-means for several values of <em>k</em>**, typically from 2 to 10.</li><li><strong>Plot the inertia</strong> and look for the elbow.</li><li><strong>Plot the silhouette</strong> and look for the maximum.</li><li><strong>If they agree</strong>, decided.</li><li><strong>If they do not agree</strong>, it gets said, and the context decides: how many groups whoever is going to use this can really handle.</li></ol><p>That fifth line is not a cowardly way out. A model proposing eleven customer segments is useless if the marketing team can run three campaigns.</p><h3 class="sub h3">Step 4. What k-means takes for granted, and when it fails</h3><div class="table-wrap"><table><thead><tr><th>It takes for granted</th><th>It fails when</th></tr></thead><tbody><tr><td>The groups are round</td><td>The groups are crescent- or ring-shaped</td></tr><tr><td>The groups are of similar size</td><td>One has a thousand points and another twenty</td></tr><tr><td>All the variables are worth the same</td><td>You have not scaled</td></tr><tr><td>Each point belongs to one group</td><td>Reality is a continuum without borders</td></tr></tbody></table></div><p>The last one is the most important and the least said. <strong>K-means always returns groups</strong>, also on completely uniform data where there is none. You ask for three and it gives you three, with their centres and their statistics. That groups come out does not prove they exist; that is what the silhouette is for, which on data without structure comes out close to zero.</p><h3 class="sub h3">Step 5. Compressing an image, which is the same algorithm</h3><p>The course teaches an application that looks like it is from another world and is identical. A photograph is a list of pixels, and <strong>each pixel is three numbers</strong>: how much red, how much green and how much blue. That is, a table with three columns, like any other.</p><p>Grouping those pixels into, say, three groups, and painting each pixel the colour of its centre, leaves the image with <strong>three colours in total</strong>. That is compressing: you store three colours and which group each pixel belongs to, instead of storing the exact colour of each one.</p><p>It is a good example for two reasons. The first is that here <strong>scale does not get in the way</strong>, because the three channels run from 0 to 255. The second is that you see at a glance what is lost when lowering <em>k</em>, and that is what the algorithm always does, even though with lots of ore it cannot be seen.</p></section>
+<section class="section-block is-recipe"><span class="kicker">Code</span><h2 class="section-title">The code, in parts</h2><h3 class="sub h3">Step 1. The two measures, for several values of k</h3><p>The six lots, trying from two to five groups.</p><pre><code class="language-python">import numpy as np
+from sklearn.cluster import KMeans
+from sklearn.metrics import silhouette_score
+
+grade = np.array([2, 4, 6, 20, 22, 24], float).reshape(-1, 1)
+
+for k in range(2, 6):
+    model = KMeans(n_clusters=k, n_init=50, random_state=0).fit(grade)
+    score = silhouette_score(grade, model.labels_)
+    print(f&quot;k={k}   inercia {model.inertia_:6.2f}   silueta {score:.4f}&quot;)</code></pre><dl class="annot"><div class="annot-head">line by line</div><dt><code>range(2, 6)</code></dt><dd>The numbers 2, 3, 4 and 5. The second one is not included, which is Python&#x27;s convention and the source of half the mistakes of whoever starts out. And it starts at 2 because with a single group the silhouette is not defined.</dd><dt><code>n_init=50</code></dt><dd>Repeat the whole process fifty times from different starts and keep the best. With six data points it is overkill, but it is the correct habit: k-means can get stuck in a worse split depending on where it starts.</dd><dt><code>model.inertia_</code></dt><dd>The sum of squared distances to their centre. Trailing underscore, so it only exists after training.</dd><dt><code>silhouette_score(grade, model.labels_)</code></dt><dd>It receives <strong>the data and the split</strong>, not the model. That is why it serves to judge any clustering, wherever it comes from.</dd><dt><code>{model.inertia_:6.2f}</code></dt><dd>Reserves six spaces and two decimals, so the column stays aligned when printing several lines.</dd></dl><div class="output"><span class="output-tag">prints</span><pre>k=2   inercia  16.00   silueta 0.8505
+k=3   inercia  10.00   silueta 0.4990
+k=4   inercia   4.00   silueta 0.1667
+k=5   inercia   2.00   silueta 0.0833</pre></div><p>The same numbers as in the table above. <strong>Inertia drops monotonically and the silhouette sinks</strong>, and that is why only the second one answers the question.</p><h3 class="sub h3">Step 2. The scale, with two distances</h3><pre><code class="language-python">from sklearn.preprocessing import StandardScaler
+
+batches = np.array([[1000., 2.], [1000., 24.], [1500., 2.]])
+
+def gap(i, j, matrix):
+    return float(np.sqrt(((matrix[i] - matrix[j]) ** 2).sum()))
+
+print(f&quot;sin escalar   A-B {gap(0, 1, batches):6.2f}   A-C {gap(0, 2, batches):6.2f}&quot;)
+
+scaled = StandardScaler().fit_transform(batches)
+print(f&quot;escalando     A-B {gap(0, 1, scaled):6.2f}   A-C {gap(0, 2, scaled):6.2f}&quot;)</code></pre><dl class="annot"><div class="annot-head">line by line</div><dt><code>def gap(i, j, matrix):</code></dt><dd>Defining a function of our own, so as not to repeat the same calculation four times. Everything indented below belongs to it.</dd><dt><code>matrix[i] - matrix[j]</code></dt><dd>Subtracting two rows gives a vector with the difference of each column. numpy does this without loops.</dd><dt><code>(... ** 2).sum()</code></dt><dd>Each difference squared, and added up. It is Pythagoras&#x27; theorem in as many dimensions as there are columns.</dd><dt><code>np.sqrt(...)</code></dt><dd>The square root of that sum: the straight-line distance.</dd><dt><code>StandardScaler().fit_transform(...)</code></dt><dd>Two things at once: <code>fit</code> learns the mean and the deviation of each column, <code>transform</code> applies them. <strong>Mind this in a real model</strong>: the scaler is learned with the training set only, or you will be leaking information from the test into it.</dd></dl><div class="output"><span class="output-tag">prints</span><pre>sin escalar   A-B  22.00   A-C 500.00
+escalando     A-B   2.12   A-C   2.12</pre></div><p>Without scaling, 22 against 500. Scaling, <strong>2.12 against 2.12 exactly</strong>: the two differences come to weigh the same, which is what was intended.</p><h3 class="sub h3">Step 3. Compressing colours</h3><p>A toy photograph: one thousand six hundred pixels of three colours, with sensor noise on top, which is what makes almost no pixel identical to another.</p><pre><code class="language-python">rng = np.random.default_rng(0)
+palette = np.array([[200., 30., 30.], [30., 120., 200.], [240., 230., 200.]])
+pixels = (palette[rng.integers(0, 3, 1600)] + rng.normal(0, 8, (1600, 3))).clip(0, 255)
+
+print(&quot;colores distintos:&quot;, len(np.unique(pixels.round().astype(int), axis=0)))
+
+model = KMeans(n_clusters=3, n_init=10, random_state=0).fit(pixels)
+for centre in model.cluster_centers_.round().astype(int):
+    print(&quot;  rojo&quot;, centre[0], &quot; verde&quot;, centre[1], &quot; azul&quot;, centre[2])</code></pre><dl class="annot"><div class="annot-head">line by line</div><dt><code>np.random.default_rng(0)</code></dt><dd>numpy&#x27;s random generator, with seed 0 so the same thing comes out every time. Without a seed, the example would not be reproducible.</dd><dt><code>palette[rng.integers(0, 3, 1600)]</code></dt><dd>One thousand six hundred random numbers between 0 and 2, used as indices into the palette. Choosing rows of a table with a vector of positions is one of the things numpy does and that in pure Python would take a loop.</dd><dt><code>rng.normal(0, 8, (1600, 3))</code></dt><dd>Bell-shaped noise, mean 0 and deviation 8, one per channel and per pixel. It is what makes two pixels of the same real colour not identical, as in a real photo.</dd><dt><code>.clip(0, 255)</code></dt><dd>Trims whatever goes outside the valid colour range. Without this, the noise can produce a −3 of red, which does not exist.</dd><dt><code>np.unique(..., axis=0)</code></dt><dd>The distinct <strong>rows</strong>, not the distinct values. Without <code>axis=0</code> it would count loose numbers.</dd><dt><code>.round().astype(int)</code></dt><dd>Round and convert to integer. A colour is an integer from 0 to 255, and comparing decimals to count repeats would not work.</dd></dl><div class="output"><span class="output-tag">prints</span><pre>colores distintos: 1580
+  rojo 30  verde 120  azul 200
+  rojo 200  verde 30  azul 29
+  rojo 239  verde 230  azul 201</pre></div><p>From <strong>1,580 distinct colours to 3</strong>, and the three centres are almost exactly the three original colours: the noise gets averaged and disappears. The mean error per channel stays at 6.4 over 255, 2.5%.</p><p>That is what k-means always does: <strong>replacing each data point with the centre of its group</strong>. Here it shows because the result is an image; with lots of ore the same thing happens and it does not show.</p></section>
+<section class="section-block is-warning"><span class="kicker">Traps</span><h2 class="section-title">Watch out</h2><ul><li>**Inertia never chooses <em>k</em>**, because it always drops. With as many groups as data points it is zero. It serves to look for the elbow and nothing else.</li><li><strong>Without scaling, k-means groups by the variable with the biggest numbers.</strong> It is not that it weighs more: it is that the others do not weigh at all.</li><li><strong>The scaler is learned with the training set only.</strong> If you pass it the whole set, the mean and the deviation carry information from the test inside.</li><li><strong>K-means always returns groups</strong>, also where there are none. The silhouette near zero is the sign that there was nothing to group.</li><li><strong>The group numbers mean nothing</strong> and change between runs. Without <code>random_state</code>, two runs give different labels for the same split.</li><li><strong>The mean silhouette hides the badly placed ones.</strong> A 0.6 average can have one group at 0.9 and another at 0.2. Look at it per group before signing off.</li><li><strong>A high mean silhouette does not validate the groups as a business concept.</strong> It says they are separated in your variables, not that they mean something.</li><li><strong>If the elbow and the silhouette do not agree, it gets said.</strong> Tweaking one of the two until they fit is window dressing.</li></ul></section>
+<section class="section-block is-bridge"><span class="kicker">Analogy</span><h2 class="section-title">Metallurgical bridge</h2><p>The number of groups to ask k-means for is, under another name, <strong>how many stockpiles you set up in the yard</strong>.</p><p>Ore arrives from several faces with different grades, and you have to decide into how many piles it gets separated before feeding the plant. And the decision has exactly the same shape:</p><div class="table-wrap"><table><thead><tr><th>In k-means</th><th>In the stockpile yard</th></tr></thead><tbody><tr><td>Each group</td><td>A pile</td></tr><tr><td>The centre of the group</td><td>The mean grade of that pile</td></tr><tr><td>Inertia</td><td>How mixed up each pile is inside</td></tr><tr><td>Asking for more groups</td><td>Setting up more piles</td></tr></tbody></table></div><p>And here is the parallel that explains everything: <strong>the more piles you set up, the more homogeneous each one is</strong>. With one pile per truck you would have perfect homogeneity and zero internal variability, which is literally zero inertia with as many groups as data points.</p><p>And it would be unmanageable. Every extra pile means more space, more loader movements and more blending decisions. <strong>Homogeneity is not the only criterion</strong>, and that is why nobody sets up one pile per truck even though the internal variability is the smallest possible.</p><p>The elbow is exactly that: the point where one more pile no longer improves homogeneity much and does add work. And the silhouette answers the other question, whether the piles are really separate or whether you are splitting material that is in fact the same.</p><p>With one honest difference: in the yard you know what one more pile costs, and the algorithm does not. That is why the final decision of step 3 is taken by whoever knows the operation.</p></section>
+<section class="section-block is-review"><span class="kicker">Review</span><h2 class="section-title">Review</h2><details><summary>Why can inertia not be used on its own to choose the number of groups?</summary><p>Because it always drops as <em>k</em> grows, until it is exactly zero when there are as many groups as data points and each point is its own group. With the six lots it goes from 16 with two groups to 10 with three, to 4 with four and to 0 with six, so the number that minimises it is always the maximum possible, which describes nothing. What inertia measures is how tight the groups are, not whether the groups exist. It is used by looking for the elbow, which is a criterion by eye, and that is why the silhouette is needed next to it.</p></details><details><summary>In the example, why do lots 2 and 5 have the highest silhouette?</summary><p>Because they are the ones at the centre of their group, which is exactly what the silhouette rewards. Lot 2, with grade 4, is at a mean distance of 2 from its own and of 18 from the others, so its silhouette is (18−2)/18 = 0.8889. Lots 3 and 6, with grades 6 and 20, are the ones looking at the opposite group and score 0.8125. The silhouette measures, point by point, how much better each one fits where it is than in the neighbouring group, so those at the edge score worse and those at the core better.</p></details><details><summary>One lot weighs 1000 t with a grade of 2% and another 1000 t with a grade of 24%. Why would k-means group them together?</summary><p>Because without scaling, the distance between them is 22, which comes only from the grade, while the distance to a third lot with the same grade but 1500 t is 500. In terms of distance, two lots with opposite grades resemble each other twenty-three times more than two with the same grade and different tonnage, so the algorithm groups by tonnage and the grade stops counting. It is not that tonnage weighs more: it is that grade weighs nothing. Scaling each variable to mean 0 and deviation 1, the two distances come to be 2.12, and then the algorithm can really decide.</p></details><details><summary>The silhouette coefficient of a clustering comes out 0.05. What does it mean?</summary><p>That the points are almost as close to the neighbouring group as to their own, that is, <strong>the groups are not separated</strong>. And since k-means always returns as many groups as you ask for, even on uniform data with no structure at all, that 0.05 is the sign that there was probably nothing to group. The honest answer is to say so, not to raise or lower <em>k</em> until a better number comes out. It is also worth looking at the silhouette per group before concluding, because a low average can come from a single badly formed group while the rest is fine.</p></details><details><summary>What does compressing an image have to do with grouping lots of ore?</summary><p>That it is the same algorithm on a different table. A photograph is a list of pixels and each pixel is three numbers, the red, the green and the blue, so it is a three-column table like any other. Grouping into three and painting each pixel the colour of its centre leaves the image with three colours, which is what k-means always does: <strong>replacing each data point with the centre of its group</strong>. In the example, 1,580 distinct colours get reduced to 3 and the centres recover almost exactly the original colours, because the noise gets averaged. With lots of ore the same thing happens, only there it cannot be seen.</p></details></section>
+</main>
+<footer class="footer">
+  Concentra / distilled from the public syllabus of the course / 2026-08-23
+</footer>
+</body>
+</html>
