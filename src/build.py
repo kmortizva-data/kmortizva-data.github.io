@@ -164,6 +164,18 @@ def inline_figure(project: dict, lang: str) -> str:
     return f'<div class="variograma-embed reveal">{match.group(0)}</div>'
 
 
+def site_base(site: dict) -> str:
+    """The absolute URL the site is served from.
+
+    og:image is the one tag that cannot be relative: the machine reading it is not the
+    browser and has no page to resolve against. While the domain is unpaid the site
+    lives on github.io, and this follows that switch instead of hard-coding either.
+    """
+    if site.get("publish_domain"):
+        return f"https://{site['domain']}"
+    return f"https://{site['github_user']}.github.io"
+
+
 def shell(*, title: str, desc: str, lang: str, depth: int, switch_href: str,
           ui: dict, site: dict, body: str) -> str:
     up = rel(depth)
@@ -181,6 +193,9 @@ def shell(*, title: str, desc: str, lang: str, depth: int, switch_href: str,
 <meta property="og:title" content="{esc(title)}">
 <meta property="og:description" content="{esc(desc)}">
 <meta property="og:type" content="website">
+<meta property="og:image" content="{site_base(site)}/assets/shots/og-card.png">
+<meta property="og:image:alt" content="{esc(desc)}">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="alternate" hreflang="{other_lang}" href="{switch}">
 <script>document.documentElement.className="js"</script>
 <link rel="stylesheet" href="{up}style.css?v={asset_version("style.css")}">
