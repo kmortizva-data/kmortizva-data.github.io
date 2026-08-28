@@ -176,7 +176,7 @@
         "concentrate": "A measured no. Machine learning adds nine thousandths of R² over repeating the last lab value, so the deliverable is a recommendation not to deploy, and the list of what would have to change.",
         "assay": "the model adds +0.009 R² over doing nothing",
         "assay_detail": "Persistence, meaning \"assume it stays where it is\", scores R² 0.632 at one hour. The trained model scores 0.641. Past five hours both go negative. At twelve hours the model is actively worse than the baseline.",
-        "status": "Complete. 14 modules, 56 figures, every number recomputed.",
+        "status": "Complete. 14 modules, 56 figures, every number recomputed, and the whole course reads in English or Spanish.",
         "body": [
           "Halfway through, this project looked like a success. Adding hourly memory and gradient boosting took R² from 0.04 to 0.64, which is the kind of jump you put on a slide.",
           "Then I measured what the process gives you for free. Silica does not move much in an hour, so simply predicting that the next value equals the last one already scores 0.632. Almost the entire jump was the inertia of the plant, not the skill of the model. That correction stayed in the notes, because catching it is worth more than the number was.",
@@ -194,7 +194,7 @@
         "concentrate": "Un no, medido. El machine learning aporta nueve milésimas de R² sobre repetir el último análisis, así que el entregable es una recomendación de no desplegar y la lista de qué tendría que cambiar.",
         "assay": "el modelo aporta +0,009 de R² sobre no hacer nada",
         "assay_detail": "La persistencia, o sea \"supón que se queda donde está\", da R² 0,632 a una hora. El modelo entrenado da 0,641. Pasadas cinco horas los dos se van a negativo. A doce horas el modelo es directamente peor que el baseline.",
-        "status": "Terminado. 14 módulos, 56 figuras, cada cifra recalculada.",
+        "status": "Terminado. 14 módulos, 56 figuras, cada cifra recalculada, y el curso entero se lee en español o en inglés.",
         "body": [
           "A mitad de camino esto parecía un éxito. Añadir memoria horaria y gradient boosting subió el R² de 0,04 a 0,64, que es el salto que uno pone en una diapositiva.",
           "Después medí lo que el proceso te regala. La sílice no se mueve mucho en una hora, así que predecir simplemente que el siguiente valor es igual al último ya da 0,632. Casi todo el salto era la inercia de la planta, no la habilidad del modelo. Esa corrección se quedó escrita en los apuntes, porque pillarla vale más que el número que tumbó.",

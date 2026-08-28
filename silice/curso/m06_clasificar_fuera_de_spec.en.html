@@ -648,7 +648,7 @@ recall    = 18 / (18 + 2)   = 18 / 20  = 0.90</code></pre><h3 class="sub">Step 4
 <section class="block is-code"><span class="kicker">Code</span><h2 class="block-title">The code, in parts</h2><h3 class="sub">Step 1. Build the category and see the imbalance</h3><pre><code class="language-python">THRESHOLD = 3.5
 y = (data[TARGET] &gt; THRESHOLD).astype(int)
 print(f&quot;Horas fuera de spec -&gt; train {y[is_train].mean():.1%}  test {y[~is_train].mean():.1%}&quot;)</code></pre><details class="fold"><summary>line by line, 3 entries</summary><dl class="annot"><dt><code>data[TARGET] &gt; THRESHOLD</code></dt><dd>Compares the whole column with the number and returns true or false per row.</dd><dt><code>.astype(int)</code></dt><dd>Turns true into 1 and false into 0, which is what the classifier expects.</dd><dt><code>{...:.1%}</code></dt><dd>Formats as a percentage with one decimal. 0.19 prints as 19.0%.</dd></dl></details><div class="output"><span class="output-tag">prints</span><pre><code>Umbral fuera-de-spec: 3.5 % SiO2
-Horas fuera de spec -&gt; train 17.2%  test 19.0%</code></pre></div><figure class="fig"><img src="../figuras/fig_m6_desbalance.98fa3dbe.png" alt="Left: the real split of the hours, 81 against 19. Right: the accuracy trap, with the baseline that scores 0.81 without catching anything." loading="lazy"><figcaption>Left: the real split of the hours, 81 against 19. Right: the accuracy trap, with the baseline that scores 0.81 without catching anything.</figcaption></figure><h3 class="sub">Step 2. Train the classifier and get the matrix</h3><pre><code class="language-python">from sklearn.ensemble import HistGradientBoostingClassifier
+Horas fuera de spec -&gt; train 17.2%  test 19.0%</code></pre></div><figure class="fig"><img src="../figuras/fig_m6_desbalance.en.0921cf55.png" alt="Left: the real split of the hours, 81 against 19. Right: the accuracy trap, with the baseline that scores 0.81 without catching anything." loading="lazy"><figcaption>Left: the real split of the hours, 81 against 19. Right: the accuracy trap, with the baseline that scores 0.81 without catching anything.</figcaption></figure><h3 class="sub">Step 2. Train the classifier and get the matrix</h3><pre><code class="language-python">from sklearn.ensemble import HistGradientBoostingClassifier
 from sklearn.metrics import confusion_matrix, precision_score, recall_score
 
 clf = HistGradientBoostingClassifier(random_state=0).fit(X_train, y_train)
@@ -660,7 +660,7 @@ Matriz de confusion [[TN, FP], [FN, TP]]:
  [ 69 113]]
 Precision: 0.813
 Recall   : 0.621
-F1       : 0.704</code></pre></div><figure class="fig"><img src="../figuras/fig_m6_confusion.07de84a3.png" alt="Left: the full confusion matrix. Right: how precision and recall move as the decision threshold changes." loading="lazy"><figcaption>Left: the full confusion matrix. Right: how precision and recall move as the decision threshold changes.</figcaption></figure><p>Read in words: there were 182 hours out of specification. The model caught <strong>113</strong>, let <strong>69</strong> escape and gave <strong>26 false alarms</strong>.</p><h3 class="sub">Step 3. Put the right rival in front of it</h3><pre><code class="language-python">alarma_persistencia = (test[&quot;sil_lag1&quot;] &gt; THRESHOLD).astype(int)
+F1       : 0.704</code></pre></div><figure class="fig"><img src="../figuras/fig_m6_confusion.en.ecc910ee.png" alt="Left: the full confusion matrix. Right: how precision and recall move as the decision threshold changes." loading="lazy"><figcaption>Left: the full confusion matrix. Right: how precision and recall move as the decision threshold changes.</figcaption></figure><p>Read in words: there were 182 hours out of specification. The model caught <strong>113</strong>, let <strong>69</strong> escape and gave <strong>26 false alarms</strong>.</p><h3 class="sub">Step 3. Put the right rival in front of it</h3><pre><code class="language-python">alarma_persistencia = (test[&quot;sil_lag1&quot;] &gt; THRESHOLD).astype(int)
 print(confusion_matrix(y_test, alarma_persistencia))</code></pre><details class="fold"><summary>line by line, 1 entry</summary><dl class="annot"><dt><code>test[&quot;sil_lag1&quot;] &gt; THRESHOLD</code></dt><dd>The rival&#x27;s whole rule: if the previous hour was out, warn. No model and no training.</dd></dl></details><div class="output"><span class="output-tag">prints</span><pre><code>  aviso               acierto  precisión   atrapa  falsas  se escapan
   siempre en spec       0.810          -        0       0         182
   persistencia          0.912      0.769      140      42          42
@@ -674,7 +674,7 @@ print(confusion_matrix(y_test, alarma_persistencia))</code></pre><details class=
 <footer class="footer">
   <div class="footer-inner">
     <span>Silica / Module 6</span>
-    <span>generated on 2026-08-22</span>
+    <span>generated on 2026-08-28</span>
     <span>source: the 31 original notes, their scripts and the plant CSV</span>
   </div>
 </footer>

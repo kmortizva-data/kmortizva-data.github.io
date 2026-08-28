@@ -653,7 +653,7 @@ R² = 1 − (36 / 8) = −3.50</code></pre><h3 class="sub">Step 4. See the fall 
       1          -0.000        +0.632        +0.641         +0.047          +0.649
       3          -0.000        +0.271        +0.273         -0.003          +0.269
       6          -0.000        -0.145        -0.147         +0.029          -0.112
-     12          -0.000        -0.613        -0.851         +0.175          -0.330</code></pre></div><figure class="fig"><img src="../figuras/fig_m8_horizontes.c478ab19.png" alt="Left: the R² on the silica level by lead time. Right: the R² of the change model, the project&amp;#x27;s only own signal." loading="lazy"><figcaption>Left: the R² on the silica level by lead time. Right: the R² of the change model, the project&amp;#x27;s only own signal.</figcaption></figure><h3 class="sub">Step 2. Retrain as would be done in the plant</h3><pre><code class="language-python">for dias in (28, 14, 7, 3, 1):
+     12          -0.000        -0.613        -0.851         +0.175          -0.330</code></pre></div><figure class="fig"><img src="../figuras/fig_m8_horizontes.en.ac920231.png" alt="Left: the R² on the silica level by lead time. Right: the R² of the change model, the project&amp;#x27;s only own signal." loading="lazy"><figcaption>Left: the R² on the silica level by lead time. Right: the R² of the change model, the project&amp;#x27;s only own signal.</figcaption></figure><h3 class="sub">Step 2. Retrain as would be done in the plant</h3><pre><code class="language-python">for dias in (28, 14, 7, 3, 1):
     puntuacion = rolling_retrain(data, feats, dias)
     print(f&quot;cada {dias} dias  R2 {puntuacion:+.4f}  aporte {puntuacion - r2_persistencia:+.4f}&quot;)</code></pre><details class="fold"><summary>line by line, 1 entry</summary><dl class="annot"><dt><code>rolling_retrain(...)</code></dt><dd>Walks forward through time retraining every N days, always with data strictly earlier than the window it is about to predict.</dd></dl></details><div class="output"><span class="output-tag">prints</span><pre><code>Persistencia (repetir la hora anterior): R2 +0.6323
 Lo que hizo el proyecto, un modelo congelado dos meses: R2 +0.6413 (+0.0090)
@@ -682,7 +682,7 @@ as_warning(train, test, feats)</code></pre><details class="fold"><summary>line b
 <footer class="footer">
   <div class="footer-inner">
     <span>Silica / Module 8</span>
-    <span>generated on 2026-08-22</span>
+    <span>generated on 2026-08-28</span>
     <span>source: the 31 original notes, their scripts and the plant CSV</span>
   </div>
 </footer>
