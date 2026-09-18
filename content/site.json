@@ -335,6 +335,7 @@
     },
     {
       "slug": "fuelle",
+      "repo": "https://github.com/kmortizva-data/fuelle",
       "accent": "air",
       "shot": "fuelle-index.png",
       "shot_alt": {
