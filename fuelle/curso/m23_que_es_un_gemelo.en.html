@@ -1,0 +1,972 @@
+<!doctype html>
+<html lang="en" class="no-js" data-assets="../assets" data-tablas="telemetria=sin_timestamp_ligera.parquet">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>What a digital twin is, and what it is not · Bellows, module 23</title>
+<link rel="alternate" hreflang="es" href="m23_que_es_un_gemelo.html">
+<style>
+/* Fuelle: la hoja de estilo del curso.
+ *
+ * REESCRITA ENTERA el 2026-08-30. La primera versión heredó la plantilla de Sílice
+ * junto con su motor, y Kevin la vio y dijo: "se parece a las otras 20 páginas de
+ * portafolio, el landing, coursera, silica, se ve y se siente igual". Tenía razón.
+ * Medido: mismo ancho de prosa (680), mismo ancho de bloques (1180), misma columna
+ * de margen (132), misma secuencia de cabecera, 36 clases compartidas de 40.
+ * Cambiar papel por grafito no toca la silueta, y la silueta es lo que se siente.
+ *
+ * Los cuatro sitios de Kevin son una columna de texto centrada, sin barra lateral,
+ * sin rejilla y sin nada pegajoso. Este es lo contrario: PANEL DE CONTROL. Una barra
+ * fija a la izquierda con los instrumentos siempre a la vista, y el contenido a su
+ * derecha. Ninguna de las tres medidas heredadas aparece aquí, y check_layout.py
+ * falla si alguna reaparece.
+ *
+ * El encargo que ordena las decisiones sigue siendo el mismo: "no muy escandaloso,
+ * que parezca ingeniero, pero que demuestres habilidades, que no seas un pdf que se
+ * lee de recorrido". La sobriedad va en la superficie, la ambición en lo que hace.
+ */
+
+/* --------------------------------------------------------------- tipografía */
+
+/* IBM Plex, autoalojada, OFL-1.1. Los cuatro sitios de Kevin usan la fuente del
+ * sistema, y eso es la otra mitad del "se siente igual". Plex tiene aire de
+ * documentación de ingeniería, que es exactamente el encargo.
+ *
+ * Cinco cortes y no tres: sin las semi-negritas el navegador falsifica la negrita
+ * engordando el trazo, y en una fuente técnica se nota enseguida. 289 KB en total,
+ * que se pueden bajar a unos 60 recortando al alfabeto latino con fonttools si
+ * llega a molestar. */
+@font-face {
+  font-family: "Plex Cond";
+  src: url("../assets/fonts/PlexSansCondensed-SemiBold.woff2") format("woff2");
+  font-weight: 600; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Plex";
+  src: url("../assets/fonts/PlexSans-Regular.woff2") format("woff2");
+  font-weight: 400; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Plex";
+  src: url("../assets/fonts/PlexSans-SemiBold.woff2") format("woff2");
+  font-weight: 600; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Plex Mono";
+  src: url("../assets/fonts/PlexMono-Regular.woff2") format("woff2");
+  font-weight: 400; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Plex Mono";
+  src: url("../assets/fonts/PlexMono-SemiBold.woff2") format("woff2");
+  font-weight: 600; font-style: normal; font-display: swap;
+}
+
+/* ------------------------------------------------------------------ tokens */
+
+:root {
+  --ground: #f4f2ee;
+  --panel: #e9e6e0;
+  --stage: #fbfaf8;
+  --ink: #191d20;
+  --ink-soft: #4c545a;
+  --ink-faint: #7c868d;
+  --rule: #d6d1c8;
+  --rule-soft: #e4e0d8;
+  --grid: rgba(25, 29, 32, .05);
+  --accent: #46787e;
+  --measured: #3d505b;
+  --simulated: #b57542;
+
+  --prose: "Plex", system-ui, "Segoe UI", Roboto, sans-serif;
+  --display: "Plex Cond", "Plex", system-ui, sans-serif;
+  --data: "Plex Mono", "Cascadia Mono", Consolas, monospace;
+
+  /* Medidas NUEVAS. Ninguna puede coincidir con las heredadas de Sílice
+   * (680 de prosa, 1180 de bloques, 132 de margen): volver a ellas es volver a
+   * la misma página, y hay un verificador que lo impide. */
+  --rail: 268px;      /* la barra fija, que ninguno de los otros sitios tiene */
+  --read: 646px;      /* la medida de la prosa, en píxeles y nunca en ch */
+  --block: 980px;     /* el borde derecho de los bloques anchos */
+
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ground: #101417;
+    --panel: #171c20;
+    --stage: #14181b;
+    --ink: #e2e7ea;
+    --ink-soft: #a6b0b6;
+    --ink-faint: #717e85;
+    --rule: #293036;
+    --rule-soft: #20272b;
+    --grid: rgba(226, 231, 234, .045);
+    --accent: #8ec2c8;
+    --measured: #cbe2ef;
+    --simulated: #c98754;
+  }
+}
+
+:root[data-theme="dark"] {
+  --ground: #101417;
+  --panel: #171c20;
+  --stage: #14181b;
+  --ink: #e2e7ea;
+  --ink-soft: #a6b0b6;
+  --ink-faint: #717e85;
+  --rule: #293036;
+  --rule-soft: #20272b;
+  --grid: rgba(226, 231, 234, .045);
+  --accent: #8ec2c8;
+  --measured: #cbe2ef;
+  --simulated: #c98754;
+}
+
+/* --------------------------------------------------------------- cimientos */
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--stage);
+  color: var(--ink);
+  font-family: var(--prose);
+  font-size: 16.5px;
+  line-height: 1.6;
+}
+
+::selection { background: var(--accent); color: var(--ground); }
+a { color: var(--accent); text-underline-offset: .18em; }
+
+/* LA REJILLA. Esto es lo que ninguno de los otros cuatro sitios tiene, y es la
+ * razón de que la página deje de sentirse igual: el texto ya no está centrado en
+ * la ventana, está al lado de un panel de instrumentos. */
+.shell {
+  display: grid;
+  grid-template-columns: var(--rail) minmax(0, 1fr);
+  min-height: 100vh;
+}
+
+/* -------------------------------------------------- la barra de instrumentos */
+
+.panel {
+  position: sticky;   /* lo primero pegajoso de todo el portafolio */
+  top: 0;
+  align-self: start;
+  height: 100vh;
+  overflow-y: auto;
+  padding: 22px 20px 22px;
+  background: var(--panel);
+  border-right: 1px solid var(--rule);
+  background-image: radial-gradient(var(--grid) 1px, transparent 1px);
+  background-size: 22px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.panel-brand {
+  font-family: var(--display);
+  font-size: 19px;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  color: var(--ink);
+  text-decoration: none;
+  display: block;
+}
+.panel-brand small {
+  display: block;
+  font-family: var(--data);
+  font-size: 10px;
+  letter-spacing: .08em;
+  color: var(--ink-faint);
+  text-transform: none;
+  margin-top: 4px;
+}
+
+.panel-label {
+  font-family: var(--data);
+  font-size: 9.5px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding-bottom: 7px;
+  border-bottom: 1px solid var(--rule);
+  margin-bottom: 10px;
+}
+
+/* El grafo del lago, EN VERTICAL. Antes iba horizontal y solo en la portada;
+ * aquí acompaña al lector todo el curso y marca en qué capa está. */
+.rail-step {
+  display: grid;
+  grid-template-columns: 15px 1fr auto;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 0;
+  font-family: var(--data);
+  font-size: 11px;
+  letter-spacing: .08em;
+  color: var(--ink-faint);
+  text-decoration: none;
+  position: relative;
+}
+.rail-step .dot {
+  width: 9px; height: 9px;
+  border: 1px solid var(--ink-faint);
+  border-radius: 50%;
+  justify-self: center;
+}
+.rail-step:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  left: 7px; top: 25px;
+  width: 1px; height: calc(100% - 17px);
+  background: var(--rule);
+}
+.rail-step.done { color: var(--ink-soft); }
+.rail-step.done .dot { background: var(--ink-faint); border-color: var(--ink-faint); }
+.rail-step.here { color: var(--accent); }
+.rail-step.here .dot { background: var(--accent); border-color: var(--accent); }
+.rail-step .range { font-size: 9.5px; opacity: .75; }
+
+/* La cifra del módulo ya no es una caja en una cabecera gigante: vive aquí y se
+ * queda a la vista mientras se lee la lección entera. */
+.panel-figure { border-top: 1px solid var(--rule); padding-top: 14px; }
+.panel-figure .v {
+  display: block;
+  font-family: var(--data);
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 1.3;
+  color: var(--accent);
+}
+.panel-figure .l {
+  display: block;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--ink-faint);
+  margin-top: 5px;
+}
+
+.panel-progress {
+  margin-top: auto;
+  border-top: 1px solid var(--rule);
+  padding-top: 13px;
+  font-family: var(--data);
+  font-size: 11px;
+  color: var(--ink-faint);
+}
+.panel-progress b { color: var(--ink); font-weight: 600; }
+.panel-bar { height: 2px; background: var(--rule); margin-top: 7px; }
+.panel-bar i { display: block; height: 2px; background: var(--accent); }
+
+.panel-nav { display: flex; gap: 7px; flex-wrap: wrap; }
+.panel-nav a {
+  font-family: var(--data);
+  font-size: 10.5px;
+  letter-spacing: .06em;
+  padding: 6px 9px;
+  border: 1px solid var(--rule);
+  text-decoration: none;
+  color: var(--ink-soft);
+}
+.panel-nav a:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ------------------------------------------------------------- el contenido */
+
+.stage { background: var(--stage); padding: 0 0 54px; min-width: 0; }
+.stage-inner { max-width: var(--block); padding: 0 40px; }
+
+/* La cabecera ya no ocupa media pantalla: una línea de identificación y el
+ * título. La cifra y la navegación se fueron a la barra. */
+.head {
+  padding: 30px 0 20px;
+  border-bottom: 1px solid var(--rule);
+  margin-bottom: 4px;
+}
+.head-id {
+  font-family: var(--data);
+  font-size: 10.5px;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  display: flex;
+  gap: 14px;
+  align-items: baseline;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.head-id b { color: var(--accent); font-weight: 600; }
+.head h1 {
+  font-family: var(--display);
+  font-size: clamp(26px, 3.3vw, 37px);
+  line-height: 1.08;
+  font-weight: 600;
+  margin: 0 0 10px;
+  max-width: 22ch;
+}
+.head .standfirst {
+  color: var(--ink-soft);
+  font-size: 16.5px;
+  line-height: 1.5;
+  max-width: var(--read);
+  margin: 0;
+}
+
+/* Las secciones ya no cuelgan de un margen de 132 px: la etiqueta va encima, en
+ * un recuadro pequeño, y el texto empieza en el borde. */
+.block { padding: 26px 0 2px; border-top: 1px solid var(--rule-soft); }
+.block:first-of-type { border-top: 0; }
+
+.kicker {
+  display: inline-block;
+  font-family: var(--data);
+  font-size: 9.5px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  border: 1px solid var(--rule);
+  padding: 2px 7px;
+  margin-bottom: 11px;
+}
+
+.block-title {
+  font-family: var(--display);
+  font-size: 22px;
+  font-weight: 600;
+  margin: 0 0 11px;
+  max-width: var(--read);
+}
+
+/* Justificado desde 33rem de columna y rasgado en móvil: la regla que Kevin
+ * fijó en el portafolio el 2026-08-22, después de medir que a 375 px salían
+ * huecos de 7,65x y ríos en cinco de cada seis líneas. Aquí la prosa mide 646 px
+ * (unos 40rem), así que le toca justificado.
+ *
+ * Y NADA de `hyphens`: sin guionado, por la regla de la casa. El precio es que
+ * hay que vigilar los ríos, y eso se mide con src/site/check_rivers.py en vez de
+ * mirarlo de reojo. */
+.block p, .block li { max-width: var(--read); }
+
+@media (min-width: 34rem) {
+  .block p,
+  .block li,
+  .standfirst,
+  .reto-ask,
+  .annot dd,
+  blockquote,
+  .is-review details p { text-align: justify; text-justify: inter-word; }
+  /* Tablas, código, pies de figura y la barra nunca se justifican: sus líneas
+   * son cortas y el hueco se vuelve un agujero. */
+  figcaption, th, td, pre, .panel, .live-status, .toc { text-align: left; }
+}
+.block p { margin: 0 0 14px; }
+.block ul, .block ol { padding-left: 21px; margin: 0 0 14px; }
+.block li { margin-bottom: 6px; }
+.block li::marker { color: var(--accent); font-family: var(--data); font-size: .82em; }
+
+h3.sub, h4.sub {
+  font-family: var(--display);
+  font-size: 17px;
+  font-weight: 600;
+  margin: 24px 0 8px;
+  max-width: var(--read);
+}
+h4.sub { font-size: 15px; color: var(--ink-soft); }
+
+blockquote {
+  margin: 0 0 14px;
+  padding-left: 15px;
+  border-left: 2px solid var(--rule);
+  color: var(--ink-soft);
+  max-width: var(--read);
+}
+strong, b { font-weight: 600; }
+
+.is-brief ul { list-style: none; padding-left: 0; }
+.is-brief li {
+  padding: 8px 0 8px 18px;
+  border-bottom: 1px solid var(--rule-soft);
+  position: relative;
+}
+.is-brief li::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 17px;
+  width: 8px; height: 1px;
+  background: var(--accent);
+}
+.is-brief li:last-child { border-bottom: 0; }
+.is-result .block-title, .is-warning .block-title { color: var(--accent); }
+
+/* ------------------------------------------------------------------ código */
+
+pre {
+  max-width: var(--block);
+  overflow-x: auto;
+  background: var(--panel);
+  border: 1px solid var(--rule-soft);
+  border-left: 2px solid var(--accent);
+  padding: 13px 15px;
+  margin: 0 0 13px;
+}
+pre code {
+  font-family: var(--data);
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ink);
+  white-space: pre;
+}
+p code, li code, dd code, td code {
+  font-family: var(--data);
+  font-size: .87em;
+  padding: 1px 4px;
+  background: var(--panel);
+  border: 1px solid var(--rule-soft);
+}
+
+/* Diagramas: esquemas conceptuales generados, no figuras de datos.
+   Nacen del bloque ```diagrama y usan los tokens de arriba, asi que el tema lo
+   resuelve el CSS y no hacen falta dos versiones como en las figuras. */
+.diagram { margin: 0 0 22px; max-width: var(--block); }
+.chain {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: 30px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: none;
+}
+.node {
+  position: relative;
+  /* 130 y no 132: 132px es la columna de margen de Sílice y check_layout la
+     prohíbe en este proyecto, con razón, aunque aquí signifique otra cosa. */
+  flex: 1 1 130px;
+  min-width: 0;
+  padding: 11px 13px 12px;
+  background: var(--panel);
+  border: 1px solid var(--rule);
+  border-top: 2px solid var(--ink-faint);
+}
+/* La flecha entre cajas. Va en el hueco del gap, asi que no roba ancho al
+   texto y desaparece sola cuando las cajas se apilan. */
+.node + .node::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: -22px;
+  width: 14px;
+  height: 1px;
+  background: var(--ink-faint);
+}
+.node + .node::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: -11px;
+  width: 5px; height: 5px;
+  border-top: 1px solid var(--ink-faint);
+  border-right: 1px solid var(--ink-faint);
+  transform: translateY(-50%) rotate(45deg);
+}
+.node.lit { border-top-color: var(--accent); background: var(--stage); }
+.node.lit .node-name { color: var(--accent); }
+.node-name {
+  display: block;
+  font-family: var(--data);
+  font-size: 10.5px;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+.node-what { display: block; margin-top: 5px; font-size: 13.5px; color: var(--ink); }
+.node-note { display: block; margin-top: 4px; font-size: 12px; color: var(--ink-faint); }
+
+@media (max-width: 640px) {
+  /* Apiladas, con la flecha girada hacia abajo. */
+  .chain { flex-direction: column; gap: 26px; }
+  .node { flex: 1 1 auto; }
+  .node + .node::before {
+    top: -19px; left: 21px;
+    width: 1px; height: 12px;
+  }
+  .node + .node::after {
+    top: -9px; left: 19px;
+    transform: rotate(135deg);
+  }
+}
+
+.output { position: relative; margin: 0 0 13px; max-width: var(--block); }
+.output pre { margin: 0; border-left: 2px solid var(--ink-faint); background: transparent; }
+.output pre code { color: var(--ink-soft); }
+.output-tag {
+  position: absolute;
+  top: -7px; left: 13px;
+  z-index: 1;
+  font-family: var(--data);
+  font-size: 9px;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  background: var(--stage);
+  padding: 0 5px;
+}
+
+details.fold, details { margin: 0 0 13px; max-width: var(--block); }
+details > summary {
+  cursor: pointer;
+  font-family: var(--data);
+  font-size: 11px;
+  letter-spacing: .05em;
+  color: var(--ink-faint);
+  padding: 5px 0;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+details > summary::-webkit-details-marker { display: none; }
+details > summary::before {
+  content: "+";
+  width: 13px; height: 13px;
+  line-height: 12px;
+  text-align: center;
+  border: 1px solid var(--rule);
+  color: var(--accent);
+}
+details[open] > summary::before { content: "\2212"; }
+details > summary:hover { color: var(--accent); }
+
+.annot {
+  margin: 2px 0 4px;
+  padding: 11px 13px;
+  border: 1px solid var(--rule-soft);
+  background: var(--panel);
+}
+.annot dt { margin-bottom: 3px; }
+.annot dt code {
+  font-family: var(--data);
+  font-size: 12px;
+  color: var(--accent);
+  background: transparent;
+  border: 0;
+  padding: 0;
+}
+.annot dd { margin: 0 0 10px; font-size: 14.5px; color: var(--ink-soft); max-width: var(--read); }
+.annot dd:last-of-type { margin-bottom: 0; }
+
+.is-review details { border-bottom: 1px solid var(--rule-soft); margin: 0; }
+.is-review details > summary {
+  font-family: var(--prose);
+  font-size: 15.5px;
+  color: var(--ink);
+  padding: 11px 0;
+}
+.is-review details > summary:hover { color: var(--accent); }
+.is-review details p { margin: 0 0 11px 21px; color: var(--ink-soft); }
+
+/* ------------------------------------------------------------------ tablas */
+
+.table-wrap { max-width: var(--block); overflow-x: auto; margin: 0 0 15px; }
+table { border-collapse: collapse; font-size: 14.5px; }
+th, td {
+  text-align: left;
+  padding: 6px 15px 6px 0;
+  border-bottom: 1px solid var(--rule-soft);
+  vertical-align: top;
+}
+th {
+  font-family: var(--data);
+  font-size: 10px;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  font-weight: 400;
+  border-bottom-color: var(--rule);
+}
+tbody tr:last-child td { border-bottom: 0; }
+
+figure { margin: 0 0 17px; max-width: var(--block); }
+figure img { max-width: 100%; height: auto; display: block; }
+figcaption { font-size: 12.5px; color: var(--ink-faint); margin-top: 7px; max-width: var(--read); }
+
+.footer {
+  border-top: 1px solid var(--rule);
+  margin-top: 32px;
+  padding: 18px 0 0;
+  font-size: 12px;
+  color: var(--ink-faint);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px 20px;
+}
+.footer a { color: var(--ink-faint); }
+.gone { color: var(--ink-faint); }
+
+/* ---------------------------------------------- la consulta viva y el reto */
+
+.live {
+  max-width: var(--block);
+  margin: 0 0 17px;
+  border: 1px solid var(--rule);
+  background: var(--panel);
+}
+.live-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 13px;
+  border-bottom: 1px solid var(--rule-soft);
+  font-family: var(--data);
+  font-size: 10px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.live-editor {
+  width: 100%;
+  border: 0;
+  resize: vertical;
+  min-height: 112px;
+  padding: 12px 14px;
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--data);
+  font-size: 13px;
+  line-height: 1.6;
+  tab-size: 2;
+}
+.live-editor:focus { outline: 2px solid var(--accent); outline-offset: -2px; }
+.live-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 13px;
+  border-top: 1px solid var(--rule-soft);
+  flex-wrap: wrap;
+}
+.live-run {
+  font-family: var(--data);
+  font-size: 11px;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  padding: 7px 14px;
+  border: 1px solid var(--accent);
+  background: transparent;
+  color: var(--accent);
+  cursor: pointer;
+}
+.live-run:hover { background: var(--accent); color: var(--ground); }
+.live-run[disabled] { opacity: .5; cursor: default; }
+.live-run[disabled]:hover { background: transparent; color: var(--accent); }
+.live-status { font-family: var(--data); font-size: 10.5px; color: var(--ink-faint); }
+.live-out { max-width: 100%; overflow-x: auto; }
+.live-out table { margin: 0; width: 100%; font-size: 12.5px; }
+.live-out td, .live-out th { padding: 5px 13px 5px 0; }
+.live-out td:first-child, .live-out th:first-child { padding-left: 13px; }
+.live-out td { font-family: var(--data); font-size: 12px; }
+.live-err {
+  padding: 10px 14px;
+  font-family: var(--data);
+  font-size: 12px;
+  color: var(--simulated);
+  border-top: 1px solid var(--rule-soft);
+}
+
+.reto { border-left: 2px solid var(--accent); }
+.reto .live-head { color: var(--accent); }
+.reto-ask { padding: 12px 14px 2px; font-size: 15.5px; max-width: var(--read); }
+.verdict {
+  padding: 10px 14px;
+  border-top: 1px solid var(--rule-soft);
+  font-family: var(--data);
+  font-size: 12px;
+}
+.verdict.ok { color: var(--accent); }
+.verdict.no { color: var(--simulated); }
+
+.no-js .live-bar, .no-js .live-editor { display: none; }
+.no-js .live-static { display: block; }
+.live-static { display: none; }
+
+/* ---------------------------------------------------------- el doble trazo */
+
+.twin { max-width: var(--block); margin: 0 0 18px; }
+.twin svg { width: 100%; height: auto; display: block; }
+.twin .axis { stroke: var(--rule); fill: none; }
+.twin .tick { fill: var(--ink-faint); font-family: var(--data); font-size: 10px; }
+.twin .measured { stroke: var(--measured); fill: none; stroke-width: 1.8; }
+.twin .simulated { stroke: var(--simulated); fill: none; stroke-width: 1.8; stroke-dasharray: 5 4; }
+.twin .gap { fill: var(--simulated); opacity: .16; }
+.twin-key { display: flex; gap: 20px; flex-wrap: wrap; font-family: var(--data);
+            font-size: 11px; color: var(--ink-faint); margin-top: 6px; }
+.twin-key i { display: inline-block; width: 20px; height: 0; vertical-align: middle;
+              border-top-width: 2px; border-top-style: solid; margin-right: 7px; }
+.twin-key .k-measured i { border-color: var(--measured); }
+.twin-key .k-simulated i { border-top-style: dashed; border-color: var(--simulated); }
+
+.knob { display: flex; align-items: center; gap: 13px; flex-wrap: wrap; margin: 0 0 13px;
+        font-family: var(--data); font-size: 11px; color: var(--ink-faint); }
+.knob input[type="range"] { accent-color: var(--accent); flex: 1 1 200px; max-width: 300px; }
+.knob output { color: var(--accent); min-width: 72px; }
+
+/* -------------------------------------------------------- índice del curso */
+
+.toc { max-width: var(--block); }
+.toc .part {
+  font-family: var(--data);
+  font-size: 10px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin: 26px 0 2px;
+  padding-top: 11px;
+  border-top: 1px solid var(--rule);
+}
+.toc a, .toc .pending {
+  display: grid;
+  grid-template-columns: 34px 1fr auto;
+  gap: 15px;
+  align-items: baseline;
+  padding: 9px 6px 9px 8px;
+  border-bottom: 1px solid var(--rule-soft);
+  border-left: 2px solid transparent;
+  text-decoration: none;
+  color: var(--ink);
+}
+.toc a:hover { border-left-color: var(--accent); background: var(--panel); color: var(--accent); }
+.toc .pending { color: var(--ink-faint); }
+.toc .num { font-family: var(--data); font-size: 12px; color: var(--ink-faint); }
+.toc a:hover .num { color: var(--accent); }
+.toc .name { font-family: var(--display); font-size: 16px; }
+.toc .name small { display: block; font-family: var(--prose); color: var(--ink-faint);
+                   font-size: 13px; font-weight: 400; margin-top: 2px; max-width: 60ch; }
+.toc .mark { font-family: var(--data); font-size: 11px; color: var(--ink-faint); text-align: right; }
+.toc .tag { font-family: var(--data); font-size: 9.5px; letter-spacing: .1em;
+            text-transform: uppercase; color: var(--ink-faint); }
+
+/* ------------------------------------------------------------------- móvil */
+
+/* La barra deja de ser barra: pasa a cabecera compacta arriba, con los tramos en
+ * horizontal. La rejilla se colapsa a una columna. */
+@media (max-width: 900px) {
+  .shell { grid-template-columns: 1fr; }
+  .panel {
+    position: static;
+    height: auto;
+    border-right: 0;
+    border-bottom: 1px solid var(--rule);
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 16px;
+    padding: 13px 18px;
+  }
+  .panel-label { display: none; }
+  .panel .rail { display: flex; gap: 0 5px; flex-wrap: wrap; }
+  .rail-step { grid-template-columns: 11px auto; padding: 3px 0; font-size: 9.5px; }
+  .rail-step .range { display: none; }
+  .rail-step:not(:last-child)::after { display: none; }
+  .panel-figure { border-top: 0; padding-top: 0; }
+  .panel-figure .v { font-size: 13.5px; }
+  .panel-figure .l { display: none; }
+  .panel-progress { margin: 0; border-top: 0; padding-top: 0; }
+  .panel-bar { display: none; }
+  .stage-inner { padding: 0 18px; }
+  body { font-size: 16px; }
+  .head { padding-top: 22px; }
+  pre code { font-size: 12.5px; }
+}
+
+/* ------------------------------------------------- la perilla del gemelo */
+/*
+ * El doble trazo con su deslizador, de los modulos 24 y 25. El SVG llega ya
+ * dibujado del servidor, asi que sin JavaScript se ve igual: dos trazos, la
+ * referencia y la posicion de partida. El mando solo cambia cual se ensena.
+ *
+ * La regla de forma del curso: el color NUNCA es la unica pista. La referencia
+ * va punteada y en tono apagado, y la posicion elegida solida y en el acento.
+ */
+.perilla {
+  margin: 22px 0;
+  max-width: var(--block);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  background: var(--stage);
+  padding: 14px 16px 12px;
+}
+.perilla figcaption {
+  font-family: var(--data);
+  font-size: 11px;
+  color: var(--ink-faint);
+  letter-spacing: .02em;
+  margin-bottom: 10px;
+}
+.perilla svg { display: block; width: 100%; height: auto; }
+.perilla-referencia {
+  fill: none;
+  stroke: var(--ink-faint);
+  stroke-width: 1.4;
+  stroke-dasharray: 4 3;
+}
+.perilla-actual {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  transition: d .12s linear;
+}
+.perilla-pie {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 18px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--rule-soft);
+}
+.perilla-leyenda { font-size: 12px; color: var(--ink-faint); }
+.perilla-mandos {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+  font-family: var(--data);
+  font-size: 11px;
+  color: var(--ink-soft);
+}
+.perilla-mando { width: 190px; accent-color: var(--accent); }
+.perilla-mando[disabled] { opacity: .45; }
+.perilla-valor {
+  font-family: var(--data);
+  font-size: 12px;
+  color: var(--ink);
+  min-width: 88px;
+}
+.perilla-nota, .perilla-referencia-nota {
+  margin: 8px 0 0;
+  font-size: 12.5px;
+  color: var(--ink-soft);
+}
+.perilla-referencia-nota { color: var(--ink-faint); font-size: 12px; }
+
+@media (max-width: 620px) {
+  .perilla-mandos { margin-left: 0; width: 100%; }
+  .perilla-mando { flex: 1; width: auto; min-width: 0; }
+}
+
+/* ------------------------------------------------------ movimiento y papel */
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@media print {
+  .shell { display: block; }
+  .panel, .live-bar, .live-editor { display: none; }
+  .live-static { display: block; }
+  body { background: #fff; color: #000; }
+}
+
+/* ------------------------------------------------------ figuras, dos temas */
+
+/* Cada figura viaja dos veces, clara y oscura, y aquí se enseña la que toca.
+ * Con `<picture>` y una media query bastaría para la preferencia del sistema,
+ * pero no para el interruptor manual, y este curso respeta los dos. */
+.fig-oscuro { display: none; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .fig-claro { display: none; }
+  :root:not([data-theme="light"]) .fig-oscuro { display: block; }
+}
+:root[data-theme="dark"] .fig-claro { display: none; }
+:root[data-theme="dark"] .fig-oscuro { display: block; }
+
+/* El acento de este módulo, uno por tema. Los dos salen de src/site/palette.py
+   y los dos pasaron el contraste antes de llegar aquí. */
+:root { --accent: #846B36; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --accent: #CFB47E; }
+}
+:root[data-theme="dark"] { --accent: #CFB47E; }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- La barra de instrumentos. No se mueve al bajar: el tramo del lago, la cifra
+       del módulo y el avance se quedan a la vista mientras se lee. -->
+  <aside class="panel">
+    <a class="panel-brand" href="index.en.html">Bellows
+      <small>Module 23 of 31</small></a>
+
+    <nav class="rail" aria-label="The arc of the project">
+      <p class="panel-label">the lake</p>
+      <span class="rail-step done"><i class="dot"></i><span>RAW</span><span class="range">1-3</span></span><span class="rail-step done"><i class="dot"></i><span>BRONZE</span><span class="range">4-13</span></span><span class="rail-step done"><i class="dot"></i><span>SILVER</span><span class="range">14-16</span></span><span class="rail-step done"><i class="dot"></i><span>GOLD</span><span class="range">17-22</span></span><span class="rail-step here"><i class="dot"></i><span>TWIN</span><span class="range">23-31</span></span>
+    </nav>
+
+    <div class="panel-figure">
+      <span class="v">95 times</span>
+      <span class="l">bigger the gap on the failure day than on the worst healthy day</span>
+    </div>
+
+    <div class="panel-progress">
+      <b>23</b> of 31
+      <span class="panel-bar"><i style="width: 74%"></i></span>
+    </div>
+
+    <nav class="panel-nav"><a href="m22_mantenimiento.en.html" title="22. Users, backups and maintenance">← 22</a><a href="m24_fisica.en.html" title="24. Compressor physics: receiver, pressure switch and motor">24 →</a><a class="portfolio-link" href="m23_que_es_un_gemelo.html" hreflang="es" rel="alternate">Español</a></nav>
+  </aside>
+
+  <main class="stage">
+    <div class="stage-inner">
+      <header class="head">
+        <p class="head-id"><b>23</b> <span>part: The twin</span></p>
+        <h1>What a digital twin is, and what it is not</h1>
+        <p class="standfirst">Not a three dimensional drawing nor a pretty dashboard. It is a model running alongside the machine, whose disagreement means something</p>
+      </header>
+
+      <section class="block is-brief"><span class="kicker">Summary</span><h2 class="block-title">In 30 seconds</h2><ul><li>A digital twin is not a three dimensional drawing nor a pretty dashboard.</li><li>It is <strong>a model running alongside the machine</strong>, and its disagreement means something.</li><li>That disagreement is called the <strong>residual</strong>, and it is the only thing a twin delivers.</li><li>Across healthy days the twin never parts from the machine by more than <strong>14.0 minutes</strong>.</li><li>On 18 April it parts by <strong>1,335.7</strong>, which is <strong>95 times</strong> that worst healthy case.</li></ul></section>
+<section class="block "><span class="kicker">Context</span><h2 class="block-title">What this module solves</h2><p>&quot;Digital twin&quot; is sold as very different things. A rotating mock up. A dashboard with a photo of the equipment and some numbers on top. A model trained on six months of data that predicts a failure.</p><p>None of the three is what this project is going to build, and it is worth saying so before building it.</p><p>A twin, here, is <strong>a model of the machine&#x27;s physics that runs at the same time as it does, on the same inputs</strong>. And what you look at is not what it predicts: it is <strong>how it differs from reality</strong>.</p></section>
+<section class="block is-toy"><span class="kicker">By hand</span><h2 class="block-title">Before the theory: a toy example</h2><p>Two identical furnaces, side by side, with the same charge and the same gas.</p><div class="table-wrap"><table><thead><tr><th>Time</th><th>Furnace A</th><th>Furnace B</th></tr></thead><tbody><tr><td>08:00</td><td>900 °C</td><td>900 °C</td></tr><tr><td>10:00</td><td>920 °C</td><td>918 °C</td></tr><tr><td>12:00</td><td>915 °C</td><td>870 °C</td></tr><tr><td>14:00</td><td>918 °C</td><td>845 °C</td></tr></tbody></table></div><p>Nobody needs to know anything about furnaces to see that B has had a problem since midday. <strong>And you do not need to know what the correct temperature is</strong>: it is enough to have another identical furnace next to it.</p><p>That is a twin, and its value sits exactly there. It does not say &quot;910 degrees is normal&quot;, a rule with an owner and an expiry date. It says <strong>&quot;these two should agree and they do not&quot;</strong>.</p><p>The difference between the two columns is the residual. When it is zero there is no news. When it opens up, there is.</p><p>And now the part that makes all of this useful. <strong>In a plant you do not have two furnaces.</strong> You have one, so the second has to be manufactured, and that is what a model is for: it is furnace B.</p></section>
+<section class="block is-terms"><span class="kicker">Terms</span><h2 class="block-title">Glossary</h2><details class="fold"><summary>6 terms, in plain words</summary><ul><li><strong>Digital twin.</strong> A model of a machine that runs on its same inputs, alongside it, so the two can be compared.</li><li><strong>Residual.</strong> The difference between what the machine does and what the model does.</li><li><strong>Controlled variable.</strong> The one a control loop holds where it wants it. Here, pressure.</li><li><strong>Manipulated variable.</strong> What the control moves to get there. Here, how hard the compressor works.</li><li><strong>First principles.</strong> A model made of known physics rather than fitted data. This course&#x27;s is one.</li><li><strong>False alarm.</strong> A warning with no failure behind it. It is the currency sensitivity is paid in.</li></ul></details></section>
+<section class="block is-method"><span class="kicker">Method</span><h2 class="block-title">Step by step</h2><h3 class="sub">Step 1. Decide what it has to get right</h3><p>A twin does not reproduce the whole machine, and wanting that is the fastest way to never finish one. It reproduces <strong>one thing</strong>, and here it is the <strong>duty cycle</strong>: how much time the compressor spends loaded.</p><h3 class="sub">Step 2. And decide what it will NOT look at</h3><p>Pressure, because the control holds it. In a leaking compressor the pressure stays where it should, and what changes is <strong>how hard you have to work to hold it there</strong>.</p><p>This is not a theory of this course, it is measured. On this project&#x27;s test page, moving a simulated leak from 5 to 40 litres per minute, <strong>the two pressure curves parted by 32 pixels and then by 31</strong>. Nothing. The cumulative work ones went from 15 to 51.</p><h3 class="sub">Step 3. Run the model on what it knew before</h3><p>The twin is calibrated over a healthy period and after that <strong>it is not touched</strong>. It will see failure days with the parameters from when everything was fine, and that is why it falls short: it does not know there is a leak.</p><h3 class="sub">Step 4. Look at the gap, not at the prediction</h3><p>If the twin gets it right there is no news. If it is wrong there is news, and the size of the error is the news. That is this module&#x27;s change of mind: <strong>a model whose error is the product</strong>.</p></section>
+<section class="block is-code"><span class="kicker">Code</span><h2 class="block-title">The code, in parts</h2><h3 class="sub">Step 5. The whole twin, again</h3><pre><code class="language-python">if cargando:
+    p += (entrega - consumo) * paso
+    if p &gt;= para: cargando = False
+else:
+    p -= consumo * paso
+    if p &lt;= arranca: cargando = True</code></pre><details class="fold"><summary>line by line, 2 entries</summary><dl class="annot"><dt><code>entrega - consumo</code></dt><dd>how fast the receiver rises per loaded minute. The four numbers come out of the lake in module 24, none of them invented</dd><dt><code>p &gt;= para</code></dt><dd>the pressure switch lets go at the top and asks to load again down at <code>arranca</code>. No temperature, no geometry, no fitted data</dd></dl></details><p>There is no more. That is the whole twin, and modules 24 and 25 are about where its four numbers come from and how to make it run without breaking it.</p><h3 class="sub">Step 6. And the residual</h3><pre><code class="language-python">residual = minutos_que_carga_la_maquina - minutos_que_carga_el_gemelo</code></pre><details class="fold"><summary>line by line, 2 entries</summary><dl class="annot"><dt><code>residual</code></dt><dd>that is all. A twin does not deliver a prediction, it delivers a difference</dd><dt><code>minutos_que_carga_la_maquina</code></dt><dd>the unit matters: these are compressor minutes, something a maintenance lead understands</dd></dl></details><div class="output"><span class="output-tag">prints</span><pre><code>  día sano   : la máquina 80.8 min, el gemelo 80.5, hueco 0.3
+  los 7 días sanos completos van de 66.5 a 90.0 min, y el hueco mayor entre ellos es 14.0
+  18 de abril: la máquina 1416.2 min, el gemelo 80.5, hueco 1335.7
+  el hueco de la avería es 95,4 veces el mayor de los días sanos</code></pre></div></section>
+<section class="block is-result"><span class="kicker">Result</span><h2 class="block-title">The result, measured</h2><figure class="fig"><img class="fig-claro" src="../figuras/fig_m23_gemelo_y_residual.claro.en.png?v=7b2456fe" alt="fig m23 gemelo y residual" loading="lazy"><img class="fig-oscuro" src="../figuras/fig_m23_gemelo_y_residual.oscuro.en.png?v=184876ec" alt="fig m23 gemelo y residual" loading="lazy"></figure><p><strong>What we expected.</strong> That the twin would follow the machine on a healthy day and fall short on a failure day.</p><p><strong>What came out.</strong> Exactly that, and with a distance between the two cases that leaves no room for doubt.</p><p>On a healthy, complete day, 18 February, the machine loaded for <strong>80.8</strong> minutes and the twin predicted <strong>80.5</strong>. They are less than twenty seconds apart.</p><p>That agreement is too pretty to believe, and it is worth saying why. The twin predicts the same thing every day, and 18 February is <strong>the day closest to the median</strong> of the healthy days. So the comparison is habit against the day that looks most like habit. Any other day would come out worse, and that is exactly the thing to measure.</p><p><strong>So the bar does not come from one day, it comes from all of them.</strong> The healthy window holds <strong>seven</strong> days with their full 8,640 readings, and the machine loaded between <strong>66.5</strong> and <strong>90.0</strong> minutes on them. Against the twin&#x27;s single prediction, the worst of those days is off by <strong>14.0 minutes</strong>.</p><p>On 18 April, the first documented failure, the machine loaded for <strong>1,416.2</strong> minutes, that is almost the whole day. The twin, still knowing nothing, predicted the same <strong>80.5</strong> as always.</p><div class="table-wrap"><table><thead><tr><th></th><th>The seven healthy days</th><th>18 April</th></tr></thead><tbody><tr><td>The machine</td><td>66.5 to 90.0 min</td><td><strong>1,416.2 min</strong></td></tr><tr><td>The twin</td><td>80.5 min</td><td>80.5 min</td></tr><tr><td>The gap</td><td>up to 14.0 min</td><td><strong>1,335.7 min</strong></td></tr></tbody></table></div><p><strong>95 times the worst healthy day.</strong> That ratio is what makes the idea work. And it is measured against the worst case, not the best. For setting up a warning that is the only one worth having: an alarm does not have to clear the quiet day, it has to clear the strangest healthy one.</p><p><strong>What it means.</strong> That there is room. A twin that can be 14 minutes wrong is no good for saying exactly how many minutes the compressor will load tomorrow, and <strong>it does not need to be</strong>. It is good for noticing something ninety five times bigger than its worst error.</p><p>What is left ahead is engineering, not concept. Checking whether searching for the parameters instead of measuring them sharpens anything, in module 26. Deciding what size of gap raises a warning, in 27. And checking against the four failures whether the warning arrives in time and without waking anybody for nothing, in 28.</p></section>
+<section class="block is-warning"><span class="kicker">Traps</span><h2 class="block-title">Watch out</h2><ul><li><strong>A twin is not a prediction, it is a comparison.</strong> If somebody sells you one on how well it gets things right, they are selling you something else.</li><li><strong>Do not look at the controlled variable.</strong> The control holds it, so there is no signal there. It is measured in this project: 32 pixels against 31 when the leak is quadrupled.</li><li><strong>The twin is not recalibrated on the failure data.</strong> Let it learn from the bad period and it stops being surprised, and the residual disappears. It is calibrated on healthy and frozen.</li><li><strong>A big residual does not say what is happening.</strong> It says something is. Telling a leak from a dirty filter is another job, and this project does not promise it.</li><li><strong>Four failures are not statistics.</strong> What module 28 will hold is a study of four cases, and it says so.</li><li><strong>A single healthy day is not a noise floor.</strong> Measure the twin&#x27;s error against one day, and on top of that against the one closest to the average, and you get an error of twelve seconds and a ratio in the thousands. That is not precision, it is dividing by almost zero. The floor comes from the spread.</li><li><strong>And the healthy window has to be looked at, not just picked by date.</strong> This course&#x27;s ran to 15 March, chosen before the first documented failure precisely so as not to pick for convenience. It held twelve days of failure inside that nobody had documented. Module 26 tells how it turned up.</li></ul></section>
+<section class="block is-bridge"><span class="kicker">Analogy</span><h2 class="block-title">Metallurgical bridge</h2><p>Any plant carries a theoretical metallurgical balance next to the real one. Not because the theoretical one is truer, but so the two can be subtracted.</p><p>Suppose a measured recovery of 88 % and a model that, at that head grade and that particle size, expected 91. Those three points of difference <strong>are that week&#x27;s work for the metallurgist</strong>. It could be a cell with the froth down, a reagent dosing badly or a biased sample, but nobody would have looked at any of them without the model alongside.</p><p>And notice that nobody cares whether the model nails the 91. What matters is that it be <strong>the same model every week</strong>, so that a change in the difference means a change in the plant.</p></section>
+<section class="block is-review"><span class="kicker">Review</span><h2 class="block-title">Review</h2><details><summary>What exactly a digital twin is, in this project</summary><p>A model of the compressor&#x27;s physics, with parameters measured over a healthy period. It runs alongside the machine and produces one thing: the difference between what was done and what was expected. That difference is the residual, and it is the product.</p></details><details><summary>Why the twin looks at the duty cycle and not at the pressure</summary><p>Because pressure is the controlled variable and the loop holds it whatever happens. A leak does not drop the pressure, it makes the compressor work harder to keep it. The signal is in the manipulated variable, and here that is the time spent loaded.</p></details><details><summary>Why the twin is not recalibrated when new data arrives</summary><p>Because then it would learn the failure and stop being surprised. The twin has to keep representing the healthy machine; its disagreement with today&#x27;s machine is precisely what is being measured.</p></details><details><summary>The twin can be 14 minutes wrong on a healthy day. That is not too much</summary><p>It depends what against. For predicting tomorrow&#x27;s load it is. For detecting something 95 times bigger than that error, it is not. The useful question is not how wrong a model is, it is how wrong it is compared with what it has to tell apart.</p><p>And notice where that 14 comes from: it is the <strong>worst</strong> of the seven healthy days, not the best nor the average. A bar set with the best case falls over on the first odd day.</p></details><details><summary>What this twin will NOT be able to say</summary><p>Which failure it is. A big residual says the machine is working harder than it should, and that could be a leak, a dirty filter or more demand from the plant. Separating those causes would need more signals than there are, and promising it would be selling something else.</p></details></section>
+
+      <footer class="footer">
+        <span>Bellows / Module 23</span>
+        <span>generated on 2026-09-03</span>
+        <span>source: MetroPT-3, from a Porto Metro train compressor (CC BY 4.0)</span>
+      </footer>
+    </div>
+  </main>
+
+</div>
+<!-- El motor SQL no se descarga aquí: este fichero solo conecta los botones.
+     Los 8 MB llegan cuando el lector pulsa, y no antes. -->
+<script type="module" src="live.js"></script>
+<script src="perilla.js" defer></script>
+</body>
+</html>

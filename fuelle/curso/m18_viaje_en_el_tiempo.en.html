@@ -1,0 +1,1020 @@
+<!doctype html>
+<html lang="en" class="no-js" data-assets="../assets" data-tablas="antes=antes.parquet,ahora=ahora.parquet">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Time travel: seeing the data as it was · Bellows, module 18</title>
+<link rel="alternate" hreflang="es" href="m18_viaje_en_el_tiempo.html">
+<style>
+/* Fuelle: la hoja de estilo del curso.
+ *
+ * REESCRITA ENTERA el 2026-08-30. La primera versión heredó la plantilla de Sílice
+ * junto con su motor, y Kevin la vio y dijo: "se parece a las otras 20 páginas de
+ * portafolio, el landing, coursera, silica, se ve y se siente igual". Tenía razón.
+ * Medido: mismo ancho de prosa (680), mismo ancho de bloques (1180), misma columna
+ * de margen (132), misma secuencia de cabecera, 36 clases compartidas de 40.
+ * Cambiar papel por grafito no toca la silueta, y la silueta es lo que se siente.
+ *
+ * Los cuatro sitios de Kevin son una columna de texto centrada, sin barra lateral,
+ * sin rejilla y sin nada pegajoso. Este es lo contrario: PANEL DE CONTROL. Una barra
+ * fija a la izquierda con los instrumentos siempre a la vista, y el contenido a su
+ * derecha. Ninguna de las tres medidas heredadas aparece aquí, y check_layout.py
+ * falla si alguna reaparece.
+ *
+ * El encargo que ordena las decisiones sigue siendo el mismo: "no muy escandaloso,
+ * que parezca ingeniero, pero que demuestres habilidades, que no seas un pdf que se
+ * lee de recorrido". La sobriedad va en la superficie, la ambición en lo que hace.
+ */
+
+/* --------------------------------------------------------------- tipografía */
+
+/* IBM Plex, autoalojada, OFL-1.1. Los cuatro sitios de Kevin usan la fuente del
+ * sistema, y eso es la otra mitad del "se siente igual". Plex tiene aire de
+ * documentación de ingeniería, que es exactamente el encargo.
+ *
+ * Cinco cortes y no tres: sin las semi-negritas el navegador falsifica la negrita
+ * engordando el trazo, y en una fuente técnica se nota enseguida. 289 KB en total,
+ * que se pueden bajar a unos 60 recortando al alfabeto latino con fonttools si
+ * llega a molestar. */
+@font-face {
+  font-family: "Plex Cond";
+  src: url("../assets/fonts/PlexSansCondensed-SemiBold.woff2") format("woff2");
+  font-weight: 600; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Plex";
+  src: url("../assets/fonts/PlexSans-Regular.woff2") format("woff2");
+  font-weight: 400; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Plex";
+  src: url("../assets/fonts/PlexSans-SemiBold.woff2") format("woff2");
+  font-weight: 600; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Plex Mono";
+  src: url("../assets/fonts/PlexMono-Regular.woff2") format("woff2");
+  font-weight: 400; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Plex Mono";
+  src: url("../assets/fonts/PlexMono-SemiBold.woff2") format("woff2");
+  font-weight: 600; font-style: normal; font-display: swap;
+}
+
+/* ------------------------------------------------------------------ tokens */
+
+:root {
+  --ground: #f4f2ee;
+  --panel: #e9e6e0;
+  --stage: #fbfaf8;
+  --ink: #191d20;
+  --ink-soft: #4c545a;
+  --ink-faint: #7c868d;
+  --rule: #d6d1c8;
+  --rule-soft: #e4e0d8;
+  --grid: rgba(25, 29, 32, .05);
+  --accent: #46787e;
+  --measured: #3d505b;
+  --simulated: #b57542;
+
+  --prose: "Plex", system-ui, "Segoe UI", Roboto, sans-serif;
+  --display: "Plex Cond", "Plex", system-ui, sans-serif;
+  --data: "Plex Mono", "Cascadia Mono", Consolas, monospace;
+
+  /* Medidas NUEVAS. Ninguna puede coincidir con las heredadas de Sílice
+   * (680 de prosa, 1180 de bloques, 132 de margen): volver a ellas es volver a
+   * la misma página, y hay un verificador que lo impide. */
+  --rail: 268px;      /* la barra fija, que ninguno de los otros sitios tiene */
+  --read: 646px;      /* la medida de la prosa, en píxeles y nunca en ch */
+  --block: 980px;     /* el borde derecho de los bloques anchos */
+
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ground: #101417;
+    --panel: #171c20;
+    --stage: #14181b;
+    --ink: #e2e7ea;
+    --ink-soft: #a6b0b6;
+    --ink-faint: #717e85;
+    --rule: #293036;
+    --rule-soft: #20272b;
+    --grid: rgba(226, 231, 234, .045);
+    --accent: #8ec2c8;
+    --measured: #cbe2ef;
+    --simulated: #c98754;
+  }
+}
+
+:root[data-theme="dark"] {
+  --ground: #101417;
+  --panel: #171c20;
+  --stage: #14181b;
+  --ink: #e2e7ea;
+  --ink-soft: #a6b0b6;
+  --ink-faint: #717e85;
+  --rule: #293036;
+  --rule-soft: #20272b;
+  --grid: rgba(226, 231, 234, .045);
+  --accent: #8ec2c8;
+  --measured: #cbe2ef;
+  --simulated: #c98754;
+}
+
+/* --------------------------------------------------------------- cimientos */
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--stage);
+  color: var(--ink);
+  font-family: var(--prose);
+  font-size: 16.5px;
+  line-height: 1.6;
+}
+
+::selection { background: var(--accent); color: var(--ground); }
+a { color: var(--accent); text-underline-offset: .18em; }
+
+/* LA REJILLA. Esto es lo que ninguno de los otros cuatro sitios tiene, y es la
+ * razón de que la página deje de sentirse igual: el texto ya no está centrado en
+ * la ventana, está al lado de un panel de instrumentos. */
+.shell {
+  display: grid;
+  grid-template-columns: var(--rail) minmax(0, 1fr);
+  min-height: 100vh;
+}
+
+/* -------------------------------------------------- la barra de instrumentos */
+
+.panel {
+  position: sticky;   /* lo primero pegajoso de todo el portafolio */
+  top: 0;
+  align-self: start;
+  height: 100vh;
+  overflow-y: auto;
+  padding: 22px 20px 22px;
+  background: var(--panel);
+  border-right: 1px solid var(--rule);
+  background-image: radial-gradient(var(--grid) 1px, transparent 1px);
+  background-size: 22px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.panel-brand {
+  font-family: var(--display);
+  font-size: 19px;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  color: var(--ink);
+  text-decoration: none;
+  display: block;
+}
+.panel-brand small {
+  display: block;
+  font-family: var(--data);
+  font-size: 10px;
+  letter-spacing: .08em;
+  color: var(--ink-faint);
+  text-transform: none;
+  margin-top: 4px;
+}
+
+.panel-label {
+  font-family: var(--data);
+  font-size: 9.5px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding-bottom: 7px;
+  border-bottom: 1px solid var(--rule);
+  margin-bottom: 10px;
+}
+
+/* El grafo del lago, EN VERTICAL. Antes iba horizontal y solo en la portada;
+ * aquí acompaña al lector todo el curso y marca en qué capa está. */
+.rail-step {
+  display: grid;
+  grid-template-columns: 15px 1fr auto;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 0;
+  font-family: var(--data);
+  font-size: 11px;
+  letter-spacing: .08em;
+  color: var(--ink-faint);
+  text-decoration: none;
+  position: relative;
+}
+.rail-step .dot {
+  width: 9px; height: 9px;
+  border: 1px solid var(--ink-faint);
+  border-radius: 50%;
+  justify-self: center;
+}
+.rail-step:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  left: 7px; top: 25px;
+  width: 1px; height: calc(100% - 17px);
+  background: var(--rule);
+}
+.rail-step.done { color: var(--ink-soft); }
+.rail-step.done .dot { background: var(--ink-faint); border-color: var(--ink-faint); }
+.rail-step.here { color: var(--accent); }
+.rail-step.here .dot { background: var(--accent); border-color: var(--accent); }
+.rail-step .range { font-size: 9.5px; opacity: .75; }
+
+/* La cifra del módulo ya no es una caja en una cabecera gigante: vive aquí y se
+ * queda a la vista mientras se lee la lección entera. */
+.panel-figure { border-top: 1px solid var(--rule); padding-top: 14px; }
+.panel-figure .v {
+  display: block;
+  font-family: var(--data);
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 1.3;
+  color: var(--accent);
+}
+.panel-figure .l {
+  display: block;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--ink-faint);
+  margin-top: 5px;
+}
+
+.panel-progress {
+  margin-top: auto;
+  border-top: 1px solid var(--rule);
+  padding-top: 13px;
+  font-family: var(--data);
+  font-size: 11px;
+  color: var(--ink-faint);
+}
+.panel-progress b { color: var(--ink); font-weight: 600; }
+.panel-bar { height: 2px; background: var(--rule); margin-top: 7px; }
+.panel-bar i { display: block; height: 2px; background: var(--accent); }
+
+.panel-nav { display: flex; gap: 7px; flex-wrap: wrap; }
+.panel-nav a {
+  font-family: var(--data);
+  font-size: 10.5px;
+  letter-spacing: .06em;
+  padding: 6px 9px;
+  border: 1px solid var(--rule);
+  text-decoration: none;
+  color: var(--ink-soft);
+}
+.panel-nav a:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ------------------------------------------------------------- el contenido */
+
+.stage { background: var(--stage); padding: 0 0 54px; min-width: 0; }
+.stage-inner { max-width: var(--block); padding: 0 40px; }
+
+/* La cabecera ya no ocupa media pantalla: una línea de identificación y el
+ * título. La cifra y la navegación se fueron a la barra. */
+.head {
+  padding: 30px 0 20px;
+  border-bottom: 1px solid var(--rule);
+  margin-bottom: 4px;
+}
+.head-id {
+  font-family: var(--data);
+  font-size: 10.5px;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  display: flex;
+  gap: 14px;
+  align-items: baseline;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.head-id b { color: var(--accent); font-weight: 600; }
+.head h1 {
+  font-family: var(--display);
+  font-size: clamp(26px, 3.3vw, 37px);
+  line-height: 1.08;
+  font-weight: 600;
+  margin: 0 0 10px;
+  max-width: 22ch;
+}
+.head .standfirst {
+  color: var(--ink-soft);
+  font-size: 16.5px;
+  line-height: 1.5;
+  max-width: var(--read);
+  margin: 0;
+}
+
+/* Las secciones ya no cuelgan de un margen de 132 px: la etiqueta va encima, en
+ * un recuadro pequeño, y el texto empieza en el borde. */
+.block { padding: 26px 0 2px; border-top: 1px solid var(--rule-soft); }
+.block:first-of-type { border-top: 0; }
+
+.kicker {
+  display: inline-block;
+  font-family: var(--data);
+  font-size: 9.5px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  border: 1px solid var(--rule);
+  padding: 2px 7px;
+  margin-bottom: 11px;
+}
+
+.block-title {
+  font-family: var(--display);
+  font-size: 22px;
+  font-weight: 600;
+  margin: 0 0 11px;
+  max-width: var(--read);
+}
+
+/* Justificado desde 33rem de columna y rasgado en móvil: la regla que Kevin
+ * fijó en el portafolio el 2026-08-22, después de medir que a 375 px salían
+ * huecos de 7,65x y ríos en cinco de cada seis líneas. Aquí la prosa mide 646 px
+ * (unos 40rem), así que le toca justificado.
+ *
+ * Y NADA de `hyphens`: sin guionado, por la regla de la casa. El precio es que
+ * hay que vigilar los ríos, y eso se mide con src/site/check_rivers.py en vez de
+ * mirarlo de reojo. */
+.block p, .block li { max-width: var(--read); }
+
+@media (min-width: 34rem) {
+  .block p,
+  .block li,
+  .standfirst,
+  .reto-ask,
+  .annot dd,
+  blockquote,
+  .is-review details p { text-align: justify; text-justify: inter-word; }
+  /* Tablas, código, pies de figura y la barra nunca se justifican: sus líneas
+   * son cortas y el hueco se vuelve un agujero. */
+  figcaption, th, td, pre, .panel, .live-status, .toc { text-align: left; }
+}
+.block p { margin: 0 0 14px; }
+.block ul, .block ol { padding-left: 21px; margin: 0 0 14px; }
+.block li { margin-bottom: 6px; }
+.block li::marker { color: var(--accent); font-family: var(--data); font-size: .82em; }
+
+h3.sub, h4.sub {
+  font-family: var(--display);
+  font-size: 17px;
+  font-weight: 600;
+  margin: 24px 0 8px;
+  max-width: var(--read);
+}
+h4.sub { font-size: 15px; color: var(--ink-soft); }
+
+blockquote {
+  margin: 0 0 14px;
+  padding-left: 15px;
+  border-left: 2px solid var(--rule);
+  color: var(--ink-soft);
+  max-width: var(--read);
+}
+strong, b { font-weight: 600; }
+
+.is-brief ul { list-style: none; padding-left: 0; }
+.is-brief li {
+  padding: 8px 0 8px 18px;
+  border-bottom: 1px solid var(--rule-soft);
+  position: relative;
+}
+.is-brief li::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 17px;
+  width: 8px; height: 1px;
+  background: var(--accent);
+}
+.is-brief li:last-child { border-bottom: 0; }
+.is-result .block-title, .is-warning .block-title { color: var(--accent); }
+
+/* ------------------------------------------------------------------ código */
+
+pre {
+  max-width: var(--block);
+  overflow-x: auto;
+  background: var(--panel);
+  border: 1px solid var(--rule-soft);
+  border-left: 2px solid var(--accent);
+  padding: 13px 15px;
+  margin: 0 0 13px;
+}
+pre code {
+  font-family: var(--data);
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ink);
+  white-space: pre;
+}
+p code, li code, dd code, td code {
+  font-family: var(--data);
+  font-size: .87em;
+  padding: 1px 4px;
+  background: var(--panel);
+  border: 1px solid var(--rule-soft);
+}
+
+/* Diagramas: esquemas conceptuales generados, no figuras de datos.
+   Nacen del bloque ```diagrama y usan los tokens de arriba, asi que el tema lo
+   resuelve el CSS y no hacen falta dos versiones como en las figuras. */
+.diagram { margin: 0 0 22px; max-width: var(--block); }
+.chain {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: 30px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: none;
+}
+.node {
+  position: relative;
+  /* 130 y no 132: 132px es la columna de margen de Sílice y check_layout la
+     prohíbe en este proyecto, con razón, aunque aquí signifique otra cosa. */
+  flex: 1 1 130px;
+  min-width: 0;
+  padding: 11px 13px 12px;
+  background: var(--panel);
+  border: 1px solid var(--rule);
+  border-top: 2px solid var(--ink-faint);
+}
+/* La flecha entre cajas. Va en el hueco del gap, asi que no roba ancho al
+   texto y desaparece sola cuando las cajas se apilan. */
+.node + .node::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: -22px;
+  width: 14px;
+  height: 1px;
+  background: var(--ink-faint);
+}
+.node + .node::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: -11px;
+  width: 5px; height: 5px;
+  border-top: 1px solid var(--ink-faint);
+  border-right: 1px solid var(--ink-faint);
+  transform: translateY(-50%) rotate(45deg);
+}
+.node.lit { border-top-color: var(--accent); background: var(--stage); }
+.node.lit .node-name { color: var(--accent); }
+.node-name {
+  display: block;
+  font-family: var(--data);
+  font-size: 10.5px;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+.node-what { display: block; margin-top: 5px; font-size: 13.5px; color: var(--ink); }
+.node-note { display: block; margin-top: 4px; font-size: 12px; color: var(--ink-faint); }
+
+@media (max-width: 640px) {
+  /* Apiladas, con la flecha girada hacia abajo. */
+  .chain { flex-direction: column; gap: 26px; }
+  .node { flex: 1 1 auto; }
+  .node + .node::before {
+    top: -19px; left: 21px;
+    width: 1px; height: 12px;
+  }
+  .node + .node::after {
+    top: -9px; left: 19px;
+    transform: rotate(135deg);
+  }
+}
+
+.output { position: relative; margin: 0 0 13px; max-width: var(--block); }
+.output pre { margin: 0; border-left: 2px solid var(--ink-faint); background: transparent; }
+.output pre code { color: var(--ink-soft); }
+.output-tag {
+  position: absolute;
+  top: -7px; left: 13px;
+  z-index: 1;
+  font-family: var(--data);
+  font-size: 9px;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  background: var(--stage);
+  padding: 0 5px;
+}
+
+details.fold, details { margin: 0 0 13px; max-width: var(--block); }
+details > summary {
+  cursor: pointer;
+  font-family: var(--data);
+  font-size: 11px;
+  letter-spacing: .05em;
+  color: var(--ink-faint);
+  padding: 5px 0;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+details > summary::-webkit-details-marker { display: none; }
+details > summary::before {
+  content: "+";
+  width: 13px; height: 13px;
+  line-height: 12px;
+  text-align: center;
+  border: 1px solid var(--rule);
+  color: var(--accent);
+}
+details[open] > summary::before { content: "\2212"; }
+details > summary:hover { color: var(--accent); }
+
+.annot {
+  margin: 2px 0 4px;
+  padding: 11px 13px;
+  border: 1px solid var(--rule-soft);
+  background: var(--panel);
+}
+.annot dt { margin-bottom: 3px; }
+.annot dt code {
+  font-family: var(--data);
+  font-size: 12px;
+  color: var(--accent);
+  background: transparent;
+  border: 0;
+  padding: 0;
+}
+.annot dd { margin: 0 0 10px; font-size: 14.5px; color: var(--ink-soft); max-width: var(--read); }
+.annot dd:last-of-type { margin-bottom: 0; }
+
+.is-review details { border-bottom: 1px solid var(--rule-soft); margin: 0; }
+.is-review details > summary {
+  font-family: var(--prose);
+  font-size: 15.5px;
+  color: var(--ink);
+  padding: 11px 0;
+}
+.is-review details > summary:hover { color: var(--accent); }
+.is-review details p { margin: 0 0 11px 21px; color: var(--ink-soft); }
+
+/* ------------------------------------------------------------------ tablas */
+
+.table-wrap { max-width: var(--block); overflow-x: auto; margin: 0 0 15px; }
+table { border-collapse: collapse; font-size: 14.5px; }
+th, td {
+  text-align: left;
+  padding: 6px 15px 6px 0;
+  border-bottom: 1px solid var(--rule-soft);
+  vertical-align: top;
+}
+th {
+  font-family: var(--data);
+  font-size: 10px;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  font-weight: 400;
+  border-bottom-color: var(--rule);
+}
+tbody tr:last-child td { border-bottom: 0; }
+
+figure { margin: 0 0 17px; max-width: var(--block); }
+figure img { max-width: 100%; height: auto; display: block; }
+figcaption { font-size: 12.5px; color: var(--ink-faint); margin-top: 7px; max-width: var(--read); }
+
+.footer {
+  border-top: 1px solid var(--rule);
+  margin-top: 32px;
+  padding: 18px 0 0;
+  font-size: 12px;
+  color: var(--ink-faint);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px 20px;
+}
+.footer a { color: var(--ink-faint); }
+.gone { color: var(--ink-faint); }
+
+/* ---------------------------------------------- la consulta viva y el reto */
+
+.live {
+  max-width: var(--block);
+  margin: 0 0 17px;
+  border: 1px solid var(--rule);
+  background: var(--panel);
+}
+.live-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 13px;
+  border-bottom: 1px solid var(--rule-soft);
+  font-family: var(--data);
+  font-size: 10px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.live-editor {
+  width: 100%;
+  border: 0;
+  resize: vertical;
+  min-height: 112px;
+  padding: 12px 14px;
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--data);
+  font-size: 13px;
+  line-height: 1.6;
+  tab-size: 2;
+}
+.live-editor:focus { outline: 2px solid var(--accent); outline-offset: -2px; }
+.live-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 13px;
+  border-top: 1px solid var(--rule-soft);
+  flex-wrap: wrap;
+}
+.live-run {
+  font-family: var(--data);
+  font-size: 11px;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  padding: 7px 14px;
+  border: 1px solid var(--accent);
+  background: transparent;
+  color: var(--accent);
+  cursor: pointer;
+}
+.live-run:hover { background: var(--accent); color: var(--ground); }
+.live-run[disabled] { opacity: .5; cursor: default; }
+.live-run[disabled]:hover { background: transparent; color: var(--accent); }
+.live-status { font-family: var(--data); font-size: 10.5px; color: var(--ink-faint); }
+.live-out { max-width: 100%; overflow-x: auto; }
+.live-out table { margin: 0; width: 100%; font-size: 12.5px; }
+.live-out td, .live-out th { padding: 5px 13px 5px 0; }
+.live-out td:first-child, .live-out th:first-child { padding-left: 13px; }
+.live-out td { font-family: var(--data); font-size: 12px; }
+.live-err {
+  padding: 10px 14px;
+  font-family: var(--data);
+  font-size: 12px;
+  color: var(--simulated);
+  border-top: 1px solid var(--rule-soft);
+}
+
+.reto { border-left: 2px solid var(--accent); }
+.reto .live-head { color: var(--accent); }
+.reto-ask { padding: 12px 14px 2px; font-size: 15.5px; max-width: var(--read); }
+.verdict {
+  padding: 10px 14px;
+  border-top: 1px solid var(--rule-soft);
+  font-family: var(--data);
+  font-size: 12px;
+}
+.verdict.ok { color: var(--accent); }
+.verdict.no { color: var(--simulated); }
+
+.no-js .live-bar, .no-js .live-editor { display: none; }
+.no-js .live-static { display: block; }
+.live-static { display: none; }
+
+/* ---------------------------------------------------------- el doble trazo */
+
+.twin { max-width: var(--block); margin: 0 0 18px; }
+.twin svg { width: 100%; height: auto; display: block; }
+.twin .axis { stroke: var(--rule); fill: none; }
+.twin .tick { fill: var(--ink-faint); font-family: var(--data); font-size: 10px; }
+.twin .measured { stroke: var(--measured); fill: none; stroke-width: 1.8; }
+.twin .simulated { stroke: var(--simulated); fill: none; stroke-width: 1.8; stroke-dasharray: 5 4; }
+.twin .gap { fill: var(--simulated); opacity: .16; }
+.twin-key { display: flex; gap: 20px; flex-wrap: wrap; font-family: var(--data);
+            font-size: 11px; color: var(--ink-faint); margin-top: 6px; }
+.twin-key i { display: inline-block; width: 20px; height: 0; vertical-align: middle;
+              border-top-width: 2px; border-top-style: solid; margin-right: 7px; }
+.twin-key .k-measured i { border-color: var(--measured); }
+.twin-key .k-simulated i { border-top-style: dashed; border-color: var(--simulated); }
+
+.knob { display: flex; align-items: center; gap: 13px; flex-wrap: wrap; margin: 0 0 13px;
+        font-family: var(--data); font-size: 11px; color: var(--ink-faint); }
+.knob input[type="range"] { accent-color: var(--accent); flex: 1 1 200px; max-width: 300px; }
+.knob output { color: var(--accent); min-width: 72px; }
+
+/* -------------------------------------------------------- índice del curso */
+
+.toc { max-width: var(--block); }
+.toc .part {
+  font-family: var(--data);
+  font-size: 10px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin: 26px 0 2px;
+  padding-top: 11px;
+  border-top: 1px solid var(--rule);
+}
+.toc a, .toc .pending {
+  display: grid;
+  grid-template-columns: 34px 1fr auto;
+  gap: 15px;
+  align-items: baseline;
+  padding: 9px 6px 9px 8px;
+  border-bottom: 1px solid var(--rule-soft);
+  border-left: 2px solid transparent;
+  text-decoration: none;
+  color: var(--ink);
+}
+.toc a:hover { border-left-color: var(--accent); background: var(--panel); color: var(--accent); }
+.toc .pending { color: var(--ink-faint); }
+.toc .num { font-family: var(--data); font-size: 12px; color: var(--ink-faint); }
+.toc a:hover .num { color: var(--accent); }
+.toc .name { font-family: var(--display); font-size: 16px; }
+.toc .name small { display: block; font-family: var(--prose); color: var(--ink-faint);
+                   font-size: 13px; font-weight: 400; margin-top: 2px; max-width: 60ch; }
+.toc .mark { font-family: var(--data); font-size: 11px; color: var(--ink-faint); text-align: right; }
+.toc .tag { font-family: var(--data); font-size: 9.5px; letter-spacing: .1em;
+            text-transform: uppercase; color: var(--ink-faint); }
+
+/* ------------------------------------------------------------------- móvil */
+
+/* La barra deja de ser barra: pasa a cabecera compacta arriba, con los tramos en
+ * horizontal. La rejilla se colapsa a una columna. */
+@media (max-width: 900px) {
+  .shell { grid-template-columns: 1fr; }
+  .panel {
+    position: static;
+    height: auto;
+    border-right: 0;
+    border-bottom: 1px solid var(--rule);
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 16px;
+    padding: 13px 18px;
+  }
+  .panel-label { display: none; }
+  .panel .rail { display: flex; gap: 0 5px; flex-wrap: wrap; }
+  .rail-step { grid-template-columns: 11px auto; padding: 3px 0; font-size: 9.5px; }
+  .rail-step .range { display: none; }
+  .rail-step:not(:last-child)::after { display: none; }
+  .panel-figure { border-top: 0; padding-top: 0; }
+  .panel-figure .v { font-size: 13.5px; }
+  .panel-figure .l { display: none; }
+  .panel-progress { margin: 0; border-top: 0; padding-top: 0; }
+  .panel-bar { display: none; }
+  .stage-inner { padding: 0 18px; }
+  body { font-size: 16px; }
+  .head { padding-top: 22px; }
+  pre code { font-size: 12.5px; }
+}
+
+/* ------------------------------------------------- la perilla del gemelo */
+/*
+ * El doble trazo con su deslizador, de los modulos 24 y 25. El SVG llega ya
+ * dibujado del servidor, asi que sin JavaScript se ve igual: dos trazos, la
+ * referencia y la posicion de partida. El mando solo cambia cual se ensena.
+ *
+ * La regla de forma del curso: el color NUNCA es la unica pista. La referencia
+ * va punteada y en tono apagado, y la posicion elegida solida y en el acento.
+ */
+.perilla {
+  margin: 22px 0;
+  max-width: var(--block);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  background: var(--stage);
+  padding: 14px 16px 12px;
+}
+.perilla figcaption {
+  font-family: var(--data);
+  font-size: 11px;
+  color: var(--ink-faint);
+  letter-spacing: .02em;
+  margin-bottom: 10px;
+}
+.perilla svg { display: block; width: 100%; height: auto; }
+.perilla-referencia {
+  fill: none;
+  stroke: var(--ink-faint);
+  stroke-width: 1.4;
+  stroke-dasharray: 4 3;
+}
+.perilla-actual {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  transition: d .12s linear;
+}
+.perilla-pie {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 18px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--rule-soft);
+}
+.perilla-leyenda { font-size: 12px; color: var(--ink-faint); }
+.perilla-mandos {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+  font-family: var(--data);
+  font-size: 11px;
+  color: var(--ink-soft);
+}
+.perilla-mando { width: 190px; accent-color: var(--accent); }
+.perilla-mando[disabled] { opacity: .45; }
+.perilla-valor {
+  font-family: var(--data);
+  font-size: 12px;
+  color: var(--ink);
+  min-width: 88px;
+}
+.perilla-nota, .perilla-referencia-nota {
+  margin: 8px 0 0;
+  font-size: 12.5px;
+  color: var(--ink-soft);
+}
+.perilla-referencia-nota { color: var(--ink-faint); font-size: 12px; }
+
+@media (max-width: 620px) {
+  .perilla-mandos { margin-left: 0; width: 100%; }
+  .perilla-mando { flex: 1; width: auto; min-width: 0; }
+}
+
+/* ------------------------------------------------------ movimiento y papel */
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@media print {
+  .shell { display: block; }
+  .panel, .live-bar, .live-editor { display: none; }
+  .live-static { display: block; }
+  body { background: #fff; color: #000; }
+}
+
+/* ------------------------------------------------------ figuras, dos temas */
+
+/* Cada figura viaja dos veces, clara y oscura, y aquí se enseña la que toca.
+ * Con `<picture>` y una media query bastaría para la preferencia del sistema,
+ * pero no para el interruptor manual, y este curso respeta los dos. */
+.fig-oscuro { display: none; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .fig-claro { display: none; }
+  :root:not([data-theme="light"]) .fig-oscuro { display: block; }
+}
+:root[data-theme="dark"] .fig-claro { display: none; }
+:root[data-theme="dark"] .fig-oscuro { display: block; }
+
+/* El acento de este módulo, uno por tema. Los dos salen de src/site/palette.py
+   y los dos pasaron el contraste antes de llegar aquí. */
+:root { --accent: #707336; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --accent: #B9BD7D; }
+}
+:root[data-theme="dark"] { --accent: #B9BD7D; }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- La barra de instrumentos. No se mueve al bajar: el tramo del lago, la cifra
+       del módulo y el avance se quedan a la vista mientras se lee. -->
+  <aside class="panel">
+    <a class="panel-brand" href="index.en.html">Bellows
+      <small>Module 18 of 31</small></a>
+
+    <nav class="rail" aria-label="The arc of the project">
+      <p class="panel-label">the lake</p>
+      <span class="rail-step done"><i class="dot"></i><span>RAW</span><span class="range">1-3</span></span><span class="rail-step done"><i class="dot"></i><span>BRONZE</span><span class="range">4-13</span></span><span class="rail-step done"><i class="dot"></i><span>SILVER</span><span class="range">14-16</span></span><span class="rail-step here"><i class="dot"></i><span>GOLD</span><span class="range">17-22</span></span><span class="rail-step"><i class="dot"></i><span>TWIN</span><span class="range">23-31</span></span>
+    </nav>
+
+    <div class="panel-figure">
+      <span class="v">0.32 h vs 3.17 h</span>
+      <span class="l">what the panel said before the bug was found, and what it was</span>
+    </div>
+
+    <div class="panel-progress">
+      <b>18</b> of 31
+      <span class="panel-bar"><i style="width: 58%"></i></span>
+    </div>
+
+    <nav class="panel-nav"><a href="m17_oro_dbt.en.html" title="17. Gold with dbt: model in SQL and let lineage draw itself">← 17</a><a href="m19_postgres.en.html" title="19. PostgreSQL: install, connect, and how it differs">19 →</a><a class="portfolio-link" href="m18_viaje_en_el_tiempo.html" hreflang="es" rel="alternate">Español</a></nav>
+  </aside>
+
+  <main class="stage">
+    <div class="stage-inner">
+      <header class="head">
+        <p class="head-id"><b>18</b> <span>part: From raw to answer</span></p>
+        <h1>Time travel: seeing the data as it was</h1>
+        <p class="standfirst">An open table format keeps every version. Go back to June 5th and query the lake as it stood, without having kept a single copy</p>
+      </header>
+
+      <section class="block is-brief"><span class="kicker">Summary</span><h2 class="block-title">In 30 seconds</h2><ul><li>A Parquet folder <strong>forgets</strong>. Overwrite it and yesterday no longer exists.</li><li>An <strong>open table format</strong> keeps the old versions and points at the current one.</li><li>This module&#x27;s history is not invented: it is <strong>silver&#x27;s real bug</strong>.</li><li>The old table said <strong>0.32 h against 3.17 h</strong> of load a day. A factor of ten, with no warning.</li><li>Both formats get built and measured. Delta takes <strong>4.2 times</strong> less room, Iceberg reads faster.</li></ul></section>
+<section class="block "><span class="kicker">Context</span><h2 class="block-title">What this module solves</h2><p>Everything this course has built overwrites. <code>bronze.py</code> deletes the folder and writes it again; <code>dbt build</code> replaces the gold table. That is normal, and it works.</p><p>Until somebody asks what the dashboard said last week.</p><p>And it is not an idle question. This project had a real bug in the silver layer. The first version joined the readings to the grid on an exact timestamp, and kept <strong>151,657 of 1,516,948</strong>, one in ten. The bug was found and fixed.</p><p>What there is no way to answer is what the dashboard was showing meanwhile, because that table no longer exists. It was overwritten.</p></section>
+<section class="block is-toy"><span class="kicker">By hand</span><h2 class="block-title">Before the theory: a toy example</h2><p>The laboratory sends you the grades of three batches:</p><div class="table-wrap"><table><thead><tr><th>batch</th><th>grade</th></tr></thead><tbody><tr><td>L1</td><td>1.0</td></tr><tr><td>L2</td><td>1.2</td></tr><tr><td>L3</td><td>0.8</td></tr></tbody></table></div><p>You work out the mean, <strong>1.0 %</strong>, and send it to the client.</p><p>On Tuesday the laboratory recalibrates and resends the file with corrected grades. You save it over the previous one, recompute and send <strong>1.3 %</strong>.</p><p>On Thursday the client calls: why did you tell them 1.0 on Monday.</p><p>And you cannot answer. It is not that you do not remember: <strong>Monday&#x27;s data is gone</strong>. You know what today&#x27;s file says and nothing else.</p><p>The obvious fix is keeping a copy with the date in the name. It works until there are three tables and forty days, and then nobody knows which was the good one at any given moment.</p><p>The good fix is another. The old files <strong>do not get deleted</strong>, and beside them a notebook gets written with one line per change: &quot;from today, the table is these files&quot;. To read Monday you read the notebook down to Monday&#x27;s line.</p><p>That is an open table format, and it is no more than that: the same old Parquet, plus a notebook.</p></section>
+<section class="block is-terms"><span class="kicker">Terms</span><h2 class="block-title">Glossary</h2><details class="fold"><summary>6 terms, in plain words</summary><ul><li><strong>Open table format.</strong> A convention for treating a folder of Parquet as a table with history. Delta Lake and Iceberg are the two that work without Spark.</li><li><strong>Version, or snapshot.</strong> The state of the table after a change. They are numbered.</li><li><strong>Transaction log.</strong> The example&#x27;s notebook. In Delta it is a <code>_delta_log</code> folder inside the table itself.</li><li><strong>Metadata.</strong> In Iceberg, the files saying which files each version is made of.</li><li><strong>Catalog.</strong> Whoever knows where each table is and which is its current version. Iceberg demands one; Delta does not.</li><li><strong>Time travel.</strong> Querying a version that is no longer the current one.</li></ul></details></section>
+<section class="block is-method"><span class="kicker">Method</span><h2 class="block-title">Step by step</h2><h3 class="sub">Step 1. Manufacture the history, which already existed</h3><p>There is no need to invent two versions. The gold table gets computed twice: once over the buggy silver and once over the fixed one. The first is <strong>version 0</strong> and the second <strong>1</strong>.</p><p>Reproducing the bug does not require digging out the old script. The bug fitted in a <code>JOIN</code>, so joining on an exact timestamp again is enough.</p><h3 class="sub">Step 2. Delta: write into an empty folder</h3><p>You point it at a folder and write. Two writes in a row leave two versions, and the <code>_delta_log</code> keeps track of which is which.</p><h3 class="sub">Step 3. Iceberg: mount a catalog first</h3><p>Iceberg does not start without somebody keeping the list of tables. The cheapest one with no server is <strong>SQLite in a file</strong>, and that file is the whole setup.</p><p>This difference needs no stopwatch and it is the first one to appear.</p><h3 class="sub">Step 4. Ask for the latest and for the old one</h3><p>Both are read from DuckDB with the <code>delta</code> and <code>iceberg</code> extensions. The normal query asks for the latest version. Time travel is the same query with one more piece.</p><h3 class="sub">Step 5. Measure, median of seven</h3><p>Like module 6, and with its rule: if two measurements&#x27; ranges overlap, <strong>there is no difference to report</strong>. <code>distinguishable()</code> decides, not the medians.</p></section>
+<section class="block is-code"><span class="kicker">Code</span><h2 class="block-title">The code, in parts</h2><h3 class="sub">Step 6. Both versions in Delta</h3><pre><code class="language-python">write_deltalake(str(DELTA), v0, mode=&quot;overwrite&quot;)
+write_deltalake(str(DELTA), v1, mode=&quot;overwrite&quot;)</code></pre><details class="fold"><summary>line by line, 2 entries</summary><dl class="annot"><dt><code>mode=&quot;overwrite&quot;</code></dt><dd>replaces the table&#x27;s content. The previous version is NOT deleted: it stays in the folder and the log points at the new one</dd><dt><code>dos llamadas</code></dt><dd>two versions. There is nothing else to do, and no folder to prepare</dd></dl></details><h3 class="sub">Step 7. Both versions in Iceberg</h3><pre><code class="language-python">cat = catalogo_iceberg()
+cat.create_namespace_if_not_exists(&quot;oro&quot;)
+tabla = cat.create_table(&quot;oro.ciclo_diario&quot;, schema=v0.schema)
+tabla.append(v0)
+tabla.overwrite(v1)</code></pre><details class="fold"><summary>line by line, 4 entries</summary><dl class="annot"><dt><code>catalogo_iceberg()</code></dt><dd>opens the SQLite catalog. Without it there is no table at all</dd><dt><code>create_namespace</code></dt><dd>Iceberg groups tables into namespaces, like a database&#x27;s schemas</dd><dt><code>create_table</code></dt><dd>the schema has to be declared up front. Delta works it out from the data</dd><dt><code>append y overwrite</code></dt><dd>two changes, two snapshots</dd></dl></details><p>Four lines against two, and one of them mounts a database. It is the same table.</p><h3 class="sub">Step 8. The latest version, in Delta</h3><pre><code class="language-sql">SELECT count(*) AS dias, round(avg(horas_de_carga), 2) AS horas
+FROM delta_scan(&#x27;lake/_formatos_de_tabla/delta&#x27;);</code></pre><details class="fold"><summary>line by line, 2 entries</summary><dl class="annot"><dt><code>delta_scan</code></dt><dd>reads a Delta table. First you need INSTALL delta and LOAD delta, once</dd><dt><code>la ruta</code></dt><dd>the table&#x27;s folder, nothing more. The log lives inside</dd></dl></details><div class="output"><span class="output-tag">prints</span><pre><code>┌───────┬────────┐
+│ dias  │ horas  │
+│ int64 │ double │
+├───────┼────────┤
+│   212 │   3.17 │
+└───────┴────────┘</code></pre></div><h3 class="sub">Step 9. And now the old one</h3><pre><code class="language-sql">SELECT count(*) AS dias, round(avg(horas_de_carga), 2) AS horas
+FROM delta_scan(&#x27;lake/_formatos_de_tabla/delta&#x27;, version = 0);</code></pre><details class="fold"><summary>line by line, 1 entry</summary><dl class="annot"><dt><code>version = 0</code></dt><dd>the first version. It is all that separates a normal query from time travel</dd></dl></details><div class="output"><span class="output-tag">prints</span><pre><code>┌───────┬────────┐
+│ dias  │ horas  │
+│ int64 │ double │
+├───────┼────────┤
+│   212 │   0.32 │
+└───────┴────────┘</code></pre></div><p>The same <strong>212</strong> days, and a tenth of the loaded hours. That is what the dashboard was showing, and it throws no error at all: it is a compressor that looks comfortably underworked.</p><h3 class="sub">Step 10. The same in Iceberg, and what it costs</h3><pre><code class="language-sql">SELECT count(*) AS dias, round(avg(horas_de_carga), 2) AS horas
+FROM iceberg_scan(&#x27;lake/_formatos_de_tabla/iceberg_ultima.metadata.json&#x27;);</code></pre><details class="fold"><summary>line by line, 2 entries</summary><dl class="annot"><dt><code>iceberg_scan</code></dt><dd>reads an Iceberg table, and it wants the exact metadata file, not the folder</dd><dt><code>iceberg_ultima.metadata.json</code></dt><dd>a workaround of this project&#x27;s, and the lesson explains it right below</dd></dl></details><div class="output"><span class="output-tag">prints</span><pre><code>┌───────┬────────┐
+│ dias  │ horas  │
+│ int64 │ double │
+├───────┼────────┤
+│   212 │   3.17 │
+└───────┴────────┘</code></pre></div><p>That filename is a copy this project maintains by hand. The real one is called <code>00002-d4a1ce7d-...metadata.json</code>, with an identifier that changes on every run.</p><p>And it is not a whim of the tool. <strong>Whoever knows which is the current version of an Iceberg table is the catalog, not the folder.</strong> DuckDB refuses to guess it by looking at the files, and rightly so: it could read something half written. Delta does not have this problem because its log sits inside the table itself.</p><h3 class="sub">Step 11. The two versions, side by side</h3><div class="live"><div class="live-head"><span>live query</span><span class="live-status">the engine downloads when you press</span></div><pre class="live-static"><code>SELECT a.dia,
+       a.horas_de_carga                               AS antes,
+       b.horas_de_carga                               AS ahora,
+       round(b.horas_de_carga - a.horas_de_carga, 2)  AS diferencia
+FROM antes a
+JOIN ahora b ON b.dia = a.dia
+WHERE a.dia = DATE &#x27;2020-04-18&#x27;;</code></pre><textarea class="live-editor" spellcheck="false" aria-label="live query">SELECT a.dia,
+       a.horas_de_carga                               AS antes,
+       b.horas_de_carga                               AS ahora,
+       round(b.horas_de_carga - a.horas_de_carga, 2)  AS diferencia
+FROM antes a
+JOIN ahora b ON b.dia = a.dia
+WHERE a.dia = DATE &#x27;2020-04-18&#x27;;</textarea><div class="live-bar"><button type="button" class="live-run">run</button></div><div class="live-out"></div></div><div class="output"><span class="output-tag">prints</span><pre><code>┌────────────┬────────┬────────┬────────────┐
+│    dia     │ antes  │ ahora  │ diferencia │
+│    date    │ double │ double │   double   │
+├────────────┼────────┼────────┼────────────┤
+│ 2020-04-18 │   2.36 │   23.6 │      21.24 │
+└────────────┴────────┴────────┴────────────┘</code></pre></div><p>18 April is failure number one, the worst day of the half year. The old table put it at <strong>2.36</strong> loaded hours, a quietish day. It is <strong>23.6</strong>.</p></section>
+<section class="block is-result"><span class="kicker">Result</span><h2 class="block-title">The result, measured</h2><figure class="fig"><img class="fig-claro" src="../figuras/fig_m18_historial_de_versiones.claro.en.png?v=71e80201" alt="fig m18 historial de versiones" loading="lazy"><img class="fig-oscuro" src="../figuras/fig_m18_historial_de_versiones.oscuro.en.png?v=5cbf820e" alt="fig m18 historial de versiones" loading="lazy"></figure><p><strong>What we expected.</strong> That the old version would look like the good one with some noise on top.</p><p><strong>What came out.</strong> An almost flat line. The buggy version is not offset: it is <strong>flattened</strong>, and the failure peaks vanish inside the thickness of the line.</p><p>That is the module&#x27;s argument, drawn. A dashboard fed by that table would not have thrown a single error, nor an alarm, nor an impossible value. It would have shown a quiet compressor for months.</p><h3 class="sub">The two formats, measured</h3><figure class="fig"><img class="fig-claro" src="../figuras/fig_m18_delta_contra_iceberg.claro.en.png?v=9f400dcb" alt="fig m18 delta contra iceberg" loading="lazy"><img class="fig-oscuro" src="../figuras/fig_m18_delta_contra_iceberg.oscuro.en.png?v=24fa5ff1" alt="fig m18 delta contra iceberg" loading="lazy"></figure><p>And there is no tie here, which was the likeliest outcome at this scale. The two separate, and in opposite directions:</p><div class="table-wrap"><table><thead><tr><th>What</th><th>Delta</th><th>Iceberg</th></tr></thead><tbody><tr><td>Setup</td><td>nothing, an empty folder</td><td>a SQLite catalog</td></tr><tr><td>On disk</td><td>12.9 KB</td><td>53.7 KB</td></tr><tr><td>Files</td><td>4</td><td>12</td></tr><tr><td>Writing both versions</td><td>about 3 times faster</td><td></td></tr><tr><td>Reading, even asking the catalog</td><td></td><td>about 2 times faster</td></tr></tbody></table></div><p><strong>Iceberg takes 4.2 times more disk</strong> to hold exactly the same table, and leaves <strong>12</strong> files where Delta leaves <strong>4</strong>. The reason is what each of them counts as metadata. Delta notes one line per version in its log; Iceberg writes three things on every change, a metadata file, a manifest list and a manifest.</p><p><strong>And there is a point of bookkeeping worth a look.</strong> Delta keeps <strong>2</strong> versions, which are the two writes. Iceberg leaves <strong>3</strong> metadata files, because creating the empty table is already a change with its own snapshot.</p><p><strong>A piece of honesty about the read measurement.</strong> Iceberg&#x27;s first two reads start from a metadata file we already know the location of, and that skips the step a real query cannot skip. That is why there is a fourth measurement, &quot;leer preguntando primero&quot;, which pays for the catalog lookup. It still reads faster, so the advantage is real and not a gift from the method.</p><p><strong>What it means.</strong> Neither of them wins. Delta is cheaper to set up, to write and to store. Iceberg reads faster, and brings a catalog that with a few tables stops being in the way and becomes what you were after. For this project, with one gold table and no server, <strong>Delta is the choice</strong>, and that is now a conclusion rather than a preference.</p></section>
+<section class="block is-warning"><span class="kicker">Traps</span><h2 class="block-title">Watch out</h2><ul><li><strong>Keeping history is not free.</strong> The old files take room and do not clean themselves. Both formats ship a command to throw away what came before, and using it erases the time travel.</li><li><strong>This is not a backup.</strong> It protects you from a bad calculation, not from a broken disk. Lose the folder and you lose every version at once.</li><li><strong>Time travel does not fix the bug, it explains it.</strong> It answers what was shown and since when. Fixing the data is still separate work.</li><li><strong>The DuckDB extension only reads.</strong> Writing needs each format&#x27;s Python package. That is enough for a lake like this one and it is worth knowing before designing on top of it.</li><li><strong>This page&#x27;s browser has neither extension.</strong> That is why the challenge below does not time travel: it downloads both versions already extracted and crosses them, which is the skill that actually gets used afterwards.</li><li><strong>Without a catalog, Iceberg outside its own tooling is awkward.</strong> You have to tell the query the exact metadata file, and only the catalog knows that name.</li></ul></section>
+<section class="block is-bridge"><span class="kicker">Analogy</span><h2 class="block-title">Metallurgical bridge</h2><p>A laboratory does not delete Monday&#x27;s result when it recalibrates the instrument. It issues a new certificate, with its number and its date, and the old one stays in the archive marked superseded.</p><p>Nobody does this out of nostalgia. Monday&#x27;s ore was already sold with that number in front of it, and the day somebody disputes the invoice you have to show what the decision rested on.</p><p>An open table format is that certificate archive. And the question it answers is the same one: not what the grade is, but <strong>what the grade was in front of us when we decided</strong>.</p></section>
+<section class="block is-live"><span class="kicker">Your turn</span><h2 class="block-title">Do it yourself</h2><p class="reto-ask">Cross the two versions of the table and pull out the five days where they contradict each other most. Return <code>dia</code>, <code>antes</code>, <code>ahora</code> and <code>diferencia</code> with the hours between one and the other, rounded to two decimals, ordered from largest down. Five rows.</p><div class="live reto" data-expected='[[&quot;2020-04-18&quot;, 2.36, 23.6, 21.24], [&quot;2020-06-06&quot;, 2.04, 20.22, 18.18], [&quot;2020-05-20&quot;, 2.01, 20.02, 18.01], [&quot;2020-03-29&quot;, 1.98, 19.82, 17.84], [&quot;2020-06-24&quot;, 1.6, 15.91, 14.31]]'><div class="live-head"><span>challenge</span><span class="live-status">the engine downloads when you press</span></div><pre class="live-static"><code>SELECT a.dia,
+       a.horas_de_carga  AS antes,
+       b.horas_de_carga  AS ahora
+FROM antes a
+JOIN ahora b ON b.dia = a.dia;</code></pre><textarea class="live-editor" spellcheck="false" aria-label="challenge">SELECT a.dia,
+       a.horas_de_carga  AS antes,
+       b.horas_de_carga  AS ahora
+FROM antes a
+JOIN ahora b ON b.dia = a.dia;</textarea><div class="live-bar"><button type="button" class="live-run">check</button></div><div class="live-out"></div><div class="verdict"></div><details class="fold"><summary>a hint</summary><p>The join is already done and so are the two columns. What is missing is the subtraction, which is <code>ahora</code> minus <code>antes</code> wrapped in a <code>round(..., 2)</code>, and then ordering by it downwards and keeping five. Both columns of the subtraction have to be written out in full, <code>b.horas_de_carga - a.horas_de_carga</code>, because the short name does not exist yet while it is being computed.</p></details><details class="fold"><summary>see the solution</summary><pre><code>SELECT a.dia,
+       a.horas_de_carga                               AS antes,
+       b.horas_de_carga                               AS ahora,
+       round(b.horas_de_carga - a.horas_de_carga, 2)  AS diferencia
+FROM antes a
+JOIN ahora b ON b.dia = a.dia
+ORDER BY diferencia DESC
+LIMIT 5;</code></pre></details></div><p>The five rows that come out are five days of failure or heavy work, and they are exactly the ones the old version was hiding. The bug did not spread its error evenly: it ate more the more there was to see.</p></section>
+<section class="block is-review"><span class="kicker">Review</span><h2 class="block-title">Review</h2><details><summary>Why a Parquet folder cannot answer what the dashboard said yesterday</summary><p>Because it keeps nothing from yesterday. Overwriting a file leaves a single state, the last one, and the previous one is nowhere. The folder knows what it holds, and does not know what it held.</p></details><details><summary>What an open table format adds to that same folder</summary><p>A notebook beside it. The data is still ordinary Parquet, and what is new is a log with one line per change, saying which files the table is made of from that moment. Reading an old version means reading the notebook down to that line.</p></details><details><summary>The difference between Delta and Iceberg you notice before measuring anything</summary><p>The setup. Delta writes into an empty folder and asks for nothing else. Iceberg needs a catalog before it will accept a single row, and here that was a SQLite file. With one table that is pure nuisance, and with forty it is exactly what you need.</p></details><details><summary>Your table has been written daily for a year and takes ten times what it should</summary><p>That is the history, and it is the announced price. Every write leaves the old files where they were. Both formats ship a command to throw away what is older than a given age, and that age has to be chosen knowing it erases the time travel up to there.</p></details><details><summary>You find a calculation bug from a month ago. What does this give you that you did not have</summary><p>The answer to what was shown and since when, which is what whoever made decisions with those numbers is going to ask. Here the old version gave 0.32 loaded hours a day and the good one gives 3.17, and 18 April, the worst day of the half year, showed up as a quiet day.</p></details></section>
+
+      <footer class="footer">
+        <span>Bellows / Module 18</span>
+        <span>generated on 2026-09-03</span>
+        <span>source: MetroPT-3, from a Porto Metro train compressor (CC BY 4.0)</span>
+      </footer>
+    </div>
+  </main>
+
+</div>
+<!-- El motor SQL no se descarga aquí: este fichero solo conecta los botones.
+     Los 8 MB llegan cuando el lector pulsa, y no antes. -->
+<script type="module" src="live.js"></script>
+<script src="perilla.js" defer></script>
+</body>
+</html>

@@ -32,6 +32,7 @@
   --mint:      #8CAE79;          /* olive */
   --slate:     #A79DB4;          /* grey violet */
   --gold:      #C9A55A;          /* native gold */
+  --air:       #83A0E0;          /* compressed air line blue */
 
   /* Chosen by measuring how far each space has to stretch to reach the right margin,
      not by the usual reading advice. Kevin asked for wider text than the 84 characters
@@ -272,6 +273,7 @@ a { color: inherit; }
 .assay[data-accent="mint"]  { --tint: var(--mint); }
 .assay[data-accent="slate"] { --tint: var(--slate); }
 .assay[data-accent="gold"]  { --tint: var(--gold); }
+.assay[data-accent="air"]   { --tint: var(--air); }
 
 .assay:hover { border-color: var(--tint); transform: translateY(-3px); }
 
@@ -1215,6 +1217,7 @@ p, .assay-tagline, .cred-detail, .streams dd { text-wrap: pretty; }
 .index-row[data-accent="mint"]  { --tint: var(--mint); }
 .index-row[data-accent="slate"] { --tint: var(--slate); }
 .index-row[data-accent="gold"]  { --tint: var(--gold); }
+.index-row[data-accent="air"]   { --tint: var(--air); }
 
 /* --- the preview panel ---------------------------------------------------- */
 
@@ -1251,6 +1254,7 @@ p, .assay-tagline, .cred-detail, .streams dd { text-wrap: pretty; }
 .index-panel[data-accent="mint"]  { border-color: var(--mint); }
 .index-panel[data-accent="slate"] { border-color: var(--slate); }
 .index-panel[data-accent="gold"]  { border-color: var(--gold); }
+.index-panel[data-accent="air"]   { border-color: var(--air); }
 @media (prefers-reduced-motion: reduce) {
   .index-pane img { transition: none; transform: none; }
   .index-panel { transition: none; }

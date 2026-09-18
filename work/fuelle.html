@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bellows - Kevin Ortiz</title>
+<meta name="description" content="A data lake and a digital twin built from zero in bilingual modules, on 1,516,948 readings from the air compressor of a Porto Metro train.">
+<meta property="og:title" content="Bellows - Kevin Ortiz">
+<meta property="og:description" content="A data lake and a digital twin built from zero in bilingual modules, on 1,516,948 readings from the air compressor of a Porto Metro train.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://kmortizva-data.github.io/assets/shots/og-card.png">
+<meta property="og:image:alt" content="A data lake and a digital twin built from zero in bilingual modules, on 1,516,948 readings from the air compressor of a Porto Metro train.">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="alternate" hreflang="es" href="../es/proyectos/fuelle.html">
+<script>document.documentElement.className="js"</script>
+<link rel="stylesheet" href="../style.css?v=325400c1">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="wrap masthead">
+  <a class="mark" href="../index.html"><svg class="mark-logo" viewBox="0 0 26 26" width="22" height="22" aria-hidden="true" focusable="false"><circle cx="13" cy="13" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M13 1.5v5.5M13 19v5.5M1.5 13H7M19 13h5.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span>Kevin Ortiz</span></a>
+  <nav>
+    <a href="../index.html#about">About</a>
+    <a href="../index.html#work">Work</a>
+    <a href="../es/proyectos/fuelle.html" rel="alternate" hreflang="es">Español</a>
+    <a class="cta" href="../index.html#contact">Get in touch</a>
+  </nav>
+</header>
+<main id="main">
+<article class="wrap section">
+  <a class="back" href="../index.html#work">All work</a>
+  <p class="eyebrow">28 of 31 modules, Spanish and English, live.</p>
+  <h1 class="project-title">Bellows</h1>
+  <p class="project-tagline">A data lake and a digital twin built from zero in bilingual modules, on 1,516,948 readings from the air compressor of a Porto Metro train.</p>
+
+  <figure class="figure"><img src="../assets/shots/fuelle-index.png" alt="The index of Bellows in its dark theme: the lake drawn down the side from raw to twin, and 28 of 31 lessons written" width="1440" height="900" decoding="async"><figcaption>The index of Bellows in its dark theme: the lake drawn down the side from raw to twin, and 28 of 31 lessons written</figcaption></figure>
+
+  <div class="assay assay-solo" data-accent="air">
+    <div class="assay-body">
+      <dl class="streams"><div><dt>The problem</dt><dd>A public UCI file: 1,516,948 readings, one every ten seconds, fifteen signals, seven months of 2020, 208 MB of CSV. Four air leaks documented with a date, and a datasheet that says the compressor starts at 8.2 bar when the file says 8.05.</dd></div><div><dt>How I solved it</dt><dd>Bronze, silver and gold in Parquet with DuckDB, a gold layer modelled in dbt, time travel compared in Delta and Iceberg, the same data served from PostgreSQL with constraints, indexes and a restored backup, and a first principles twin: four numbers measured from the lake and held together by an air balance that closes to 0.7 %.</dd></div><div><dt>The result</dt><dd>A detector that catches 4 of the 4 documented leaks at 1.5 false alarms a month, where the alarm already fitted to the machine catches 2 at 11.4. As a predictor it does not work, one warning in four and a single day ahead, and the course publishes both marks side by side.</dd></div></dl>
+      <div class="assay-figure">
+        <p class="eyebrow">Measured</p>
+        <q>The healthy window was not healthy</q>
+        <p>Searching for the twin&#x27;s parameters disagreed with measuring them. Chasing why turned up gaps in the record counted as compressor time, and then twelve days of March where the duty cycle climbs from 0.06 to 0.58, the oil runs ten degrees hotter and the low pressure alarm fires for the first time in the record: a failure nobody wrote down, inside the window the twin was calibrated on. It was recalibrated on February alone, and three published modules were rewritten.</p>
+      </div>
+    </div>
+  </div>
+
+  
+
+  <div class="prose"><p>Every other project on this page starts from a CSV somebody had already cleaned. This one is about where that file comes from: a lake built layer by layer from 208 MB of raw compressor data, and a digital twin on top that says plainly what it can and cannot see. I wrote it for someone starting from zero, which is where I started.</p><p>Every number in the course comes out of a script run, and ten checks stand between a lesson and a commit: every published query runs against the lake and has to print what the lesson says, every number in the prose has to exist in a results file, and the Spanish and English editions have to agree on every figure. They have caught real errors, including one in my own measurements that a later module exposed.</p><p>The SQL lessons run in the reader&#x27;s browser. The page downloads a database engine only when asked, 7.74 MB, runs the reader&#x27;s query against real compressor data and checks the result rather than the text. The twin&#x27;s lessons carry knobs whose physics runs in Python beforehand, so the figure and the knob can never disagree.</p><p>What is left is orchestration, deleting the whole lake and watching it rebuild itself; a one page panel for someone who will not read thirty one modules; and a one page verdict with the part I care about most, what of all this would survive a real plant and what would not.</p></div>
+
+  <p class="eyebrow stack-label">Built with</p>
+  <ul class="stack"><li>Python</li><li>DuckDB</li><li>Parquet</li><li>dbt</li><li>Delta Lake</li><li>Apache Iceberg</li><li>PostgreSQL</li><li>WebAssembly</li><li>matplotlib</li><li>HTML</li><li>CSS</li></ul>
+
+  <p class="assay-links"><a class="cta" href="../fuelle/curso/index.en.html" target="_blank" rel="noopener">Open the course</a></p>
+</article>
+</main>
+<footer class="wrap foot">
+  <span>&copy; 2026 Kevin Ortiz</span>
+  <span><a href="mailto:kmortizva@datageeksunited.com">kmortizva@datageeksunited.com</a></span>
+  <span><a href="https://github.com/kmortizva-data">github.com/kmortizva-data</a></span>
+</footer>
+<div class="curtain" aria-hidden="true"></div>
+<script src="../assets/lenis.min.js" defer></script>
+<script src="../theme.js?v=3afb8790" defer></script>
+</body>
+</html>

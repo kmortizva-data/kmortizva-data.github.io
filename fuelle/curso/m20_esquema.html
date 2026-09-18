@@ -1,0 +1,1015 @@
+<!doctype html>
+<html lang="es" class="no-js" data-assets="../assets" data-tablas="telemetria=sin_timestamp_ligera.parquet">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Diseñar el esquema: claves, relaciones y restricciones · Fuelle, módulo 20</title>
+<link rel="alternate" hreflang="en" href="m20_esquema.en.html">
+<style>
+/* Fuelle: la hoja de estilo del curso.
+ *
+ * REESCRITA ENTERA el 2026-08-30. La primera versión heredó la plantilla de Sílice
+ * junto con su motor, y Kevin la vio y dijo: "se parece a las otras 20 páginas de
+ * portafolio, el landing, coursera, silica, se ve y se siente igual". Tenía razón.
+ * Medido: mismo ancho de prosa (680), mismo ancho de bloques (1180), misma columna
+ * de margen (132), misma secuencia de cabecera, 36 clases compartidas de 40.
+ * Cambiar papel por grafito no toca la silueta, y la silueta es lo que se siente.
+ *
+ * Los cuatro sitios de Kevin son una columna de texto centrada, sin barra lateral,
+ * sin rejilla y sin nada pegajoso. Este es lo contrario: PANEL DE CONTROL. Una barra
+ * fija a la izquierda con los instrumentos siempre a la vista, y el contenido a su
+ * derecha. Ninguna de las tres medidas heredadas aparece aquí, y check_layout.py
+ * falla si alguna reaparece.
+ *
+ * El encargo que ordena las decisiones sigue siendo el mismo: "no muy escandaloso,
+ * que parezca ingeniero, pero que demuestres habilidades, que no seas un pdf que se
+ * lee de recorrido". La sobriedad va en la superficie, la ambición en lo que hace.
+ */
+
+/* --------------------------------------------------------------- tipografía */
+
+/* IBM Plex, autoalojada, OFL-1.1. Los cuatro sitios de Kevin usan la fuente del
+ * sistema, y eso es la otra mitad del "se siente igual". Plex tiene aire de
+ * documentación de ingeniería, que es exactamente el encargo.
+ *
+ * Cinco cortes y no tres: sin las semi-negritas el navegador falsifica la negrita
+ * engordando el trazo, y en una fuente técnica se nota enseguida. 289 KB en total,
+ * que se pueden bajar a unos 60 recortando al alfabeto latino con fonttools si
+ * llega a molestar. */
+@font-face {
+  font-family: "Plex Cond";
+  src: url("../assets/fonts/PlexSansCondensed-SemiBold.woff2") format("woff2");
+  font-weight: 600; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Plex";
+  src: url("../assets/fonts/PlexSans-Regular.woff2") format("woff2");
+  font-weight: 400; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Plex";
+  src: url("../assets/fonts/PlexSans-SemiBold.woff2") format("woff2");
+  font-weight: 600; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Plex Mono";
+  src: url("../assets/fonts/PlexMono-Regular.woff2") format("woff2");
+  font-weight: 400; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Plex Mono";
+  src: url("../assets/fonts/PlexMono-SemiBold.woff2") format("woff2");
+  font-weight: 600; font-style: normal; font-display: swap;
+}
+
+/* ------------------------------------------------------------------ tokens */
+
+:root {
+  --ground: #f4f2ee;
+  --panel: #e9e6e0;
+  --stage: #fbfaf8;
+  --ink: #191d20;
+  --ink-soft: #4c545a;
+  --ink-faint: #7c868d;
+  --rule: #d6d1c8;
+  --rule-soft: #e4e0d8;
+  --grid: rgba(25, 29, 32, .05);
+  --accent: #46787e;
+  --measured: #3d505b;
+  --simulated: #b57542;
+
+  --prose: "Plex", system-ui, "Segoe UI", Roboto, sans-serif;
+  --display: "Plex Cond", "Plex", system-ui, sans-serif;
+  --data: "Plex Mono", "Cascadia Mono", Consolas, monospace;
+
+  /* Medidas NUEVAS. Ninguna puede coincidir con las heredadas de Sílice
+   * (680 de prosa, 1180 de bloques, 132 de margen): volver a ellas es volver a
+   * la misma página, y hay un verificador que lo impide. */
+  --rail: 268px;      /* la barra fija, que ninguno de los otros sitios tiene */
+  --read: 646px;      /* la medida de la prosa, en píxeles y nunca en ch */
+  --block: 980px;     /* el borde derecho de los bloques anchos */
+
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ground: #101417;
+    --panel: #171c20;
+    --stage: #14181b;
+    --ink: #e2e7ea;
+    --ink-soft: #a6b0b6;
+    --ink-faint: #717e85;
+    --rule: #293036;
+    --rule-soft: #20272b;
+    --grid: rgba(226, 231, 234, .045);
+    --accent: #8ec2c8;
+    --measured: #cbe2ef;
+    --simulated: #c98754;
+  }
+}
+
+:root[data-theme="dark"] {
+  --ground: #101417;
+  --panel: #171c20;
+  --stage: #14181b;
+  --ink: #e2e7ea;
+  --ink-soft: #a6b0b6;
+  --ink-faint: #717e85;
+  --rule: #293036;
+  --rule-soft: #20272b;
+  --grid: rgba(226, 231, 234, .045);
+  --accent: #8ec2c8;
+  --measured: #cbe2ef;
+  --simulated: #c98754;
+}
+
+/* --------------------------------------------------------------- cimientos */
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--stage);
+  color: var(--ink);
+  font-family: var(--prose);
+  font-size: 16.5px;
+  line-height: 1.6;
+}
+
+::selection { background: var(--accent); color: var(--ground); }
+a { color: var(--accent); text-underline-offset: .18em; }
+
+/* LA REJILLA. Esto es lo que ninguno de los otros cuatro sitios tiene, y es la
+ * razón de que la página deje de sentirse igual: el texto ya no está centrado en
+ * la ventana, está al lado de un panel de instrumentos. */
+.shell {
+  display: grid;
+  grid-template-columns: var(--rail) minmax(0, 1fr);
+  min-height: 100vh;
+}
+
+/* -------------------------------------------------- la barra de instrumentos */
+
+.panel {
+  position: sticky;   /* lo primero pegajoso de todo el portafolio */
+  top: 0;
+  align-self: start;
+  height: 100vh;
+  overflow-y: auto;
+  padding: 22px 20px 22px;
+  background: var(--panel);
+  border-right: 1px solid var(--rule);
+  background-image: radial-gradient(var(--grid) 1px, transparent 1px);
+  background-size: 22px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.panel-brand {
+  font-family: var(--display);
+  font-size: 19px;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  color: var(--ink);
+  text-decoration: none;
+  display: block;
+}
+.panel-brand small {
+  display: block;
+  font-family: var(--data);
+  font-size: 10px;
+  letter-spacing: .08em;
+  color: var(--ink-faint);
+  text-transform: none;
+  margin-top: 4px;
+}
+
+.panel-label {
+  font-family: var(--data);
+  font-size: 9.5px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding-bottom: 7px;
+  border-bottom: 1px solid var(--rule);
+  margin-bottom: 10px;
+}
+
+/* El grafo del lago, EN VERTICAL. Antes iba horizontal y solo en la portada;
+ * aquí acompaña al lector todo el curso y marca en qué capa está. */
+.rail-step {
+  display: grid;
+  grid-template-columns: 15px 1fr auto;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 0;
+  font-family: var(--data);
+  font-size: 11px;
+  letter-spacing: .08em;
+  color: var(--ink-faint);
+  text-decoration: none;
+  position: relative;
+}
+.rail-step .dot {
+  width: 9px; height: 9px;
+  border: 1px solid var(--ink-faint);
+  border-radius: 50%;
+  justify-self: center;
+}
+.rail-step:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  left: 7px; top: 25px;
+  width: 1px; height: calc(100% - 17px);
+  background: var(--rule);
+}
+.rail-step.done { color: var(--ink-soft); }
+.rail-step.done .dot { background: var(--ink-faint); border-color: var(--ink-faint); }
+.rail-step.here { color: var(--accent); }
+.rail-step.here .dot { background: var(--accent); border-color: var(--accent); }
+.rail-step .range { font-size: 9.5px; opacity: .75; }
+
+/* La cifra del módulo ya no es una caja en una cabecera gigante: vive aquí y se
+ * queda a la vista mientras se lee la lección entera. */
+.panel-figure { border-top: 1px solid var(--rule); padding-top: 14px; }
+.panel-figure .v {
+  display: block;
+  font-family: var(--data);
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 1.3;
+  color: var(--accent);
+}
+.panel-figure .l {
+  display: block;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--ink-faint);
+  margin-top: 5px;
+}
+
+.panel-progress {
+  margin-top: auto;
+  border-top: 1px solid var(--rule);
+  padding-top: 13px;
+  font-family: var(--data);
+  font-size: 11px;
+  color: var(--ink-faint);
+}
+.panel-progress b { color: var(--ink); font-weight: 600; }
+.panel-bar { height: 2px; background: var(--rule); margin-top: 7px; }
+.panel-bar i { display: block; height: 2px; background: var(--accent); }
+
+.panel-nav { display: flex; gap: 7px; flex-wrap: wrap; }
+.panel-nav a {
+  font-family: var(--data);
+  font-size: 10.5px;
+  letter-spacing: .06em;
+  padding: 6px 9px;
+  border: 1px solid var(--rule);
+  text-decoration: none;
+  color: var(--ink-soft);
+}
+.panel-nav a:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ------------------------------------------------------------- el contenido */
+
+.stage { background: var(--stage); padding: 0 0 54px; min-width: 0; }
+.stage-inner { max-width: var(--block); padding: 0 40px; }
+
+/* La cabecera ya no ocupa media pantalla: una línea de identificación y el
+ * título. La cifra y la navegación se fueron a la barra. */
+.head {
+  padding: 30px 0 20px;
+  border-bottom: 1px solid var(--rule);
+  margin-bottom: 4px;
+}
+.head-id {
+  font-family: var(--data);
+  font-size: 10.5px;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  display: flex;
+  gap: 14px;
+  align-items: baseline;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.head-id b { color: var(--accent); font-weight: 600; }
+.head h1 {
+  font-family: var(--display);
+  font-size: clamp(26px, 3.3vw, 37px);
+  line-height: 1.08;
+  font-weight: 600;
+  margin: 0 0 10px;
+  max-width: 22ch;
+}
+.head .standfirst {
+  color: var(--ink-soft);
+  font-size: 16.5px;
+  line-height: 1.5;
+  max-width: var(--read);
+  margin: 0;
+}
+
+/* Las secciones ya no cuelgan de un margen de 132 px: la etiqueta va encima, en
+ * un recuadro pequeño, y el texto empieza en el borde. */
+.block { padding: 26px 0 2px; border-top: 1px solid var(--rule-soft); }
+.block:first-of-type { border-top: 0; }
+
+.kicker {
+  display: inline-block;
+  font-family: var(--data);
+  font-size: 9.5px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  border: 1px solid var(--rule);
+  padding: 2px 7px;
+  margin-bottom: 11px;
+}
+
+.block-title {
+  font-family: var(--display);
+  font-size: 22px;
+  font-weight: 600;
+  margin: 0 0 11px;
+  max-width: var(--read);
+}
+
+/* Justificado desde 33rem de columna y rasgado en móvil: la regla que Kevin
+ * fijó en el portafolio el 2026-08-22, después de medir que a 375 px salían
+ * huecos de 7,65x y ríos en cinco de cada seis líneas. Aquí la prosa mide 646 px
+ * (unos 40rem), así que le toca justificado.
+ *
+ * Y NADA de `hyphens`: sin guionado, por la regla de la casa. El precio es que
+ * hay que vigilar los ríos, y eso se mide con src/site/check_rivers.py en vez de
+ * mirarlo de reojo. */
+.block p, .block li { max-width: var(--read); }
+
+@media (min-width: 34rem) {
+  .block p,
+  .block li,
+  .standfirst,
+  .reto-ask,
+  .annot dd,
+  blockquote,
+  .is-review details p { text-align: justify; text-justify: inter-word; }
+  /* Tablas, código, pies de figura y la barra nunca se justifican: sus líneas
+   * son cortas y el hueco se vuelve un agujero. */
+  figcaption, th, td, pre, .panel, .live-status, .toc { text-align: left; }
+}
+.block p { margin: 0 0 14px; }
+.block ul, .block ol { padding-left: 21px; margin: 0 0 14px; }
+.block li { margin-bottom: 6px; }
+.block li::marker { color: var(--accent); font-family: var(--data); font-size: .82em; }
+
+h3.sub, h4.sub {
+  font-family: var(--display);
+  font-size: 17px;
+  font-weight: 600;
+  margin: 24px 0 8px;
+  max-width: var(--read);
+}
+h4.sub { font-size: 15px; color: var(--ink-soft); }
+
+blockquote {
+  margin: 0 0 14px;
+  padding-left: 15px;
+  border-left: 2px solid var(--rule);
+  color: var(--ink-soft);
+  max-width: var(--read);
+}
+strong, b { font-weight: 600; }
+
+.is-brief ul { list-style: none; padding-left: 0; }
+.is-brief li {
+  padding: 8px 0 8px 18px;
+  border-bottom: 1px solid var(--rule-soft);
+  position: relative;
+}
+.is-brief li::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 17px;
+  width: 8px; height: 1px;
+  background: var(--accent);
+}
+.is-brief li:last-child { border-bottom: 0; }
+.is-result .block-title, .is-warning .block-title { color: var(--accent); }
+
+/* ------------------------------------------------------------------ código */
+
+pre {
+  max-width: var(--block);
+  overflow-x: auto;
+  background: var(--panel);
+  border: 1px solid var(--rule-soft);
+  border-left: 2px solid var(--accent);
+  padding: 13px 15px;
+  margin: 0 0 13px;
+}
+pre code {
+  font-family: var(--data);
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ink);
+  white-space: pre;
+}
+p code, li code, dd code, td code {
+  font-family: var(--data);
+  font-size: .87em;
+  padding: 1px 4px;
+  background: var(--panel);
+  border: 1px solid var(--rule-soft);
+}
+
+/* Diagramas: esquemas conceptuales generados, no figuras de datos.
+   Nacen del bloque ```diagrama y usan los tokens de arriba, asi que el tema lo
+   resuelve el CSS y no hacen falta dos versiones como en las figuras. */
+.diagram { margin: 0 0 22px; max-width: var(--block); }
+.chain {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: 30px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: none;
+}
+.node {
+  position: relative;
+  /* 130 y no 132: 132px es la columna de margen de Sílice y check_layout la
+     prohíbe en este proyecto, con razón, aunque aquí signifique otra cosa. */
+  flex: 1 1 130px;
+  min-width: 0;
+  padding: 11px 13px 12px;
+  background: var(--panel);
+  border: 1px solid var(--rule);
+  border-top: 2px solid var(--ink-faint);
+}
+/* La flecha entre cajas. Va en el hueco del gap, asi que no roba ancho al
+   texto y desaparece sola cuando las cajas se apilan. */
+.node + .node::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: -22px;
+  width: 14px;
+  height: 1px;
+  background: var(--ink-faint);
+}
+.node + .node::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: -11px;
+  width: 5px; height: 5px;
+  border-top: 1px solid var(--ink-faint);
+  border-right: 1px solid var(--ink-faint);
+  transform: translateY(-50%) rotate(45deg);
+}
+.node.lit { border-top-color: var(--accent); background: var(--stage); }
+.node.lit .node-name { color: var(--accent); }
+.node-name {
+  display: block;
+  font-family: var(--data);
+  font-size: 10.5px;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+.node-what { display: block; margin-top: 5px; font-size: 13.5px; color: var(--ink); }
+.node-note { display: block; margin-top: 4px; font-size: 12px; color: var(--ink-faint); }
+
+@media (max-width: 640px) {
+  /* Apiladas, con la flecha girada hacia abajo. */
+  .chain { flex-direction: column; gap: 26px; }
+  .node { flex: 1 1 auto; }
+  .node + .node::before {
+    top: -19px; left: 21px;
+    width: 1px; height: 12px;
+  }
+  .node + .node::after {
+    top: -9px; left: 19px;
+    transform: rotate(135deg);
+  }
+}
+
+.output { position: relative; margin: 0 0 13px; max-width: var(--block); }
+.output pre { margin: 0; border-left: 2px solid var(--ink-faint); background: transparent; }
+.output pre code { color: var(--ink-soft); }
+.output-tag {
+  position: absolute;
+  top: -7px; left: 13px;
+  z-index: 1;
+  font-family: var(--data);
+  font-size: 9px;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  background: var(--stage);
+  padding: 0 5px;
+}
+
+details.fold, details { margin: 0 0 13px; max-width: var(--block); }
+details > summary {
+  cursor: pointer;
+  font-family: var(--data);
+  font-size: 11px;
+  letter-spacing: .05em;
+  color: var(--ink-faint);
+  padding: 5px 0;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+details > summary::-webkit-details-marker { display: none; }
+details > summary::before {
+  content: "+";
+  width: 13px; height: 13px;
+  line-height: 12px;
+  text-align: center;
+  border: 1px solid var(--rule);
+  color: var(--accent);
+}
+details[open] > summary::before { content: "\2212"; }
+details > summary:hover { color: var(--accent); }
+
+.annot {
+  margin: 2px 0 4px;
+  padding: 11px 13px;
+  border: 1px solid var(--rule-soft);
+  background: var(--panel);
+}
+.annot dt { margin-bottom: 3px; }
+.annot dt code {
+  font-family: var(--data);
+  font-size: 12px;
+  color: var(--accent);
+  background: transparent;
+  border: 0;
+  padding: 0;
+}
+.annot dd { margin: 0 0 10px; font-size: 14.5px; color: var(--ink-soft); max-width: var(--read); }
+.annot dd:last-of-type { margin-bottom: 0; }
+
+.is-review details { border-bottom: 1px solid var(--rule-soft); margin: 0; }
+.is-review details > summary {
+  font-family: var(--prose);
+  font-size: 15.5px;
+  color: var(--ink);
+  padding: 11px 0;
+}
+.is-review details > summary:hover { color: var(--accent); }
+.is-review details p { margin: 0 0 11px 21px; color: var(--ink-soft); }
+
+/* ------------------------------------------------------------------ tablas */
+
+.table-wrap { max-width: var(--block); overflow-x: auto; margin: 0 0 15px; }
+table { border-collapse: collapse; font-size: 14.5px; }
+th, td {
+  text-align: left;
+  padding: 6px 15px 6px 0;
+  border-bottom: 1px solid var(--rule-soft);
+  vertical-align: top;
+}
+th {
+  font-family: var(--data);
+  font-size: 10px;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  font-weight: 400;
+  border-bottom-color: var(--rule);
+}
+tbody tr:last-child td { border-bottom: 0; }
+
+figure { margin: 0 0 17px; max-width: var(--block); }
+figure img { max-width: 100%; height: auto; display: block; }
+figcaption { font-size: 12.5px; color: var(--ink-faint); margin-top: 7px; max-width: var(--read); }
+
+.footer {
+  border-top: 1px solid var(--rule);
+  margin-top: 32px;
+  padding: 18px 0 0;
+  font-size: 12px;
+  color: var(--ink-faint);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px 20px;
+}
+.footer a { color: var(--ink-faint); }
+.gone { color: var(--ink-faint); }
+
+/* ---------------------------------------------- la consulta viva y el reto */
+
+.live {
+  max-width: var(--block);
+  margin: 0 0 17px;
+  border: 1px solid var(--rule);
+  background: var(--panel);
+}
+.live-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 13px;
+  border-bottom: 1px solid var(--rule-soft);
+  font-family: var(--data);
+  font-size: 10px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.live-editor {
+  width: 100%;
+  border: 0;
+  resize: vertical;
+  min-height: 112px;
+  padding: 12px 14px;
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--data);
+  font-size: 13px;
+  line-height: 1.6;
+  tab-size: 2;
+}
+.live-editor:focus { outline: 2px solid var(--accent); outline-offset: -2px; }
+.live-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 13px;
+  border-top: 1px solid var(--rule-soft);
+  flex-wrap: wrap;
+}
+.live-run {
+  font-family: var(--data);
+  font-size: 11px;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  padding: 7px 14px;
+  border: 1px solid var(--accent);
+  background: transparent;
+  color: var(--accent);
+  cursor: pointer;
+}
+.live-run:hover { background: var(--accent); color: var(--ground); }
+.live-run[disabled] { opacity: .5; cursor: default; }
+.live-run[disabled]:hover { background: transparent; color: var(--accent); }
+.live-status { font-family: var(--data); font-size: 10.5px; color: var(--ink-faint); }
+.live-out { max-width: 100%; overflow-x: auto; }
+.live-out table { margin: 0; width: 100%; font-size: 12.5px; }
+.live-out td, .live-out th { padding: 5px 13px 5px 0; }
+.live-out td:first-child, .live-out th:first-child { padding-left: 13px; }
+.live-out td { font-family: var(--data); font-size: 12px; }
+.live-err {
+  padding: 10px 14px;
+  font-family: var(--data);
+  font-size: 12px;
+  color: var(--simulated);
+  border-top: 1px solid var(--rule-soft);
+}
+
+.reto { border-left: 2px solid var(--accent); }
+.reto .live-head { color: var(--accent); }
+.reto-ask { padding: 12px 14px 2px; font-size: 15.5px; max-width: var(--read); }
+.verdict {
+  padding: 10px 14px;
+  border-top: 1px solid var(--rule-soft);
+  font-family: var(--data);
+  font-size: 12px;
+}
+.verdict.ok { color: var(--accent); }
+.verdict.no { color: var(--simulated); }
+
+.no-js .live-bar, .no-js .live-editor { display: none; }
+.no-js .live-static { display: block; }
+.live-static { display: none; }
+
+/* ---------------------------------------------------------- el doble trazo */
+
+.twin { max-width: var(--block); margin: 0 0 18px; }
+.twin svg { width: 100%; height: auto; display: block; }
+.twin .axis { stroke: var(--rule); fill: none; }
+.twin .tick { fill: var(--ink-faint); font-family: var(--data); font-size: 10px; }
+.twin .measured { stroke: var(--measured); fill: none; stroke-width: 1.8; }
+.twin .simulated { stroke: var(--simulated); fill: none; stroke-width: 1.8; stroke-dasharray: 5 4; }
+.twin .gap { fill: var(--simulated); opacity: .16; }
+.twin-key { display: flex; gap: 20px; flex-wrap: wrap; font-family: var(--data);
+            font-size: 11px; color: var(--ink-faint); margin-top: 6px; }
+.twin-key i { display: inline-block; width: 20px; height: 0; vertical-align: middle;
+              border-top-width: 2px; border-top-style: solid; margin-right: 7px; }
+.twin-key .k-measured i { border-color: var(--measured); }
+.twin-key .k-simulated i { border-top-style: dashed; border-color: var(--simulated); }
+
+.knob { display: flex; align-items: center; gap: 13px; flex-wrap: wrap; margin: 0 0 13px;
+        font-family: var(--data); font-size: 11px; color: var(--ink-faint); }
+.knob input[type="range"] { accent-color: var(--accent); flex: 1 1 200px; max-width: 300px; }
+.knob output { color: var(--accent); min-width: 72px; }
+
+/* -------------------------------------------------------- índice del curso */
+
+.toc { max-width: var(--block); }
+.toc .part {
+  font-family: var(--data);
+  font-size: 10px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin: 26px 0 2px;
+  padding-top: 11px;
+  border-top: 1px solid var(--rule);
+}
+.toc a, .toc .pending {
+  display: grid;
+  grid-template-columns: 34px 1fr auto;
+  gap: 15px;
+  align-items: baseline;
+  padding: 9px 6px 9px 8px;
+  border-bottom: 1px solid var(--rule-soft);
+  border-left: 2px solid transparent;
+  text-decoration: none;
+  color: var(--ink);
+}
+.toc a:hover { border-left-color: var(--accent); background: var(--panel); color: var(--accent); }
+.toc .pending { color: var(--ink-faint); }
+.toc .num { font-family: var(--data); font-size: 12px; color: var(--ink-faint); }
+.toc a:hover .num { color: var(--accent); }
+.toc .name { font-family: var(--display); font-size: 16px; }
+.toc .name small { display: block; font-family: var(--prose); color: var(--ink-faint);
+                   font-size: 13px; font-weight: 400; margin-top: 2px; max-width: 60ch; }
+.toc .mark { font-family: var(--data); font-size: 11px; color: var(--ink-faint); text-align: right; }
+.toc .tag { font-family: var(--data); font-size: 9.5px; letter-spacing: .1em;
+            text-transform: uppercase; color: var(--ink-faint); }
+
+/* ------------------------------------------------------------------- móvil */
+
+/* La barra deja de ser barra: pasa a cabecera compacta arriba, con los tramos en
+ * horizontal. La rejilla se colapsa a una columna. */
+@media (max-width: 900px) {
+  .shell { grid-template-columns: 1fr; }
+  .panel {
+    position: static;
+    height: auto;
+    border-right: 0;
+    border-bottom: 1px solid var(--rule);
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 16px;
+    padding: 13px 18px;
+  }
+  .panel-label { display: none; }
+  .panel .rail { display: flex; gap: 0 5px; flex-wrap: wrap; }
+  .rail-step { grid-template-columns: 11px auto; padding: 3px 0; font-size: 9.5px; }
+  .rail-step .range { display: none; }
+  .rail-step:not(:last-child)::after { display: none; }
+  .panel-figure { border-top: 0; padding-top: 0; }
+  .panel-figure .v { font-size: 13.5px; }
+  .panel-figure .l { display: none; }
+  .panel-progress { margin: 0; border-top: 0; padding-top: 0; }
+  .panel-bar { display: none; }
+  .stage-inner { padding: 0 18px; }
+  body { font-size: 16px; }
+  .head { padding-top: 22px; }
+  pre code { font-size: 12.5px; }
+}
+
+/* ------------------------------------------------- la perilla del gemelo */
+/*
+ * El doble trazo con su deslizador, de los modulos 24 y 25. El SVG llega ya
+ * dibujado del servidor, asi que sin JavaScript se ve igual: dos trazos, la
+ * referencia y la posicion de partida. El mando solo cambia cual se ensena.
+ *
+ * La regla de forma del curso: el color NUNCA es la unica pista. La referencia
+ * va punteada y en tono apagado, y la posicion elegida solida y en el acento.
+ */
+.perilla {
+  margin: 22px 0;
+  max-width: var(--block);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  background: var(--stage);
+  padding: 14px 16px 12px;
+}
+.perilla figcaption {
+  font-family: var(--data);
+  font-size: 11px;
+  color: var(--ink-faint);
+  letter-spacing: .02em;
+  margin-bottom: 10px;
+}
+.perilla svg { display: block; width: 100%; height: auto; }
+.perilla-referencia {
+  fill: none;
+  stroke: var(--ink-faint);
+  stroke-width: 1.4;
+  stroke-dasharray: 4 3;
+}
+.perilla-actual {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  transition: d .12s linear;
+}
+.perilla-pie {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 18px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--rule-soft);
+}
+.perilla-leyenda { font-size: 12px; color: var(--ink-faint); }
+.perilla-mandos {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+  font-family: var(--data);
+  font-size: 11px;
+  color: var(--ink-soft);
+}
+.perilla-mando { width: 190px; accent-color: var(--accent); }
+.perilla-mando[disabled] { opacity: .45; }
+.perilla-valor {
+  font-family: var(--data);
+  font-size: 12px;
+  color: var(--ink);
+  min-width: 88px;
+}
+.perilla-nota, .perilla-referencia-nota {
+  margin: 8px 0 0;
+  font-size: 12.5px;
+  color: var(--ink-soft);
+}
+.perilla-referencia-nota { color: var(--ink-faint); font-size: 12px; }
+
+@media (max-width: 620px) {
+  .perilla-mandos { margin-left: 0; width: 100%; }
+  .perilla-mando { flex: 1; width: auto; min-width: 0; }
+}
+
+/* ------------------------------------------------------ movimiento y papel */
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@media print {
+  .shell { display: block; }
+  .panel, .live-bar, .live-editor { display: none; }
+  .live-static { display: block; }
+  body { background: #fff; color: #000; }
+}
+
+/* ------------------------------------------------------ figuras, dos temas */
+
+/* Cada figura viaja dos veces, clara y oscura, y aquí se enseña la que toca.
+ * Con `<picture>` y una media query bastaría para la preferencia del sistema,
+ * pero no para el interruptor manual, y este curso respeta los dos. */
+.fig-oscuro { display: none; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .fig-claro { display: none; }
+  :root:not([data-theme="light"]) .fig-oscuro { display: block; }
+}
+:root[data-theme="dark"] .fig-claro { display: none; }
+:root[data-theme="dark"] .fig-oscuro { display: block; }
+
+/* El acento de este módulo, uno por tema. Los dos salen de src/site/palette.py
+   y los dos pasaron el contraste antes de llegar aquí. */
+:root { --accent: #797033; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --accent: #C3B97B; }
+}
+:root[data-theme="dark"] { --accent: #C3B97B; }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- La barra de instrumentos. No se mueve al bajar: el tramo del lago, la cifra
+       del módulo y el avance se quedan a la vista mientras se lee. -->
+  <aside class="panel">
+    <a class="panel-brand" href="index.html">Fuelle
+      <small>Módulo 20 de 31</small></a>
+
+    <nav class="rail" aria-label="El arco del proyecto">
+      <p class="panel-label">el lago</p>
+      <span class="rail-step done"><i class="dot"></i><span>CRUDO</span><span class="range">1-3</span></span><span class="rail-step done"><i class="dot"></i><span>BRONCE</span><span class="range">4-13</span></span><span class="rail-step done"><i class="dot"></i><span>PLATA</span><span class="range">14-16</span></span><span class="rail-step here"><i class="dot"></i><span>ORO</span><span class="range">17-22</span></span><span class="rail-step"><i class="dot"></i><span>GEMELO</span><span class="range">23-31</span></span>
+    </nav>
+
+    <div class="panel-figure">
+      <span class="v">6 de 6</span>
+      <span class="l">escrituras imposibles que la base rechaza, cada una por una guarda distinta</span>
+    </div>
+
+    <div class="panel-progress">
+      <b>20</b> de 31
+      <span class="panel-bar"><i style="width: 65%"></i></span>
+    </div>
+
+    <nav class="panel-nav"><a href="m19_postgres.html" title="19. PostgreSQL: instalar, conectar, y en qué se diferencia">← 19</a><a href="m21_indices.html" title="21. Índices: medir antes y después">21 →</a><a class="portfolio-link" href="m20_esquema.en.html" hreflang="en" rel="alternate">English</a></nav>
+  </aside>
+
+  <main class="stage">
+    <div class="stage-inner">
+      <header class="head">
+        <p class="head-id"><b>20</b> <span>parte: Administrar una base de datos</span></p>
+        <h1>Diseñar el esquema: claves, relaciones y restricciones</h1>
+        <p class="standfirst">Decirle a la base de datos qué es imposible, para que no te deje escribirlo. Una presión negativa o una avería sin equipo no deberían poder existir</p>
+      </header>
+
+      <section class="block is-brief"><span class="kicker">Resumen</span><h2 class="block-title">En 30 segundos</h2><ul><li>El módulo 16 escribió promesas que un script comprobaba. Aquí las impone el motor.</li><li>La diferencia: un contrato que <strong>avisa</strong> contra uno que <strong>no deja escribir</strong>.</li><li><strong>12 guardas</strong> puestas, y se prueban igual: intentando <strong>6</strong> escrituras imposibles.</li><li>La base rechaza <strong>6 de 6</strong>, cada una por una guarda distinta y con su error.</li><li>Y antes de poner una restricción hay que contar quién la rompe. Eso es el reto.</li></ul></section>
+<section class="block "><span class="kicker">Contexto</span><h2 class="block-title">Qué resuelve este módulo</h2><p>La tabla del módulo 19 aceptaba cualquier cosa. Dos lecturas con la misma marca de tiempo, una presión de menos novecientos bar, una señal digital valiendo 2. Todo entraba sin una queja, exactamente igual que entraba en el Parquet.</p><p>El contrato del módulo 16 detectaba esas cosas, pero <strong>después</strong>, corriendo un script. Entre que el dato malo entra y que alguien mira, el panel ya lo enseñó.</p><p>Una base de datos puede hacer algo que un fichero no: <strong>negarse</strong>. Este módulo es cómo se le dice qué es imposible, y sobre todo cómo se comprueba que de verdad se niega.</p></section>
+<section class="block is-toy"><span class="kicker">A mano</span><h2 class="block-title">Antes de la teoría: un ejemplo de juguete</h2><p>Una libreta de pesadas con tres columnas:</p><div class="table-wrap"><table><thead><tr><th>lote</th><th>toneladas</th><th>turno</th></tr></thead><tbody><tr><td>L1</td><td>20</td><td>mañana</td></tr><tr><td>L2</td><td>30</td><td>tarde</td></tr><tr><td>L3</td><td>25</td><td>mañana</td></tr></tbody></table></div><p>Cuatro cosas no deberían poder escribirse nunca, y cada una necesita una guarda distinta:</p><div class="table-wrap"><table><thead><tr><th>Lo imposible</th><th>La guarda</th></tr></thead><tbody><tr><td>dos filas con el lote <code>L1</code></td><td>el lote es <strong>único</strong></td></tr><tr><td>una fila sin toneladas</td><td>las toneladas <strong>no pueden faltar</strong></td></tr><tr><td><code>-5</code> toneladas</td><td>las toneladas están <strong>entre 0 y 500</strong></td></tr><tr><td>el turno <code>madrugada</code>, que no existe</td><td>el turno <strong>sale de la lista de turnos</strong></td></tr></tbody></table></div><p>Fíjate en que ninguna de las cuatro se puede deducir de los datos. Que las toneladas no puedan ser negativas <strong>no está en la libreta</strong>: está en tu cabeza, o en la de quien montó la báscula. Escribir el esquema es sacarlo de ahí y ponerlo donde la máquina lo pueda aplicar.</p><p>Y hay un orden que importa. <strong>Antes de exigir que las toneladas estén entre 0 y 500, hay que mirar si alguna fila ya se sale.</strong> Si hay una de 600, la base se negará a poner la regla y hará bien: el problema no es la regla, son los datos que ya están dentro.</p></section>
+<section class="block is-terms"><span class="kicker">Términos</span><h2 class="block-title">Glosario</h2><details class="fold"><summary>7 términos, en palabras simples</summary><ul><li><strong>Restricción.</strong> Una condición que la tabla obliga a cumplir. Si una escritura la incumple, no entra.</li><li><strong>Clave primaria.</strong> La columna que identifica una fila. Única y nunca vacía.</li><li><strong>Clave foránea.</strong> Una columna que solo admite valores que existen en otra tabla.</li><li><strong><code>NOT NULL</code>.</strong> Esta casilla no puede quedarse vacía.</li><li><strong><code>CHECK</code>.</strong> Una condición cualquiera sobre los valores de la fila.</li><li><strong>Catálogo.</strong> Las tablas internas donde la base guarda lo que sabe de sí misma. <code>pg_constraint</code> e <code>information_schema</code> son parte de él.</li><li><strong>Integridad referencial.</strong> El nombre formal de lo que hace una clave foránea: que no queden referencias a algo que no está.</li></ul></details></section>
+<section class="block is-method"><span class="kicker">Método</span><h2 class="block-title">Paso a paso</h2><h3 class="sub">Paso 1. Decidir qué es imposible</h3><p>No qué es raro: qué es <strong>imposible</strong>. Una presión de 14 bar es rara y puede pasar; una de menos novecientos no es una medida, es un fallo. La línea se traza mirando los datos, como los cortes del módulo 9 y los rangos del contrato del módulo 16.</p><h3 class="sub">Paso 2. Escribirlo en la tabla, con nombre</h3><p>Cada guarda lleva su nombre puesto a mano. No es cosmética: <strong>el nombre de la guarda es lo único que verá quien esté mirando el error a las tres de la mañana.</strong> <code>tp2_en_rango</code> explica qué pasó y <code>lecturas_tp2_check1</code> no explica nada.</p><h3 class="sub">Paso 3. Añadir la tabla que falta</h3><p>Una clave foránea necesita algo a lo que apuntar. Aparece <code>dias</code>, con un día por fila, y las lecturas apuntan a ella: <strong>una lectura de un día que no existe deja de ser escribible</strong>.</p><h3 class="sub">Paso 4. Intentar seis disparates</h3><p>Y aquí está la única parte que convierte esto en algo comprobado. Se intentan seis escrituras imposibles, una por cada tipo de guarda, y se cuenta cuántas rechaza.</p><p>Sin esto, doce restricciones en el catálogo son doce buenas intenciones. Es la misma regla del módulo 16, y del 17, y de los propios verificadores de este curso.</p></section>
+<section class="block is-code"><span class="kicker">Código</span><h2 class="block-title">El código, por partes</h2><h3 class="sub">Paso 5. Las guardas, contadas por la propia base</h3><pre><code class="language-postgres">SELECT conname AS guarda, pg_get_constraintdef(oid) AS dice
+FROM pg_constraint
+WHERE conrelid = &#x27;lecturas&#x27;::regclass AND contype IN (&#x27;p&#x27;, &#x27;f&#x27;)
+ORDER BY conname;</code></pre><details class="fold"><summary>línea por línea, 3 entradas</summary><dl class="annot"><dt><code>pg_constraint</code></dt><dd>una de las tablas del catálogo: lo que la base sabe de sus propias reglas</dd><dt><code>conrelid = &#x27;lecturas&#x27;::regclass</code></dt><dd>quédate con las de esta tabla</dd><dt><code>contype IN (&#x27;p&#x27;, &#x27;f&#x27;)</code></dt><dd>p de primary key, f de foreign key. Hay más letras: c para CHECK</dd></dl></details><div class="output"><span class="output-tag">sale</span><pre><code>            guarda            |                  dice
+------------------------------+------------------------------------------
+ el_dia_esta_en_el_calendario | FOREIGN KEY (day) REFERENCES dias(dia)
+ lecturas_pk                  | PRIMARY KEY (&quot;timestamp&quot;)
+(2 rows)</code></pre></div><p>No se lo he contado yo: <strong>se lo he preguntado a ella</strong>. Es lo mismo que hace el módulo 17 con el mapa de dbt, y por el mismo motivo: si la herramienta sabe describirse, se la deja hablar.</p><h3 class="sub">Paso 6. El esquema, en el sitio donde manda</h3><pre><code class="language-postgres">SELECT count(*) AS guardas
+FROM pg_constraint
+WHERE conrelid IN (&#x27;lecturas&#x27;::regclass, &#x27;dias&#x27;::regclass);</code></pre><details class="fold"><summary>línea por línea, 1 entrada</summary><dl class="annot"><dt><code>count(*)</code></dt><dd>cuántas guardas hay puestas entre las dos tablas</dd></dl></details><div class="output"><span class="output-tag">sale</span><pre><code> guardas
+---------
+      12
+(1 row)</code></pre></div><p>Doce, repartidas en <strong>13</strong> columnas, y <strong>8</strong> de esas columnas además no admiten vacío.</p><p>Ninguna es nueva. El rango de TP2 es el del contrato del módulo 16, y que las digitales solo valgan cero o uno lo dijo el módulo 2.</p><h3 class="sub">Paso 7. Las seis imposibles</h3><pre><code class="language-python">for que, sql in IMPOSIBLES.items():
+    try:
+        pg.execute(sql)
+        pg.commit()
+    except psycopg.errors.Error as e:
+        pg.rollback()
+        resultados.append({&quot;que&quot;: que, &quot;guarda&quot;: e.diag.constraint_name})</code></pre><details class="fold"><summary>línea por línea, 3 entradas</summary><dl class="annot"><dt><code>try / except</code></dt><dd>se intenta la escritura esperando que falle. Si no falla, la guarda no sirve</dd><dt><code>pg.rollback()</code></dt><dd>imprescindible: en PostgreSQL un error aborta la transacción entera, y sin deshacerla la siguiente escritura fallaría por culpa de la anterior</dd><dt><code>e.diag.constraint_name</code></dt><dd>el nombre de la guarda que ha saltado, que la base devuelve dentro del error</dd></dl></details><div class="output"><span class="output-tag">sale</span><pre><code>  y ahora, seis escrituras imposibles:
+    la rechaza     la misma marca de tiempo dos veces
+                   duplicate key value violates unique constraint &quot;lecturas_pk&quot;
+    la rechaza     una presion de -900 bar
+                   new row for relation &quot;lecturas&quot; violates check constraint &quot;tp2_en_rango&quot;
+    la rechaza     una casilla sin decir si se midio
+                   null value in column &quot;medido&quot; of relation &quot;lecturas&quot; violates not-null constraint
+    la rechaza     una digital que vale 2
+                   new row for relation &quot;lecturas&quot; violates check constraint &quot;comp_es_binaria&quot;
+    la rechaza     una lectura de un dia que no existe
+                   insert or update on table &quot;lecturas&quot; violates foreign key constraint &quot;el_dia_esta_en_el_calendario&quot;
+    la rechaza     un dia con 30 horas de carga
+                   new row for relation &quot;dias&quot; violates check constraint &quot;horas_de_un_dia&quot;</code></pre></div><p>Seis intentos, seis puertas en la cara, <strong>y cada una dice por qué</strong>. Compara eso con el módulo 16, donde el mismo dato malo entraba y un script lo encontraba más tarde.</p><h3 class="sub">Paso 8. Lo que hay que hacer antes de poner una regla</h3><div class="live"><div class="live-head"><span>consulta viva</span><span class="live-status">el motor se descarga al pulsar</span></div><pre class="live-static"><code>SELECT count(*) AS incumplen,
+       round(count(*) * 100.0 / (SELECT count(*) FROM telemetria), 2) AS por_ciento
+FROM telemetria
+WHERE DV_eletric = COMP;</code></pre><textarea class="live-editor" spellcheck="false" aria-label="consulta viva">SELECT count(*) AS incumplen,
+       round(count(*) * 100.0 / (SELECT count(*) FROM telemetria), 2) AS por_ciento
+FROM telemetria
+WHERE DV_eletric = COMP;</textarea><div class="live-bar"><button type="button" class="live-run">correr</button></div><div class="live-out"></div></div><details class="fold"><summary>línea por línea, 2 entradas</summary><dl class="annot"><dt><code>DV_eletric = COMP</code></dt><dd>las dos señales son opuestas por diseño, así que aquí valen lo mismo y eso es imposible</dd><dt><code>la subconsulta</code></dt><dd>el total de lecturas, para poder dar el porcentaje. Es la del módulo 11</dd></dl></details><div class="output"><span class="output-tag">sale</span><pre><code>┌───────────┬────────────┐
+│ incumplen │ por_ciento │
+│   int64   │   double   │
+├───────────┼────────────┤
+│     16762 │        1.1 │
+└───────────┴────────────┘</code></pre></div><p><strong>16.762 lecturas romperían una restricción que dijera que esas dos señales son opuestas.</strong> Así que esa restricción no se puede poner, y la base tendría razón al negarse. El módulo 14 decidió marcarlas con la columna <code>dudoso</code> en vez de borrarlas, y esta es la consecuencia de aquella decisión.</p></section>
+<section class="block is-result"><span class="kicker">Resultado</span><h2 class="block-title">El resultado, medido</h2><figure class="fig"><img class="fig-claro" src="../figuras/fig_m20_esquema.claro.png?v=25ad8791" alt="fig m20 esquema" loading="lazy"><img class="fig-oscuro" src="../figuras/fig_m20_esquema.oscuro.png?v=47d08be5" alt="fig m20 esquema" loading="lazy"></figure><p><strong>Qué esperábamos.</strong> Que la base rechazara las seis, porque las seis las elegí yo sabiendo qué guardas había puesto.</p><p><strong>Qué salió.</strong> Rechaza <strong>6 de 6</strong>, y por el camino hubo un tropiezo que enseña más que el resultado. La quinta escritura era una lectura del <strong>29 de febrero de 2020</strong>, un día que el módulo 13 dio por desaparecido. La rechazó <strong>la clave primaria en vez de la foránea</strong>.</p><p>O sea que ese día sí existe en la plata. Y claro que existe: el módulo 14 puso el dato en una rejilla regular, y <strong>la rejilla creó filas para los huecos</strong>. En bronce el 29 de febrero no estaba; en plata está, con <code>medido</code> en falso y todo lo demás vacío.</p><p>Por eso la tabla <code>dias</code> tiene <strong>214</strong> días donde el módulo 19 contaba 212: aquel contaba solo los días con lecturas de verdad. El disparate de la quinta prueba tuvo que mudarse a 2019, que sí está fuera del registro.</p><p>En la figura se ve el reparto, y no está dibujado a mano: sale de <code>pg_constraint</code> y de <code>information_schema</code>, o sea de lo que la base cuenta de sí misma.</p><p><strong>Qué significa.</strong> Un esquema no es documentación ni decoración: es la única capa capaz de decir que no.</p><p>El contrato del módulo 16 sigue haciendo falta, porque hay promesas que no caben en una restricción. Pero lo que sí cabe <strong>debe</strong> vivir aquí, donde no depende de que alguien se acuerde de correr un script.</p></section>
+<section class="block is-warning"><span class="kicker">Trampas</span><h2 class="block-title">Ojo</h2><ul><li><strong>Una guarda que no se ha visto rechazar nada no protege.</strong> Doce restricciones en el catálogo son doce afirmaciones hasta que se intenta escribir algo imposible.</li><li><strong>Ponle nombre a cada una.</strong> Sin nombre, PostgreSQL se inventa uno y le pega sufijos al recrear la tabla. Y en el error, el nombre es lo único que se lee.</li><li><strong>Antes de añadir una restricción, cuenta quién la rompe.</strong> Si ya hay filas que no la cumplen, la base se niega a ponerla. Ese recuento es el reto de abajo.</li><li><strong>Un <code>CHECK</code> no puede mirar otras filas.</strong> Solo ve la fila que se está escribiendo. «El timestamp no se repite» necesita una clave, no un <code>CHECK</code>.</li><li><strong>Una clave foránea exige que la tabla apuntada esté antes.</strong> Por eso <code>dias</code> se llena primero, y por eso borrarla obliga a borrar lo que apunta a ella.</li><li><strong>Las restricciones cuestan al escribir.</strong> Cada fila se comprueba. Da igual en una carga diaria y se nota si se insertan millones de filas una a una.</li></ul></section>
+<section class="block is-bridge"><span class="kicker">Analogía</span><h2 class="block-title">Puente metalúrgico</h2><p>Una balanza de camiones tiene topes. No un cartel que diga cuánto pesa un camión: <strong>topes físicos</strong>, un rango de la celda de carga fuera del cual no da lectura, un tara mínimo, un máximo que dispara alarma.</p><p>Nadie considera eso desconfianza hacia el operador. Es que un camión de menos cinco toneladas no es un camión mal pesado: es un sensor roto, y aceptar ese número contamina el balance del mes entero.</p><p>Y hay algo más, que es la parte incómoda. Cuando se instalan esos topes en una planta que lleva años funcionando, <strong>casi siempre saltan con datos históricos</strong>. Ahí es cuando se descubre que llevaban un año entrando pesadas imposibles y nadie lo había mirado.</p></section>
+<section class="block is-live"><span class="kicker">Hazlo tú</span><h2 class="block-title">Hazlo tú</h2><p class="reto-ask">Antes de poner una restricción hay que saber quién la rompería. Devuelve los cinco días con más lecturas donde <code>DV_eletric</code> y <code>COMP</code> valen lo mismo, con <code>day</code> y <code>lecturas</code>, de mayor a menor. Cinco filas.</p><div class="live reto" data-expected='[[&quot;2020-04-20&quot;, 5717], [&quot;2020-07-22&quot;, 1892], [&quot;2020-06-23&quot;, 1447], [&quot;2020-06-24&quot;, 1435], [&quot;2020-05-27&quot;, 1433]]'><div class="live-head"><span>reto</span><span class="live-status">el motor se descarga al pulsar</span></div><pre class="live-static"><code>SELECT day, count(*) AS lecturas
+FROM telemetria
+GROUP BY day;</code></pre><textarea class="live-editor" spellcheck="false" aria-label="reto">SELECT day, count(*) AS lecturas
+FROM telemetria
+GROUP BY day;</textarea><div class="live-bar"><button type="button" class="live-run">comprobar</button></div><div class="live-out"></div><div class="verdict"></div><details class="fold"><summary>una pista</summary><p>Al punto de partida le falta el filtro y el orden. El filtro es la condición imposible, <code>DV_eletric = COMP</code>, y va en un <code>WHERE</code> antes de agrupar. Después se ordena por el recuento hacia abajo y se piden cinco.</p></details><details class="fold"><summary>ver la solución</summary><pre><code>SELECT day, count(*) AS lecturas
+FROM telemetria
+WHERE DV_eletric = COMP
+GROUP BY day
+ORDER BY lecturas DESC
+LIMIT 5;</code></pre></details></div><p>Un día se lleva casi la tercera parte de todos los incumplimientos. Eso no es ruido repartido: es un episodio concreto, y da una pista mejor que el total. Antes de decidir qué hacer con esas lecturas, conviene ir a mirar qué pasó ese día.</p></section>
+<section class="block is-review"><span class="kicker">Repaso</span><h2 class="block-title">Repaso</h2><details><summary>En qué se diferencia esto del contrato del módulo 16</summary><p>En quién lo hace cumplir y cuándo. El contrato es un script que mira los datos después de escribirlos y avisa. El esquema es el motor negándose a escribirlos. Uno detecta y el otro impide, y los dos hacen falta: hay promesas que no caben en una restricción.</p></details><details><summary>Por qué se le pone nombre a cada restricción</summary><p>Porque el nombre viaja dentro del mensaje de error, y ese mensaje es lo que ve quien esté de guardia. Sin nombre, PostgreSQL genera uno y además le añade sufijos al recrear la tabla, así que el que aparezca en un aviso puede no ser el mismo de la semana pasada.</p></details><details><summary>Qué hay que comprobar antes de añadir una restricción a una tabla con datos</summary><p>Cuántas filas ya la incumplen. La base recorre la tabla entera antes de aceptar la regla y se niega si encuentra una sola que no encaje. Aquí, exigir que <code>DV_eletric</code> y <code>COMP</code> sean opuestas chocaría con 16.762 lecturas.</p></details><details><summary>La tabla dias tiene 214 días y el módulo 19 contaba 212. Cuál miente</summary><p>Ninguna. El módulo 19 contaba días con lecturas de verdad, y <code>dias</code> cuenta todos los del calendario que la plata cubre. La diferencia son los dos días sin registro, que existen como filas vacías desde que el módulo 14 puso el dato en una rejilla regular.</p></details><details><summary>Tu clave foránea rechaza una fila que crees correcta. Qué miras primero</summary><p>La tabla apuntada, no la que estás escribiendo. Una clave foránea solo falla cuando el valor no existe al otro lado. La pregunta no es si el dato está bien: es si el día, el equipo o el lote al que apunta llegó a darse de alta. Casi siempre falta la fila de arriba, no sobra la de abajo.</p></details></section>
+
+      <footer class="footer">
+        <span>Fuelle / Módulo 20</span>
+        <span>generado el 2026-09-03</span>
+        <span>fuente: MetroPT-3, del compresor de un tren del Metro de Oporto (CC BY 4.0)</span>
+      </footer>
+    </div>
+  </main>
+
+</div>
+<!-- El motor SQL no se descarga aquí: este fichero solo conecta los botones.
+     Los 8 MB llegan cuando el lector pulsa, y no antes. -->
+<script type="module" src="live.js"></script>
+<script src="perilla.js" defer></script>
+</body>
+</html>

@@ -629,6 +629,13 @@ def main() -> int:
         ("Concentra/out",     "concentra/cursos"),
         ("Concentra/figures", "concentra/figures"),
         ("Geoestadistica/out", "geostat/curso"),
+        # Bellows keeps three folders side by side: its pages link ../figuras/ for the
+        # figures and ../assets/ for the knobs, the samples, the fonts and the SQL engine
+        # that runs in the reader's browser. Mirrored as siblings, the relative paths
+        # hold without touching a single page.
+        ("Fuelle/out",     "fuelle/curso"),
+        ("Fuelle/figuras", "fuelle/figuras"),
+        ("Fuelle/assets",  "fuelle/assets"),
     ]
     neutralised = 0
     for source_rel, target_rel in EMBEDDED:
@@ -640,9 +647,11 @@ def main() -> int:
         # cerebro, and the Concentra case pages link report .md files as material.
         # Excluding them broke a link the gate caught. The cerebros are up to date now.
         shutil.copytree(source, ROOT / target_rel, dirs_exist_ok=True)
-        # Engine test pages never ship: the geostatistics build writes an unlinked one.
-        for stray in (ROOT / target_rel).rglob("prueba_scrolly.html"):
-            stray.unlink()
+        # Engine test pages never ship: the geostatistics build writes an unlinked one,
+        # and so does the Bellows one for its visual system.
+        for pattern in ("prueba_scrolly.html", "prueba_visual.html"):
+            for stray in (ROOT / target_rel).rglob(pattern):
+                stray.unlink()
 
         # The Concentra case pages link to files on Kevin's machine (scripts, cheatsheets
         # under 03_Data Analysis Coursera). Published, every one would 404 and the paths

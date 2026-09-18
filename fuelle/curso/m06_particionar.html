@@ -1,0 +1,983 @@
+<!doctype html>
+<html lang="es" class="no-js" data-assets="../assets" data-tablas="telemetria=sin_timestamp_ligera.parquet">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Partir por fecha: qué es particionar y con qué tamaño · Fuelle, módulo 6</title>
+<link rel="alternate" hreflang="en" href="m06_particionar.en.html">
+<style>
+/* Fuelle: la hoja de estilo del curso.
+ *
+ * REESCRITA ENTERA el 2026-08-30. La primera versión heredó la plantilla de Sílice
+ * junto con su motor, y Kevin la vio y dijo: "se parece a las otras 20 páginas de
+ * portafolio, el landing, coursera, silica, se ve y se siente igual". Tenía razón.
+ * Medido: mismo ancho de prosa (680), mismo ancho de bloques (1180), misma columna
+ * de margen (132), misma secuencia de cabecera, 36 clases compartidas de 40.
+ * Cambiar papel por grafito no toca la silueta, y la silueta es lo que se siente.
+ *
+ * Los cuatro sitios de Kevin son una columna de texto centrada, sin barra lateral,
+ * sin rejilla y sin nada pegajoso. Este es lo contrario: PANEL DE CONTROL. Una barra
+ * fija a la izquierda con los instrumentos siempre a la vista, y el contenido a su
+ * derecha. Ninguna de las tres medidas heredadas aparece aquí, y check_layout.py
+ * falla si alguna reaparece.
+ *
+ * El encargo que ordena las decisiones sigue siendo el mismo: "no muy escandaloso,
+ * que parezca ingeniero, pero que demuestres habilidades, que no seas un pdf que se
+ * lee de recorrido". La sobriedad va en la superficie, la ambición en lo que hace.
+ */
+
+/* --------------------------------------------------------------- tipografía */
+
+/* IBM Plex, autoalojada, OFL-1.1. Los cuatro sitios de Kevin usan la fuente del
+ * sistema, y eso es la otra mitad del "se siente igual". Plex tiene aire de
+ * documentación de ingeniería, que es exactamente el encargo.
+ *
+ * Cinco cortes y no tres: sin las semi-negritas el navegador falsifica la negrita
+ * engordando el trazo, y en una fuente técnica se nota enseguida. 289 KB en total,
+ * que se pueden bajar a unos 60 recortando al alfabeto latino con fonttools si
+ * llega a molestar. */
+@font-face {
+  font-family: "Plex Cond";
+  src: url("../assets/fonts/PlexSansCondensed-SemiBold.woff2") format("woff2");
+  font-weight: 600; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Plex";
+  src: url("../assets/fonts/PlexSans-Regular.woff2") format("woff2");
+  font-weight: 400; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Plex";
+  src: url("../assets/fonts/PlexSans-SemiBold.woff2") format("woff2");
+  font-weight: 600; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Plex Mono";
+  src: url("../assets/fonts/PlexMono-Regular.woff2") format("woff2");
+  font-weight: 400; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Plex Mono";
+  src: url("../assets/fonts/PlexMono-SemiBold.woff2") format("woff2");
+  font-weight: 600; font-style: normal; font-display: swap;
+}
+
+/* ------------------------------------------------------------------ tokens */
+
+:root {
+  --ground: #f4f2ee;
+  --panel: #e9e6e0;
+  --stage: #fbfaf8;
+  --ink: #191d20;
+  --ink-soft: #4c545a;
+  --ink-faint: #7c868d;
+  --rule: #d6d1c8;
+  --rule-soft: #e4e0d8;
+  --grid: rgba(25, 29, 32, .05);
+  --accent: #46787e;
+  --measured: #3d505b;
+  --simulated: #b57542;
+
+  --prose: "Plex", system-ui, "Segoe UI", Roboto, sans-serif;
+  --display: "Plex Cond", "Plex", system-ui, sans-serif;
+  --data: "Plex Mono", "Cascadia Mono", Consolas, monospace;
+
+  /* Medidas NUEVAS. Ninguna puede coincidir con las heredadas de Sílice
+   * (680 de prosa, 1180 de bloques, 132 de margen): volver a ellas es volver a
+   * la misma página, y hay un verificador que lo impide. */
+  --rail: 268px;      /* la barra fija, que ninguno de los otros sitios tiene */
+  --read: 646px;      /* la medida de la prosa, en píxeles y nunca en ch */
+  --block: 980px;     /* el borde derecho de los bloques anchos */
+
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ground: #101417;
+    --panel: #171c20;
+    --stage: #14181b;
+    --ink: #e2e7ea;
+    --ink-soft: #a6b0b6;
+    --ink-faint: #717e85;
+    --rule: #293036;
+    --rule-soft: #20272b;
+    --grid: rgba(226, 231, 234, .045);
+    --accent: #8ec2c8;
+    --measured: #cbe2ef;
+    --simulated: #c98754;
+  }
+}
+
+:root[data-theme="dark"] {
+  --ground: #101417;
+  --panel: #171c20;
+  --stage: #14181b;
+  --ink: #e2e7ea;
+  --ink-soft: #a6b0b6;
+  --ink-faint: #717e85;
+  --rule: #293036;
+  --rule-soft: #20272b;
+  --grid: rgba(226, 231, 234, .045);
+  --accent: #8ec2c8;
+  --measured: #cbe2ef;
+  --simulated: #c98754;
+}
+
+/* --------------------------------------------------------------- cimientos */
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--stage);
+  color: var(--ink);
+  font-family: var(--prose);
+  font-size: 16.5px;
+  line-height: 1.6;
+}
+
+::selection { background: var(--accent); color: var(--ground); }
+a { color: var(--accent); text-underline-offset: .18em; }
+
+/* LA REJILLA. Esto es lo que ninguno de los otros cuatro sitios tiene, y es la
+ * razón de que la página deje de sentirse igual: el texto ya no está centrado en
+ * la ventana, está al lado de un panel de instrumentos. */
+.shell {
+  display: grid;
+  grid-template-columns: var(--rail) minmax(0, 1fr);
+  min-height: 100vh;
+}
+
+/* -------------------------------------------------- la barra de instrumentos */
+
+.panel {
+  position: sticky;   /* lo primero pegajoso de todo el portafolio */
+  top: 0;
+  align-self: start;
+  height: 100vh;
+  overflow-y: auto;
+  padding: 22px 20px 22px;
+  background: var(--panel);
+  border-right: 1px solid var(--rule);
+  background-image: radial-gradient(var(--grid) 1px, transparent 1px);
+  background-size: 22px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.panel-brand {
+  font-family: var(--display);
+  font-size: 19px;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  color: var(--ink);
+  text-decoration: none;
+  display: block;
+}
+.panel-brand small {
+  display: block;
+  font-family: var(--data);
+  font-size: 10px;
+  letter-spacing: .08em;
+  color: var(--ink-faint);
+  text-transform: none;
+  margin-top: 4px;
+}
+
+.panel-label {
+  font-family: var(--data);
+  font-size: 9.5px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding-bottom: 7px;
+  border-bottom: 1px solid var(--rule);
+  margin-bottom: 10px;
+}
+
+/* El grafo del lago, EN VERTICAL. Antes iba horizontal y solo en la portada;
+ * aquí acompaña al lector todo el curso y marca en qué capa está. */
+.rail-step {
+  display: grid;
+  grid-template-columns: 15px 1fr auto;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 0;
+  font-family: var(--data);
+  font-size: 11px;
+  letter-spacing: .08em;
+  color: var(--ink-faint);
+  text-decoration: none;
+  position: relative;
+}
+.rail-step .dot {
+  width: 9px; height: 9px;
+  border: 1px solid var(--ink-faint);
+  border-radius: 50%;
+  justify-self: center;
+}
+.rail-step:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  left: 7px; top: 25px;
+  width: 1px; height: calc(100% - 17px);
+  background: var(--rule);
+}
+.rail-step.done { color: var(--ink-soft); }
+.rail-step.done .dot { background: var(--ink-faint); border-color: var(--ink-faint); }
+.rail-step.here { color: var(--accent); }
+.rail-step.here .dot { background: var(--accent); border-color: var(--accent); }
+.rail-step .range { font-size: 9.5px; opacity: .75; }
+
+/* La cifra del módulo ya no es una caja en una cabecera gigante: vive aquí y se
+ * queda a la vista mientras se lee la lección entera. */
+.panel-figure { border-top: 1px solid var(--rule); padding-top: 14px; }
+.panel-figure .v {
+  display: block;
+  font-family: var(--data);
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 1.3;
+  color: var(--accent);
+}
+.panel-figure .l {
+  display: block;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--ink-faint);
+  margin-top: 5px;
+}
+
+.panel-progress {
+  margin-top: auto;
+  border-top: 1px solid var(--rule);
+  padding-top: 13px;
+  font-family: var(--data);
+  font-size: 11px;
+  color: var(--ink-faint);
+}
+.panel-progress b { color: var(--ink); font-weight: 600; }
+.panel-bar { height: 2px; background: var(--rule); margin-top: 7px; }
+.panel-bar i { display: block; height: 2px; background: var(--accent); }
+
+.panel-nav { display: flex; gap: 7px; flex-wrap: wrap; }
+.panel-nav a {
+  font-family: var(--data);
+  font-size: 10.5px;
+  letter-spacing: .06em;
+  padding: 6px 9px;
+  border: 1px solid var(--rule);
+  text-decoration: none;
+  color: var(--ink-soft);
+}
+.panel-nav a:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ------------------------------------------------------------- el contenido */
+
+.stage { background: var(--stage); padding: 0 0 54px; min-width: 0; }
+.stage-inner { max-width: var(--block); padding: 0 40px; }
+
+/* La cabecera ya no ocupa media pantalla: una línea de identificación y el
+ * título. La cifra y la navegación se fueron a la barra. */
+.head {
+  padding: 30px 0 20px;
+  border-bottom: 1px solid var(--rule);
+  margin-bottom: 4px;
+}
+.head-id {
+  font-family: var(--data);
+  font-size: 10.5px;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  display: flex;
+  gap: 14px;
+  align-items: baseline;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.head-id b { color: var(--accent); font-weight: 600; }
+.head h1 {
+  font-family: var(--display);
+  font-size: clamp(26px, 3.3vw, 37px);
+  line-height: 1.08;
+  font-weight: 600;
+  margin: 0 0 10px;
+  max-width: 22ch;
+}
+.head .standfirst {
+  color: var(--ink-soft);
+  font-size: 16.5px;
+  line-height: 1.5;
+  max-width: var(--read);
+  margin: 0;
+}
+
+/* Las secciones ya no cuelgan de un margen de 132 px: la etiqueta va encima, en
+ * un recuadro pequeño, y el texto empieza en el borde. */
+.block { padding: 26px 0 2px; border-top: 1px solid var(--rule-soft); }
+.block:first-of-type { border-top: 0; }
+
+.kicker {
+  display: inline-block;
+  font-family: var(--data);
+  font-size: 9.5px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  border: 1px solid var(--rule);
+  padding: 2px 7px;
+  margin-bottom: 11px;
+}
+
+.block-title {
+  font-family: var(--display);
+  font-size: 22px;
+  font-weight: 600;
+  margin: 0 0 11px;
+  max-width: var(--read);
+}
+
+/* Justificado desde 33rem de columna y rasgado en móvil: la regla que Kevin
+ * fijó en el portafolio el 2026-08-22, después de medir que a 375 px salían
+ * huecos de 7,65x y ríos en cinco de cada seis líneas. Aquí la prosa mide 646 px
+ * (unos 40rem), así que le toca justificado.
+ *
+ * Y NADA de `hyphens`: sin guionado, por la regla de la casa. El precio es que
+ * hay que vigilar los ríos, y eso se mide con src/site/check_rivers.py en vez de
+ * mirarlo de reojo. */
+.block p, .block li { max-width: var(--read); }
+
+@media (min-width: 34rem) {
+  .block p,
+  .block li,
+  .standfirst,
+  .reto-ask,
+  .annot dd,
+  blockquote,
+  .is-review details p { text-align: justify; text-justify: inter-word; }
+  /* Tablas, código, pies de figura y la barra nunca se justifican: sus líneas
+   * son cortas y el hueco se vuelve un agujero. */
+  figcaption, th, td, pre, .panel, .live-status, .toc { text-align: left; }
+}
+.block p { margin: 0 0 14px; }
+.block ul, .block ol { padding-left: 21px; margin: 0 0 14px; }
+.block li { margin-bottom: 6px; }
+.block li::marker { color: var(--accent); font-family: var(--data); font-size: .82em; }
+
+h3.sub, h4.sub {
+  font-family: var(--display);
+  font-size: 17px;
+  font-weight: 600;
+  margin: 24px 0 8px;
+  max-width: var(--read);
+}
+h4.sub { font-size: 15px; color: var(--ink-soft); }
+
+blockquote {
+  margin: 0 0 14px;
+  padding-left: 15px;
+  border-left: 2px solid var(--rule);
+  color: var(--ink-soft);
+  max-width: var(--read);
+}
+strong, b { font-weight: 600; }
+
+.is-brief ul { list-style: none; padding-left: 0; }
+.is-brief li {
+  padding: 8px 0 8px 18px;
+  border-bottom: 1px solid var(--rule-soft);
+  position: relative;
+}
+.is-brief li::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 17px;
+  width: 8px; height: 1px;
+  background: var(--accent);
+}
+.is-brief li:last-child { border-bottom: 0; }
+.is-result .block-title, .is-warning .block-title { color: var(--accent); }
+
+/* ------------------------------------------------------------------ código */
+
+pre {
+  max-width: var(--block);
+  overflow-x: auto;
+  background: var(--panel);
+  border: 1px solid var(--rule-soft);
+  border-left: 2px solid var(--accent);
+  padding: 13px 15px;
+  margin: 0 0 13px;
+}
+pre code {
+  font-family: var(--data);
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ink);
+  white-space: pre;
+}
+p code, li code, dd code, td code {
+  font-family: var(--data);
+  font-size: .87em;
+  padding: 1px 4px;
+  background: var(--panel);
+  border: 1px solid var(--rule-soft);
+}
+
+/* Diagramas: esquemas conceptuales generados, no figuras de datos.
+   Nacen del bloque ```diagrama y usan los tokens de arriba, asi que el tema lo
+   resuelve el CSS y no hacen falta dos versiones como en las figuras. */
+.diagram { margin: 0 0 22px; max-width: var(--block); }
+.chain {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: 30px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: none;
+}
+.node {
+  position: relative;
+  /* 130 y no 132: 132px es la columna de margen de Sílice y check_layout la
+     prohíbe en este proyecto, con razón, aunque aquí signifique otra cosa. */
+  flex: 1 1 130px;
+  min-width: 0;
+  padding: 11px 13px 12px;
+  background: var(--panel);
+  border: 1px solid var(--rule);
+  border-top: 2px solid var(--ink-faint);
+}
+/* La flecha entre cajas. Va en el hueco del gap, asi que no roba ancho al
+   texto y desaparece sola cuando las cajas se apilan. */
+.node + .node::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: -22px;
+  width: 14px;
+  height: 1px;
+  background: var(--ink-faint);
+}
+.node + .node::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: -11px;
+  width: 5px; height: 5px;
+  border-top: 1px solid var(--ink-faint);
+  border-right: 1px solid var(--ink-faint);
+  transform: translateY(-50%) rotate(45deg);
+}
+.node.lit { border-top-color: var(--accent); background: var(--stage); }
+.node.lit .node-name { color: var(--accent); }
+.node-name {
+  display: block;
+  font-family: var(--data);
+  font-size: 10.5px;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+.node-what { display: block; margin-top: 5px; font-size: 13.5px; color: var(--ink); }
+.node-note { display: block; margin-top: 4px; font-size: 12px; color: var(--ink-faint); }
+
+@media (max-width: 640px) {
+  /* Apiladas, con la flecha girada hacia abajo. */
+  .chain { flex-direction: column; gap: 26px; }
+  .node { flex: 1 1 auto; }
+  .node + .node::before {
+    top: -19px; left: 21px;
+    width: 1px; height: 12px;
+  }
+  .node + .node::after {
+    top: -9px; left: 19px;
+    transform: rotate(135deg);
+  }
+}
+
+.output { position: relative; margin: 0 0 13px; max-width: var(--block); }
+.output pre { margin: 0; border-left: 2px solid var(--ink-faint); background: transparent; }
+.output pre code { color: var(--ink-soft); }
+.output-tag {
+  position: absolute;
+  top: -7px; left: 13px;
+  z-index: 1;
+  font-family: var(--data);
+  font-size: 9px;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  background: var(--stage);
+  padding: 0 5px;
+}
+
+details.fold, details { margin: 0 0 13px; max-width: var(--block); }
+details > summary {
+  cursor: pointer;
+  font-family: var(--data);
+  font-size: 11px;
+  letter-spacing: .05em;
+  color: var(--ink-faint);
+  padding: 5px 0;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+details > summary::-webkit-details-marker { display: none; }
+details > summary::before {
+  content: "+";
+  width: 13px; height: 13px;
+  line-height: 12px;
+  text-align: center;
+  border: 1px solid var(--rule);
+  color: var(--accent);
+}
+details[open] > summary::before { content: "\2212"; }
+details > summary:hover { color: var(--accent); }
+
+.annot {
+  margin: 2px 0 4px;
+  padding: 11px 13px;
+  border: 1px solid var(--rule-soft);
+  background: var(--panel);
+}
+.annot dt { margin-bottom: 3px; }
+.annot dt code {
+  font-family: var(--data);
+  font-size: 12px;
+  color: var(--accent);
+  background: transparent;
+  border: 0;
+  padding: 0;
+}
+.annot dd { margin: 0 0 10px; font-size: 14.5px; color: var(--ink-soft); max-width: var(--read); }
+.annot dd:last-of-type { margin-bottom: 0; }
+
+.is-review details { border-bottom: 1px solid var(--rule-soft); margin: 0; }
+.is-review details > summary {
+  font-family: var(--prose);
+  font-size: 15.5px;
+  color: var(--ink);
+  padding: 11px 0;
+}
+.is-review details > summary:hover { color: var(--accent); }
+.is-review details p { margin: 0 0 11px 21px; color: var(--ink-soft); }
+
+/* ------------------------------------------------------------------ tablas */
+
+.table-wrap { max-width: var(--block); overflow-x: auto; margin: 0 0 15px; }
+table { border-collapse: collapse; font-size: 14.5px; }
+th, td {
+  text-align: left;
+  padding: 6px 15px 6px 0;
+  border-bottom: 1px solid var(--rule-soft);
+  vertical-align: top;
+}
+th {
+  font-family: var(--data);
+  font-size: 10px;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  font-weight: 400;
+  border-bottom-color: var(--rule);
+}
+tbody tr:last-child td { border-bottom: 0; }
+
+figure { margin: 0 0 17px; max-width: var(--block); }
+figure img { max-width: 100%; height: auto; display: block; }
+figcaption { font-size: 12.5px; color: var(--ink-faint); margin-top: 7px; max-width: var(--read); }
+
+.footer {
+  border-top: 1px solid var(--rule);
+  margin-top: 32px;
+  padding: 18px 0 0;
+  font-size: 12px;
+  color: var(--ink-faint);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px 20px;
+}
+.footer a { color: var(--ink-faint); }
+.gone { color: var(--ink-faint); }
+
+/* ---------------------------------------------- la consulta viva y el reto */
+
+.live {
+  max-width: var(--block);
+  margin: 0 0 17px;
+  border: 1px solid var(--rule);
+  background: var(--panel);
+}
+.live-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 13px;
+  border-bottom: 1px solid var(--rule-soft);
+  font-family: var(--data);
+  font-size: 10px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.live-editor {
+  width: 100%;
+  border: 0;
+  resize: vertical;
+  min-height: 112px;
+  padding: 12px 14px;
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--data);
+  font-size: 13px;
+  line-height: 1.6;
+  tab-size: 2;
+}
+.live-editor:focus { outline: 2px solid var(--accent); outline-offset: -2px; }
+.live-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 13px;
+  border-top: 1px solid var(--rule-soft);
+  flex-wrap: wrap;
+}
+.live-run {
+  font-family: var(--data);
+  font-size: 11px;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  padding: 7px 14px;
+  border: 1px solid var(--accent);
+  background: transparent;
+  color: var(--accent);
+  cursor: pointer;
+}
+.live-run:hover { background: var(--accent); color: var(--ground); }
+.live-run[disabled] { opacity: .5; cursor: default; }
+.live-run[disabled]:hover { background: transparent; color: var(--accent); }
+.live-status { font-family: var(--data); font-size: 10.5px; color: var(--ink-faint); }
+.live-out { max-width: 100%; overflow-x: auto; }
+.live-out table { margin: 0; width: 100%; font-size: 12.5px; }
+.live-out td, .live-out th { padding: 5px 13px 5px 0; }
+.live-out td:first-child, .live-out th:first-child { padding-left: 13px; }
+.live-out td { font-family: var(--data); font-size: 12px; }
+.live-err {
+  padding: 10px 14px;
+  font-family: var(--data);
+  font-size: 12px;
+  color: var(--simulated);
+  border-top: 1px solid var(--rule-soft);
+}
+
+.reto { border-left: 2px solid var(--accent); }
+.reto .live-head { color: var(--accent); }
+.reto-ask { padding: 12px 14px 2px; font-size: 15.5px; max-width: var(--read); }
+.verdict {
+  padding: 10px 14px;
+  border-top: 1px solid var(--rule-soft);
+  font-family: var(--data);
+  font-size: 12px;
+}
+.verdict.ok { color: var(--accent); }
+.verdict.no { color: var(--simulated); }
+
+.no-js .live-bar, .no-js .live-editor { display: none; }
+.no-js .live-static { display: block; }
+.live-static { display: none; }
+
+/* ---------------------------------------------------------- el doble trazo */
+
+.twin { max-width: var(--block); margin: 0 0 18px; }
+.twin svg { width: 100%; height: auto; display: block; }
+.twin .axis { stroke: var(--rule); fill: none; }
+.twin .tick { fill: var(--ink-faint); font-family: var(--data); font-size: 10px; }
+.twin .measured { stroke: var(--measured); fill: none; stroke-width: 1.8; }
+.twin .simulated { stroke: var(--simulated); fill: none; stroke-width: 1.8; stroke-dasharray: 5 4; }
+.twin .gap { fill: var(--simulated); opacity: .16; }
+.twin-key { display: flex; gap: 20px; flex-wrap: wrap; font-family: var(--data);
+            font-size: 11px; color: var(--ink-faint); margin-top: 6px; }
+.twin-key i { display: inline-block; width: 20px; height: 0; vertical-align: middle;
+              border-top-width: 2px; border-top-style: solid; margin-right: 7px; }
+.twin-key .k-measured i { border-color: var(--measured); }
+.twin-key .k-simulated i { border-top-style: dashed; border-color: var(--simulated); }
+
+.knob { display: flex; align-items: center; gap: 13px; flex-wrap: wrap; margin: 0 0 13px;
+        font-family: var(--data); font-size: 11px; color: var(--ink-faint); }
+.knob input[type="range"] { accent-color: var(--accent); flex: 1 1 200px; max-width: 300px; }
+.knob output { color: var(--accent); min-width: 72px; }
+
+/* -------------------------------------------------------- índice del curso */
+
+.toc { max-width: var(--block); }
+.toc .part {
+  font-family: var(--data);
+  font-size: 10px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin: 26px 0 2px;
+  padding-top: 11px;
+  border-top: 1px solid var(--rule);
+}
+.toc a, .toc .pending {
+  display: grid;
+  grid-template-columns: 34px 1fr auto;
+  gap: 15px;
+  align-items: baseline;
+  padding: 9px 6px 9px 8px;
+  border-bottom: 1px solid var(--rule-soft);
+  border-left: 2px solid transparent;
+  text-decoration: none;
+  color: var(--ink);
+}
+.toc a:hover { border-left-color: var(--accent); background: var(--panel); color: var(--accent); }
+.toc .pending { color: var(--ink-faint); }
+.toc .num { font-family: var(--data); font-size: 12px; color: var(--ink-faint); }
+.toc a:hover .num { color: var(--accent); }
+.toc .name { font-family: var(--display); font-size: 16px; }
+.toc .name small { display: block; font-family: var(--prose); color: var(--ink-faint);
+                   font-size: 13px; font-weight: 400; margin-top: 2px; max-width: 60ch; }
+.toc .mark { font-family: var(--data); font-size: 11px; color: var(--ink-faint); text-align: right; }
+.toc .tag { font-family: var(--data); font-size: 9.5px; letter-spacing: .1em;
+            text-transform: uppercase; color: var(--ink-faint); }
+
+/* ------------------------------------------------------------------- móvil */
+
+/* La barra deja de ser barra: pasa a cabecera compacta arriba, con los tramos en
+ * horizontal. La rejilla se colapsa a una columna. */
+@media (max-width: 900px) {
+  .shell { grid-template-columns: 1fr; }
+  .panel {
+    position: static;
+    height: auto;
+    border-right: 0;
+    border-bottom: 1px solid var(--rule);
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 16px;
+    padding: 13px 18px;
+  }
+  .panel-label { display: none; }
+  .panel .rail { display: flex; gap: 0 5px; flex-wrap: wrap; }
+  .rail-step { grid-template-columns: 11px auto; padding: 3px 0; font-size: 9.5px; }
+  .rail-step .range { display: none; }
+  .rail-step:not(:last-child)::after { display: none; }
+  .panel-figure { border-top: 0; padding-top: 0; }
+  .panel-figure .v { font-size: 13.5px; }
+  .panel-figure .l { display: none; }
+  .panel-progress { margin: 0; border-top: 0; padding-top: 0; }
+  .panel-bar { display: none; }
+  .stage-inner { padding: 0 18px; }
+  body { font-size: 16px; }
+  .head { padding-top: 22px; }
+  pre code { font-size: 12.5px; }
+}
+
+/* ------------------------------------------------- la perilla del gemelo */
+/*
+ * El doble trazo con su deslizador, de los modulos 24 y 25. El SVG llega ya
+ * dibujado del servidor, asi que sin JavaScript se ve igual: dos trazos, la
+ * referencia y la posicion de partida. El mando solo cambia cual se ensena.
+ *
+ * La regla de forma del curso: el color NUNCA es la unica pista. La referencia
+ * va punteada y en tono apagado, y la posicion elegida solida y en el acento.
+ */
+.perilla {
+  margin: 22px 0;
+  max-width: var(--block);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  background: var(--stage);
+  padding: 14px 16px 12px;
+}
+.perilla figcaption {
+  font-family: var(--data);
+  font-size: 11px;
+  color: var(--ink-faint);
+  letter-spacing: .02em;
+  margin-bottom: 10px;
+}
+.perilla svg { display: block; width: 100%; height: auto; }
+.perilla-referencia {
+  fill: none;
+  stroke: var(--ink-faint);
+  stroke-width: 1.4;
+  stroke-dasharray: 4 3;
+}
+.perilla-actual {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  transition: d .12s linear;
+}
+.perilla-pie {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 18px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--rule-soft);
+}
+.perilla-leyenda { font-size: 12px; color: var(--ink-faint); }
+.perilla-mandos {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+  font-family: var(--data);
+  font-size: 11px;
+  color: var(--ink-soft);
+}
+.perilla-mando { width: 190px; accent-color: var(--accent); }
+.perilla-mando[disabled] { opacity: .45; }
+.perilla-valor {
+  font-family: var(--data);
+  font-size: 12px;
+  color: var(--ink);
+  min-width: 88px;
+}
+.perilla-nota, .perilla-referencia-nota {
+  margin: 8px 0 0;
+  font-size: 12.5px;
+  color: var(--ink-soft);
+}
+.perilla-referencia-nota { color: var(--ink-faint); font-size: 12px; }
+
+@media (max-width: 620px) {
+  .perilla-mandos { margin-left: 0; width: 100%; }
+  .perilla-mando { flex: 1; width: auto; min-width: 0; }
+}
+
+/* ------------------------------------------------------ movimiento y papel */
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@media print {
+  .shell { display: block; }
+  .panel, .live-bar, .live-editor { display: none; }
+  .live-static { display: block; }
+  body { background: #fff; color: #000; }
+}
+
+/* ------------------------------------------------------ figuras, dos temas */
+
+/* Cada figura viaja dos veces, clara y oscura, y aquí se enseña la que toca.
+ * Con `<picture>` y una media query bastaría para la preferencia del sistema,
+ * pero no para el interruptor manual, y este curso respeta los dos. */
+.fig-oscuro { display: none; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .fig-claro { display: none; }
+  :root:not([data-theme="light"]) .fig-oscuro { display: block; }
+}
+:root[data-theme="dark"] .fig-claro { display: none; }
+:root[data-theme="dark"] .fig-oscuro { display: block; }
+
+/* El acento de este módulo, uno por tema. Los dos salen de src/site/palette.py
+   y los dos pasaron el contraste antes de llegar aquí. */
+:root { --accent: #39796B; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --accent: #86C7B7; }
+}
+:root[data-theme="dark"] { --accent: #86C7B7; }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- La barra de instrumentos. No se mueve al bajar: el tramo del lago, la cifra
+       del módulo y el avance se quedan a la vista mientras se lee. -->
+  <aside class="panel">
+    <a class="panel-brand" href="index.html">Fuelle
+      <small>Módulo 6 de 31</small></a>
+
+    <nav class="rail" aria-label="El arco del proyecto">
+      <p class="panel-label">el lago</p>
+      <span class="rail-step done"><i class="dot"></i><span>CRUDO</span><span class="range">1-3</span></span><span class="rail-step here"><i class="dot"></i><span>BRONCE</span><span class="range">4-13</span></span><span class="rail-step"><i class="dot"></i><span>PLATA</span><span class="range">14-16</span></span><span class="rail-step"><i class="dot"></i><span>ORO</span><span class="range">17-22</span></span><span class="rail-step"><i class="dot"></i><span>GEMELO</span><span class="range">23-31</span></span>
+    </nav>
+
+    <div class="panel-figure">
+      <span class="v">0,014 s contra 0,171 s</span>
+      <span class="l">leer un día sin particionar y particionando por día</span>
+    </div>
+
+    <div class="panel-progress">
+      <b>6</b> de 31
+      <span class="panel-bar"><i style="width: 19%"></i></span>
+    </div>
+
+    <nav class="panel-nav"><a href="m05_idempotencia.html" title="5. Correr dos veces sin duplicar nada">← 5</a><a href="m07_filas_contra_columnas.html" title="7. Filas contra columnas: CSV frente a Parquet">7 →</a><a class="portfolio-link" href="m06_particionar.en.html" hreflang="en" rel="alternate">English</a></nav>
+  </aside>
+
+  <main class="stage">
+    <div class="stage-inner">
+      <header class="head">
+        <p class="head-id"><b>6</b> <span>parte: Traer el dato sin romperlo</span></p>
+        <h1>Partir por fecha: qué es particionar y con qué tamaño</h1>
+        <p class="standfirst">Guardar el mismo dato en carpetas por día es el consejo que se repite en todas partes. Con el cronómetro puesto resulta ser la peor de las cuatro formas a esta escala, y el tamaño se elige mirando la curva</p>
+      </header>
+
+      <section class="block is-brief"><span class="kicker">Resumen</span><h2 class="block-title">En 30 segundos</h2><ul><li>Particionar es repartir una tabla en carpetas para que una pregunta lea solo una.</li><li>El consejo que se repite en todas partes es partir por día. Aquí se mide.</li><li>Leer un día tarda <strong>0,014 s contra 0,171 s</strong> entre no particionar y partir por día.</li><li>Partir por día sale <strong>12,2 veces más lento</strong> y ocupa un <strong>31 %</strong> más. Es la peor de las cuatro.</li><li>Partir por mes y no partir <strong>no se distinguen</strong>: sus rangos se solapan.</li></ul></section>
+<section class="block "><span class="kicker">Contexto</span><h2 class="block-title">Qué resuelve este módulo</h2><p>El módulo 4 dejó el lago repartido en 212 carpetas, una por día, porque es lo que hace todo el mundo. Este módulo comprueba si eso era buena idea.</p><p>Resulta que no, y el motivo enseña más sobre cómo funciona un formato columnar que cualquier explicación.</p></section>
+<section class="block is-toy"><span class="kicker">A mano</span><h2 class="block-title">Antes de la teoría: un ejemplo de juguete</h2><p>Tienes 120 partes de turno de un año y te preguntan por los de junio. Tres formas de guardarlos:</p><div class="table-wrap"><table><thead><tr><th>Dónde</th><th>Cuántas carpetas</th><th>Para junio abres</th><th>Papeles que miras</th></tr></thead><tbody><tr><td>Una caja</td><td>1</td><td>la caja</td><td>120</td></tr><tr><td>Doce carpetas, una por mes</td><td>12</td><td>1 carpeta</td><td>10</td></tr><tr><td>Trescientas sesenta y cinco, una por día</td><td>365</td><td>30 carpetas</td><td>10</td></tr></tbody></table></div><p>Las dos últimas te hacen mirar los mismos diez papeles. La diferencia está en <strong>cuántas carpetas tienes que abrir y cerrar</strong> para llegar a ellos: una contra treinta.</p><p>Abrir una carpeta cuesta. Poco, pero cuesta, y ese coste no depende de cuántos papeles tenga dentro. Si las carpetas son muchas y pequeñas, llega un punto en que se pasa más tiempo abriendo carpetas que leyendo papeles.</p><p>Ese punto es lo que este módulo busca con el cronómetro. La pregunta no es si particionar ayuda, es <strong>con qué tamaño</strong>.</p></section>
+<section class="block is-terms"><span class="kicker">Términos</span><h2 class="block-title">Glosario</h2><details class="fold"><summary>5 términos, en palabras simples</summary><ul><li><strong>Particionar.</strong> Repartir una tabla en varios ficheros según el valor de una columna, normalmente la fecha. Cada valor distinto es una carpeta.</li><li><strong>Poda de particiones.</strong> Que el motor descarte carpetas enteras sin abrirlas, mirando solo el nombre. Es lo que hace útil particionar.</li><li><strong>Estadísticas del fichero.</strong> Los valores mínimo y máximo que Parquet guarda por cada bloque de filas, para poder saltárselo entero sin leerlo.</li><li><strong>Sobrecarga.</strong> El coste fijo de cada fichero, independiente de lo que contenga: abrirlo, leer su cabecera, cerrarlo.</li><li><strong>Ficheros pequeños.</strong> El problema de tener muchísimos ficheros diminutos. Tiene nombre propio porque es un clásico de los lagos de datos.</li></ul></details></section>
+<section class="block is-method"><span class="kicker">Método</span><h2 class="block-title">Paso a paso</h2><h3 class="sub">Paso 1. Escribir lo mismo de cuatro formas</h3><p>Las mismas 1.516.948 filas y el mismo contenido, repartidos de cuatro maneras. En un solo fichero, por mes, por semana y por día. Lo único que cambia es el reparto.</p><h3 class="sub">Paso 2. Hacerles a las cuatro la misma pregunta</h3><p>Cuántas lecturas hay del 5 de junio. Particionar por fecha existe para responder justo a eso, así que es donde el reparto por día debería lucirse.</p><h3 class="sub">Paso 3. Cronometrar siete veces y quedarse con el rango</h3><p>Aquí está la corrección más importante de este módulo. La primera versión de este script cronometraba <strong>una sola vez</strong> cada reparto, y con esos números la conclusión era otra.</p><p>Con una sola medida, partir por mes salía más rápido que no partir. Con siete medidas y sus rangos, los dos se solapan: <strong>no se distinguen</strong>. La primera versión iba a publicar un ganador que no existe.</p><h3 class="sub">Paso 4. Comprobar que las cuatro contestan lo mismo</h3><p>Antes de comparar tiempos, las cuatro disposiciones tienen que devolver el mismo número de filas. Si no, no se está midiendo el reparto: se está midiendo un error de escritura.</p></section>
+<section class="block is-code"><span class="kicker">Código</span><h2 class="block-title">El código, por partes</h2><h3 class="sub">Paso 5. Escribir un reparto</h3><pre><code class="language-sql">COPY (
+    SELECT *, date_trunc(&#x27;month&#x27;, timestamp) AS part
+    FROM read_parquet(&#x27;lake/bronze/telemetry/**/*.parquet&#x27;)
+)
+TO &#x27;lake/_bench/by_month&#x27;
+(FORMAT PARQUET, PARTITION_BY (part), OVERWRITE_OR_IGNORE, COMPRESSION ZSTD);</code></pre><details class="fold"><summary>línea por línea, 3 entradas</summary><dl class="annot"><dt><code>date_trunc(&#x27;month&#x27;, timestamp)</code></dt><dd>recorta la fecha al principio de su mes: el 5 de junio pasa a ser el 1 de junio</dd><dt><code>AS part</code></dt><dd>la columna por la que se va a repartir; el nombre da igual, lo que importa es que exista</dd><dt><code>PARTITION_BY (part)</code></dt><dd>una carpeta por cada valor distinto de part, o sea una por mes</dd></dl></details><p>Cambiando <code>month</code> por <code>week</code> o por el día entero salen los otros repartos. El resto del código es idéntico, que es lo que hace justa la comparación.</p><h3 class="sub">Paso 6. Medir la lectura de un día, siete veces</h3><pre><code class="language-python">read = measure(lambda: con.sql(
+    f&quot;SELECT count(*) FROM read_parquet(&#x27;{glob}&#x27;) &quot;
+    f&quot;WHERE CAST(timestamp AS DATE) = DATE &#x27;{ONE_DAY}&#x27;&quot;
+).fetchone()[0])</code></pre><details class="fold"><summary>línea por línea, 3 entradas</summary><dl class="annot"><dt><code>measure(...)</code></dt><dd>la función de src/medir.py: corre lo que se le pase siete veces y devuelve la mediana con su rango</dd><dt><code>lambda: ...</code></dt><dd>una función sin nombre, escrita en una línea; sirve para pasar «esto que hay que hacer» como si fuera un dato</dd><dt><code>DATE &#x27;2020-06-05&#x27;</code></dt><dd>una fecha literal en SQL; sin la palabra DATE delante sería texto</dd></dl></details><div class="output"><span class="output-tag">sale</span><pre><code>Writing single_file, 7 times...
+     1 files    16.84 MB  write     0.99 s  read one day 0.014 s (0.012 to 0.017)
+Writing by_month, 7 times...
+     8 files    17.64 MB  write     0.94 s  read one day 0.019 s (0.016 to 0.085)
+Writing by_week, 7 times...
+    32 files    17.79 MB  write     2.51 s  read one day 0.039 s (0.026 to 0.053)
+Writing by_day, 7 times...
+   212 files    22.09 MB  write     3.18 s  read one day 0.171 s (0.154 to 0.201)</code></pre></div><h3 class="sub">Paso 7. Decidir con los rangos, no con las medianas</h3><pre><code class="language-python">row[&quot;read_distinguishable_from_fastest&quot;] = (
+    False if row[&quot;layout&quot;] == fastest_name
+    else distinguishable(reads[fastest_name], other))</code></pre><details class="fold"><summary>línea por línea, 2 entradas</summary><dl class="annot"><dt><code>distinguishable(a, b)</code></dt><dd>de src/medir.py: devuelve falso si los dos rangos se pisan</dd><dt><code>False if ... else ...</code></dt><dd>una condición escrita en una línea: si es la más rápida, no se compara consigo misma</dd></dl></details><div class="output"><span class="output-tag">sale</span><pre><code>  All layouts return the same 8,716 rows for 2020-06-05: True
+  fastest read: single_file
+  by_month reads the same as single_file: the ranges overlap, so there is no difference to report</code></pre></div><p>Esa última línea no la escribió nadie: la decidió el script comparando los rangos.</p></section>
+<section class="block is-result"><span class="kicker">Resultado</span><h2 class="block-title">El resultado, medido</h2><figure class="fig"><img class="fig-claro" src="../figuras/fig_m06_curva_de_particion.claro.png?v=d50b78a2" alt="fig m06 curva de particion" loading="lazy"><img class="fig-oscuro" src="../figuras/fig_m06_curva_de_particion.oscuro.png?v=4d863b6f" alt="fig m06 curva de particion" loading="lazy"></figure><p><strong>Qué esperábamos.</strong> Que particionar por día ganara. Es el consejo estándar y la pregunta es justo por un día. La lógica parece sólida: con los datos del día en su propia carpeta, no hay que mirar las otras doscientas once.</p><p><strong>Qué salió.</strong> Lo contrario, y con margen. Leer un día tarda <strong>0,014 s contra 0,171 s</strong> entre no particionar y partir por día. Partir por día es <strong>12,2 veces más lento</strong> justo en el caso para el que se supone que sirve, y además ocupa un <strong>31 %</strong> más, 212 ficheros frente a uno.</p><p>En el panel de la izquierda de la figura se ve la curva subiendo con el número de ficheros, y en el de la derecha el tamaño haciendo lo mismo.</p><p><strong>Qué significa.</strong> Parquet ya sabe saltarse lo que no necesita. Cada fichero guarda, por cada bloque de filas, cuál es el valor mínimo y el máximo de cada columna. Preguntando por un día, el motor lee esas estadísticas y descarta los bloques que no pueden contenerlo, sin leerlos.</p><p>O sea que la poda ya estaba hecha <strong>dentro</strong> del fichero. Repartir en 212 carpetas no añade una capacidad nueva: añade 212 cabeceras que abrir, leer y cerrar. La sobrecarga se paga entera y el beneficio ya estaba cobrado.</p><p>Y el segundo resultado, que es el que solo aparece midiendo bien. <strong>Partir por mes y no partir no se distinguen</strong>: el rango de uno se solapa con el del otro, así que no hay diferencia que contar. La primera versión de este script, con una sola medida, daba a partir por mes como ganador.</p></section>
+<section class="block is-warning"><span class="kicker">Trampas</span><h2 class="block-title">Ojo</h2><ul><li><strong>Esto vale a esta escala y en esta máquina.</strong> Con mil millones de filas y varios discos en paralelo, la respuesta cambia, porque entonces las carpetas se leen a la vez. La conclusión que viaja no es «no particiones», es <strong>mide antes de partir</strong>.</li><li><strong>El número de ficheros es la perilla, no la fecha.</strong> Partir por día es una forma de decir «212 ficheros». Lo que decide es cuántos salen y cuánto pesa cada uno, no si la columna es una fecha.</li><li><strong>Escribir por día también sale más caro</strong>, y eso se paga cada noche. Un reparto malo no solo ralentiza las lecturas.</li><li><strong>Las medianas no bastan para ordenar.</strong> Dos repartos con rangos solapados son el mismo reparto a efectos de esta máquina. Ordenar por mediana habría inventado un ganador.</li><li><strong><code>bronze.py</code> sigue particionando por día.</strong> Se deja a propósito: el módulo 4 comete el error corriente y este lo mide. Cambiarlo antes de tiempo habría borrado la lección.</li></ul></section>
+<section class="block is-bridge"><span class="kicker">Analogía</span><h2 class="block-title">Puente metalúrgico</h2><p>Un molino de bolas tiene un tamaño de bola óptimo, y no es el más grande ni el más pequeño. Bolas grandes rompen bien lo grueso y desperdician energía en lo fino. Bolas pequeñas hacen lo contrario.</p><p>Nadie elige la carga de bolas copiando la de otra planta. Se elige mirando la distribución granulométrica de la alimentación y el producto que se busca, porque con otro mineral la respuesta es otra.</p><p>El tamaño de partición es exactamente eso. Particionar por día es una carga de bolas por defecto, y aquí la alimentación pedía otra.</p></section>
+<section class="block is-review"><span class="kicker">Repaso</span><h2 class="block-title">Repaso</h2><details><summary>Qué es particionar y para qué se supone que sirve</summary><p>Repartir una tabla en carpetas según el valor de una columna, casi siempre una fecha. Sirve para que una pregunta acotada abra solo las carpetas que le tocan y se ahorre el resto. Es cierto cuando cada carpeta es grande, y deja de serlo cuando son muchas y pequeñas.</p></details><details><summary>Por qué particionar por día salió peor que no particionar</summary><p>Porque Parquet ya se saltaba lo que no necesitaba. Guarda el mínimo y el máximo por bloque de filas, así que descarta lo que no puede contener el día pedido sin abrirlo. Repartir en 212 ficheros no añadió poda, añadió 212 cabeceras que abrir.</p></details><details><summary>Cómo se elige entonces el tamaño de partición</summary><p>Midiendo, con la pregunta real y en la máquina real. Se escriben varios repartos, se cronometra la misma consulta en todos, y se mira dónde la curva empieza a subir. Copiar el valor de un blog es elegir sin datos.</p></details><details><summary>Dos repartos dan medianas distintas. Ya se puede decir cuál es mejor</summary><p>No, si sus rangos se solapan. Aquí pasó con no particionar y particionar por mes, y por eso el script lo dice en vez de ordenarlos. Una diferencia que no sobrevive a repetir la medición no es una diferencia.</p></details><details><summary>Si mañana el lago tuviera mil millones de filas, valdría esta conclusión</summary><p>No necesariamente, y esa es la parte importante. A esa escala un fichero único deja de caber cómodo y las carpetas se pueden leer en paralelo, así que la sobrecarga se reparte. Lo que sí viaja es el método: escribir varios repartos, cronometrarlos con la pregunta real, y mirar los rangos antes de declarar un ganador.</p></details></section>
+
+      <footer class="footer">
+        <span>Fuelle / Módulo 6</span>
+        <span>generado el 2026-09-03</span>
+        <span>fuente: MetroPT-3, del compresor de un tren del Metro de Oporto (CC BY 4.0)</span>
+      </footer>
+    </div>
+  </main>
+
+</div>
+<!-- El motor SQL no se descarga aquí: este fichero solo conecta los botones.
+     Los 8 MB llegan cuando el lector pulsa, y no antes. -->
+<script type="module" src="live.js"></script>
+<script src="perilla.js" defer></script>
+</body>
+</html>

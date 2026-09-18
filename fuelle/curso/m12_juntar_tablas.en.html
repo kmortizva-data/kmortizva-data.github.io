@@ -1,0 +1,1025 @@
+<!doctype html>
+<html lang="en" class="no-js" data-assets="../assets" data-tablas="telemetria=sql.parquet,averias=averias.parquet">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Joining tables: JOINs, and the one that lies to you · Bellows, module 12</title>
+<link rel="alternate" hreflang="es" href="m12_juntar_tablas.html">
+<style>
+/* Fuelle: la hoja de estilo del curso.
+ *
+ * REESCRITA ENTERA el 2026-08-30. La primera versión heredó la plantilla de Sílice
+ * junto con su motor, y Kevin la vio y dijo: "se parece a las otras 20 páginas de
+ * portafolio, el landing, coursera, silica, se ve y se siente igual". Tenía razón.
+ * Medido: mismo ancho de prosa (680), mismo ancho de bloques (1180), misma columna
+ * de margen (132), misma secuencia de cabecera, 36 clases compartidas de 40.
+ * Cambiar papel por grafito no toca la silueta, y la silueta es lo que se siente.
+ *
+ * Los cuatro sitios de Kevin son una columna de texto centrada, sin barra lateral,
+ * sin rejilla y sin nada pegajoso. Este es lo contrario: PANEL DE CONTROL. Una barra
+ * fija a la izquierda con los instrumentos siempre a la vista, y el contenido a su
+ * derecha. Ninguna de las tres medidas heredadas aparece aquí, y check_layout.py
+ * falla si alguna reaparece.
+ *
+ * El encargo que ordena las decisiones sigue siendo el mismo: "no muy escandaloso,
+ * que parezca ingeniero, pero que demuestres habilidades, que no seas un pdf que se
+ * lee de recorrido". La sobriedad va en la superficie, la ambición en lo que hace.
+ */
+
+/* --------------------------------------------------------------- tipografía */
+
+/* IBM Plex, autoalojada, OFL-1.1. Los cuatro sitios de Kevin usan la fuente del
+ * sistema, y eso es la otra mitad del "se siente igual". Plex tiene aire de
+ * documentación de ingeniería, que es exactamente el encargo.
+ *
+ * Cinco cortes y no tres: sin las semi-negritas el navegador falsifica la negrita
+ * engordando el trazo, y en una fuente técnica se nota enseguida. 289 KB en total,
+ * que se pueden bajar a unos 60 recortando al alfabeto latino con fonttools si
+ * llega a molestar. */
+@font-face {
+  font-family: "Plex Cond";
+  src: url("../assets/fonts/PlexSansCondensed-SemiBold.woff2") format("woff2");
+  font-weight: 600; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Plex";
+  src: url("../assets/fonts/PlexSans-Regular.woff2") format("woff2");
+  font-weight: 400; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Plex";
+  src: url("../assets/fonts/PlexSans-SemiBold.woff2") format("woff2");
+  font-weight: 600; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Plex Mono";
+  src: url("../assets/fonts/PlexMono-Regular.woff2") format("woff2");
+  font-weight: 400; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Plex Mono";
+  src: url("../assets/fonts/PlexMono-SemiBold.woff2") format("woff2");
+  font-weight: 600; font-style: normal; font-display: swap;
+}
+
+/* ------------------------------------------------------------------ tokens */
+
+:root {
+  --ground: #f4f2ee;
+  --panel: #e9e6e0;
+  --stage: #fbfaf8;
+  --ink: #191d20;
+  --ink-soft: #4c545a;
+  --ink-faint: #7c868d;
+  --rule: #d6d1c8;
+  --rule-soft: #e4e0d8;
+  --grid: rgba(25, 29, 32, .05);
+  --accent: #46787e;
+  --measured: #3d505b;
+  --simulated: #b57542;
+
+  --prose: "Plex", system-ui, "Segoe UI", Roboto, sans-serif;
+  --display: "Plex Cond", "Plex", system-ui, sans-serif;
+  --data: "Plex Mono", "Cascadia Mono", Consolas, monospace;
+
+  /* Medidas NUEVAS. Ninguna puede coincidir con las heredadas de Sílice
+   * (680 de prosa, 1180 de bloques, 132 de margen): volver a ellas es volver a
+   * la misma página, y hay un verificador que lo impide. */
+  --rail: 268px;      /* la barra fija, que ninguno de los otros sitios tiene */
+  --read: 646px;      /* la medida de la prosa, en píxeles y nunca en ch */
+  --block: 980px;     /* el borde derecho de los bloques anchos */
+
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ground: #101417;
+    --panel: #171c20;
+    --stage: #14181b;
+    --ink: #e2e7ea;
+    --ink-soft: #a6b0b6;
+    --ink-faint: #717e85;
+    --rule: #293036;
+    --rule-soft: #20272b;
+    --grid: rgba(226, 231, 234, .045);
+    --accent: #8ec2c8;
+    --measured: #cbe2ef;
+    --simulated: #c98754;
+  }
+}
+
+:root[data-theme="dark"] {
+  --ground: #101417;
+  --panel: #171c20;
+  --stage: #14181b;
+  --ink: #e2e7ea;
+  --ink-soft: #a6b0b6;
+  --ink-faint: #717e85;
+  --rule: #293036;
+  --rule-soft: #20272b;
+  --grid: rgba(226, 231, 234, .045);
+  --accent: #8ec2c8;
+  --measured: #cbe2ef;
+  --simulated: #c98754;
+}
+
+/* --------------------------------------------------------------- cimientos */
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--stage);
+  color: var(--ink);
+  font-family: var(--prose);
+  font-size: 16.5px;
+  line-height: 1.6;
+}
+
+::selection { background: var(--accent); color: var(--ground); }
+a { color: var(--accent); text-underline-offset: .18em; }
+
+/* LA REJILLA. Esto es lo que ninguno de los otros cuatro sitios tiene, y es la
+ * razón de que la página deje de sentirse igual: el texto ya no está centrado en
+ * la ventana, está al lado de un panel de instrumentos. */
+.shell {
+  display: grid;
+  grid-template-columns: var(--rail) minmax(0, 1fr);
+  min-height: 100vh;
+}
+
+/* -------------------------------------------------- la barra de instrumentos */
+
+.panel {
+  position: sticky;   /* lo primero pegajoso de todo el portafolio */
+  top: 0;
+  align-self: start;
+  height: 100vh;
+  overflow-y: auto;
+  padding: 22px 20px 22px;
+  background: var(--panel);
+  border-right: 1px solid var(--rule);
+  background-image: radial-gradient(var(--grid) 1px, transparent 1px);
+  background-size: 22px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.panel-brand {
+  font-family: var(--display);
+  font-size: 19px;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  color: var(--ink);
+  text-decoration: none;
+  display: block;
+}
+.panel-brand small {
+  display: block;
+  font-family: var(--data);
+  font-size: 10px;
+  letter-spacing: .08em;
+  color: var(--ink-faint);
+  text-transform: none;
+  margin-top: 4px;
+}
+
+.panel-label {
+  font-family: var(--data);
+  font-size: 9.5px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding-bottom: 7px;
+  border-bottom: 1px solid var(--rule);
+  margin-bottom: 10px;
+}
+
+/* El grafo del lago, EN VERTICAL. Antes iba horizontal y solo en la portada;
+ * aquí acompaña al lector todo el curso y marca en qué capa está. */
+.rail-step {
+  display: grid;
+  grid-template-columns: 15px 1fr auto;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 0;
+  font-family: var(--data);
+  font-size: 11px;
+  letter-spacing: .08em;
+  color: var(--ink-faint);
+  text-decoration: none;
+  position: relative;
+}
+.rail-step .dot {
+  width: 9px; height: 9px;
+  border: 1px solid var(--ink-faint);
+  border-radius: 50%;
+  justify-self: center;
+}
+.rail-step:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  left: 7px; top: 25px;
+  width: 1px; height: calc(100% - 17px);
+  background: var(--rule);
+}
+.rail-step.done { color: var(--ink-soft); }
+.rail-step.done .dot { background: var(--ink-faint); border-color: var(--ink-faint); }
+.rail-step.here { color: var(--accent); }
+.rail-step.here .dot { background: var(--accent); border-color: var(--accent); }
+.rail-step .range { font-size: 9.5px; opacity: .75; }
+
+/* La cifra del módulo ya no es una caja en una cabecera gigante: vive aquí y se
+ * queda a la vista mientras se lee la lección entera. */
+.panel-figure { border-top: 1px solid var(--rule); padding-top: 14px; }
+.panel-figure .v {
+  display: block;
+  font-family: var(--data);
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 1.3;
+  color: var(--accent);
+}
+.panel-figure .l {
+  display: block;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--ink-faint);
+  margin-top: 5px;
+}
+
+.panel-progress {
+  margin-top: auto;
+  border-top: 1px solid var(--rule);
+  padding-top: 13px;
+  font-family: var(--data);
+  font-size: 11px;
+  color: var(--ink-faint);
+}
+.panel-progress b { color: var(--ink); font-weight: 600; }
+.panel-bar { height: 2px; background: var(--rule); margin-top: 7px; }
+.panel-bar i { display: block; height: 2px; background: var(--accent); }
+
+.panel-nav { display: flex; gap: 7px; flex-wrap: wrap; }
+.panel-nav a {
+  font-family: var(--data);
+  font-size: 10.5px;
+  letter-spacing: .06em;
+  padding: 6px 9px;
+  border: 1px solid var(--rule);
+  text-decoration: none;
+  color: var(--ink-soft);
+}
+.panel-nav a:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ------------------------------------------------------------- el contenido */
+
+.stage { background: var(--stage); padding: 0 0 54px; min-width: 0; }
+.stage-inner { max-width: var(--block); padding: 0 40px; }
+
+/* La cabecera ya no ocupa media pantalla: una línea de identificación y el
+ * título. La cifra y la navegación se fueron a la barra. */
+.head {
+  padding: 30px 0 20px;
+  border-bottom: 1px solid var(--rule);
+  margin-bottom: 4px;
+}
+.head-id {
+  font-family: var(--data);
+  font-size: 10.5px;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  display: flex;
+  gap: 14px;
+  align-items: baseline;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.head-id b { color: var(--accent); font-weight: 600; }
+.head h1 {
+  font-family: var(--display);
+  font-size: clamp(26px, 3.3vw, 37px);
+  line-height: 1.08;
+  font-weight: 600;
+  margin: 0 0 10px;
+  max-width: 22ch;
+}
+.head .standfirst {
+  color: var(--ink-soft);
+  font-size: 16.5px;
+  line-height: 1.5;
+  max-width: var(--read);
+  margin: 0;
+}
+
+/* Las secciones ya no cuelgan de un margen de 132 px: la etiqueta va encima, en
+ * un recuadro pequeño, y el texto empieza en el borde. */
+.block { padding: 26px 0 2px; border-top: 1px solid var(--rule-soft); }
+.block:first-of-type { border-top: 0; }
+
+.kicker {
+  display: inline-block;
+  font-family: var(--data);
+  font-size: 9.5px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  border: 1px solid var(--rule);
+  padding: 2px 7px;
+  margin-bottom: 11px;
+}
+
+.block-title {
+  font-family: var(--display);
+  font-size: 22px;
+  font-weight: 600;
+  margin: 0 0 11px;
+  max-width: var(--read);
+}
+
+/* Justificado desde 33rem de columna y rasgado en móvil: la regla que Kevin
+ * fijó en el portafolio el 2026-08-22, después de medir que a 375 px salían
+ * huecos de 7,65x y ríos en cinco de cada seis líneas. Aquí la prosa mide 646 px
+ * (unos 40rem), así que le toca justificado.
+ *
+ * Y NADA de `hyphens`: sin guionado, por la regla de la casa. El precio es que
+ * hay que vigilar los ríos, y eso se mide con src/site/check_rivers.py en vez de
+ * mirarlo de reojo. */
+.block p, .block li { max-width: var(--read); }
+
+@media (min-width: 34rem) {
+  .block p,
+  .block li,
+  .standfirst,
+  .reto-ask,
+  .annot dd,
+  blockquote,
+  .is-review details p { text-align: justify; text-justify: inter-word; }
+  /* Tablas, código, pies de figura y la barra nunca se justifican: sus líneas
+   * son cortas y el hueco se vuelve un agujero. */
+  figcaption, th, td, pre, .panel, .live-status, .toc { text-align: left; }
+}
+.block p { margin: 0 0 14px; }
+.block ul, .block ol { padding-left: 21px; margin: 0 0 14px; }
+.block li { margin-bottom: 6px; }
+.block li::marker { color: var(--accent); font-family: var(--data); font-size: .82em; }
+
+h3.sub, h4.sub {
+  font-family: var(--display);
+  font-size: 17px;
+  font-weight: 600;
+  margin: 24px 0 8px;
+  max-width: var(--read);
+}
+h4.sub { font-size: 15px; color: var(--ink-soft); }
+
+blockquote {
+  margin: 0 0 14px;
+  padding-left: 15px;
+  border-left: 2px solid var(--rule);
+  color: var(--ink-soft);
+  max-width: var(--read);
+}
+strong, b { font-weight: 600; }
+
+.is-brief ul { list-style: none; padding-left: 0; }
+.is-brief li {
+  padding: 8px 0 8px 18px;
+  border-bottom: 1px solid var(--rule-soft);
+  position: relative;
+}
+.is-brief li::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 17px;
+  width: 8px; height: 1px;
+  background: var(--accent);
+}
+.is-brief li:last-child { border-bottom: 0; }
+.is-result .block-title, .is-warning .block-title { color: var(--accent); }
+
+/* ------------------------------------------------------------------ código */
+
+pre {
+  max-width: var(--block);
+  overflow-x: auto;
+  background: var(--panel);
+  border: 1px solid var(--rule-soft);
+  border-left: 2px solid var(--accent);
+  padding: 13px 15px;
+  margin: 0 0 13px;
+}
+pre code {
+  font-family: var(--data);
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ink);
+  white-space: pre;
+}
+p code, li code, dd code, td code {
+  font-family: var(--data);
+  font-size: .87em;
+  padding: 1px 4px;
+  background: var(--panel);
+  border: 1px solid var(--rule-soft);
+}
+
+/* Diagramas: esquemas conceptuales generados, no figuras de datos.
+   Nacen del bloque ```diagrama y usan los tokens de arriba, asi que el tema lo
+   resuelve el CSS y no hacen falta dos versiones como en las figuras. */
+.diagram { margin: 0 0 22px; max-width: var(--block); }
+.chain {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: 30px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: none;
+}
+.node {
+  position: relative;
+  /* 130 y no 132: 132px es la columna de margen de Sílice y check_layout la
+     prohíbe en este proyecto, con razón, aunque aquí signifique otra cosa. */
+  flex: 1 1 130px;
+  min-width: 0;
+  padding: 11px 13px 12px;
+  background: var(--panel);
+  border: 1px solid var(--rule);
+  border-top: 2px solid var(--ink-faint);
+}
+/* La flecha entre cajas. Va en el hueco del gap, asi que no roba ancho al
+   texto y desaparece sola cuando las cajas se apilan. */
+.node + .node::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: -22px;
+  width: 14px;
+  height: 1px;
+  background: var(--ink-faint);
+}
+.node + .node::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: -11px;
+  width: 5px; height: 5px;
+  border-top: 1px solid var(--ink-faint);
+  border-right: 1px solid var(--ink-faint);
+  transform: translateY(-50%) rotate(45deg);
+}
+.node.lit { border-top-color: var(--accent); background: var(--stage); }
+.node.lit .node-name { color: var(--accent); }
+.node-name {
+  display: block;
+  font-family: var(--data);
+  font-size: 10.5px;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+.node-what { display: block; margin-top: 5px; font-size: 13.5px; color: var(--ink); }
+.node-note { display: block; margin-top: 4px; font-size: 12px; color: var(--ink-faint); }
+
+@media (max-width: 640px) {
+  /* Apiladas, con la flecha girada hacia abajo. */
+  .chain { flex-direction: column; gap: 26px; }
+  .node { flex: 1 1 auto; }
+  .node + .node::before {
+    top: -19px; left: 21px;
+    width: 1px; height: 12px;
+  }
+  .node + .node::after {
+    top: -9px; left: 19px;
+    transform: rotate(135deg);
+  }
+}
+
+.output { position: relative; margin: 0 0 13px; max-width: var(--block); }
+.output pre { margin: 0; border-left: 2px solid var(--ink-faint); background: transparent; }
+.output pre code { color: var(--ink-soft); }
+.output-tag {
+  position: absolute;
+  top: -7px; left: 13px;
+  z-index: 1;
+  font-family: var(--data);
+  font-size: 9px;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  background: var(--stage);
+  padding: 0 5px;
+}
+
+details.fold, details { margin: 0 0 13px; max-width: var(--block); }
+details > summary {
+  cursor: pointer;
+  font-family: var(--data);
+  font-size: 11px;
+  letter-spacing: .05em;
+  color: var(--ink-faint);
+  padding: 5px 0;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+details > summary::-webkit-details-marker { display: none; }
+details > summary::before {
+  content: "+";
+  width: 13px; height: 13px;
+  line-height: 12px;
+  text-align: center;
+  border: 1px solid var(--rule);
+  color: var(--accent);
+}
+details[open] > summary::before { content: "\2212"; }
+details > summary:hover { color: var(--accent); }
+
+.annot {
+  margin: 2px 0 4px;
+  padding: 11px 13px;
+  border: 1px solid var(--rule-soft);
+  background: var(--panel);
+}
+.annot dt { margin-bottom: 3px; }
+.annot dt code {
+  font-family: var(--data);
+  font-size: 12px;
+  color: var(--accent);
+  background: transparent;
+  border: 0;
+  padding: 0;
+}
+.annot dd { margin: 0 0 10px; font-size: 14.5px; color: var(--ink-soft); max-width: var(--read); }
+.annot dd:last-of-type { margin-bottom: 0; }
+
+.is-review details { border-bottom: 1px solid var(--rule-soft); margin: 0; }
+.is-review details > summary {
+  font-family: var(--prose);
+  font-size: 15.5px;
+  color: var(--ink);
+  padding: 11px 0;
+}
+.is-review details > summary:hover { color: var(--accent); }
+.is-review details p { margin: 0 0 11px 21px; color: var(--ink-soft); }
+
+/* ------------------------------------------------------------------ tablas */
+
+.table-wrap { max-width: var(--block); overflow-x: auto; margin: 0 0 15px; }
+table { border-collapse: collapse; font-size: 14.5px; }
+th, td {
+  text-align: left;
+  padding: 6px 15px 6px 0;
+  border-bottom: 1px solid var(--rule-soft);
+  vertical-align: top;
+}
+th {
+  font-family: var(--data);
+  font-size: 10px;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  font-weight: 400;
+  border-bottom-color: var(--rule);
+}
+tbody tr:last-child td { border-bottom: 0; }
+
+figure { margin: 0 0 17px; max-width: var(--block); }
+figure img { max-width: 100%; height: auto; display: block; }
+figcaption { font-size: 12.5px; color: var(--ink-faint); margin-top: 7px; max-width: var(--read); }
+
+.footer {
+  border-top: 1px solid var(--rule);
+  margin-top: 32px;
+  padding: 18px 0 0;
+  font-size: 12px;
+  color: var(--ink-faint);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px 20px;
+}
+.footer a { color: var(--ink-faint); }
+.gone { color: var(--ink-faint); }
+
+/* ---------------------------------------------- la consulta viva y el reto */
+
+.live {
+  max-width: var(--block);
+  margin: 0 0 17px;
+  border: 1px solid var(--rule);
+  background: var(--panel);
+}
+.live-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 13px;
+  border-bottom: 1px solid var(--rule-soft);
+  font-family: var(--data);
+  font-size: 10px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.live-editor {
+  width: 100%;
+  border: 0;
+  resize: vertical;
+  min-height: 112px;
+  padding: 12px 14px;
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--data);
+  font-size: 13px;
+  line-height: 1.6;
+  tab-size: 2;
+}
+.live-editor:focus { outline: 2px solid var(--accent); outline-offset: -2px; }
+.live-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 13px;
+  border-top: 1px solid var(--rule-soft);
+  flex-wrap: wrap;
+}
+.live-run {
+  font-family: var(--data);
+  font-size: 11px;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  padding: 7px 14px;
+  border: 1px solid var(--accent);
+  background: transparent;
+  color: var(--accent);
+  cursor: pointer;
+}
+.live-run:hover { background: var(--accent); color: var(--ground); }
+.live-run[disabled] { opacity: .5; cursor: default; }
+.live-run[disabled]:hover { background: transparent; color: var(--accent); }
+.live-status { font-family: var(--data); font-size: 10.5px; color: var(--ink-faint); }
+.live-out { max-width: 100%; overflow-x: auto; }
+.live-out table { margin: 0; width: 100%; font-size: 12.5px; }
+.live-out td, .live-out th { padding: 5px 13px 5px 0; }
+.live-out td:first-child, .live-out th:first-child { padding-left: 13px; }
+.live-out td { font-family: var(--data); font-size: 12px; }
+.live-err {
+  padding: 10px 14px;
+  font-family: var(--data);
+  font-size: 12px;
+  color: var(--simulated);
+  border-top: 1px solid var(--rule-soft);
+}
+
+.reto { border-left: 2px solid var(--accent); }
+.reto .live-head { color: var(--accent); }
+.reto-ask { padding: 12px 14px 2px; font-size: 15.5px; max-width: var(--read); }
+.verdict {
+  padding: 10px 14px;
+  border-top: 1px solid var(--rule-soft);
+  font-family: var(--data);
+  font-size: 12px;
+}
+.verdict.ok { color: var(--accent); }
+.verdict.no { color: var(--simulated); }
+
+.no-js .live-bar, .no-js .live-editor { display: none; }
+.no-js .live-static { display: block; }
+.live-static { display: none; }
+
+/* ---------------------------------------------------------- el doble trazo */
+
+.twin { max-width: var(--block); margin: 0 0 18px; }
+.twin svg { width: 100%; height: auto; display: block; }
+.twin .axis { stroke: var(--rule); fill: none; }
+.twin .tick { fill: var(--ink-faint); font-family: var(--data); font-size: 10px; }
+.twin .measured { stroke: var(--measured); fill: none; stroke-width: 1.8; }
+.twin .simulated { stroke: var(--simulated); fill: none; stroke-width: 1.8; stroke-dasharray: 5 4; }
+.twin .gap { fill: var(--simulated); opacity: .16; }
+.twin-key { display: flex; gap: 20px; flex-wrap: wrap; font-family: var(--data);
+            font-size: 11px; color: var(--ink-faint); margin-top: 6px; }
+.twin-key i { display: inline-block; width: 20px; height: 0; vertical-align: middle;
+              border-top-width: 2px; border-top-style: solid; margin-right: 7px; }
+.twin-key .k-measured i { border-color: var(--measured); }
+.twin-key .k-simulated i { border-top-style: dashed; border-color: var(--simulated); }
+
+.knob { display: flex; align-items: center; gap: 13px; flex-wrap: wrap; margin: 0 0 13px;
+        font-family: var(--data); font-size: 11px; color: var(--ink-faint); }
+.knob input[type="range"] { accent-color: var(--accent); flex: 1 1 200px; max-width: 300px; }
+.knob output { color: var(--accent); min-width: 72px; }
+
+/* -------------------------------------------------------- índice del curso */
+
+.toc { max-width: var(--block); }
+.toc .part {
+  font-family: var(--data);
+  font-size: 10px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin: 26px 0 2px;
+  padding-top: 11px;
+  border-top: 1px solid var(--rule);
+}
+.toc a, .toc .pending {
+  display: grid;
+  grid-template-columns: 34px 1fr auto;
+  gap: 15px;
+  align-items: baseline;
+  padding: 9px 6px 9px 8px;
+  border-bottom: 1px solid var(--rule-soft);
+  border-left: 2px solid transparent;
+  text-decoration: none;
+  color: var(--ink);
+}
+.toc a:hover { border-left-color: var(--accent); background: var(--panel); color: var(--accent); }
+.toc .pending { color: var(--ink-faint); }
+.toc .num { font-family: var(--data); font-size: 12px; color: var(--ink-faint); }
+.toc a:hover .num { color: var(--accent); }
+.toc .name { font-family: var(--display); font-size: 16px; }
+.toc .name small { display: block; font-family: var(--prose); color: var(--ink-faint);
+                   font-size: 13px; font-weight: 400; margin-top: 2px; max-width: 60ch; }
+.toc .mark { font-family: var(--data); font-size: 11px; color: var(--ink-faint); text-align: right; }
+.toc .tag { font-family: var(--data); font-size: 9.5px; letter-spacing: .1em;
+            text-transform: uppercase; color: var(--ink-faint); }
+
+/* ------------------------------------------------------------------- móvil */
+
+/* La barra deja de ser barra: pasa a cabecera compacta arriba, con los tramos en
+ * horizontal. La rejilla se colapsa a una columna. */
+@media (max-width: 900px) {
+  .shell { grid-template-columns: 1fr; }
+  .panel {
+    position: static;
+    height: auto;
+    border-right: 0;
+    border-bottom: 1px solid var(--rule);
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 16px;
+    padding: 13px 18px;
+  }
+  .panel-label { display: none; }
+  .panel .rail { display: flex; gap: 0 5px; flex-wrap: wrap; }
+  .rail-step { grid-template-columns: 11px auto; padding: 3px 0; font-size: 9.5px; }
+  .rail-step .range { display: none; }
+  .rail-step:not(:last-child)::after { display: none; }
+  .panel-figure { border-top: 0; padding-top: 0; }
+  .panel-figure .v { font-size: 13.5px; }
+  .panel-figure .l { display: none; }
+  .panel-progress { margin: 0; border-top: 0; padding-top: 0; }
+  .panel-bar { display: none; }
+  .stage-inner { padding: 0 18px; }
+  body { font-size: 16px; }
+  .head { padding-top: 22px; }
+  pre code { font-size: 12.5px; }
+}
+
+/* ------------------------------------------------- la perilla del gemelo */
+/*
+ * El doble trazo con su deslizador, de los modulos 24 y 25. El SVG llega ya
+ * dibujado del servidor, asi que sin JavaScript se ve igual: dos trazos, la
+ * referencia y la posicion de partida. El mando solo cambia cual se ensena.
+ *
+ * La regla de forma del curso: el color NUNCA es la unica pista. La referencia
+ * va punteada y en tono apagado, y la posicion elegida solida y en el acento.
+ */
+.perilla {
+  margin: 22px 0;
+  max-width: var(--block);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  background: var(--stage);
+  padding: 14px 16px 12px;
+}
+.perilla figcaption {
+  font-family: var(--data);
+  font-size: 11px;
+  color: var(--ink-faint);
+  letter-spacing: .02em;
+  margin-bottom: 10px;
+}
+.perilla svg { display: block; width: 100%; height: auto; }
+.perilla-referencia {
+  fill: none;
+  stroke: var(--ink-faint);
+  stroke-width: 1.4;
+  stroke-dasharray: 4 3;
+}
+.perilla-actual {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  transition: d .12s linear;
+}
+.perilla-pie {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 18px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--rule-soft);
+}
+.perilla-leyenda { font-size: 12px; color: var(--ink-faint); }
+.perilla-mandos {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+  font-family: var(--data);
+  font-size: 11px;
+  color: var(--ink-soft);
+}
+.perilla-mando { width: 190px; accent-color: var(--accent); }
+.perilla-mando[disabled] { opacity: .45; }
+.perilla-valor {
+  font-family: var(--data);
+  font-size: 12px;
+  color: var(--ink);
+  min-width: 88px;
+}
+.perilla-nota, .perilla-referencia-nota {
+  margin: 8px 0 0;
+  font-size: 12.5px;
+  color: var(--ink-soft);
+}
+.perilla-referencia-nota { color: var(--ink-faint); font-size: 12px; }
+
+@media (max-width: 620px) {
+  .perilla-mandos { margin-left: 0; width: 100%; }
+  .perilla-mando { flex: 1; width: auto; min-width: 0; }
+}
+
+/* ------------------------------------------------------ movimiento y papel */
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@media print {
+  .shell { display: block; }
+  .panel, .live-bar, .live-editor { display: none; }
+  .live-static { display: block; }
+  body { background: #fff; color: #000; }
+}
+
+/* ------------------------------------------------------ figuras, dos temas */
+
+/* Cada figura viaja dos veces, clara y oscura, y aquí se enseña la que toca.
+ * Con `<picture>` y una media query bastaría para la preferencia del sistema,
+ * pero no para el interruptor manual, y este curso respeta los dos. */
+.fig-oscuro { display: none; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .fig-claro { display: none; }
+  :root:not([data-theme="light"]) .fig-oscuro { display: block; }
+}
+:root[data-theme="dark"] .fig-claro { display: none; }
+:root[data-theme="dark"] .fig-oscuro { display: block; }
+
+/* El acento de este módulo, uno por tema. Los dos salen de src/site/palette.py
+   y los dos pasaron el contraste antes de llegar aquí. */
+:root { --accent: #4D784D; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --accent: #97C697; }
+}
+:root[data-theme="dark"] { --accent: #97C697; }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- La barra de instrumentos. No se mueve al bajar: el tramo del lago, la cifra
+       del módulo y el avance se quedan a la vista mientras se lee. -->
+  <aside class="panel">
+    <a class="panel-brand" href="index.en.html">Bellows
+      <small>Module 12 of 31</small></a>
+
+    <nav class="rail" aria-label="The arc of the project">
+      <p class="panel-label">the lake</p>
+      <span class="rail-step done"><i class="dot"></i><span>RAW</span><span class="range">1-3</span></span><span class="rail-step here"><i class="dot"></i><span>BRONZE</span><span class="range">4-13</span></span><span class="rail-step"><i class="dot"></i><span>SILVER</span><span class="range">14-16</span></span><span class="rail-step"><i class="dot"></i><span>GOLD</span><span class="range">17-22</span></span><span class="rail-step"><i class="dot"></i><span>TWIN</span><span class="range">23-31</span></span>
+    </nav>
+
+    <div class="panel-figure">
+      <span class="v">4 rows into 6</span>
+      <span class="l">what joining on a number that looks like a key multiplies them into</span>
+    </div>
+
+    <div class="panel-progress">
+      <b>12</b> of 31
+      <span class="panel-bar"><i style="width: 39%"></i></span>
+    </div>
+
+    <nav class="panel-nav"><a href="m11_consultas_por_pasos.en.html" title="11. Queries in steps: subqueries and WITH">← 11</a><a href="m13_ventanas.en.html" title="13. Looking at the row next door: window functions">13 →</a><a class="portfolio-link" href="m12_juntar_tablas.html" hreflang="es" rel="alternate">Español</a></nav>
+  </aside>
+
+  <main class="stage">
+    <div class="stage-inner">
+      <header class="head">
+        <p class="head-id"><b>12</b> <span>part: SQL, what actually gets used</span></p>
+        <h1>Joining tables: JOINs, and the one that lies to you</h1>
+        <p class="standfirst">Crossing telemetry with the failure reports. What a key is, why a bad JOIN silently multiplies rows, and how to catch it</p>
+      </header>
+
+      <section class="block is-brief"><span class="kicker">Summary</span><h2 class="block-title">In 30 seconds</h2><ul><li>A <code>JOIN</code> puts two tables together by something they share.</li><li>The good join <strong>does not change the row count</strong>: 1,516,948 readings stay 1,516,948.</li><li>The bad one multiplies without warning: the 4 failure reports become <strong>6 rows</strong>.</li><li>A real erratum is to blame: <strong>two reports are numbered <code>#1</code></strong>.</li><li>Joined properly, <strong>54,354 readings</strong> fall inside a documented failure, 3.58 %.</li></ul></section>
+<section class="block "><span class="kicker">Context</span><h2 class="block-title">What this module solves</h2><p>The telemetry says what the compressor was doing. The failure reports say when it was broken. Separately they answer nothing interesting; together they are the material for the rest of the project.</p><p>Putting them together is a <code>JOIN</code>, and it is the operation most people get wrong without noticing, because when it goes wrong it throws no error: it gives extra rows.</p></section>
+<section class="block is-toy"><span class="kicker">By hand</span><h2 class="block-title">Before the theory: a toy example</h2><p>Two tables from a day in the plant. The shifts, with what each one processed:</p><div class="table-wrap"><table><thead><tr><th>shift</th><th>tonnes</th></tr></thead><tbody><tr><td>T1</td><td>100</td></tr><tr><td>T2</td><td>200</td></tr></tbody></table></div><p>And the incidents recorded:</p><div class="table-wrap"><table><thead><tr><th>shift</th><th>incident</th></tr></thead><tbody><tr><td>T1</td><td>mill stoppage</td></tr><tr><td>T1</td><td>belt jam</td></tr><tr><td>T2</td><td>pump vibration</td></tr></tbody></table></div><p><strong>How much was processed that day.</strong> You add the first table: 100 plus 200, <strong>300 tonnes</strong>. That is the correct answer and you know it before touching anything.</p><p>Now join them by shift, so you can look at tonnes and incidents together:</p><div class="table-wrap"><table><thead><tr><th>shift</th><th>tonnes</th><th>incident</th></tr></thead><tbody><tr><td>T1</td><td>100</td><td>mill stoppage</td></tr><tr><td>T1</td><td>100</td><td>belt jam</td></tr><tr><td>T2</td><td>200</td><td>pump vibration</td></tr></tbody></table></div><p>And add that table&#x27;s tonnes again: 100 plus 100 plus 200, <strong>400</strong>.</p><p>A hundred tonnes out of nowhere. And notice the table is not wrong: every row is true. What is wrong is summing a column that now repeats.</p><p>It happened because <strong>T1 had two incidents</strong>, so its shift row got copied twice to pair with each one. The shift did not change grain; the table did.</p><p>That is the module&#x27;s whole trap: <strong>joining on something that is not unique multiplies rows</strong>, and afterwards everything summed or counted is inflated.</p></section>
+<section class="block is-terms"><span class="kicker">Terms</span><h2 class="block-title">Glossary</h2><details class="fold"><summary>6 terms, in plain words</summary><ul><li><strong><code>JOIN</code>.</strong> Putting two tables together by pairing rows that meet a condition.</li><li><strong>Key.</strong> The column, or group of columns, that identifies a row without repeating. If it repeats, it is not a key.</li><li><strong><code>INNER JOIN</code>.</strong> Keeps only the rows that find a partner. The rest disappear.</li><li><strong><code>LEFT JOIN</code>.</strong> Keeps <strong>all</strong> of the left ones, with a partner or without. Those that find none come out with NULL in the right hand columns.</li><li><strong><code>CROSS JOIN</code>.</strong> Pairs each row with every row of the other table. It is the join without a condition and it grows very fast.</li><li><strong>Grain.</strong> What one row corresponds to, from module 2. A <code>JOIN</code> can change it without warning, and that is where the trouble starts.</li></ul></details></section>
+<section class="block is-method"><span class="kicker">Method</span><h2 class="block-title">Step by step</h2><h3 class="sub">Step 1. Look at the small table before joining anything</h3><p>Four rows. They read in ten seconds and save hours, because almost everything that can go wrong with this join is visible in them.</p><h3 class="sub">Step 2. Convert the dates, which arrive as text</h3><p>The reports carry <code>4/18/2020 0:00</code> written as text. Comparing text with dates does not work, or worse, works badly. It has to be converted first, and that is what module 9 said.</p><h3 class="sub">Step 3. Choose the join condition</h3><p>There is no shared column between the two tables here: the telemetry has a day and the report has an interval. So the condition is not an equality, it is a membership.</p><h3 class="sub">Step 4. Count before and count after</h3><p>And this is the habit to pick up. Before joining you count the rows, afterwards you count them again, and if the number moved without meaning to, the join is wrong.</p></section>
+<section class="block is-code"><span class="kicker">Code</span><h2 class="block-title">The code, in parts</h2><h3 class="sub">Step 5. The small table, whole</h3><div class="live"><div class="live-head"><span>live query</span><span class="live-status">the engine downloads when you press</span></div><pre class="live-static"><code>SELECT nr, start_time, end_time, failure, report
+FROM averias;</code></pre><textarea class="live-editor" spellcheck="false" aria-label="live query">SELECT nr, start_time, end_time, failure, report
+FROM averias;</textarea><div class="live-bar"><button type="button" class="live-run">run</button></div><div class="live-out"></div></div><details class="fold"><summary>line by line, 1 entry</summary><dl class="annot"><dt><code>FROM averias</code></dt><dd>the other table your browser brought: the four failure reports</dd></dl></details><div class="output"><span class="output-tag">prints</span><pre><code>┌─────────┬─────────────────┬─────────────────┬──────────┬───────────────────────────────┐
+│   nr    │   start_time    │    end_time     │ failure  │            report             │
+├─────────┼─────────────────┼─────────────────┼──────────┼───────────────────────────────┤
+│ #1      │ 4/18/2020 0:00  │ 4/18/2020 23:59 │ Air leak │ NULL                          │
+│ #1      │ 5/29/2020 23:30 │ 5/30/2020 6:00  │ Air Leak │ Maintenance on 30Apr at 12:00 │
+│ #3      │ 6/5/2020 10:00  │ 6/7/2020 14:30  │ Air Leak │ Maintenance on 8Jun at 16:00  │
+│ #4      │ 7/15/2020 14:30 │ 7/15/2020 19:00 │ Air Leak │ Maintenance on 16Jul at 00:00 │
+└─────────┴─────────────────┴─────────────────┴──────────┴───────────────────────────────┘</code></pre></div><p>Four rows and three things to note, all true and none corrected:</p><p><strong>There are two reports numbered <code>#1</code> and no <code>#2</code> at all.</strong> That number looks like an identifier and it is not.</p><p><strong><code>Air leak</code> and <code>Air Leak</code>.</strong> The same failure written two ways. Grouping by that column would give two groups where there is one.</p><p><strong>The 29 May report says the maintenance was on 30 April</strong>, a month before the failure itself. It is an erratum of the original and it stays as it is.</p><h3 class="sub">Step 6. Join properly, and check the count</h3><div class="live"><div class="live-head"><span>live query</span><span class="live-status">the engine downloads when you press</span></div><pre class="live-static"><code>SELECT count(*) AS filas,
+       count(a.nr) AS dentro_de_una_averia
+FROM telemetria t
+LEFT JOIN (
+    SELECT nr,
+           CAST(strptime(start_time, &#x27;%-m/%-d/%Y %-H:%M&#x27;) AS DATE) AS desde,
+           CAST(strptime(end_time,   &#x27;%-m/%-d/%Y %-H:%M&#x27;) AS DATE) AS hasta
+    FROM averias
+) a ON t.day BETWEEN a.desde AND a.hasta;</code></pre><textarea class="live-editor" spellcheck="false" aria-label="live query">SELECT count(*) AS filas,
+       count(a.nr) AS dentro_de_una_averia
+FROM telemetria t
+LEFT JOIN (
+    SELECT nr,
+           CAST(strptime(start_time, &#x27;%-m/%-d/%Y %-H:%M&#x27;) AS DATE) AS desde,
+           CAST(strptime(end_time,   &#x27;%-m/%-d/%Y %-H:%M&#x27;) AS DATE) AS hasta
+    FROM averias
+) a ON t.day BETWEEN a.desde AND a.hasta;</textarea><div class="live-bar"><button type="button" class="live-run">run</button></div><div class="live-out"></div></div><details class="fold"><summary>line by line, 5 entries</summary><dl class="annot"><dt><code>LEFT JOIN</code></dt><dd>keeps every reading, whether it finds a failure or not</dd><dt><code>strptime(texto, formato)</code></dt><dd>converts text to a date by saying what format it is written in</dd><dt><code>%-m/%-d/%Y %-H:%M</code></dt><dd>that format: month, day, year and time, with no leading zeros</dd><dt><code>ON t.day BETWEEN a.desde AND a.hasta</code></dt><dd>the join condition; not an equality, but falling inside the interval</dd><dt><code>count(a.nr)</code></dt><dd>counts only the rows where that column is NOT NULL, that is the ones that found a failure</dd></dl></details><div class="output"><span class="output-tag">prints</span><pre><code>┌─────────┬──────────────────────┐
+│  filas  │ dentro_de_una_averia │
+├─────────┼──────────────────────┤
+│ 1516948 │                54354 │
+└─────────┴──────────────────────┘</code></pre></div><p>The rows are still 1,516,948, exactly the ones there were before joining. That number is the proof the join invented nothing.</p><p>And notice the difference between the two columns: <code>count(*)</code> counts rows and <code>count(a.nr)</code> counts the ones with a value. It is module 8 again, now with a practical use.</p><h3 class="sub">Step 7. The join that multiplies</h3><pre><code class="language-sql">SELECT count(*) AS filas
+FROM averias a
+JOIN averias b ON a.nr = b.nr;</code></pre><details class="fold"><summary>line by line, 3 entries</summary><dl class="annot"><dt><code>JOIN</code></dt><dd>without the word LEFT in front, it is an INNER JOIN: only the rows with a partner</dd><dt><code>a.nr = b.nr</code></dt><dd>joining by the report number, which looks like it identifies a failure</dd><dt><code>a, b</code></dt><dd>two short names for the same table, because it is joined to itself</dd></dl></details><div class="output"><span class="output-tag">prints</span><pre><code>┌───────┐
+│ filas │
+├───────┤
+│     6 │
+└───────┘</code></pre></div><p>Six rows from a table of four. Each <code>#1</code> report finds two partners, its own and the other <code>#1</code>&#x27;s, so those two rows turn into four.</p><p>No error, no warning. Just two extra rows.</p></section>
+<section class="block is-result"><span class="kicker">Result</span><h2 class="block-title">The result, measured</h2><figure class="fig"><img class="fig-claro" src="../figuras/fig_m12_tipos_de_join.claro.en.png?v=7243ba31" alt="fig m12 tipos de join" loading="lazy"><img class="fig-oscuro" src="../figuras/fig_m12_tipos_de_join.oscuro.en.png?v=c47a0d58" alt="fig m12 tipos de join" loading="lazy"></figure><p><strong>What we expected.</strong> That joining the telemetry with the reports would mark the failed readings without touching the row count.</p><p><strong>What came out.</strong> That, with the <code>LEFT JOIN</code>: <strong>1,516,948 rows before and 1,516,948 after</strong>, and <strong>54,354</strong> of them inside a documented failure, <strong>3.58 %</strong> of the record.</p><p>The figure shows the three ways of writing the same join. The <code>INNER JOIN</code> returns <strong>54,354</strong>, which are only the readings with a failure. The <code>CROSS JOIN</code>, which carries no condition, returns <strong>6,067,792</strong>: each reading paired with each of the four reports.</p><p>Split by failure, the four come out like this:</p><div class="table-wrap"><table><thead><tr><th>Report</th><th>From</th><th>To</th><th>Readings</th><th>Loaded hours</th></tr></thead><tbody><tr><td>#1</td><td>2020-04-18</td><td>2020-04-18</td><td>8,663</td><td>23.8</td></tr><tr><td>#1</td><td>2020-05-29</td><td>2020-05-30</td><td>16,083</td><td>11.3</td></tr><tr><td>#3</td><td>2020-06-05</td><td>2020-06-07</td><td>20,947</td><td>49.4</td></tr><tr><td>#4</td><td>2020-07-15</td><td>2020-07-15</td><td>8,661</td><td>11.6</td></tr></tbody></table></div><figure class="fig"><img class="fig-claro" src="../figuras/fig_m12_join_que_multiplica.claro.en.png?v=54a9f291" alt="fig m12 join que multiplica" loading="lazy"><img class="fig-oscuro" src="../figuras/fig_m12_join_que_multiplica.oscuro.en.png?v=c88f7977" alt="fig m12 join que multiplica" loading="lazy"></figure><p><strong>And the join that lies.</strong> Joining the four reports by their number goes <strong>from 4 rows to 6</strong>. In the figure you can see why: the two thick lines are the two <code>#1</code> reports, and each one pairs with both.</p><p>Joining by the pair that does identify a report, the number and the start time, gives <strong>4</strong>, which is correct.</p><p><strong>What it means.</strong> The erratum module 1 recorded and left uncorrected has turned into a real fault here. It is not a laboratory example: it is the project&#x27;s only source of truth, with a numbering that does not number.</p><p>And out of that comes the habit to take away: <strong>count the rows before and after joining</strong>. It is not paranoia, it is the only way to find out, because a join that multiplies throws no error.</p></section>
+<section class="block is-warning"><span class="kicker">Traps</span><h2 class="block-title">Watch out</h2><ul><li><strong>A <code>JOIN</code> can change the table&#x27;s grain.</strong> If the right hand one has several rows for each of the left&#x27;s, the left gets copied. Afterwards, any sum is inflated.</li><li><strong>Count before and count after.</strong> It is the cheapest check there is and it catches almost every badly made join.</li><li><strong>A column named like an identifier is not thereby a key.</strong> Here <code>nr</code> has two rows with the same value. It gets checked with a <code>GROUP BY nr HAVING count(*) &gt; 1</code>.</li><li><strong><code>INNER JOIN</code> deletes rows in silence.</strong> The readings without a failure, which are 96 %, would disappear without a word. When you want to keep them all, <code>LEFT JOIN</code>.</li><li><strong>The report dates are text.</strong> Comparing text with dates can work by chance and fail the moment the format changes. You convert first, always.</li><li><strong><code>Air leak</code> and <code>Air Leak</code> are different groups</strong> for a <code>GROUP BY</code>. The original data does not get touched, so the normalisation happens at query time, not on ingestion.</li></ul></section>
+<section class="block is-bridge"><span class="kicker">Analogy</span><h2 class="block-title">Metallurgical bridge</h2><p>In a plant balance there are two records crossed daily: the trucks tipping into the hopper and the laboratory assays. They get crossed by lot number.</p><p>The day a lot is sampled twice, because the first assay came out odd, that number stops identifying a row. Joining by it, that lot&#x27;s truck appears twice, and its tonnage gets counted twice in the month&#x27;s balance.</p><p>Nobody notices by looking at the result, because the balance still closes. The person who notices is whoever compares the joined tonnage with the weighbridge tonnage, which is exactly counting before and after.</p></section>
+<section class="block is-live"><span class="kicker">Your turn</span><h2 class="block-title">Do it yourself</h2><p class="reto-ask">Mark each failure with how many compressor readings fall inside it. Return three columns, <code>nr</code>, <code>desde</code> and <code>lecturas</code>, one row per report. Four rows, ordered by date.</p><div class="live reto" data-expected='[[&quot;#1&quot;, &quot;2020-04-18&quot;, 8663], [&quot;#1&quot;, &quot;2020-05-29&quot;, 16083], [&quot;#3&quot;, &quot;2020-06-05&quot;, 20947], [&quot;#4&quot;, &quot;2020-07-15&quot;, 8661]]'><div class="live-head"><span>challenge</span><span class="live-status">the engine downloads when you press</span></div><pre class="live-static"><code>SELECT count(*) AS filas,
+       count(a.nr) AS dentro_de_una_averia
+FROM telemetria t
+LEFT JOIN (
+    SELECT nr,
+           CAST(strptime(start_time, &#x27;%-m/%-d/%Y %-H:%M&#x27;) AS DATE) AS desde,
+           CAST(strptime(end_time,   &#x27;%-m/%-d/%Y %-H:%M&#x27;) AS DATE) AS hasta
+    FROM averias
+) a ON t.day BETWEEN a.desde AND a.hasta;</code></pre><textarea class="live-editor" spellcheck="false" aria-label="challenge">SELECT count(*) AS filas,
+       count(a.nr) AS dentro_de_una_averia
+FROM telemetria t
+LEFT JOIN (
+    SELECT nr,
+           CAST(strptime(start_time, &#x27;%-m/%-d/%Y %-H:%M&#x27;) AS DATE) AS desde,
+           CAST(strptime(end_time,   &#x27;%-m/%-d/%Y %-H:%M&#x27;) AS DATE) AS hasta
+    FROM averias
+) a ON t.day BETWEEN a.desde AND a.hasta;</textarea><div class="live-bar"><button type="button" class="live-run">check</button></div><div class="live-out"></div><div class="verdict"></div><details class="fold"><summary>a hint</summary><p>The starting point&#x27;s join is already the right one, but it faces the wrong way for what the challenge asks: the reports have to go on the left and the telemetry on the right, so that one row comes out per report. After that it is a <code>GROUP BY</code> on <code>a.nr</code> and <code>a.desde</code>, counting with <code>count(t.day)</code>, which does not count the absent readings.</p></details><details class="fold"><summary>see the solution</summary><pre><code>SELECT a.nr, a.desde, count(t.day) AS lecturas
+FROM (
+    SELECT nr,
+           CAST(strptime(start_time, &#x27;%-m/%-d/%Y %-H:%M&#x27;) AS DATE) AS desde,
+           CAST(strptime(end_time,   &#x27;%-m/%-d/%Y %-H:%M&#x27;) AS DATE) AS hasta
+    FROM averias
+) a
+LEFT JOIN telemetria t ON t.day BETWEEN a.desde AND a.hasta
+GROUP BY a.nr, a.desde
+ORDER BY a.desde;</code></pre></details></div></section>
+<section class="block is-review"><span class="kicker">Review</span><h2 class="block-title">Review</h2><details><summary>The difference between INNER JOIN and LEFT JOIN</summary><p>The <code>INNER</code> keeps only the rows that find a partner, and the rest disappear without a word. The <code>LEFT</code> keeps all of the left hand ones and fills the right hand columns with NULL when there is no partner. Here the difference is enormous: 54,354 rows against 1,516,948.</p></details><details><summary>How do you know a join went wrong</summary><p>By counting rows before and after. If the left table had 1,516,948 and after the join there are more, some row got duplicated by having several partners. It is the cheapest check there is and almost nobody does it, because a badly made join throws no error.</p></details><details><summary>Why can you not join by the report number</summary><p>Because two of the four reports are <code>#1</code>. That number looks like an identifier, and joining by it each <code>#1</code> pairs with both, so four rows come out six. The real key here is the pair of number and start time, which does identify a row.</p></details><details><summary>The reports carry errata. Why not correct them before joining</summary><p>Because they are the project&#x27;s only source of truth and they are not mine. Correcting the numbering would be inventing a datum nobody measured. The course&#x27;s rule is that the raw stays literal, and the corrections happen at query time, where they stay visible and can be revised.</p></details><details><summary>You sum tonnes after joining with an incidents table. What do you check</summary><p>That the join has not changed the grain. If a shift has two incidents, its row gets copied twice and its tonnage counted twice. You check by counting rows before and after, or by summing before joining and comparing with the sum afterwards.</p></details></section>
+
+      <footer class="footer">
+        <span>Bellows / Module 12</span>
+        <span>generated on 2026-09-03</span>
+        <span>source: MetroPT-3, from a Porto Metro train compressor (CC BY 4.0)</span>
+      </footer>
+    </div>
+  </main>
+
+</div>
+<!-- El motor SQL no se descarga aquí: este fichero solo conecta los botones.
+     Los 8 MB llegan cuando el lector pulsa, y no antes. -->
+<script type="module" src="live.js"></script>
+<script src="perilla.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,1033 @@
+<!doctype html>
+<html lang="en" class="no-js" data-assets="../assets" data-tablas="telemetria=sin_timestamp_ligera.parquet">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Grouping and summarising: GROUP BY · Bellows, module 10</title>
+<link rel="alternate" hreflang="es" href="m10_agrupar.html">
+<style>
+/* Fuelle: la hoja de estilo del curso.
+ *
+ * REESCRITA ENTERA el 2026-08-30. La primera versión heredó la plantilla de Sílice
+ * junto con su motor, y Kevin la vio y dijo: "se parece a las otras 20 páginas de
+ * portafolio, el landing, coursera, silica, se ve y se siente igual". Tenía razón.
+ * Medido: mismo ancho de prosa (680), mismo ancho de bloques (1180), misma columna
+ * de margen (132), misma secuencia de cabecera, 36 clases compartidas de 40.
+ * Cambiar papel por grafito no toca la silueta, y la silueta es lo que se siente.
+ *
+ * Los cuatro sitios de Kevin son una columna de texto centrada, sin barra lateral,
+ * sin rejilla y sin nada pegajoso. Este es lo contrario: PANEL DE CONTROL. Una barra
+ * fija a la izquierda con los instrumentos siempre a la vista, y el contenido a su
+ * derecha. Ninguna de las tres medidas heredadas aparece aquí, y check_layout.py
+ * falla si alguna reaparece.
+ *
+ * El encargo que ordena las decisiones sigue siendo el mismo: "no muy escandaloso,
+ * que parezca ingeniero, pero que demuestres habilidades, que no seas un pdf que se
+ * lee de recorrido". La sobriedad va en la superficie, la ambición en lo que hace.
+ */
+
+/* --------------------------------------------------------------- tipografía */
+
+/* IBM Plex, autoalojada, OFL-1.1. Los cuatro sitios de Kevin usan la fuente del
+ * sistema, y eso es la otra mitad del "se siente igual". Plex tiene aire de
+ * documentación de ingeniería, que es exactamente el encargo.
+ *
+ * Cinco cortes y no tres: sin las semi-negritas el navegador falsifica la negrita
+ * engordando el trazo, y en una fuente técnica se nota enseguida. 289 KB en total,
+ * que se pueden bajar a unos 60 recortando al alfabeto latino con fonttools si
+ * llega a molestar. */
+@font-face {
+  font-family: "Plex Cond";
+  src: url("../assets/fonts/PlexSansCondensed-SemiBold.woff2") format("woff2");
+  font-weight: 600; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Plex";
+  src: url("../assets/fonts/PlexSans-Regular.woff2") format("woff2");
+  font-weight: 400; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Plex";
+  src: url("../assets/fonts/PlexSans-SemiBold.woff2") format("woff2");
+  font-weight: 600; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Plex Mono";
+  src: url("../assets/fonts/PlexMono-Regular.woff2") format("woff2");
+  font-weight: 400; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Plex Mono";
+  src: url("../assets/fonts/PlexMono-SemiBold.woff2") format("woff2");
+  font-weight: 600; font-style: normal; font-display: swap;
+}
+
+/* ------------------------------------------------------------------ tokens */
+
+:root {
+  --ground: #f4f2ee;
+  --panel: #e9e6e0;
+  --stage: #fbfaf8;
+  --ink: #191d20;
+  --ink-soft: #4c545a;
+  --ink-faint: #7c868d;
+  --rule: #d6d1c8;
+  --rule-soft: #e4e0d8;
+  --grid: rgba(25, 29, 32, .05);
+  --accent: #46787e;
+  --measured: #3d505b;
+  --simulated: #b57542;
+
+  --prose: "Plex", system-ui, "Segoe UI", Roboto, sans-serif;
+  --display: "Plex Cond", "Plex", system-ui, sans-serif;
+  --data: "Plex Mono", "Cascadia Mono", Consolas, monospace;
+
+  /* Medidas NUEVAS. Ninguna puede coincidir con las heredadas de Sílice
+   * (680 de prosa, 1180 de bloques, 132 de margen): volver a ellas es volver a
+   * la misma página, y hay un verificador que lo impide. */
+  --rail: 268px;      /* la barra fija, que ninguno de los otros sitios tiene */
+  --read: 646px;      /* la medida de la prosa, en píxeles y nunca en ch */
+  --block: 980px;     /* el borde derecho de los bloques anchos */
+
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ground: #101417;
+    --panel: #171c20;
+    --stage: #14181b;
+    --ink: #e2e7ea;
+    --ink-soft: #a6b0b6;
+    --ink-faint: #717e85;
+    --rule: #293036;
+    --rule-soft: #20272b;
+    --grid: rgba(226, 231, 234, .045);
+    --accent: #8ec2c8;
+    --measured: #cbe2ef;
+    --simulated: #c98754;
+  }
+}
+
+:root[data-theme="dark"] {
+  --ground: #101417;
+  --panel: #171c20;
+  --stage: #14181b;
+  --ink: #e2e7ea;
+  --ink-soft: #a6b0b6;
+  --ink-faint: #717e85;
+  --rule: #293036;
+  --rule-soft: #20272b;
+  --grid: rgba(226, 231, 234, .045);
+  --accent: #8ec2c8;
+  --measured: #cbe2ef;
+  --simulated: #c98754;
+}
+
+/* --------------------------------------------------------------- cimientos */
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--stage);
+  color: var(--ink);
+  font-family: var(--prose);
+  font-size: 16.5px;
+  line-height: 1.6;
+}
+
+::selection { background: var(--accent); color: var(--ground); }
+a { color: var(--accent); text-underline-offset: .18em; }
+
+/* LA REJILLA. Esto es lo que ninguno de los otros cuatro sitios tiene, y es la
+ * razón de que la página deje de sentirse igual: el texto ya no está centrado en
+ * la ventana, está al lado de un panel de instrumentos. */
+.shell {
+  display: grid;
+  grid-template-columns: var(--rail) minmax(0, 1fr);
+  min-height: 100vh;
+}
+
+/* -------------------------------------------------- la barra de instrumentos */
+
+.panel {
+  position: sticky;   /* lo primero pegajoso de todo el portafolio */
+  top: 0;
+  align-self: start;
+  height: 100vh;
+  overflow-y: auto;
+  padding: 22px 20px 22px;
+  background: var(--panel);
+  border-right: 1px solid var(--rule);
+  background-image: radial-gradient(var(--grid) 1px, transparent 1px);
+  background-size: 22px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.panel-brand {
+  font-family: var(--display);
+  font-size: 19px;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  color: var(--ink);
+  text-decoration: none;
+  display: block;
+}
+.panel-brand small {
+  display: block;
+  font-family: var(--data);
+  font-size: 10px;
+  letter-spacing: .08em;
+  color: var(--ink-faint);
+  text-transform: none;
+  margin-top: 4px;
+}
+
+.panel-label {
+  font-family: var(--data);
+  font-size: 9.5px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding-bottom: 7px;
+  border-bottom: 1px solid var(--rule);
+  margin-bottom: 10px;
+}
+
+/* El grafo del lago, EN VERTICAL. Antes iba horizontal y solo en la portada;
+ * aquí acompaña al lector todo el curso y marca en qué capa está. */
+.rail-step {
+  display: grid;
+  grid-template-columns: 15px 1fr auto;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 0;
+  font-family: var(--data);
+  font-size: 11px;
+  letter-spacing: .08em;
+  color: var(--ink-faint);
+  text-decoration: none;
+  position: relative;
+}
+.rail-step .dot {
+  width: 9px; height: 9px;
+  border: 1px solid var(--ink-faint);
+  border-radius: 50%;
+  justify-self: center;
+}
+.rail-step:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  left: 7px; top: 25px;
+  width: 1px; height: calc(100% - 17px);
+  background: var(--rule);
+}
+.rail-step.done { color: var(--ink-soft); }
+.rail-step.done .dot { background: var(--ink-faint); border-color: var(--ink-faint); }
+.rail-step.here { color: var(--accent); }
+.rail-step.here .dot { background: var(--accent); border-color: var(--accent); }
+.rail-step .range { font-size: 9.5px; opacity: .75; }
+
+/* La cifra del módulo ya no es una caja en una cabecera gigante: vive aquí y se
+ * queda a la vista mientras se lee la lección entera. */
+.panel-figure { border-top: 1px solid var(--rule); padding-top: 14px; }
+.panel-figure .v {
+  display: block;
+  font-family: var(--data);
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 1.3;
+  color: var(--accent);
+}
+.panel-figure .l {
+  display: block;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--ink-faint);
+  margin-top: 5px;
+}
+
+.panel-progress {
+  margin-top: auto;
+  border-top: 1px solid var(--rule);
+  padding-top: 13px;
+  font-family: var(--data);
+  font-size: 11px;
+  color: var(--ink-faint);
+}
+.panel-progress b { color: var(--ink); font-weight: 600; }
+.panel-bar { height: 2px; background: var(--rule); margin-top: 7px; }
+.panel-bar i { display: block; height: 2px; background: var(--accent); }
+
+.panel-nav { display: flex; gap: 7px; flex-wrap: wrap; }
+.panel-nav a {
+  font-family: var(--data);
+  font-size: 10.5px;
+  letter-spacing: .06em;
+  padding: 6px 9px;
+  border: 1px solid var(--rule);
+  text-decoration: none;
+  color: var(--ink-soft);
+}
+.panel-nav a:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ------------------------------------------------------------- el contenido */
+
+.stage { background: var(--stage); padding: 0 0 54px; min-width: 0; }
+.stage-inner { max-width: var(--block); padding: 0 40px; }
+
+/* La cabecera ya no ocupa media pantalla: una línea de identificación y el
+ * título. La cifra y la navegación se fueron a la barra. */
+.head {
+  padding: 30px 0 20px;
+  border-bottom: 1px solid var(--rule);
+  margin-bottom: 4px;
+}
+.head-id {
+  font-family: var(--data);
+  font-size: 10.5px;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  display: flex;
+  gap: 14px;
+  align-items: baseline;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.head-id b { color: var(--accent); font-weight: 600; }
+.head h1 {
+  font-family: var(--display);
+  font-size: clamp(26px, 3.3vw, 37px);
+  line-height: 1.08;
+  font-weight: 600;
+  margin: 0 0 10px;
+  max-width: 22ch;
+}
+.head .standfirst {
+  color: var(--ink-soft);
+  font-size: 16.5px;
+  line-height: 1.5;
+  max-width: var(--read);
+  margin: 0;
+}
+
+/* Las secciones ya no cuelgan de un margen de 132 px: la etiqueta va encima, en
+ * un recuadro pequeño, y el texto empieza en el borde. */
+.block { padding: 26px 0 2px; border-top: 1px solid var(--rule-soft); }
+.block:first-of-type { border-top: 0; }
+
+.kicker {
+  display: inline-block;
+  font-family: var(--data);
+  font-size: 9.5px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  border: 1px solid var(--rule);
+  padding: 2px 7px;
+  margin-bottom: 11px;
+}
+
+.block-title {
+  font-family: var(--display);
+  font-size: 22px;
+  font-weight: 600;
+  margin: 0 0 11px;
+  max-width: var(--read);
+}
+
+/* Justificado desde 33rem de columna y rasgado en móvil: la regla que Kevin
+ * fijó en el portafolio el 2026-08-22, después de medir que a 375 px salían
+ * huecos de 7,65x y ríos en cinco de cada seis líneas. Aquí la prosa mide 646 px
+ * (unos 40rem), así que le toca justificado.
+ *
+ * Y NADA de `hyphens`: sin guionado, por la regla de la casa. El precio es que
+ * hay que vigilar los ríos, y eso se mide con src/site/check_rivers.py en vez de
+ * mirarlo de reojo. */
+.block p, .block li { max-width: var(--read); }
+
+@media (min-width: 34rem) {
+  .block p,
+  .block li,
+  .standfirst,
+  .reto-ask,
+  .annot dd,
+  blockquote,
+  .is-review details p { text-align: justify; text-justify: inter-word; }
+  /* Tablas, código, pies de figura y la barra nunca se justifican: sus líneas
+   * son cortas y el hueco se vuelve un agujero. */
+  figcaption, th, td, pre, .panel, .live-status, .toc { text-align: left; }
+}
+.block p { margin: 0 0 14px; }
+.block ul, .block ol { padding-left: 21px; margin: 0 0 14px; }
+.block li { margin-bottom: 6px; }
+.block li::marker { color: var(--accent); font-family: var(--data); font-size: .82em; }
+
+h3.sub, h4.sub {
+  font-family: var(--display);
+  font-size: 17px;
+  font-weight: 600;
+  margin: 24px 0 8px;
+  max-width: var(--read);
+}
+h4.sub { font-size: 15px; color: var(--ink-soft); }
+
+blockquote {
+  margin: 0 0 14px;
+  padding-left: 15px;
+  border-left: 2px solid var(--rule);
+  color: var(--ink-soft);
+  max-width: var(--read);
+}
+strong, b { font-weight: 600; }
+
+.is-brief ul { list-style: none; padding-left: 0; }
+.is-brief li {
+  padding: 8px 0 8px 18px;
+  border-bottom: 1px solid var(--rule-soft);
+  position: relative;
+}
+.is-brief li::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 17px;
+  width: 8px; height: 1px;
+  background: var(--accent);
+}
+.is-brief li:last-child { border-bottom: 0; }
+.is-result .block-title, .is-warning .block-title { color: var(--accent); }
+
+/* ------------------------------------------------------------------ código */
+
+pre {
+  max-width: var(--block);
+  overflow-x: auto;
+  background: var(--panel);
+  border: 1px solid var(--rule-soft);
+  border-left: 2px solid var(--accent);
+  padding: 13px 15px;
+  margin: 0 0 13px;
+}
+pre code {
+  font-family: var(--data);
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ink);
+  white-space: pre;
+}
+p code, li code, dd code, td code {
+  font-family: var(--data);
+  font-size: .87em;
+  padding: 1px 4px;
+  background: var(--panel);
+  border: 1px solid var(--rule-soft);
+}
+
+/* Diagramas: esquemas conceptuales generados, no figuras de datos.
+   Nacen del bloque ```diagrama y usan los tokens de arriba, asi que el tema lo
+   resuelve el CSS y no hacen falta dos versiones como en las figuras. */
+.diagram { margin: 0 0 22px; max-width: var(--block); }
+.chain {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: 30px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: none;
+}
+.node {
+  position: relative;
+  /* 130 y no 132: 132px es la columna de margen de Sílice y check_layout la
+     prohíbe en este proyecto, con razón, aunque aquí signifique otra cosa. */
+  flex: 1 1 130px;
+  min-width: 0;
+  padding: 11px 13px 12px;
+  background: var(--panel);
+  border: 1px solid var(--rule);
+  border-top: 2px solid var(--ink-faint);
+}
+/* La flecha entre cajas. Va en el hueco del gap, asi que no roba ancho al
+   texto y desaparece sola cuando las cajas se apilan. */
+.node + .node::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: -22px;
+  width: 14px;
+  height: 1px;
+  background: var(--ink-faint);
+}
+.node + .node::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: -11px;
+  width: 5px; height: 5px;
+  border-top: 1px solid var(--ink-faint);
+  border-right: 1px solid var(--ink-faint);
+  transform: translateY(-50%) rotate(45deg);
+}
+.node.lit { border-top-color: var(--accent); background: var(--stage); }
+.node.lit .node-name { color: var(--accent); }
+.node-name {
+  display: block;
+  font-family: var(--data);
+  font-size: 10.5px;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+.node-what { display: block; margin-top: 5px; font-size: 13.5px; color: var(--ink); }
+.node-note { display: block; margin-top: 4px; font-size: 12px; color: var(--ink-faint); }
+
+@media (max-width: 640px) {
+  /* Apiladas, con la flecha girada hacia abajo. */
+  .chain { flex-direction: column; gap: 26px; }
+  .node { flex: 1 1 auto; }
+  .node + .node::before {
+    top: -19px; left: 21px;
+    width: 1px; height: 12px;
+  }
+  .node + .node::after {
+    top: -9px; left: 19px;
+    transform: rotate(135deg);
+  }
+}
+
+.output { position: relative; margin: 0 0 13px; max-width: var(--block); }
+.output pre { margin: 0; border-left: 2px solid var(--ink-faint); background: transparent; }
+.output pre code { color: var(--ink-soft); }
+.output-tag {
+  position: absolute;
+  top: -7px; left: 13px;
+  z-index: 1;
+  font-family: var(--data);
+  font-size: 9px;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  background: var(--stage);
+  padding: 0 5px;
+}
+
+details.fold, details { margin: 0 0 13px; max-width: var(--block); }
+details > summary {
+  cursor: pointer;
+  font-family: var(--data);
+  font-size: 11px;
+  letter-spacing: .05em;
+  color: var(--ink-faint);
+  padding: 5px 0;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+details > summary::-webkit-details-marker { display: none; }
+details > summary::before {
+  content: "+";
+  width: 13px; height: 13px;
+  line-height: 12px;
+  text-align: center;
+  border: 1px solid var(--rule);
+  color: var(--accent);
+}
+details[open] > summary::before { content: "\2212"; }
+details > summary:hover { color: var(--accent); }
+
+.annot {
+  margin: 2px 0 4px;
+  padding: 11px 13px;
+  border: 1px solid var(--rule-soft);
+  background: var(--panel);
+}
+.annot dt { margin-bottom: 3px; }
+.annot dt code {
+  font-family: var(--data);
+  font-size: 12px;
+  color: var(--accent);
+  background: transparent;
+  border: 0;
+  padding: 0;
+}
+.annot dd { margin: 0 0 10px; font-size: 14.5px; color: var(--ink-soft); max-width: var(--read); }
+.annot dd:last-of-type { margin-bottom: 0; }
+
+.is-review details { border-bottom: 1px solid var(--rule-soft); margin: 0; }
+.is-review details > summary {
+  font-family: var(--prose);
+  font-size: 15.5px;
+  color: var(--ink);
+  padding: 11px 0;
+}
+.is-review details > summary:hover { color: var(--accent); }
+.is-review details p { margin: 0 0 11px 21px; color: var(--ink-soft); }
+
+/* ------------------------------------------------------------------ tablas */
+
+.table-wrap { max-width: var(--block); overflow-x: auto; margin: 0 0 15px; }
+table { border-collapse: collapse; font-size: 14.5px; }
+th, td {
+  text-align: left;
+  padding: 6px 15px 6px 0;
+  border-bottom: 1px solid var(--rule-soft);
+  vertical-align: top;
+}
+th {
+  font-family: var(--data);
+  font-size: 10px;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  font-weight: 400;
+  border-bottom-color: var(--rule);
+}
+tbody tr:last-child td { border-bottom: 0; }
+
+figure { margin: 0 0 17px; max-width: var(--block); }
+figure img { max-width: 100%; height: auto; display: block; }
+figcaption { font-size: 12.5px; color: var(--ink-faint); margin-top: 7px; max-width: var(--read); }
+
+.footer {
+  border-top: 1px solid var(--rule);
+  margin-top: 32px;
+  padding: 18px 0 0;
+  font-size: 12px;
+  color: var(--ink-faint);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px 20px;
+}
+.footer a { color: var(--ink-faint); }
+.gone { color: var(--ink-faint); }
+
+/* ---------------------------------------------- la consulta viva y el reto */
+
+.live {
+  max-width: var(--block);
+  margin: 0 0 17px;
+  border: 1px solid var(--rule);
+  background: var(--panel);
+}
+.live-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 13px;
+  border-bottom: 1px solid var(--rule-soft);
+  font-family: var(--data);
+  font-size: 10px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.live-editor {
+  width: 100%;
+  border: 0;
+  resize: vertical;
+  min-height: 112px;
+  padding: 12px 14px;
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--data);
+  font-size: 13px;
+  line-height: 1.6;
+  tab-size: 2;
+}
+.live-editor:focus { outline: 2px solid var(--accent); outline-offset: -2px; }
+.live-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 13px;
+  border-top: 1px solid var(--rule-soft);
+  flex-wrap: wrap;
+}
+.live-run {
+  font-family: var(--data);
+  font-size: 11px;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  padding: 7px 14px;
+  border: 1px solid var(--accent);
+  background: transparent;
+  color: var(--accent);
+  cursor: pointer;
+}
+.live-run:hover { background: var(--accent); color: var(--ground); }
+.live-run[disabled] { opacity: .5; cursor: default; }
+.live-run[disabled]:hover { background: transparent; color: var(--accent); }
+.live-status { font-family: var(--data); font-size: 10.5px; color: var(--ink-faint); }
+.live-out { max-width: 100%; overflow-x: auto; }
+.live-out table { margin: 0; width: 100%; font-size: 12.5px; }
+.live-out td, .live-out th { padding: 5px 13px 5px 0; }
+.live-out td:first-child, .live-out th:first-child { padding-left: 13px; }
+.live-out td { font-family: var(--data); font-size: 12px; }
+.live-err {
+  padding: 10px 14px;
+  font-family: var(--data);
+  font-size: 12px;
+  color: var(--simulated);
+  border-top: 1px solid var(--rule-soft);
+}
+
+.reto { border-left: 2px solid var(--accent); }
+.reto .live-head { color: var(--accent); }
+.reto-ask { padding: 12px 14px 2px; font-size: 15.5px; max-width: var(--read); }
+.verdict {
+  padding: 10px 14px;
+  border-top: 1px solid var(--rule-soft);
+  font-family: var(--data);
+  font-size: 12px;
+}
+.verdict.ok { color: var(--accent); }
+.verdict.no { color: var(--simulated); }
+
+.no-js .live-bar, .no-js .live-editor { display: none; }
+.no-js .live-static { display: block; }
+.live-static { display: none; }
+
+/* ---------------------------------------------------------- el doble trazo */
+
+.twin { max-width: var(--block); margin: 0 0 18px; }
+.twin svg { width: 100%; height: auto; display: block; }
+.twin .axis { stroke: var(--rule); fill: none; }
+.twin .tick { fill: var(--ink-faint); font-family: var(--data); font-size: 10px; }
+.twin .measured { stroke: var(--measured); fill: none; stroke-width: 1.8; }
+.twin .simulated { stroke: var(--simulated); fill: none; stroke-width: 1.8; stroke-dasharray: 5 4; }
+.twin .gap { fill: var(--simulated); opacity: .16; }
+.twin-key { display: flex; gap: 20px; flex-wrap: wrap; font-family: var(--data);
+            font-size: 11px; color: var(--ink-faint); margin-top: 6px; }
+.twin-key i { display: inline-block; width: 20px; height: 0; vertical-align: middle;
+              border-top-width: 2px; border-top-style: solid; margin-right: 7px; }
+.twin-key .k-measured i { border-color: var(--measured); }
+.twin-key .k-simulated i { border-top-style: dashed; border-color: var(--simulated); }
+
+.knob { display: flex; align-items: center; gap: 13px; flex-wrap: wrap; margin: 0 0 13px;
+        font-family: var(--data); font-size: 11px; color: var(--ink-faint); }
+.knob input[type="range"] { accent-color: var(--accent); flex: 1 1 200px; max-width: 300px; }
+.knob output { color: var(--accent); min-width: 72px; }
+
+/* -------------------------------------------------------- índice del curso */
+
+.toc { max-width: var(--block); }
+.toc .part {
+  font-family: var(--data);
+  font-size: 10px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin: 26px 0 2px;
+  padding-top: 11px;
+  border-top: 1px solid var(--rule);
+}
+.toc a, .toc .pending {
+  display: grid;
+  grid-template-columns: 34px 1fr auto;
+  gap: 15px;
+  align-items: baseline;
+  padding: 9px 6px 9px 8px;
+  border-bottom: 1px solid var(--rule-soft);
+  border-left: 2px solid transparent;
+  text-decoration: none;
+  color: var(--ink);
+}
+.toc a:hover { border-left-color: var(--accent); background: var(--panel); color: var(--accent); }
+.toc .pending { color: var(--ink-faint); }
+.toc .num { font-family: var(--data); font-size: 12px; color: var(--ink-faint); }
+.toc a:hover .num { color: var(--accent); }
+.toc .name { font-family: var(--display); font-size: 16px; }
+.toc .name small { display: block; font-family: var(--prose); color: var(--ink-faint);
+                   font-size: 13px; font-weight: 400; margin-top: 2px; max-width: 60ch; }
+.toc .mark { font-family: var(--data); font-size: 11px; color: var(--ink-faint); text-align: right; }
+.toc .tag { font-family: var(--data); font-size: 9.5px; letter-spacing: .1em;
+            text-transform: uppercase; color: var(--ink-faint); }
+
+/* ------------------------------------------------------------------- móvil */
+
+/* La barra deja de ser barra: pasa a cabecera compacta arriba, con los tramos en
+ * horizontal. La rejilla se colapsa a una columna. */
+@media (max-width: 900px) {
+  .shell { grid-template-columns: 1fr; }
+  .panel {
+    position: static;
+    height: auto;
+    border-right: 0;
+    border-bottom: 1px solid var(--rule);
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 16px;
+    padding: 13px 18px;
+  }
+  .panel-label { display: none; }
+  .panel .rail { display: flex; gap: 0 5px; flex-wrap: wrap; }
+  .rail-step { grid-template-columns: 11px auto; padding: 3px 0; font-size: 9.5px; }
+  .rail-step .range { display: none; }
+  .rail-step:not(:last-child)::after { display: none; }
+  .panel-figure { border-top: 0; padding-top: 0; }
+  .panel-figure .v { font-size: 13.5px; }
+  .panel-figure .l { display: none; }
+  .panel-progress { margin: 0; border-top: 0; padding-top: 0; }
+  .panel-bar { display: none; }
+  .stage-inner { padding: 0 18px; }
+  body { font-size: 16px; }
+  .head { padding-top: 22px; }
+  pre code { font-size: 12.5px; }
+}
+
+/* ------------------------------------------------- la perilla del gemelo */
+/*
+ * El doble trazo con su deslizador, de los modulos 24 y 25. El SVG llega ya
+ * dibujado del servidor, asi que sin JavaScript se ve igual: dos trazos, la
+ * referencia y la posicion de partida. El mando solo cambia cual se ensena.
+ *
+ * La regla de forma del curso: el color NUNCA es la unica pista. La referencia
+ * va punteada y en tono apagado, y la posicion elegida solida y en el acento.
+ */
+.perilla {
+  margin: 22px 0;
+  max-width: var(--block);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  background: var(--stage);
+  padding: 14px 16px 12px;
+}
+.perilla figcaption {
+  font-family: var(--data);
+  font-size: 11px;
+  color: var(--ink-faint);
+  letter-spacing: .02em;
+  margin-bottom: 10px;
+}
+.perilla svg { display: block; width: 100%; height: auto; }
+.perilla-referencia {
+  fill: none;
+  stroke: var(--ink-faint);
+  stroke-width: 1.4;
+  stroke-dasharray: 4 3;
+}
+.perilla-actual {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  transition: d .12s linear;
+}
+.perilla-pie {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 18px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--rule-soft);
+}
+.perilla-leyenda { font-size: 12px; color: var(--ink-faint); }
+.perilla-mandos {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+  font-family: var(--data);
+  font-size: 11px;
+  color: var(--ink-soft);
+}
+.perilla-mando { width: 190px; accent-color: var(--accent); }
+.perilla-mando[disabled] { opacity: .45; }
+.perilla-valor {
+  font-family: var(--data);
+  font-size: 12px;
+  color: var(--ink);
+  min-width: 88px;
+}
+.perilla-nota, .perilla-referencia-nota {
+  margin: 8px 0 0;
+  font-size: 12.5px;
+  color: var(--ink-soft);
+}
+.perilla-referencia-nota { color: var(--ink-faint); font-size: 12px; }
+
+@media (max-width: 620px) {
+  .perilla-mandos { margin-left: 0; width: 100%; }
+  .perilla-mando { flex: 1; width: auto; min-width: 0; }
+}
+
+/* ------------------------------------------------------ movimiento y papel */
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@media print {
+  .shell { display: block; }
+  .panel, .live-bar, .live-editor { display: none; }
+  .live-static { display: block; }
+  body { background: #fff; color: #000; }
+}
+
+/* ------------------------------------------------------ figuras, dos temas */
+
+/* Cada figura viaja dos veces, clara y oscura, y aquí se enseña la que toca.
+ * Con `<picture>` y una media query bastaría para la preferencia del sistema,
+ * pero no para el interruptor manual, y este curso respeta los dos. */
+.fig-oscuro { display: none; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .fig-claro { display: none; }
+  :root:not([data-theme="light"]) .fig-oscuro { display: block; }
+}
+:root[data-theme="dark"] .fig-claro { display: none; }
+:root[data-theme="dark"] .fig-oscuro { display: block; }
+
+/* El acento de este módulo, uno por tema. Los dos salen de src/site/palette.py
+   y los dos pasaron el contraste antes de llegar aquí. */
+:root { --accent: #437958; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --accent: #8EC7A2; }
+}
+:root[data-theme="dark"] { --accent: #8EC7A2; }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- La barra de instrumentos. No se mueve al bajar: el tramo del lago, la cifra
+       del módulo y el avance se quedan a la vista mientras se lee. -->
+  <aside class="panel">
+    <a class="panel-brand" href="index.en.html">Bellows
+      <small>Module 10 of 31</small></a>
+
+    <nav class="rail" aria-label="The arc of the project">
+      <p class="panel-label">the lake</p>
+      <span class="rail-step done"><i class="dot"></i><span>RAW</span><span class="range">1-3</span></span><span class="rail-step here"><i class="dot"></i><span>BRONZE</span><span class="range">4-13</span></span><span class="rail-step"><i class="dot"></i><span>SILVER</span><span class="range">14-16</span></span><span class="rail-step"><i class="dot"></i><span>GOLD</span><span class="range">17-22</span></span><span class="rail-step"><i class="dot"></i><span>TWIN</span><span class="range">23-31</span></span>
+    </nav>
+
+    <div class="panel-figure">
+      <span class="v">3.42 h against 23.81 h</span>
+      <span class="l">loaded time on a normal day and on the failure day</span>
+    </div>
+
+    <div class="panel-progress">
+      <b>10</b> of 31
+      <span class="panel-bar"><i style="width: 32%"></i></span>
+    </div>
+
+    <nav class="panel-nav"><a href="m09_tipos_y_decisiones.en.html" title="9. Types and decisions: when 8.2 is not 8.2">← 9</a><a href="m11_consultas_por_pasos.en.html" title="11. Queries in steps: subqueries and WITH">11 →</a><a class="portfolio-link" href="m10_agrupar.html" hreflang="es" rel="alternate">Español</a></nav>
+  </aside>
+
+  <main class="stage">
+    <div class="stage-inner">
+      <header class="head">
+        <p class="head-id"><b>10</b> <span>part: SQL, what actually gets used</span></p>
+        <h1>Grouping and summarising: GROUP BY</h1>
+        <p class="standfirst">From a million and a half readings to a seven month table that fits on screen. Counting, summing, averaging, and the mistake of averaging averages</p>
+      </header>
+
+      <section class="block is-brief"><span class="kicker">Summary</span><h2 class="block-title">In 30 seconds</h2><ul><li>A normal compressor on this train runs loaded <strong>3.42 hours a day</strong>.</li><li>On April 18th it ran <strong>23.81 hours out of 24</strong>. There was a failure that day.</li><li>Grouping is going from 1,516,948 readings to a seven month table that fits on screen.</li><li>The trap: only <strong>91 of the 212 days</strong> are complete. Averaging them all would give a false number.</li><li>The four documented failure days are among the six busiest of the half year.</li></ul></section>
+<section class="block "><span class="kicker">Context</span><h2 class="block-title">What this module solves</h2><p>Until now every query returned rows: many of them, one per reading. None answered an operations question, because operations questions are not about single readings.</p><p>Nobody asks what the sensor read at 04:31:20. They ask how hard the machine worked yesterday.</p><p><code>GROUP BY</code> is what turns the first into the second. It is the verb that makes a large table useful, and it is half the SQL anyone writes in a real job.</p></section>
+<section class="block is-toy"><span class="kicker">By hand</span><h2 class="block-title">Before the theory: a toy example</h2><p>Forget the million and a half rows. Look at one shift of six readings, one every ten minutes.</p><div class="table-wrap"><table><thead><tr><th>reading</th><th>time</th><th>loaded</th></tr></thead><tbody><tr><td>1</td><td>08:00</td><td>yes</td></tr><tr><td>2</td><td>08:10</td><td>yes</td></tr><tr><td>3</td><td>08:20</td><td>no</td></tr><tr><td>4</td><td>08:30</td><td>no</td></tr><tr><td>5</td><td>08:40</td><td>yes</td></tr><tr><td>6</td><td>08:50</td><td>no</td></tr></tbody></table></div><p><strong>Count by hand.</strong> There are six readings. Three say yes. Three say no.</p><p><strong>Turn it into time.</strong> Each reading stands for ten minutes, so three loaded readings are thirty minutes. The compressor worked <strong>half of that hour</strong>.</p><p>That number, thirty minutes, is called loaded time. And the sum you just did has exactly three steps: split into groups, count inside each group, and multiply by how long one reading lasts.</p><p><code>GROUP BY</code> does the first step. The aggregates do the second. The arithmetic is yours.</p><p>Now change two things and you have the real case: the groups are days instead of hours, and each reading lasts ten seconds instead of ten minutes.</p></section>
+<section class="block is-terms"><span class="kicker">Terms</span><h2 class="block-title">Glossary</h2><details class="fold"><summary>5 terms, in plain words</summary><ul><li><strong>Grouping.</strong> Sorting rows into piles by the value of a column. Every reading from April 18th goes into the April 18th pile.</li><li><strong>Aggregate.</strong> A function that takes a whole pile and returns a single number. Counting, summing and averaging are the three used constantly.</li><li><strong>Grain.</strong> What one row corresponds to. Before grouping, the grain is a reading. Afterwards, the grain is a day. Changing the grain is what <code>GROUP BY</code> does.</li><li><strong>Duty cycle.</strong> The fraction of time a machine spends actually working. Here, the hours the compressor spends loaded.</li><li><strong>Loaded.</strong> The compressor actually compressing air. The opposite is running offloaded, which draws current and fills nothing.</li></ul></details></section>
+<section class="block is-method"><span class="kicker">Method</span><h2 class="block-title">Step by step</h2><h3 class="sub">Step 1. Decide what one result row is</h3><p>Before writing anything, answer this: what do you want each row of the final table to be.</p><p>Here the answer is a day. That already tells you what goes after <code>GROUP BY</code>.</p><p>It is the most important decision in the module and the one most often skipped. Get the grain wrong and the query works while the number is wrong, which is the worst possible combination.</p><h3 class="sub">Step 2. Choose the signal that says it is working</h3><p>The file carries fifteen signals and three of them talk about the same thing. The official datasheet says <code>DV_eletric</code> is active when the compressor runs loaded, that <code>COMP</code> is active when air is <strong>not</strong> coming in, and that the motor current sits around 7 A under load.</p><p>Three sources for one fact ask to be checked against each other. That happens in step 4.</p><h3 class="sub">Step 3. Turn readings into time</h3><p>Counting readings is not measuring time. They look so alike that they are easy to confuse.</p><p>One reading every ten seconds means each loaded reading is worth ten seconds of work. Dividing by 3,600 gives hours. That <code>× 10 / 3600</code> is all the physics in this lesson.</p></section>
+<section class="block is-code"><span class="kicker">Code</span><h2 class="block-title">The code, in parts</h2><h3 class="sub">Step 4. Check the signals agree</h3><p>Before trusting <code>DV_eletric</code>, look at what the other two say when it says yes.</p><pre><code class="language-sql">SELECT DV_eletric, COMP, count(*) AS lecturas,
+       round(avg(Motor_current), 2) AS corriente_media
+FROM telemetria
+GROUP BY DV_eletric, COMP
+ORDER BY lecturas DESC;</code></pre><details class="fold"><summary>line by line, 6 entries</summary><dl class="annot"><dt><code>SELECT</code></dt><dd>picks which columns you want to see in the result</dd><dt><code>count(*)</code></dt><dd>counts the rows in each pile, without looking at any column</dd><dt><code>AS lecturas</code></dt><dd>names the calculated column so you can read it</dd><dt><code>avg(...)</code></dt><dd>averages the values in the pile</dd><dt><code>GROUP BY a, b</code></dt><dd>makes one pile per distinct combination of a and b</dd><dt><code>ORDER BY lecturas DESC</code></dt><dd>sorts high to low, DESC meaning descending</dd></dl></details><div class="output"><span class="output-tag">prints</span><pre><code>DV_eletric  COMP    lecturas    corriente_media
+         0     1   1,263,084               1.34
+         1     0     237,102               5.73
+         0     0      10,226               2.69
+         1     1       6,536               3.91</code></pre></div><p>The first two rows are the expected ones: when one signal says yes the other says no, and the current agrees. The last two should not exist.</p><p><strong>16,762 readings, 1.1 %, have both signals saying the same thing.</strong> Six thousand of them claim the compressor is loaded and taking in no air at the same time, which is impossible. It gets noted and left: module 16 deals with it. For counting hours, 1.1 % does not change the answer.</p><h3 class="sub">Step 5. Group by day</h3><p>Now the real query. Each result row will be a day.</p><p>You can run this one yourself: the button brings a database engine into the browser and runs it against the compressor&#x27;s real data. Change it and press again.</p><div class="live"><div class="live-head"><span>live query</span><span class="live-status">the engine downloads when you press</span></div><pre class="live-static"><code>SELECT day,
+       count(*) AS lecturas,
+       sum(CASE WHEN DV_eletric = 1 THEN 1 ELSE 0 END) * 10 / 3600.0 AS horas_de_carga
+FROM telemetria
+GROUP BY day
+ORDER BY horas_de_carga DESC
+LIMIT 6;</code></pre><textarea class="live-editor" spellcheck="false" aria-label="live query">SELECT day,
+       count(*) AS lecturas,
+       sum(CASE WHEN DV_eletric = 1 THEN 1 ELSE 0 END) * 10 / 3600.0 AS horas_de_carga
+FROM telemetria
+GROUP BY day
+ORDER BY horas_de_carga DESC
+LIMIT 6;</textarea><div class="live-bar"><button type="button" class="live-run">run</button></div><div class="live-out"></div></div><details class="fold"><summary>line by line, 4 entries</summary><dl class="annot"><dt><code>sum(CASE WHEN ... THEN 1 ELSE 0 END)</code></dt><dd>counts only the rows meeting the condition, putting a 1 where they do and a 0 where they do not</dd><dt><code>* 10</code></dt><dd>each reading is worth ten seconds</dd><dt><code>/ 3600.0</code></dt><dd>seconds to hours; the point forces division with decimals</dd><dt><code>LIMIT 6</code></dt><dd>cuts the result to six rows, after sorting it</dd></dl></details><div class="output"><span class="output-tag">prints</span><pre><code>day          lecturas   horas_de_carga
+2020-04-18       8663            23.81
+2020-06-06       7343            20.40
+2020-05-20       7462            20.19
+2020-03-29       7199            20.00
+2020-06-24       7162            15.91
+2020-06-23       7159            15.87</code></pre></div><p>Six busy days. But look at the middle column.</p><p>A whole day is 8,640 readings, and five of these six fall short. They are <strong>partial days</strong>, where the record was cut off. And they still show up at the very top.</p><p>That is not luck: it is this module&#x27;s trap surfacing. A day with seven thousand readings and many loaded hours climbs this list just like a complete one, and they are not comparable.</p><h3 class="sub">Step 6. The average, over complete days only</h3><p>To know what is normal you need an average, and here is where the trap of this module appears.</p><pre><code class="language-sql">SELECT round(avg(horas_de_carga), 2) AS media,
+       min(horas_de_carga) AS minimo,
+       max(horas_de_carga) AS maximo
+FROM (
+    SELECT day,
+           count(*) AS lecturas,
+           sum(CASE WHEN DV_eletric = 1 THEN 1 ELSE 0 END) * 10 / 3600.0 AS horas_de_carga
+    FROM telemetria GROUP BY day
+)
+WHERE lecturas &gt; 0.9 * 8640;</code></pre><details class="fold"><summary>line by line, 3 entries</summary><dl class="annot"><dt><code>FROM ( ... )</code></dt><dd>a query can drink from another query; the inner one resolves first</dd><dt><code>8640</code></dt><dd>the readings that fit in a whole day: 24 hours by 360 readings each hour</dd><dt><code>WHERE lecturas &gt; 0.9 * 8640</code></dt><dd>keeps only days holding at least 90 % of their readings</dd></dl></details><div class="output"><span class="output-tag">prints</span><pre><code>media   minimo   maximo
+ 3.42     1.11    23.81</code></pre></div><h3 class="sub">Step 7. Filtering groups with HAVING, and the order SQL works in</h3><p>In step 5 the query came out without filtering incomplete days. If you try adding a <code>WHERE</code> to keep only the complete ones, it does not work.</p><p>The reason is the order. <strong>SQL does not run in the order you write it.</strong> First it takes the rows (<code>FROM</code>), then filters them one by one (<code>WHERE</code>), then sorts them into piles (<code>GROUP BY</code>), and only then does something called &quot;how many readings this day has&quot; exist.</p><p><code>WHERE</code> arrives too early: when it acts, the piles do not exist yet. Filtering piles takes another word.</p><pre><code class="language-sql">SELECT day,
+       count(*) AS lecturas,
+       round(sum(CASE WHEN DV_eletric = 1 THEN 1 ELSE 0 END) * 10 / 3600.0, 2) AS horas_de_carga
+FROM telemetria
+GROUP BY day
+HAVING count(*) &gt; 0.9 * 8640
+ORDER BY horas_de_carga DESC
+LIMIT 6;</code></pre><details class="fold"><summary>line by line, 2 entries</summary><dl class="annot"><dt><code>HAVING</code></dt><dd>filters piles, not rows; only usable after GROUP BY</dd><dt><code>count(*) &gt; 0.9 * 8640</code></dt><dd>the same condition as step 6, without needing the inner query</dd></dl></details><div class="output"><span class="output-tag">prints</span><pre><code>day          lecturas   horas_de_carga
+2020-04-18       8663            23.81
+2020-06-05       8716            15.41
+2020-03-12       8202            13.24
+2020-07-15       8661            11.57
+2020-05-13       8716            11.31
+2020-05-30       8617             8.06</code></pre></div><p>Same result as step 5, but now with the guarantee that no partial day slipped in. And shorter than step 6, which needed a query inside another.</p><p>So why did step 6 use that nested query? Because there the average was computed <strong>over a value that was already the result of grouping</strong>. That is a second level, and <code>HAVING</code> does not reach it: you have to group once, keep the result, and group again on top. Module 11 is about that.</p></section>
+<section class="block is-result"><span class="kicker">Result</span><h2 class="block-title">The result, measured</h2><p><strong>What we expected.</strong> A service compressor on a train should spend considerably more time stopped than working. Somewhere between two and five hours a day would be reasonable.</p><p><strong>What came out.</strong> <strong>3.42 h against 23.81 h</strong>: what the compressor runs loaded on a normal day, averaged over the 91 complete days, against what it ran on the day of the first failure. The full range goes from 1.11 to 23.81. Month by month:</p><div class="table-wrap"><table><thead><tr><th>month</th><th>complete days</th><th>loaded hours</th></tr></thead><tbody><tr><td>2020-02</td><td>11</td><td>1.45</td></tr><tr><td>2020-03</td><td>15</td><td>3.58</td></tr><tr><td>2020-04</td><td>11</td><td>4.27</td></tr><tr><td>2020-05</td><td>13</td><td>3.61</td></tr><tr><td>2020-06</td><td>16</td><td>4.02</td></tr><tr><td>2020-07</td><td>13</td><td>3.78</td></tr><tr><td>2020-08</td><td>12</td><td>2.81</td></tr></tbody></table></div><p><strong>What it means.</strong> The average falls inside what is reasonable, so the chosen signal behaves as it should. The interesting part is not the average, it is what departs from it.</p><p>On April 18th the compressor was loaded <strong>98.9 %</strong> of the day. That is seven times normal, and that date is the first documented failure in the file. The line pressure did not move: the system held it. What moved was the effort needed to hold it.</p><p>There sits the idea the rest of the course rests on, and it turned up with a grouping query, long before building any model.</p><p>Two warnings, so as not to oversell it. Two of those six days, March 12th and May 13th, <strong>appear in no failure report</strong>. Either they are false alarms, or they are failures nobody reported. It is not known, and it gets said.</p></section>
+<section class="block is-warning"><span class="kicker">Traps</span><h2 class="block-title">Watch out</h2><ul><li><strong>Averaging incomplete days lies.</strong> Only 91 of the 212 days hold 90 % of their readings. The median day has 7,435 readings, where 8,640 fit. Without the filter, a day with two hours of record enters the average as though it were a whole day.</li><li><strong>Counting readings is not measuring time.</strong> They are the same thing only if sampling is regular, and here it is not entirely: module 1 measured 179,426 irregular gaps.</li><li><strong><code>count(*)</code> counts rows; <code>count(column)</code> counts values present.</strong> They look alike and diverge the moment there is a hole.</li><li><strong>A column not in <code>GROUP BY</code> cannot appear in <code>SELECT</code></strong> without saying how it is summarised. It is the commonest beginner error, and the message the database returns explains it well.</li><li><strong><code>WHERE</code> cannot filter an average.</strong> The real order is <code>FROM</code>, <code>WHERE</code>, <code>GROUP BY</code>, <code>HAVING</code>, <code>SELECT</code>, <code>ORDER BY</code>, <code>LIMIT</code>. When <code>WHERE</code> acts, the piles do not exist yet. Understanding that order fixes half of a beginner&#x27;s errors.</li><li><strong>The grain changes under your feet.</strong> After grouping by day, one row is no longer one reading. Everything you write from there has to account for that.</li></ul></section>
+<section class="block is-live"><span class="kicker">Your turn</span><h2 class="block-title">Do it yourself</h2><p>The query below works and groups by day. Change it so it groups by month.</p><p class="reto-ask">Return two columns, <code>mes</code> and <code>horas_de_carga</code>, with the average loaded hours of each month, counting only complete days. Seven rows, from <code>2020-02</code> to <code>2020-08</code>.</p><div class="live reto" data-expected='[[&quot;2020-02&quot;, 1.45], [&quot;2020-03&quot;, 3.58], [&quot;2020-04&quot;, 4.27], [&quot;2020-05&quot;, 3.61], [&quot;2020-06&quot;, 4.02], [&quot;2020-07&quot;, 3.78], [&quot;2020-08&quot;, 2.81]]'><div class="live-head"><span>challenge</span><span class="live-status">the engine downloads when you press</span></div><pre class="live-static"><code>SELECT day,
+       round(sum(CASE WHEN DV_eletric = 1 THEN 1 ELSE 0 END) * 10 / 3600.0, 2) AS horas
+FROM telemetria
+GROUP BY day
+ORDER BY day;</code></pre><textarea class="live-editor" spellcheck="false" aria-label="challenge">SELECT day,
+       round(sum(CASE WHEN DV_eletric = 1 THEN 1 ELSE 0 END) * 10 / 3600.0, 2) AS horas
+FROM telemetria
+GROUP BY day
+ORDER BY day;</textarea><div class="live-bar"><button type="button" class="live-run">check</button></div><div class="live-out"></div><div class="verdict"></div><details class="fold"><summary>a hint</summary><p>You have to group twice. First by day, to get each day&#x27;s hours, and then by month to average them. The inner query goes in parentheses after FROM, as in step 6. To pull the month out of a date, <code>strftime(day, &#x27;%Y-%m&#x27;)</code>.</p></details><details class="fold"><summary>see the solution</summary><pre><code>SELECT strftime(day, &#x27;%Y-%m&#x27;) AS mes,
+       round(avg(horas), 2) AS horas_de_carga
+FROM (
+    SELECT day,
+           count(*) AS lecturas,
+           sum(CASE WHEN DV_eletric = 1 THEN 1 ELSE 0 END) * 10 / 3600.0 AS horas
+    FROM telemetria
+    GROUP BY day
+)
+WHERE lecturas &gt; 0.9 * 8640
+GROUP BY mes
+ORDER BY mes;</code></pre></details></div></section>
+<section class="block is-bridge"><span class="kicker">Analogy</span><h2 class="block-title">Metallurgical bridge</h2><p>In a flotation cell, concentrate grade is held up by the control loop. If the feed gets dirtier, the operator raises the collector dosage and the grade holds. Anyone watching only the grade will say nothing happened.</p><p>What happened shows in the reagent consumption, not in the grade.</p><p>The same thing occurs here on another machine. Line pressure is the grade: the control holds it and it does not move. Duty cycle is the dosage: it is what rises when something goes wrong. That is why this module measures loaded hours and not mean pressure.</p><p>It is the same lesson the causal reading of the silica project left, on a different machine: <strong>watch the manipulated variable, because the controlled one will lie to you.</strong></p></section>
+<section class="block is-review"><span class="kicker">Review</span><h2 class="block-title">Review</h2><details><summary>Why group by day and not by hour, when the data comes every ten seconds</summary><p>Because the grain is decided by the question, not by the data. The question is how hard the machine works in a shift, so each result row has to be a day. The ten second data is still down there, and grouping by hour would be another query for another question.</p></details><details><summary>What exactly does <code>sum(CASE WHEN condition THEN 1 ELSE 0 END)</code> do</summary><p>It counts only the rows meeting the condition. It puts a one where they do and a zero where they do not, and adds them up. It is the portable way of counting with a condition, and it works in any database.</p></details><details><summary>Why filter out incomplete days, and why at 90 %</summary><p>Because a day with two hours of record would enter the average as a whole day and drag it down. The 90 % is not sacred: it is the cut that excludes plainly broken days without throwing away those missing only a small gap. With another threshold the average barely moves, and that is worth checking before defending it.</p></details><details><summary>The busiest day was 23.81 hours. How do you know it is not a sensor fault</summary><p>I do not know from the query alone, and that is the point. What I know is that the date coincides with a failure documented by the company, and that three other failure dates are also among the six busiest. Four matches out of four do not prove causation, but they rule out sensor coincidence.</p></details><details><summary>Somebody tells you the fleet&#x27;s mean duty cycle is 3.4 hours. What do you ask</summary><p>Which days it is computed over. An average without its denominator means nothing. In this very file, the mean over all 212 days and the mean over the 91 complete ones are two different numbers, and only one of them answers the question that was asked.</p></details></section>
+
+      <footer class="footer">
+        <span>Bellows / Module 10</span>
+        <span>generated on 2026-09-03</span>
+        <span>source: MetroPT-3, from a Porto Metro train compressor (CC BY 4.0)</span>
+      </footer>
+    </div>
+  </main>
+
+</div>
+<!-- El motor SQL no se descarga aquí: este fichero solo conecta los botones.
+     Los 8 MB llegan cuando el lector pulsa, y no antes. -->
+<script type="module" src="live.js"></script>
+<script src="perilla.js" defer></script>
+</body>
+</html>

@@ -44,7 +44,14 @@ SETTLE_BY_PROJECT = {"froth": 40000, "bg-remover": 2500}
 # previews expect, and it needs reduced motion or headless catches the curtain
 # mid-animation and writes a black rectangle.
 WINDOW_BY_PROJECT = {"home": (1200, 630)}
-FLAGS_BY_PROJECT = {"home": ["--force-prefers-reduced-motion"]}
+FLAGS_BY_PROJECT = {"home": ["--force-prefers-reduced-motion"],
+                    # The course's dial sweeps to its figure on arrival; reduced motion
+                    # paints the final state, which is what the card should show. And
+                    # dark, because the course follows the system theme and headless asks
+                    # for light: the light edition is paper, the look Silica and the
+                    # geostatistics course already show on this page, and the control
+                    # room dark is what tells this one apart.
+                    "fuelle": ["--force-prefers-reduced-motion", "--force-dark-mode"]}
 
 # Where each browser lives on Windows, most preferred first.
 BROWSERS = [
@@ -72,6 +79,11 @@ PROJECTS = {
     "geostat": ((ROOT.parent / "Geoestadistica" / "out" / "en" / "index.html").as_uri(),
                 "geostat-index.png",
                 "Oro bajo el ruido. Corre python src/build_site.py en Geoestadistica."),
+    # Static too, and read from disk: the index needs no server, only the SQL engine
+    # does, and the index never loads it.
+    "fuelle": ((ROOT.parent / "Fuelle" / "out" / "index.en.html").as_uri(),
+               "fuelle-index.png",
+               "Fuelle. Corre .venv\Scripts\python.exe src\site\build_site.py en Fuelle."),
 }
 
 

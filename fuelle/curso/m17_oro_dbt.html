@@ -1,0 +1,1064 @@
+<!doctype html>
+<html lang="es" class="no-js" data-assets="../assets" data-tablas="horas=horas.parquet,clima=clima.parquet">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Oro con dbt: modelar en SQL y que el linaje se dibuje solo · Fuelle, módulo 17</title>
+<link rel="alternate" hreflang="en" href="m17_oro_dbt.en.html">
+<style>
+/* Fuelle: la hoja de estilo del curso.
+ *
+ * REESCRITA ENTERA el 2026-08-30. La primera versión heredó la plantilla de Sílice
+ * junto con su motor, y Kevin la vio y dijo: "se parece a las otras 20 páginas de
+ * portafolio, el landing, coursera, silica, se ve y se siente igual". Tenía razón.
+ * Medido: mismo ancho de prosa (680), mismo ancho de bloques (1180), misma columna
+ * de margen (132), misma secuencia de cabecera, 36 clases compartidas de 40.
+ * Cambiar papel por grafito no toca la silueta, y la silueta es lo que se siente.
+ *
+ * Los cuatro sitios de Kevin son una columna de texto centrada, sin barra lateral,
+ * sin rejilla y sin nada pegajoso. Este es lo contrario: PANEL DE CONTROL. Una barra
+ * fija a la izquierda con los instrumentos siempre a la vista, y el contenido a su
+ * derecha. Ninguna de las tres medidas heredadas aparece aquí, y check_layout.py
+ * falla si alguna reaparece.
+ *
+ * El encargo que ordena las decisiones sigue siendo el mismo: "no muy escandaloso,
+ * que parezca ingeniero, pero que demuestres habilidades, que no seas un pdf que se
+ * lee de recorrido". La sobriedad va en la superficie, la ambición en lo que hace.
+ */
+
+/* --------------------------------------------------------------- tipografía */
+
+/* IBM Plex, autoalojada, OFL-1.1. Los cuatro sitios de Kevin usan la fuente del
+ * sistema, y eso es la otra mitad del "se siente igual". Plex tiene aire de
+ * documentación de ingeniería, que es exactamente el encargo.
+ *
+ * Cinco cortes y no tres: sin las semi-negritas el navegador falsifica la negrita
+ * engordando el trazo, y en una fuente técnica se nota enseguida. 289 KB en total,
+ * que se pueden bajar a unos 60 recortando al alfabeto latino con fonttools si
+ * llega a molestar. */
+@font-face {
+  font-family: "Plex Cond";
+  src: url("../assets/fonts/PlexSansCondensed-SemiBold.woff2") format("woff2");
+  font-weight: 600; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Plex";
+  src: url("../assets/fonts/PlexSans-Regular.woff2") format("woff2");
+  font-weight: 400; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Plex";
+  src: url("../assets/fonts/PlexSans-SemiBold.woff2") format("woff2");
+  font-weight: 600; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Plex Mono";
+  src: url("../assets/fonts/PlexMono-Regular.woff2") format("woff2");
+  font-weight: 400; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Plex Mono";
+  src: url("../assets/fonts/PlexMono-SemiBold.woff2") format("woff2");
+  font-weight: 600; font-style: normal; font-display: swap;
+}
+
+/* ------------------------------------------------------------------ tokens */
+
+:root {
+  --ground: #f4f2ee;
+  --panel: #e9e6e0;
+  --stage: #fbfaf8;
+  --ink: #191d20;
+  --ink-soft: #4c545a;
+  --ink-faint: #7c868d;
+  --rule: #d6d1c8;
+  --rule-soft: #e4e0d8;
+  --grid: rgba(25, 29, 32, .05);
+  --accent: #46787e;
+  --measured: #3d505b;
+  --simulated: #b57542;
+
+  --prose: "Plex", system-ui, "Segoe UI", Roboto, sans-serif;
+  --display: "Plex Cond", "Plex", system-ui, sans-serif;
+  --data: "Plex Mono", "Cascadia Mono", Consolas, monospace;
+
+  /* Medidas NUEVAS. Ninguna puede coincidir con las heredadas de Sílice
+   * (680 de prosa, 1180 de bloques, 132 de margen): volver a ellas es volver a
+   * la misma página, y hay un verificador que lo impide. */
+  --rail: 268px;      /* la barra fija, que ninguno de los otros sitios tiene */
+  --read: 646px;      /* la medida de la prosa, en píxeles y nunca en ch */
+  --block: 980px;     /* el borde derecho de los bloques anchos */
+
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ground: #101417;
+    --panel: #171c20;
+    --stage: #14181b;
+    --ink: #e2e7ea;
+    --ink-soft: #a6b0b6;
+    --ink-faint: #717e85;
+    --rule: #293036;
+    --rule-soft: #20272b;
+    --grid: rgba(226, 231, 234, .045);
+    --accent: #8ec2c8;
+    --measured: #cbe2ef;
+    --simulated: #c98754;
+  }
+}
+
+:root[data-theme="dark"] {
+  --ground: #101417;
+  --panel: #171c20;
+  --stage: #14181b;
+  --ink: #e2e7ea;
+  --ink-soft: #a6b0b6;
+  --ink-faint: #717e85;
+  --rule: #293036;
+  --rule-soft: #20272b;
+  --grid: rgba(226, 231, 234, .045);
+  --accent: #8ec2c8;
+  --measured: #cbe2ef;
+  --simulated: #c98754;
+}
+
+/* --------------------------------------------------------------- cimientos */
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--stage);
+  color: var(--ink);
+  font-family: var(--prose);
+  font-size: 16.5px;
+  line-height: 1.6;
+}
+
+::selection { background: var(--accent); color: var(--ground); }
+a { color: var(--accent); text-underline-offset: .18em; }
+
+/* LA REJILLA. Esto es lo que ninguno de los otros cuatro sitios tiene, y es la
+ * razón de que la página deje de sentirse igual: el texto ya no está centrado en
+ * la ventana, está al lado de un panel de instrumentos. */
+.shell {
+  display: grid;
+  grid-template-columns: var(--rail) minmax(0, 1fr);
+  min-height: 100vh;
+}
+
+/* -------------------------------------------------- la barra de instrumentos */
+
+.panel {
+  position: sticky;   /* lo primero pegajoso de todo el portafolio */
+  top: 0;
+  align-self: start;
+  height: 100vh;
+  overflow-y: auto;
+  padding: 22px 20px 22px;
+  background: var(--panel);
+  border-right: 1px solid var(--rule);
+  background-image: radial-gradient(var(--grid) 1px, transparent 1px);
+  background-size: 22px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.panel-brand {
+  font-family: var(--display);
+  font-size: 19px;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  color: var(--ink);
+  text-decoration: none;
+  display: block;
+}
+.panel-brand small {
+  display: block;
+  font-family: var(--data);
+  font-size: 10px;
+  letter-spacing: .08em;
+  color: var(--ink-faint);
+  text-transform: none;
+  margin-top: 4px;
+}
+
+.panel-label {
+  font-family: var(--data);
+  font-size: 9.5px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding-bottom: 7px;
+  border-bottom: 1px solid var(--rule);
+  margin-bottom: 10px;
+}
+
+/* El grafo del lago, EN VERTICAL. Antes iba horizontal y solo en la portada;
+ * aquí acompaña al lector todo el curso y marca en qué capa está. */
+.rail-step {
+  display: grid;
+  grid-template-columns: 15px 1fr auto;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 0;
+  font-family: var(--data);
+  font-size: 11px;
+  letter-spacing: .08em;
+  color: var(--ink-faint);
+  text-decoration: none;
+  position: relative;
+}
+.rail-step .dot {
+  width: 9px; height: 9px;
+  border: 1px solid var(--ink-faint);
+  border-radius: 50%;
+  justify-self: center;
+}
+.rail-step:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  left: 7px; top: 25px;
+  width: 1px; height: calc(100% - 17px);
+  background: var(--rule);
+}
+.rail-step.done { color: var(--ink-soft); }
+.rail-step.done .dot { background: var(--ink-faint); border-color: var(--ink-faint); }
+.rail-step.here { color: var(--accent); }
+.rail-step.here .dot { background: var(--accent); border-color: var(--accent); }
+.rail-step .range { font-size: 9.5px; opacity: .75; }
+
+/* La cifra del módulo ya no es una caja en una cabecera gigante: vive aquí y se
+ * queda a la vista mientras se lee la lección entera. */
+.panel-figure { border-top: 1px solid var(--rule); padding-top: 14px; }
+.panel-figure .v {
+  display: block;
+  font-family: var(--data);
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 1.3;
+  color: var(--accent);
+}
+.panel-figure .l {
+  display: block;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--ink-faint);
+  margin-top: 5px;
+}
+
+.panel-progress {
+  margin-top: auto;
+  border-top: 1px solid var(--rule);
+  padding-top: 13px;
+  font-family: var(--data);
+  font-size: 11px;
+  color: var(--ink-faint);
+}
+.panel-progress b { color: var(--ink); font-weight: 600; }
+.panel-bar { height: 2px; background: var(--rule); margin-top: 7px; }
+.panel-bar i { display: block; height: 2px; background: var(--accent); }
+
+.panel-nav { display: flex; gap: 7px; flex-wrap: wrap; }
+.panel-nav a {
+  font-family: var(--data);
+  font-size: 10.5px;
+  letter-spacing: .06em;
+  padding: 6px 9px;
+  border: 1px solid var(--rule);
+  text-decoration: none;
+  color: var(--ink-soft);
+}
+.panel-nav a:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ------------------------------------------------------------- el contenido */
+
+.stage { background: var(--stage); padding: 0 0 54px; min-width: 0; }
+.stage-inner { max-width: var(--block); padding: 0 40px; }
+
+/* La cabecera ya no ocupa media pantalla: una línea de identificación y el
+ * título. La cifra y la navegación se fueron a la barra. */
+.head {
+  padding: 30px 0 20px;
+  border-bottom: 1px solid var(--rule);
+  margin-bottom: 4px;
+}
+.head-id {
+  font-family: var(--data);
+  font-size: 10.5px;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  display: flex;
+  gap: 14px;
+  align-items: baseline;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.head-id b { color: var(--accent); font-weight: 600; }
+.head h1 {
+  font-family: var(--display);
+  font-size: clamp(26px, 3.3vw, 37px);
+  line-height: 1.08;
+  font-weight: 600;
+  margin: 0 0 10px;
+  max-width: 22ch;
+}
+.head .standfirst {
+  color: var(--ink-soft);
+  font-size: 16.5px;
+  line-height: 1.5;
+  max-width: var(--read);
+  margin: 0;
+}
+
+/* Las secciones ya no cuelgan de un margen de 132 px: la etiqueta va encima, en
+ * un recuadro pequeño, y el texto empieza en el borde. */
+.block { padding: 26px 0 2px; border-top: 1px solid var(--rule-soft); }
+.block:first-of-type { border-top: 0; }
+
+.kicker {
+  display: inline-block;
+  font-family: var(--data);
+  font-size: 9.5px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  border: 1px solid var(--rule);
+  padding: 2px 7px;
+  margin-bottom: 11px;
+}
+
+.block-title {
+  font-family: var(--display);
+  font-size: 22px;
+  font-weight: 600;
+  margin: 0 0 11px;
+  max-width: var(--read);
+}
+
+/* Justificado desde 33rem de columna y rasgado en móvil: la regla que Kevin
+ * fijó en el portafolio el 2026-08-22, después de medir que a 375 px salían
+ * huecos de 7,65x y ríos en cinco de cada seis líneas. Aquí la prosa mide 646 px
+ * (unos 40rem), así que le toca justificado.
+ *
+ * Y NADA de `hyphens`: sin guionado, por la regla de la casa. El precio es que
+ * hay que vigilar los ríos, y eso se mide con src/site/check_rivers.py en vez de
+ * mirarlo de reojo. */
+.block p, .block li { max-width: var(--read); }
+
+@media (min-width: 34rem) {
+  .block p,
+  .block li,
+  .standfirst,
+  .reto-ask,
+  .annot dd,
+  blockquote,
+  .is-review details p { text-align: justify; text-justify: inter-word; }
+  /* Tablas, código, pies de figura y la barra nunca se justifican: sus líneas
+   * son cortas y el hueco se vuelve un agujero. */
+  figcaption, th, td, pre, .panel, .live-status, .toc { text-align: left; }
+}
+.block p { margin: 0 0 14px; }
+.block ul, .block ol { padding-left: 21px; margin: 0 0 14px; }
+.block li { margin-bottom: 6px; }
+.block li::marker { color: var(--accent); font-family: var(--data); font-size: .82em; }
+
+h3.sub, h4.sub {
+  font-family: var(--display);
+  font-size: 17px;
+  font-weight: 600;
+  margin: 24px 0 8px;
+  max-width: var(--read);
+}
+h4.sub { font-size: 15px; color: var(--ink-soft); }
+
+blockquote {
+  margin: 0 0 14px;
+  padding-left: 15px;
+  border-left: 2px solid var(--rule);
+  color: var(--ink-soft);
+  max-width: var(--read);
+}
+strong, b { font-weight: 600; }
+
+.is-brief ul { list-style: none; padding-left: 0; }
+.is-brief li {
+  padding: 8px 0 8px 18px;
+  border-bottom: 1px solid var(--rule-soft);
+  position: relative;
+}
+.is-brief li::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 17px;
+  width: 8px; height: 1px;
+  background: var(--accent);
+}
+.is-brief li:last-child { border-bottom: 0; }
+.is-result .block-title, .is-warning .block-title { color: var(--accent); }
+
+/* ------------------------------------------------------------------ código */
+
+pre {
+  max-width: var(--block);
+  overflow-x: auto;
+  background: var(--panel);
+  border: 1px solid var(--rule-soft);
+  border-left: 2px solid var(--accent);
+  padding: 13px 15px;
+  margin: 0 0 13px;
+}
+pre code {
+  font-family: var(--data);
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ink);
+  white-space: pre;
+}
+p code, li code, dd code, td code {
+  font-family: var(--data);
+  font-size: .87em;
+  padding: 1px 4px;
+  background: var(--panel);
+  border: 1px solid var(--rule-soft);
+}
+
+/* Diagramas: esquemas conceptuales generados, no figuras de datos.
+   Nacen del bloque ```diagrama y usan los tokens de arriba, asi que el tema lo
+   resuelve el CSS y no hacen falta dos versiones como en las figuras. */
+.diagram { margin: 0 0 22px; max-width: var(--block); }
+.chain {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: 30px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: none;
+}
+.node {
+  position: relative;
+  /* 130 y no 132: 132px es la columna de margen de Sílice y check_layout la
+     prohíbe en este proyecto, con razón, aunque aquí signifique otra cosa. */
+  flex: 1 1 130px;
+  min-width: 0;
+  padding: 11px 13px 12px;
+  background: var(--panel);
+  border: 1px solid var(--rule);
+  border-top: 2px solid var(--ink-faint);
+}
+/* La flecha entre cajas. Va en el hueco del gap, asi que no roba ancho al
+   texto y desaparece sola cuando las cajas se apilan. */
+.node + .node::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: -22px;
+  width: 14px;
+  height: 1px;
+  background: var(--ink-faint);
+}
+.node + .node::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: -11px;
+  width: 5px; height: 5px;
+  border-top: 1px solid var(--ink-faint);
+  border-right: 1px solid var(--ink-faint);
+  transform: translateY(-50%) rotate(45deg);
+}
+.node.lit { border-top-color: var(--accent); background: var(--stage); }
+.node.lit .node-name { color: var(--accent); }
+.node-name {
+  display: block;
+  font-family: var(--data);
+  font-size: 10.5px;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+.node-what { display: block; margin-top: 5px; font-size: 13.5px; color: var(--ink); }
+.node-note { display: block; margin-top: 4px; font-size: 12px; color: var(--ink-faint); }
+
+@media (max-width: 640px) {
+  /* Apiladas, con la flecha girada hacia abajo. */
+  .chain { flex-direction: column; gap: 26px; }
+  .node { flex: 1 1 auto; }
+  .node + .node::before {
+    top: -19px; left: 21px;
+    width: 1px; height: 12px;
+  }
+  .node + .node::after {
+    top: -9px; left: 19px;
+    transform: rotate(135deg);
+  }
+}
+
+.output { position: relative; margin: 0 0 13px; max-width: var(--block); }
+.output pre { margin: 0; border-left: 2px solid var(--ink-faint); background: transparent; }
+.output pre code { color: var(--ink-soft); }
+.output-tag {
+  position: absolute;
+  top: -7px; left: 13px;
+  z-index: 1;
+  font-family: var(--data);
+  font-size: 9px;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  background: var(--stage);
+  padding: 0 5px;
+}
+
+details.fold, details { margin: 0 0 13px; max-width: var(--block); }
+details > summary {
+  cursor: pointer;
+  font-family: var(--data);
+  font-size: 11px;
+  letter-spacing: .05em;
+  color: var(--ink-faint);
+  padding: 5px 0;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+details > summary::-webkit-details-marker { display: none; }
+details > summary::before {
+  content: "+";
+  width: 13px; height: 13px;
+  line-height: 12px;
+  text-align: center;
+  border: 1px solid var(--rule);
+  color: var(--accent);
+}
+details[open] > summary::before { content: "\2212"; }
+details > summary:hover { color: var(--accent); }
+
+.annot {
+  margin: 2px 0 4px;
+  padding: 11px 13px;
+  border: 1px solid var(--rule-soft);
+  background: var(--panel);
+}
+.annot dt { margin-bottom: 3px; }
+.annot dt code {
+  font-family: var(--data);
+  font-size: 12px;
+  color: var(--accent);
+  background: transparent;
+  border: 0;
+  padding: 0;
+}
+.annot dd { margin: 0 0 10px; font-size: 14.5px; color: var(--ink-soft); max-width: var(--read); }
+.annot dd:last-of-type { margin-bottom: 0; }
+
+.is-review details { border-bottom: 1px solid var(--rule-soft); margin: 0; }
+.is-review details > summary {
+  font-family: var(--prose);
+  font-size: 15.5px;
+  color: var(--ink);
+  padding: 11px 0;
+}
+.is-review details > summary:hover { color: var(--accent); }
+.is-review details p { margin: 0 0 11px 21px; color: var(--ink-soft); }
+
+/* ------------------------------------------------------------------ tablas */
+
+.table-wrap { max-width: var(--block); overflow-x: auto; margin: 0 0 15px; }
+table { border-collapse: collapse; font-size: 14.5px; }
+th, td {
+  text-align: left;
+  padding: 6px 15px 6px 0;
+  border-bottom: 1px solid var(--rule-soft);
+  vertical-align: top;
+}
+th {
+  font-family: var(--data);
+  font-size: 10px;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  font-weight: 400;
+  border-bottom-color: var(--rule);
+}
+tbody tr:last-child td { border-bottom: 0; }
+
+figure { margin: 0 0 17px; max-width: var(--block); }
+figure img { max-width: 100%; height: auto; display: block; }
+figcaption { font-size: 12.5px; color: var(--ink-faint); margin-top: 7px; max-width: var(--read); }
+
+.footer {
+  border-top: 1px solid var(--rule);
+  margin-top: 32px;
+  padding: 18px 0 0;
+  font-size: 12px;
+  color: var(--ink-faint);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px 20px;
+}
+.footer a { color: var(--ink-faint); }
+.gone { color: var(--ink-faint); }
+
+/* ---------------------------------------------- la consulta viva y el reto */
+
+.live {
+  max-width: var(--block);
+  margin: 0 0 17px;
+  border: 1px solid var(--rule);
+  background: var(--panel);
+}
+.live-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 13px;
+  border-bottom: 1px solid var(--rule-soft);
+  font-family: var(--data);
+  font-size: 10px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.live-editor {
+  width: 100%;
+  border: 0;
+  resize: vertical;
+  min-height: 112px;
+  padding: 12px 14px;
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--data);
+  font-size: 13px;
+  line-height: 1.6;
+  tab-size: 2;
+}
+.live-editor:focus { outline: 2px solid var(--accent); outline-offset: -2px; }
+.live-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 13px;
+  border-top: 1px solid var(--rule-soft);
+  flex-wrap: wrap;
+}
+.live-run {
+  font-family: var(--data);
+  font-size: 11px;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  padding: 7px 14px;
+  border: 1px solid var(--accent);
+  background: transparent;
+  color: var(--accent);
+  cursor: pointer;
+}
+.live-run:hover { background: var(--accent); color: var(--ground); }
+.live-run[disabled] { opacity: .5; cursor: default; }
+.live-run[disabled]:hover { background: transparent; color: var(--accent); }
+.live-status { font-family: var(--data); font-size: 10.5px; color: var(--ink-faint); }
+.live-out { max-width: 100%; overflow-x: auto; }
+.live-out table { margin: 0; width: 100%; font-size: 12.5px; }
+.live-out td, .live-out th { padding: 5px 13px 5px 0; }
+.live-out td:first-child, .live-out th:first-child { padding-left: 13px; }
+.live-out td { font-family: var(--data); font-size: 12px; }
+.live-err {
+  padding: 10px 14px;
+  font-family: var(--data);
+  font-size: 12px;
+  color: var(--simulated);
+  border-top: 1px solid var(--rule-soft);
+}
+
+.reto { border-left: 2px solid var(--accent); }
+.reto .live-head { color: var(--accent); }
+.reto-ask { padding: 12px 14px 2px; font-size: 15.5px; max-width: var(--read); }
+.verdict {
+  padding: 10px 14px;
+  border-top: 1px solid var(--rule-soft);
+  font-family: var(--data);
+  font-size: 12px;
+}
+.verdict.ok { color: var(--accent); }
+.verdict.no { color: var(--simulated); }
+
+.no-js .live-bar, .no-js .live-editor { display: none; }
+.no-js .live-static { display: block; }
+.live-static { display: none; }
+
+/* ---------------------------------------------------------- el doble trazo */
+
+.twin { max-width: var(--block); margin: 0 0 18px; }
+.twin svg { width: 100%; height: auto; display: block; }
+.twin .axis { stroke: var(--rule); fill: none; }
+.twin .tick { fill: var(--ink-faint); font-family: var(--data); font-size: 10px; }
+.twin .measured { stroke: var(--measured); fill: none; stroke-width: 1.8; }
+.twin .simulated { stroke: var(--simulated); fill: none; stroke-width: 1.8; stroke-dasharray: 5 4; }
+.twin .gap { fill: var(--simulated); opacity: .16; }
+.twin-key { display: flex; gap: 20px; flex-wrap: wrap; font-family: var(--data);
+            font-size: 11px; color: var(--ink-faint); margin-top: 6px; }
+.twin-key i { display: inline-block; width: 20px; height: 0; vertical-align: middle;
+              border-top-width: 2px; border-top-style: solid; margin-right: 7px; }
+.twin-key .k-measured i { border-color: var(--measured); }
+.twin-key .k-simulated i { border-top-style: dashed; border-color: var(--simulated); }
+
+.knob { display: flex; align-items: center; gap: 13px; flex-wrap: wrap; margin: 0 0 13px;
+        font-family: var(--data); font-size: 11px; color: var(--ink-faint); }
+.knob input[type="range"] { accent-color: var(--accent); flex: 1 1 200px; max-width: 300px; }
+.knob output { color: var(--accent); min-width: 72px; }
+
+/* -------------------------------------------------------- índice del curso */
+
+.toc { max-width: var(--block); }
+.toc .part {
+  font-family: var(--data);
+  font-size: 10px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin: 26px 0 2px;
+  padding-top: 11px;
+  border-top: 1px solid var(--rule);
+}
+.toc a, .toc .pending {
+  display: grid;
+  grid-template-columns: 34px 1fr auto;
+  gap: 15px;
+  align-items: baseline;
+  padding: 9px 6px 9px 8px;
+  border-bottom: 1px solid var(--rule-soft);
+  border-left: 2px solid transparent;
+  text-decoration: none;
+  color: var(--ink);
+}
+.toc a:hover { border-left-color: var(--accent); background: var(--panel); color: var(--accent); }
+.toc .pending { color: var(--ink-faint); }
+.toc .num { font-family: var(--data); font-size: 12px; color: var(--ink-faint); }
+.toc a:hover .num { color: var(--accent); }
+.toc .name { font-family: var(--display); font-size: 16px; }
+.toc .name small { display: block; font-family: var(--prose); color: var(--ink-faint);
+                   font-size: 13px; font-weight: 400; margin-top: 2px; max-width: 60ch; }
+.toc .mark { font-family: var(--data); font-size: 11px; color: var(--ink-faint); text-align: right; }
+.toc .tag { font-family: var(--data); font-size: 9.5px; letter-spacing: .1em;
+            text-transform: uppercase; color: var(--ink-faint); }
+
+/* ------------------------------------------------------------------- móvil */
+
+/* La barra deja de ser barra: pasa a cabecera compacta arriba, con los tramos en
+ * horizontal. La rejilla se colapsa a una columna. */
+@media (max-width: 900px) {
+  .shell { grid-template-columns: 1fr; }
+  .panel {
+    position: static;
+    height: auto;
+    border-right: 0;
+    border-bottom: 1px solid var(--rule);
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 16px;
+    padding: 13px 18px;
+  }
+  .panel-label { display: none; }
+  .panel .rail { display: flex; gap: 0 5px; flex-wrap: wrap; }
+  .rail-step { grid-template-columns: 11px auto; padding: 3px 0; font-size: 9.5px; }
+  .rail-step .range { display: none; }
+  .rail-step:not(:last-child)::after { display: none; }
+  .panel-figure { border-top: 0; padding-top: 0; }
+  .panel-figure .v { font-size: 13.5px; }
+  .panel-figure .l { display: none; }
+  .panel-progress { margin: 0; border-top: 0; padding-top: 0; }
+  .panel-bar { display: none; }
+  .stage-inner { padding: 0 18px; }
+  body { font-size: 16px; }
+  .head { padding-top: 22px; }
+  pre code { font-size: 12.5px; }
+}
+
+/* ------------------------------------------------- la perilla del gemelo */
+/*
+ * El doble trazo con su deslizador, de los modulos 24 y 25. El SVG llega ya
+ * dibujado del servidor, asi que sin JavaScript se ve igual: dos trazos, la
+ * referencia y la posicion de partida. El mando solo cambia cual se ensena.
+ *
+ * La regla de forma del curso: el color NUNCA es la unica pista. La referencia
+ * va punteada y en tono apagado, y la posicion elegida solida y en el acento.
+ */
+.perilla {
+  margin: 22px 0;
+  max-width: var(--block);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  background: var(--stage);
+  padding: 14px 16px 12px;
+}
+.perilla figcaption {
+  font-family: var(--data);
+  font-size: 11px;
+  color: var(--ink-faint);
+  letter-spacing: .02em;
+  margin-bottom: 10px;
+}
+.perilla svg { display: block; width: 100%; height: auto; }
+.perilla-referencia {
+  fill: none;
+  stroke: var(--ink-faint);
+  stroke-width: 1.4;
+  stroke-dasharray: 4 3;
+}
+.perilla-actual {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  transition: d .12s linear;
+}
+.perilla-pie {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 18px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--rule-soft);
+}
+.perilla-leyenda { font-size: 12px; color: var(--ink-faint); }
+.perilla-mandos {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+  font-family: var(--data);
+  font-size: 11px;
+  color: var(--ink-soft);
+}
+.perilla-mando { width: 190px; accent-color: var(--accent); }
+.perilla-mando[disabled] { opacity: .45; }
+.perilla-valor {
+  font-family: var(--data);
+  font-size: 12px;
+  color: var(--ink);
+  min-width: 88px;
+}
+.perilla-nota, .perilla-referencia-nota {
+  margin: 8px 0 0;
+  font-size: 12.5px;
+  color: var(--ink-soft);
+}
+.perilla-referencia-nota { color: var(--ink-faint); font-size: 12px; }
+
+@media (max-width: 620px) {
+  .perilla-mandos { margin-left: 0; width: 100%; }
+  .perilla-mando { flex: 1; width: auto; min-width: 0; }
+}
+
+/* ------------------------------------------------------ movimiento y papel */
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@media print {
+  .shell { display: block; }
+  .panel, .live-bar, .live-editor { display: none; }
+  .live-static { display: block; }
+  body { background: #fff; color: #000; }
+}
+
+/* ------------------------------------------------------ figuras, dos temas */
+
+/* Cada figura viaja dos veces, clara y oscura, y aquí se enseña la que toca.
+ * Con `<picture>` y una media query bastaría para la preferencia del sistema,
+ * pero no para el interruptor manual, y este curso respeta los dos. */
+.fig-oscuro { display: none; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .fig-claro { display: none; }
+  :root:not([data-theme="light"]) .fig-oscuro { display: block; }
+}
+:root[data-theme="dark"] .fig-claro { display: none; }
+:root[data-theme="dark"] .fig-oscuro { display: block; }
+
+/* El acento de este módulo, uno por tema. Los dos salen de src/site/palette.py
+   y los dos pasaron el contraste antes de llegar aquí. */
+:root { --accent: #6B7539; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --accent: #B3BF80; }
+}
+:root[data-theme="dark"] { --accent: #B3BF80; }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- La barra de instrumentos. No se mueve al bajar: el tramo del lago, la cifra
+       del módulo y el avance se quedan a la vista mientras se lee. -->
+  <aside class="panel">
+    <a class="panel-brand" href="index.html">Fuelle
+      <small>Módulo 17 de 31</small></a>
+
+    <nav class="rail" aria-label="El arco del proyecto">
+      <p class="panel-label">el lago</p>
+      <span class="rail-step done"><i class="dot"></i><span>CRUDO</span><span class="range">1-3</span></span><span class="rail-step done"><i class="dot"></i><span>BRONCE</span><span class="range">4-13</span></span><span class="rail-step done"><i class="dot"></i><span>PLATA</span><span class="range">14-16</span></span><span class="rail-step here"><i class="dot"></i><span>ORO</span><span class="range">17-22</span></span><span class="rail-step"><i class="dot"></i><span>GEMELO</span><span class="range">23-31</span></span>
+    </nav>
+
+    <div class="panel-figure">
+      <span class="v">9</span>
+      <span class="l">nodos del mapa, ninguno colocado a mano</span>
+    </div>
+
+    <div class="panel-progress">
+      <b>17</b> de 31
+      <span class="panel-bar"><i style="width: 55%"></i></span>
+    </div>
+
+    <nav class="panel-nav"><a href="m16_calidad.html" title="16. Calidad de datos: pruebas y contratos">← 16</a><a href="m18_viaje_en_el_tiempo.html" title="18. Viaje en el tiempo: ver los datos como eran">18 →</a><a class="portfolio-link" href="m17_oro_dbt.en.html" hreflang="en" rel="alternate">English</a></nav>
+  </aside>
+
+  <main class="stage">
+    <div class="stage-inner">
+      <header class="head">
+        <p class="head-id"><b>17</b> <span>parte: Del crudo a la respuesta</span></p>
+        <h1>Oro con dbt: modelar en SQL y que el linaje se dibuje solo</h1>
+        <p class="standfirst">Las tablas que responden preguntas, escritas en el SQL que ya sabes, con su documentación y su mapa de dependencias generados por la herramienta</p>
+      </header>
+
+      <section class="block is-brief"><span class="kicker">Resumen</span><h2 class="block-title">En 30 segundos</h2><ul><li>La capa de <strong>oro</strong> son las tablas que responden preguntas, y se escriben en el SQL que ya sabes.</li><li><strong>dbt</strong> es la herramienta que las construye: cada modelo es <strong>un fichero con un SELECT dentro</strong>.</li><li>Nunca escribes el nombre de la tabla anterior, escribes <code>ref()</code>. Con eso dbt <strong>deduce el orden</strong>.</li><li>Y de ahí sale el mapa: <strong>9 nodos</strong> y <strong>8 dependencias</strong>, ninguna colocada a mano.</li><li>Las pruebas del módulo 16 caben en <strong>11 líneas de YAML</strong>, y una que no puede fallar no vale.</li></ul></section>
+<section class="block "><span class="kicker">Contexto</span><h2 class="block-title">Qué resuelve este módulo</h2><p>El lago ya tiene tres fuentes, una capa de plata limpia y un contrato que la vigila. Lo que no tiene es <strong>las tablas que alguien va a consultar de verdad</strong>.</p><p>Nadie abre un panel para mirar 1.841.760 lecturas. Se abre para preguntar cuántas horas trabajó el compresor ayer, o qué pasó los días de avería. Esas respuestas son tablas pequeñas, calculadas una vez y consultadas muchas, y esa es la capa de oro.</p><p>Escribirlas no es el problema: son consultas como las de la parte 3. El problema aparece a la tercera tabla, cuando una se apoya en otra. Ya no está claro <strong>en qué orden construir</strong>, ni <strong>qué se rompe</strong> si cambias la de abajo.</p></section>
+<section class="block is-toy"><span class="kicker">A mano</span><h2 class="block-title">Antes de la teoría: un ejemplo de juguete</h2><p>Una planta pequeña tiene tres tablas:</p><div class="table-wrap"><table><thead><tr><th>Tabla</th><th>De dónde sale</th></tr></thead><tbody><tr><td><code>tonelaje</code></td><td>de la báscula</td></tr><tr><td><code>recuperacion</code></td><td>de <code>tonelaje</code> y de las leyes del laboratorio</td></tr><tr><td><code>informe</code></td><td>de <code>recuperacion</code></td></tr></tbody></table></div><p>Dos flechas. Lo tienes en la cabeza sin esfuerzo, y si alguien cambia <code>tonelaje</code> sabes al instante que hay que rehacer las otras dos, en ese orden.</p><p>Ahora dibújalo en una pizarra y llega el lunes. Un compañero añade una cuarta tabla, <code>costes</code>, que también sale de <code>tonelaje</code>. Escribe su consulta, la deja funcionando y <strong>no toca la pizarra</strong>.</p><p>La pizarra sigue enseñando tres cajas y dos flechas. No está incompleta de una forma visible: está <strong>mintiendo con toda tranquilidad</strong>, y el día que alguien cambie <code>tonelaje</code> mirará el dibujo, verá dos cosas que rehacer y dejará <code>costes</code> calculando con datos viejos.</p><p>El arreglo no es acordarse de actualizar la pizarra. El arreglo es que <strong>el mapa se lea del código</strong>, porque el código sí está siempre al día: si <code>costes</code> no leyera <code>tonelaje</code>, no funcionaría. La dependencia ya está escrita en la consulta. Lo único que falta es que algo la lea y la dibuje.</p><p>Eso es dbt en una frase.</p></section>
+<section class="block is-terms"><span class="kicker">Términos</span><h2 class="block-title">Glosario</h2><details class="fold"><summary>8 términos, en palabras simples</summary><ul><li><strong>Modelo.</strong> Un fichero con un <code>SELECT</code> dentro. Su nombre de fichero es el nombre de la tabla que produce. No lleva <code>CREATE TABLE</code>: eso lo pone la herramienta.</li><li><strong>Materializar.</strong> Decidir si un modelo se guarda como tabla (se calcula y ocupa disco) o como vista (se recalcula cada vez que se consulta y no ocupa nada).</li><li><strong><code>ref()</code>.</strong> La forma de nombrar otro modelo. Se escribe <code>ref(&#x27;otro_modelo&#x27;)</code> en vez del nombre de la tabla, y es lo que crea la flecha del mapa.</li><li><strong><code>source()</code>.</strong> Lo mismo para lo que entra de fuera y dbt no construye: los ficheros del lago.</li><li><strong>Linaje.</strong> El mapa de qué depende de qué. Aquí se genera; no se dibuja.</li><li><strong>Grafo dirigido acíclico.</strong> El nombre formal de ese mapa: flechas con sentido y sin bucles. Sin bucles porque una tabla no puede depender de sí misma, ni de nadie que dependa de ella.</li><li><strong><code>manifest.json</code>.</strong> El fichero donde dbt deja todo lo que sabe del proyecto después de compilarlo. De ahí sale la figura de este módulo.</li><li><strong>Prueba de datos.</strong> Lo mismo que una promesa del módulo 16, con el nombre que usa la industria.</li></ul></details></section>
+<section class="block is-method"><span class="kicker">Método</span><h2 class="block-title">Paso a paso</h2><h3 class="sub">Paso 1. Declarar de dónde entra el dato</h3><p>Las tres fuentes del lago se declaran una vez, con la ruta de su Parquet. A partir de ahí ningún modelo vuelve a escribir una ruta.</p><p>Eso ya paga solo: el día que el lago se mueva de sitio se cambia un fichero y no seis.</p><h3 class="sub">Paso 2. Escribir cada tabla como un SELECT y nada más</h3><p>Sin <code>CREATE TABLE</code>, sin <code>DROP</code>, sin <code>INSERT</code>. El fichero <code>oro_horas.sql</code> contiene la consulta que produce <code>oro_horas</code>, y punto. Dónde se guarda y con qué nombre lo decide la configuración.</p><h3 class="sub">Paso 3. Nombrar a los demás con <code>ref()</code></h3><p>Esta es la única regla nueva de verdad del módulo. En vez de escribir el nombre de la tabla anterior, se escribe <code>ref(&#x27;prep_telemetria&#x27;)</code>.</p><p>A cambio de esa incomodidad, <strong>la herramienta se entera de la dependencia</strong>. De ahí salen tres cosas gratis: el orden de construcción, el mapa, y saber qué rehacer cuando cambia algo arriba.</p><h3 class="sub">Paso 4. Poner las promesas del módulo 16 al lado</h3><p>Las cuatro pruebas que dbt trae de serie (<code>unique</code>, <code>not_null</code>, <code>accepted_values</code>, <code>relationships</code>) son las promesas del contrato con otro nombre. Se declaran en YAML, y las que no caben en esas cuatro se escriben a mano como un fichero SQL de cero filas, que es la forma exacta del módulo 16.</p><h3 class="sub">Paso 5. Correr una sola orden</h3><p><code>dbt build</code> construye y prueba en el mismo paso, en el orden que dice el grafo, y <strong>para en cuanto una prueba falla</strong>. Un modelo cuya prueba se rompe no publica su tabla, y lo que dependía de él ni se intenta.</p></section>
+<section class="block is-code"><span class="kicker">Código</span><h2 class="block-title">El código, por partes</h2><h3 class="sub">Paso 6. Las fuentes, declaradas una vez</h3><pre><code class="language-yaml">sources:
+  - name: lago
+    tables:
+      - name: plata
+        meta:
+          external_location: &quot;read_parquet(&#x27;../lake/silver/telemetry/**/*.parquet&#x27;)&quot;</code></pre><details class="fold"><summary>línea por línea, 3 entradas</summary><dl class="annot"><dt><code>sources</code></dt><dd>lo que entra de fuera y dbt no construye. Es el borde del mapa</dd><dt><code>name: lago</code></dt><dd>el nombre del grupo, para poder escribir source(&#x27;lago&#x27;, &#x27;plata&#x27;)</dd><dt><code>external_location</code></dt><dd>dbt pega ese texto detrás del FROM, así que la fuente es el Parquet del lago leído en su sitio, sin copiarlo ni importarlo</dd></dl></details><h3 class="sub">Paso 7. Un modelo de preparación</h3><pre><code class="language-modelo">SELECT
+    timestamp,
+    day,
+    medido,
+    dudoso,
+    lecturas,
+    TP2,
+    Oil_temperature,
+    DV_eletric
+FROM {{ source(&#x27;lago&#x27;, &#x27;plata&#x27;) }}</code></pre><details class="fold"><summary>línea por línea, 2 entradas</summary><dl class="annot"><dt><code>{{ source(&#x27;lago&#x27;, &#x27;plata&#x27;) }}</code></dt><dd>la fuente declarada en el paso anterior. Las llaves dobles son la marca de que ahí hay algo que dbt sustituye antes de ejecutar</dd><dt><code>sin CREATE TABLE</code></dt><dd>el fichero se llama prep_telemetria.sql, así que la tabla se llamará prep_telemetria. El nombre del fichero es el nombre</dd></dl></details><p>Este modelo es una <strong>vista</strong>: no copia las 1.841.760 filas de la plata, solo les pone nombre. Materializarlo como tabla sería duplicar el lago para no ganar nada.</p><h3 class="sub">Paso 8. Un modelo de oro que cruza dos</h3><pre><code class="language-modelo">WITH por_hora AS (
+    SELECT
+        time_bucket(INTERVAL 1 HOUR, timestamp) AS hora,
+        round(avg(Oil_temperature), 2)          AS aceite,
+        count(*)                                AS lecturas
+    FROM {{ ref(&#x27;prep_telemetria&#x27;) }}
+    WHERE medido
+    GROUP BY hora
+)
+SELECT h.hora, h.aceite, c.temperatura AS calle
+FROM por_hora h
+JOIN {{ ref(&#x27;prep_clima&#x27;) }} c ON c.hora = h.hora</code></pre><details class="fold"><summary>línea por línea, 3 entradas</summary><dl class="annot"><dt><code>{{ ref(&#x27;prep_telemetria&#x27;) }}</code></dt><dd>otro modelo, nombrado por su nombre de modelo y no por el de su tabla. Esta línea es una flecha del mapa</dd><dt><code>dos ref en el mismo fichero</code></dt><dd>dos flechas entrando en este nodo. Nadie las declara aparte</dd><dt><code>WITH ... AS</code></dt><dd>los pasos del módulo 11, aquí dentro. Un modelo es SQL normal</dd></dl></details><p>Cuando dbt lo compila, sustituye cada <code>ref()</code> por el nombre real de la tabla:</p><div class="output"><span class="output-tag">sale</span><pre><code>FROM &quot;fuelle&quot;.&quot;main&quot;.&quot;prep_telemetria&quot;
+...
+JOIN &quot;fuelle&quot;.&quot;main&quot;.&quot;prep_clima&quot; c ON c.hora = h.hora</code></pre></div><p>Y eso es todo lo que hace la marca: <strong>cambiar un nombre por otro, y de paso apuntar la flecha</strong>.</p><h3 class="sub">Paso 9. Las promesas, en YAML</h3><pre><code class="language-yaml">  - name: oro_ciclo_diario
+    columns:
+      - name: dia
+        data_tests: [unique, not_null]
+      - name: dia_completo
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [true, false]</code></pre><details class="fold"><summary>línea por línea, 4 entradas</summary><dl class="annot"><dt><code>data_tests</code></dt><dd>la lista de promesas de esa columna. Cada una se convierte en una consulta</dd><dt><code>unique</code></dt><dd>no hay dos filas con el mismo valor. Es la promesa «timestamp no se repite» del módulo 16</dd><dt><code>not_null</code></dt><dd>ninguna casilla vacía</dd><dt><code>accepted_values</code></dt><dd>solo estos valores y ningún otro. Es la promesa de las digitales, que solo valen cero o uno</dd></dl></details><p>La prueba <code>unique</code> se convierte en esto, que dbt escribe solo:</p><div class="output"><span class="output-tag">sale</span><pre><code>select
+    dia as unique_field,
+    count(*) as n_records
+from &quot;fuelle&quot;.&quot;main&quot;.&quot;oro_ciclo_diario&quot;
+where dia is not null
+group by dia
+having count(*) &gt; 1</code></pre></div><p>Es <strong>la misma consulta que escribimos a mano en el módulo 16</strong>: buscar los incumplidores y exigir cero filas. Lo único que cambia es que ahí la escribíamos y aquí la nombramos.</p><h3 class="sub">Paso 10. Construir y probar de una vez</h3><pre><code class="language-python">proceso = subprocess.run([DBT_EXE, &quot;build&quot;, &quot;--profiles-dir&quot;, &quot;.&quot;], cwd=DBT)</code></pre><details class="fold"><summary>línea por línea, 2 entradas</summary><dl class="annot"><dt><code>build</code></dt><dd>construir y probar en la misma orden. Solo run construiría sin comprobar nada</dd><dt><code>cwd=DBT</code></dt><dd>dbt se corre desde su propia carpeta, que es donde vive el proyecto</dd></dl></details><div class="output"><span class="output-tag">sale</span><pre><code>Concurrency: 4 threads (target=&#x27;dev&#x27;)
+
+1 of 17 START sql view model main.prep_averias ................. [RUN]
+2 of 17 START sql view model main.prep_clima ................... [RUN]
+3 of 17 START sql view model main.prep_telemetria .............. [RUN]
+4 of 17 START sql table model main.oro_ciclo_diario ........... [RUN]
+5 of 17 START sql table model main.oro_horas .................. [RUN]
+8 of 17 PASS not_null_oro_ciclo_diario_dia .................... [PASS]
+14 of 17 START sql table model main.oro_averias ............... [RUN]
+15 of 17 PASS clave_de_averias ............................... [PASS]
+
+Done. PASS=17 WARN=0 ERROR=0 SKIP=0 NO-OP=0 REUSED=0 TOTAL=17</code></pre></div><p>Fíjate en el orden, porque no lo he elegido yo. Los tres de preparación arrancan a la vez, y <code>oro_averias</code> es el último <strong>porque se apoya en <code>oro_ciclo_diario</code></strong>, que a su vez tiene que estar construida antes. Esa cadena está escrita en un <code>ref()</code> dentro de un fichero, y en ningún otro sitio.</p><h3 class="sub">Paso 11. La tabla de oro que puedes tocar</h3><p>Esta es la consulta que hay dentro de <code>oro_horas</code>, con las dos tablas ya preparadas. Es un modelo de oro entero, corriendo en tu navegador:</p><div class="live"><div class="live-head"><span>consulta viva</span><span class="live-status">el motor se descarga al pulsar</span></div><pre class="live-static"><code>SELECT h.hora,
+       h.aceite,
+       c.temperatura                      AS calle,
+       round(h.aceite - c.temperatura, 2) AS aceite_sobre_calle
+FROM horas h
+JOIN clima c ON c.hora = h.hora
+ORDER BY h.hora
+LIMIT 6;</code></pre><textarea class="live-editor" spellcheck="false" aria-label="consulta viva">SELECT h.hora,
+       h.aceite,
+       c.temperatura                      AS calle,
+       round(h.aceite - c.temperatura, 2) AS aceite_sobre_calle
+FROM horas h
+JOIN clima c ON c.hora = h.hora
+ORDER BY h.hora
+LIMIT 6;</textarea><div class="live-bar"><button type="button" class="live-run">correr</button></div><div class="live-out"></div></div><div class="output"><span class="output-tag">sale</span><pre><code>┌─────────────────────┬────────┬──────────────┬────────────────────┐
+│        hora         │ aceite │    calle     │ aceite_sobre_calle │
+│      timestamp      │ double │ decimal(3,1) │       double       │
+├─────────────────────┼────────┼──────────────┼────────────────────┤
+│ 2020-02-01 00:00:00 │   51.9 │         14.2 │               37.7 │
+│ 2020-02-01 01:00:00 │  51.91 │         14.4 │              37.51 │
+│ 2020-02-01 02:00:00 │  51.71 │         14.3 │              37.41 │
+│ 2020-02-01 03:00:00 │   51.4 │         14.4 │               37.0 │
+│ 2020-02-01 04:00:00 │  52.17 │         14.5 │              37.67 │
+│ 2020-02-01 05:00:00 │  52.91 │         14.0 │              38.91 │
+└─────────────────────┴────────┴──────────────┴────────────────────┘</code></pre></div></section>
+<section class="block is-result"><span class="kicker">Resultado</span><h2 class="block-title">El resultado, medido</h2><figure class="fig"><img class="fig-claro" src="../figuras/fig_m17_linaje_dbt.claro.png?v=1f9a4ba3" alt="fig m17 linaje dbt" loading="lazy"><img class="fig-oscuro" src="../figuras/fig_m17_linaje_dbt.oscuro.png?v=8c6fc932" alt="fig m17 linaje dbt" loading="lazy"></figure><p><strong>Qué esperábamos.</strong> Un mapa de dependencias parecido al que dibujaría yo a mano.</p><p><strong>Qué salió.</strong> <strong>9 nodos</strong> y <strong>8 dependencias</strong>, y la diferencia con dibujarlo a mano es que ninguna de las dos cifras la he escrito. La figura de arriba se genera leyendo <code>manifest.json</code>, que dbt escribe al compilar, que a su vez sale de los <code>ref()</code> y <code>source()</code> de dentro del SQL.</p><p>El reparto: <strong>3 fuentes</strong>, <strong>3 modelos de preparación</strong> y <strong>3 de oro</strong>. Y las tres tablas de oro son lo que 1.841.760 lecturas de plata dan de sí cuando se les hace una pregunta concreta:</p><div class="table-wrap"><table><thead><tr><th>Tabla de oro</th><th>Filas</th><th>Una fila es</th></tr></thead><tbody><tr><td><code>oro_ciclo_diario</code></td><td>212</td><td>un día</td></tr><tr><td><code>oro_horas</code></td><td>4.416</td><td>una hora</td></tr><tr><td><code>oro_averias</code></td><td>4</td><td>un parte de avería</td></tr></tbody></table></div><p><strong>La construcción entera son 17 pasos</strong>: 6 modelos y <strong>11 pruebas</strong>, corridos en el orden del grafo por una sola orden.</p><p><strong>Y las 11 pruebas en verde no prueban nada por sí solas.</strong> Es la regla del módulo 16 otra vez, y aquí hay un motivo extra para desconfiar. Declarar una promesa cuesta una línea de YAML, así que es facilísimo llenar el fichero de promesas incapaces de fallar y quedarse tranquilo.</p><p>Así que se añade a propósito una promesa destinada a fallar. La elegida: el número de parte es único. El módulo 12 ya midió que eso es mentira, porque dos de los cuatro partes se llaman <code>#1</code>.</p><div class="output"><span class="output-tag">sale</span><pre><code>1 of 4 START test clave_de_averias .............................. [RUN]
+4 of 4 START test unique_oro_averias_nr ......................... [RUN]
+1 of 4 PASS clave_de_averias .................................... [PASS]
+4 of 4 FAIL 1 unique_oro_averias_nr ............................. [FAIL]
+
+Completed with 1 error, 0 partial successes, and 0 warnings:
+
+[ERROR]: in test unique_oro_averias_nr (models\oro\_oro.yml)
+  Got 1 result, configured to fail if != 0</code></pre></div><p>La caza, y de paso enseña la otra mitad: la prueba <code>clave_de_averias</code>, la que dice que la clave es la <strong>pareja</strong> de número y fecha, pasa en la misma corrida. Las dos miran la misma columna y solo una es cierta.</p><p><strong>Qué significa.</strong> El mapa no es documentación, es una <strong>lectura del código</strong>. Puede quedarse desactualizado exactamente igual que el código puede estar mal, o sea que si el mapa miente es porque el proyecto miente, y eso ya no es un problema de mapa.</p></section>
+<section class="block is-warning"><span class="kicker">Trampas</span><h2 class="block-title">Ojo</h2><ul><li><strong><code>ref()</code> no es adorno.</strong> Si escribes el nombre de la tabla directamente, la consulta funciona igual y <strong>la flecha desaparece del mapa</strong>. Es el peor fallo posible aquí, porque no da error: produce un mapa incompleto que parece completo. Es la pizarra del ejemplo de juguete.</li><li><strong>Vista o tabla es una decisión, no un ajuste.</strong> Los de preparación son vistas porque no ganan nada copiando; los de oro son tablas porque se consultan mucho y se calculan poco.</li><li><strong>Una prueba que no puede fallar es peor que ninguna.</strong> Cuesta una línea declararla y da tranquilidad gratis. La única forma de saber si sirve es verla fallar una vez.</li><li><strong>Las cuatro pruebas de serie no cubren todo.</strong> La clave compuesta de este proyecto no cabe en <code>unique</code>, así que se escribe a mano como un SQL de cero filas. Que la herramienta no traiga una promesa no es motivo para no exigirla.</li><li><strong>dbt no es un orquestador.</strong> Sabe el orden de sus modelos y nada más. No sabe descargar el CSV ni pedirle el clima a una API: de eso va el módulo 29.</li><li><strong>El oro no es «los datos buenos».</strong> Es una respuesta a una pregunta concreta. Cada tabla de oro tiene un grano declarado, un día o una hora o un parte, y si no lo sabes decir en una frase probablemente no sea una tabla de oro.</li></ul></section>
+<section class="block is-bridge"><span class="kicker">Analogía</span><h2 class="block-title">Puente metalúrgico</h2><p>Un diagrama de flujo de planta lleva décadas haciendo esto mismo. Molienda, flotación rougher, limpieza y espesado. Cada equipo lleva declarada su corriente de entrada.</p><p>Lo interesante no es el dibujo, es lo que permite: cuando el molino baja de tonelaje, nadie tiene que adivinar qué le pasa al espesador. Se lee del diagrama, aguas abajo.</p><p>Y ahora la parte incómoda, que cualquiera que haya trabajado en una planta reconoce. <strong>El diagrama que cuelga en la sala de control no es la planta.</strong> Es la planta de cuando alguien lo dibujó, menos la bomba que se cambió en marzo, más el reactivo que ya no se usa.</p><p>Un modelo de dbt es ese diagrama con una diferencia: <strong>se genera de las tuberías</strong>, no de la memoria de quien las montó. No puede quedarse viejo, porque no hay una copia que mantener.</p></section>
+<section class="block is-live"><span class="kicker">Hazlo tú</span><h2 class="block-title">Hazlo tú</h2><p class="reto-ask">Escribe el SELECT de un modelo de oro nuevo, <code>oro_meses</code>, con un mes por fila. Devuelve <code>mes</code>, <code>horas</code> con las horas que trae el registro, <code>aceite</code> con la temperatura media del aceite y <code>calle</code> con la de la calle, las dos redondeadas a un decimal. Ocho filas.</p><div class="live reto" data-expected='[[&quot;2020-02&quot;, 616, 56.1, 12.6], [&quot;2020-03&quot;, 658, 62.0, 12.3], [&quot;2020-04&quot;, 589, 59.2, 13.9], [&quot;2020-05&quot;, 629, 61.9, 17.8], [&quot;2020-06&quot;, 632, 65.6, 17.2], [&quot;2020-07&quot;, 650, 66.8, 21.7], [&quot;2020-08&quot;, 639, 65.0, 19.4], [&quot;2020-09&quot;, 3, 57.2, 16.0]]'><div class="live-head"><span>reto</span><span class="live-status">el motor se descarga al pulsar</span></div><pre class="live-static"><code>SELECT count(*)                      AS horas,
+       round(avg(h.aceite), 1)       AS aceite,
+       round(avg(c.temperatura), 1)  AS calle
+FROM horas h
+JOIN clima c ON c.hora = h.hora;</code></pre><textarea class="live-editor" spellcheck="false" aria-label="reto">SELECT count(*)                      AS horas,
+       round(avg(h.aceite), 1)       AS aceite,
+       round(avg(c.temperatura), 1)  AS calle
+FROM horas h
+JOIN clima c ON c.hora = h.hora;</textarea><div class="live-bar"><button type="button" class="live-run">comprobar</button></div><div class="live-out"></div><div class="verdict"></div><details class="fold"><summary>una pista</summary><p>El cruce del punto de partida ya está bien y las tres columnas de números también. Lo que falta es la columna que agrupa, y sale de la hora con <code>strftime(h.hora, &#x27;%Y-%m&#x27;)</code>, que se queda con el año y el mes. Después se agrupa por ella y se ordena por ella.</p></details><details class="fold"><summary>ver la solución</summary><pre><code>SELECT strftime(h.hora, &#x27;%Y-%m&#x27;)     AS mes,
+       count(*)                      AS horas,
+       round(avg(h.aceite), 1)       AS aceite,
+       round(avg(c.temperatura), 1)  AS calle
+FROM horas h
+JOIN clima c ON c.hora = h.hora
+GROUP BY mes
+ORDER BY mes;</code></pre></details></div><p>Lo que acabas de escribir <strong>es</strong> un modelo de oro. Guarda ese SELECT en un fichero llamado <code>oro_meses.sql</code>. Dentro, cambia <code>horas</code> por <code>ref(&#x27;prep_telemetria&#x27;)</code> y <code>clima</code> por <code>ref(&#x27;prep_clima&#x27;)</code>. Con eso aparece un décimo nodo en el mapa de arriba, con sus dos flechas, y sin dibujar nada.</p></section>
+<section class="block is-review"><span class="kicker">Repaso</span><h2 class="block-title">Repaso</h2><details><summary>Qué gana un modelo por escribir <code>ref()</code> en vez del nombre de la tabla</summary><p>Tres cosas, y ninguna hay que pedirla: el orden de construcción, el mapa de dependencias, y saber qué hay que rehacer cuando cambia algo aguas arriba. El coste es escribir seis caracteres más. Si pones el nombre directo la consulta funciona igual, y por eso el fallo es peligroso: no avisa.</p></details><details><summary>Por qué los modelos de preparación son vistas y los de oro son tablas</summary><p>Una vista no guarda nada, se recalcula al consultarla. Los de preparación solo renombran y seleccionan columnas de un Parquet que ya existe, así que materializarlos sería copiar el lago a cambio de nada. Los de oro agregan mucho y se consultan a menudo, así que ahí sí compensa pagar el cálculo una vez.</p></details><details><summary>En qué se parece este módulo al 16 y en qué se diferencia</summary><p>Es el mismo contrato: promesas escritas como consultas que tienen que devolver cero filas. La diferencia es que las cuatro más comunes ya vienen hechas y se nombran en una línea, en vez de escribirlas. Lo que no cambia es de dónde sale su valor: haberlas visto fallar una vez.</p></details><details><summary>El mapa dice 9 nodos. Qué pasaría si alguien añade un modelo y no lo dibuja</summary><p>Nada, porque no hay nada que dibujar. El mapa se lee del <code>manifest.json</code>, que se regenera al compilar, así que un modelo nuevo aparece por el hecho de existir. El mapa solo puede mentir si un modelo nombra a sus padres sin <code>ref()</code>, y entonces el mentiroso es el modelo.</p></details><details><summary>Tu <code>dbt build</code> falla en una prueba a media construcción. Qué ha quedado en el lago</summary><p>Lo que estaba antes, intacto. La tabla cuya prueba falló no se publica, y lo suyo aguas abajo ni se intenta construir. Es la misma decisión del módulo 16: mejor un panel desactualizado que uno con datos malos. El resto de las ramas del grafo, las que no pasan por el fallo, sí se construyen.</p></details></section>
+
+      <footer class="footer">
+        <span>Fuelle / Módulo 17</span>
+        <span>generado el 2026-09-03</span>
+        <span>fuente: MetroPT-3, del compresor de un tren del Metro de Oporto (CC BY 4.0)</span>
+      </footer>
+    </div>
+  </main>
+
+</div>
+<!-- El motor SQL no se descarga aquí: este fichero solo conecta los botones.
+     Los 8 MB llegan cuando el lector pulsa, y no antes. -->
+<script type="module" src="live.js"></script>
+<script src="perilla.js" defer></script>
+</body>
+</html>

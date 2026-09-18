@@ -1,0 +1,1001 @@
+<!doctype html>
+<html lang="en" class="no-js" data-assets="../assets" data-tablas="horas=horas.parquet">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The verdict: four failures and how many false alarms · Bellows, module 28</title>
+<link rel="alternate" hreflang="es" href="m28_veredicto.html">
+<style>
+/* Fuelle: la hoja de estilo del curso.
+ *
+ * REESCRITA ENTERA el 2026-08-30. La primera versión heredó la plantilla de Sílice
+ * junto con su motor, y Kevin la vio y dijo: "se parece a las otras 20 páginas de
+ * portafolio, el landing, coursera, silica, se ve y se siente igual". Tenía razón.
+ * Medido: mismo ancho de prosa (680), mismo ancho de bloques (1180), misma columna
+ * de margen (132), misma secuencia de cabecera, 36 clases compartidas de 40.
+ * Cambiar papel por grafito no toca la silueta, y la silueta es lo que se siente.
+ *
+ * Los cuatro sitios de Kevin son una columna de texto centrada, sin barra lateral,
+ * sin rejilla y sin nada pegajoso. Este es lo contrario: PANEL DE CONTROL. Una barra
+ * fija a la izquierda con los instrumentos siempre a la vista, y el contenido a su
+ * derecha. Ninguna de las tres medidas heredadas aparece aquí, y check_layout.py
+ * falla si alguna reaparece.
+ *
+ * El encargo que ordena las decisiones sigue siendo el mismo: "no muy escandaloso,
+ * que parezca ingeniero, pero que demuestres habilidades, que no seas un pdf que se
+ * lee de recorrido". La sobriedad va en la superficie, la ambición en lo que hace.
+ */
+
+/* --------------------------------------------------------------- tipografía */
+
+/* IBM Plex, autoalojada, OFL-1.1. Los cuatro sitios de Kevin usan la fuente del
+ * sistema, y eso es la otra mitad del "se siente igual". Plex tiene aire de
+ * documentación de ingeniería, que es exactamente el encargo.
+ *
+ * Cinco cortes y no tres: sin las semi-negritas el navegador falsifica la negrita
+ * engordando el trazo, y en una fuente técnica se nota enseguida. 289 KB en total,
+ * que se pueden bajar a unos 60 recortando al alfabeto latino con fonttools si
+ * llega a molestar. */
+@font-face {
+  font-family: "Plex Cond";
+  src: url("../assets/fonts/PlexSansCondensed-SemiBold.woff2") format("woff2");
+  font-weight: 600; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Plex";
+  src: url("../assets/fonts/PlexSans-Regular.woff2") format("woff2");
+  font-weight: 400; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Plex";
+  src: url("../assets/fonts/PlexSans-SemiBold.woff2") format("woff2");
+  font-weight: 600; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Plex Mono";
+  src: url("../assets/fonts/PlexMono-Regular.woff2") format("woff2");
+  font-weight: 400; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Plex Mono";
+  src: url("../assets/fonts/PlexMono-SemiBold.woff2") format("woff2");
+  font-weight: 600; font-style: normal; font-display: swap;
+}
+
+/* ------------------------------------------------------------------ tokens */
+
+:root {
+  --ground: #f4f2ee;
+  --panel: #e9e6e0;
+  --stage: #fbfaf8;
+  --ink: #191d20;
+  --ink-soft: #4c545a;
+  --ink-faint: #7c868d;
+  --rule: #d6d1c8;
+  --rule-soft: #e4e0d8;
+  --grid: rgba(25, 29, 32, .05);
+  --accent: #46787e;
+  --measured: #3d505b;
+  --simulated: #b57542;
+
+  --prose: "Plex", system-ui, "Segoe UI", Roboto, sans-serif;
+  --display: "Plex Cond", "Plex", system-ui, sans-serif;
+  --data: "Plex Mono", "Cascadia Mono", Consolas, monospace;
+
+  /* Medidas NUEVAS. Ninguna puede coincidir con las heredadas de Sílice
+   * (680 de prosa, 1180 de bloques, 132 de margen): volver a ellas es volver a
+   * la misma página, y hay un verificador que lo impide. */
+  --rail: 268px;      /* la barra fija, que ninguno de los otros sitios tiene */
+  --read: 646px;      /* la medida de la prosa, en píxeles y nunca en ch */
+  --block: 980px;     /* el borde derecho de los bloques anchos */
+
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ground: #101417;
+    --panel: #171c20;
+    --stage: #14181b;
+    --ink: #e2e7ea;
+    --ink-soft: #a6b0b6;
+    --ink-faint: #717e85;
+    --rule: #293036;
+    --rule-soft: #20272b;
+    --grid: rgba(226, 231, 234, .045);
+    --accent: #8ec2c8;
+    --measured: #cbe2ef;
+    --simulated: #c98754;
+  }
+}
+
+:root[data-theme="dark"] {
+  --ground: #101417;
+  --panel: #171c20;
+  --stage: #14181b;
+  --ink: #e2e7ea;
+  --ink-soft: #a6b0b6;
+  --ink-faint: #717e85;
+  --rule: #293036;
+  --rule-soft: #20272b;
+  --grid: rgba(226, 231, 234, .045);
+  --accent: #8ec2c8;
+  --measured: #cbe2ef;
+  --simulated: #c98754;
+}
+
+/* --------------------------------------------------------------- cimientos */
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--stage);
+  color: var(--ink);
+  font-family: var(--prose);
+  font-size: 16.5px;
+  line-height: 1.6;
+}
+
+::selection { background: var(--accent); color: var(--ground); }
+a { color: var(--accent); text-underline-offset: .18em; }
+
+/* LA REJILLA. Esto es lo que ninguno de los otros cuatro sitios tiene, y es la
+ * razón de que la página deje de sentirse igual: el texto ya no está centrado en
+ * la ventana, está al lado de un panel de instrumentos. */
+.shell {
+  display: grid;
+  grid-template-columns: var(--rail) minmax(0, 1fr);
+  min-height: 100vh;
+}
+
+/* -------------------------------------------------- la barra de instrumentos */
+
+.panel {
+  position: sticky;   /* lo primero pegajoso de todo el portafolio */
+  top: 0;
+  align-self: start;
+  height: 100vh;
+  overflow-y: auto;
+  padding: 22px 20px 22px;
+  background: var(--panel);
+  border-right: 1px solid var(--rule);
+  background-image: radial-gradient(var(--grid) 1px, transparent 1px);
+  background-size: 22px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.panel-brand {
+  font-family: var(--display);
+  font-size: 19px;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  color: var(--ink);
+  text-decoration: none;
+  display: block;
+}
+.panel-brand small {
+  display: block;
+  font-family: var(--data);
+  font-size: 10px;
+  letter-spacing: .08em;
+  color: var(--ink-faint);
+  text-transform: none;
+  margin-top: 4px;
+}
+
+.panel-label {
+  font-family: var(--data);
+  font-size: 9.5px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding-bottom: 7px;
+  border-bottom: 1px solid var(--rule);
+  margin-bottom: 10px;
+}
+
+/* El grafo del lago, EN VERTICAL. Antes iba horizontal y solo en la portada;
+ * aquí acompaña al lector todo el curso y marca en qué capa está. */
+.rail-step {
+  display: grid;
+  grid-template-columns: 15px 1fr auto;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 0;
+  font-family: var(--data);
+  font-size: 11px;
+  letter-spacing: .08em;
+  color: var(--ink-faint);
+  text-decoration: none;
+  position: relative;
+}
+.rail-step .dot {
+  width: 9px; height: 9px;
+  border: 1px solid var(--ink-faint);
+  border-radius: 50%;
+  justify-self: center;
+}
+.rail-step:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  left: 7px; top: 25px;
+  width: 1px; height: calc(100% - 17px);
+  background: var(--rule);
+}
+.rail-step.done { color: var(--ink-soft); }
+.rail-step.done .dot { background: var(--ink-faint); border-color: var(--ink-faint); }
+.rail-step.here { color: var(--accent); }
+.rail-step.here .dot { background: var(--accent); border-color: var(--accent); }
+.rail-step .range { font-size: 9.5px; opacity: .75; }
+
+/* La cifra del módulo ya no es una caja en una cabecera gigante: vive aquí y se
+ * queda a la vista mientras se lee la lección entera. */
+.panel-figure { border-top: 1px solid var(--rule); padding-top: 14px; }
+.panel-figure .v {
+  display: block;
+  font-family: var(--data);
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 1.3;
+  color: var(--accent);
+}
+.panel-figure .l {
+  display: block;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--ink-faint);
+  margin-top: 5px;
+}
+
+.panel-progress {
+  margin-top: auto;
+  border-top: 1px solid var(--rule);
+  padding-top: 13px;
+  font-family: var(--data);
+  font-size: 11px;
+  color: var(--ink-faint);
+}
+.panel-progress b { color: var(--ink); font-weight: 600; }
+.panel-bar { height: 2px; background: var(--rule); margin-top: 7px; }
+.panel-bar i { display: block; height: 2px; background: var(--accent); }
+
+.panel-nav { display: flex; gap: 7px; flex-wrap: wrap; }
+.panel-nav a {
+  font-family: var(--data);
+  font-size: 10.5px;
+  letter-spacing: .06em;
+  padding: 6px 9px;
+  border: 1px solid var(--rule);
+  text-decoration: none;
+  color: var(--ink-soft);
+}
+.panel-nav a:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ------------------------------------------------------------- el contenido */
+
+.stage { background: var(--stage); padding: 0 0 54px; min-width: 0; }
+.stage-inner { max-width: var(--block); padding: 0 40px; }
+
+/* La cabecera ya no ocupa media pantalla: una línea de identificación y el
+ * título. La cifra y la navegación se fueron a la barra. */
+.head {
+  padding: 30px 0 20px;
+  border-bottom: 1px solid var(--rule);
+  margin-bottom: 4px;
+}
+.head-id {
+  font-family: var(--data);
+  font-size: 10.5px;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  display: flex;
+  gap: 14px;
+  align-items: baseline;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.head-id b { color: var(--accent); font-weight: 600; }
+.head h1 {
+  font-family: var(--display);
+  font-size: clamp(26px, 3.3vw, 37px);
+  line-height: 1.08;
+  font-weight: 600;
+  margin: 0 0 10px;
+  max-width: 22ch;
+}
+.head .standfirst {
+  color: var(--ink-soft);
+  font-size: 16.5px;
+  line-height: 1.5;
+  max-width: var(--read);
+  margin: 0;
+}
+
+/* Las secciones ya no cuelgan de un margen de 132 px: la etiqueta va encima, en
+ * un recuadro pequeño, y el texto empieza en el borde. */
+.block { padding: 26px 0 2px; border-top: 1px solid var(--rule-soft); }
+.block:first-of-type { border-top: 0; }
+
+.kicker {
+  display: inline-block;
+  font-family: var(--data);
+  font-size: 9.5px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  border: 1px solid var(--rule);
+  padding: 2px 7px;
+  margin-bottom: 11px;
+}
+
+.block-title {
+  font-family: var(--display);
+  font-size: 22px;
+  font-weight: 600;
+  margin: 0 0 11px;
+  max-width: var(--read);
+}
+
+/* Justificado desde 33rem de columna y rasgado en móvil: la regla que Kevin
+ * fijó en el portafolio el 2026-08-22, después de medir que a 375 px salían
+ * huecos de 7,65x y ríos en cinco de cada seis líneas. Aquí la prosa mide 646 px
+ * (unos 40rem), así que le toca justificado.
+ *
+ * Y NADA de `hyphens`: sin guionado, por la regla de la casa. El precio es que
+ * hay que vigilar los ríos, y eso se mide con src/site/check_rivers.py en vez de
+ * mirarlo de reojo. */
+.block p, .block li { max-width: var(--read); }
+
+@media (min-width: 34rem) {
+  .block p,
+  .block li,
+  .standfirst,
+  .reto-ask,
+  .annot dd,
+  blockquote,
+  .is-review details p { text-align: justify; text-justify: inter-word; }
+  /* Tablas, código, pies de figura y la barra nunca se justifican: sus líneas
+   * son cortas y el hueco se vuelve un agujero. */
+  figcaption, th, td, pre, .panel, .live-status, .toc { text-align: left; }
+}
+.block p { margin: 0 0 14px; }
+.block ul, .block ol { padding-left: 21px; margin: 0 0 14px; }
+.block li { margin-bottom: 6px; }
+.block li::marker { color: var(--accent); font-family: var(--data); font-size: .82em; }
+
+h3.sub, h4.sub {
+  font-family: var(--display);
+  font-size: 17px;
+  font-weight: 600;
+  margin: 24px 0 8px;
+  max-width: var(--read);
+}
+h4.sub { font-size: 15px; color: var(--ink-soft); }
+
+blockquote {
+  margin: 0 0 14px;
+  padding-left: 15px;
+  border-left: 2px solid var(--rule);
+  color: var(--ink-soft);
+  max-width: var(--read);
+}
+strong, b { font-weight: 600; }
+
+.is-brief ul { list-style: none; padding-left: 0; }
+.is-brief li {
+  padding: 8px 0 8px 18px;
+  border-bottom: 1px solid var(--rule-soft);
+  position: relative;
+}
+.is-brief li::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 17px;
+  width: 8px; height: 1px;
+  background: var(--accent);
+}
+.is-brief li:last-child { border-bottom: 0; }
+.is-result .block-title, .is-warning .block-title { color: var(--accent); }
+
+/* ------------------------------------------------------------------ código */
+
+pre {
+  max-width: var(--block);
+  overflow-x: auto;
+  background: var(--panel);
+  border: 1px solid var(--rule-soft);
+  border-left: 2px solid var(--accent);
+  padding: 13px 15px;
+  margin: 0 0 13px;
+}
+pre code {
+  font-family: var(--data);
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ink);
+  white-space: pre;
+}
+p code, li code, dd code, td code {
+  font-family: var(--data);
+  font-size: .87em;
+  padding: 1px 4px;
+  background: var(--panel);
+  border: 1px solid var(--rule-soft);
+}
+
+/* Diagramas: esquemas conceptuales generados, no figuras de datos.
+   Nacen del bloque ```diagrama y usan los tokens de arriba, asi que el tema lo
+   resuelve el CSS y no hacen falta dos versiones como en las figuras. */
+.diagram { margin: 0 0 22px; max-width: var(--block); }
+.chain {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: 30px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: none;
+}
+.node {
+  position: relative;
+  /* 130 y no 132: 132px es la columna de margen de Sílice y check_layout la
+     prohíbe en este proyecto, con razón, aunque aquí signifique otra cosa. */
+  flex: 1 1 130px;
+  min-width: 0;
+  padding: 11px 13px 12px;
+  background: var(--panel);
+  border: 1px solid var(--rule);
+  border-top: 2px solid var(--ink-faint);
+}
+/* La flecha entre cajas. Va en el hueco del gap, asi que no roba ancho al
+   texto y desaparece sola cuando las cajas se apilan. */
+.node + .node::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: -22px;
+  width: 14px;
+  height: 1px;
+  background: var(--ink-faint);
+}
+.node + .node::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: -11px;
+  width: 5px; height: 5px;
+  border-top: 1px solid var(--ink-faint);
+  border-right: 1px solid var(--ink-faint);
+  transform: translateY(-50%) rotate(45deg);
+}
+.node.lit { border-top-color: var(--accent); background: var(--stage); }
+.node.lit .node-name { color: var(--accent); }
+.node-name {
+  display: block;
+  font-family: var(--data);
+  font-size: 10.5px;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+.node-what { display: block; margin-top: 5px; font-size: 13.5px; color: var(--ink); }
+.node-note { display: block; margin-top: 4px; font-size: 12px; color: var(--ink-faint); }
+
+@media (max-width: 640px) {
+  /* Apiladas, con la flecha girada hacia abajo. */
+  .chain { flex-direction: column; gap: 26px; }
+  .node { flex: 1 1 auto; }
+  .node + .node::before {
+    top: -19px; left: 21px;
+    width: 1px; height: 12px;
+  }
+  .node + .node::after {
+    top: -9px; left: 19px;
+    transform: rotate(135deg);
+  }
+}
+
+.output { position: relative; margin: 0 0 13px; max-width: var(--block); }
+.output pre { margin: 0; border-left: 2px solid var(--ink-faint); background: transparent; }
+.output pre code { color: var(--ink-soft); }
+.output-tag {
+  position: absolute;
+  top: -7px; left: 13px;
+  z-index: 1;
+  font-family: var(--data);
+  font-size: 9px;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  background: var(--stage);
+  padding: 0 5px;
+}
+
+details.fold, details { margin: 0 0 13px; max-width: var(--block); }
+details > summary {
+  cursor: pointer;
+  font-family: var(--data);
+  font-size: 11px;
+  letter-spacing: .05em;
+  color: var(--ink-faint);
+  padding: 5px 0;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+details > summary::-webkit-details-marker { display: none; }
+details > summary::before {
+  content: "+";
+  width: 13px; height: 13px;
+  line-height: 12px;
+  text-align: center;
+  border: 1px solid var(--rule);
+  color: var(--accent);
+}
+details[open] > summary::before { content: "\2212"; }
+details > summary:hover { color: var(--accent); }
+
+.annot {
+  margin: 2px 0 4px;
+  padding: 11px 13px;
+  border: 1px solid var(--rule-soft);
+  background: var(--panel);
+}
+.annot dt { margin-bottom: 3px; }
+.annot dt code {
+  font-family: var(--data);
+  font-size: 12px;
+  color: var(--accent);
+  background: transparent;
+  border: 0;
+  padding: 0;
+}
+.annot dd { margin: 0 0 10px; font-size: 14.5px; color: var(--ink-soft); max-width: var(--read); }
+.annot dd:last-of-type { margin-bottom: 0; }
+
+.is-review details { border-bottom: 1px solid var(--rule-soft); margin: 0; }
+.is-review details > summary {
+  font-family: var(--prose);
+  font-size: 15.5px;
+  color: var(--ink);
+  padding: 11px 0;
+}
+.is-review details > summary:hover { color: var(--accent); }
+.is-review details p { margin: 0 0 11px 21px; color: var(--ink-soft); }
+
+/* ------------------------------------------------------------------ tablas */
+
+.table-wrap { max-width: var(--block); overflow-x: auto; margin: 0 0 15px; }
+table { border-collapse: collapse; font-size: 14.5px; }
+th, td {
+  text-align: left;
+  padding: 6px 15px 6px 0;
+  border-bottom: 1px solid var(--rule-soft);
+  vertical-align: top;
+}
+th {
+  font-family: var(--data);
+  font-size: 10px;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  font-weight: 400;
+  border-bottom-color: var(--rule);
+}
+tbody tr:last-child td { border-bottom: 0; }
+
+figure { margin: 0 0 17px; max-width: var(--block); }
+figure img { max-width: 100%; height: auto; display: block; }
+figcaption { font-size: 12.5px; color: var(--ink-faint); margin-top: 7px; max-width: var(--read); }
+
+.footer {
+  border-top: 1px solid var(--rule);
+  margin-top: 32px;
+  padding: 18px 0 0;
+  font-size: 12px;
+  color: var(--ink-faint);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px 20px;
+}
+.footer a { color: var(--ink-faint); }
+.gone { color: var(--ink-faint); }
+
+/* ---------------------------------------------- la consulta viva y el reto */
+
+.live {
+  max-width: var(--block);
+  margin: 0 0 17px;
+  border: 1px solid var(--rule);
+  background: var(--panel);
+}
+.live-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 13px;
+  border-bottom: 1px solid var(--rule-soft);
+  font-family: var(--data);
+  font-size: 10px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.live-editor {
+  width: 100%;
+  border: 0;
+  resize: vertical;
+  min-height: 112px;
+  padding: 12px 14px;
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--data);
+  font-size: 13px;
+  line-height: 1.6;
+  tab-size: 2;
+}
+.live-editor:focus { outline: 2px solid var(--accent); outline-offset: -2px; }
+.live-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 13px;
+  border-top: 1px solid var(--rule-soft);
+  flex-wrap: wrap;
+}
+.live-run {
+  font-family: var(--data);
+  font-size: 11px;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  padding: 7px 14px;
+  border: 1px solid var(--accent);
+  background: transparent;
+  color: var(--accent);
+  cursor: pointer;
+}
+.live-run:hover { background: var(--accent); color: var(--ground); }
+.live-run[disabled] { opacity: .5; cursor: default; }
+.live-run[disabled]:hover { background: transparent; color: var(--accent); }
+.live-status { font-family: var(--data); font-size: 10.5px; color: var(--ink-faint); }
+.live-out { max-width: 100%; overflow-x: auto; }
+.live-out table { margin: 0; width: 100%; font-size: 12.5px; }
+.live-out td, .live-out th { padding: 5px 13px 5px 0; }
+.live-out td:first-child, .live-out th:first-child { padding-left: 13px; }
+.live-out td { font-family: var(--data); font-size: 12px; }
+.live-err {
+  padding: 10px 14px;
+  font-family: var(--data);
+  font-size: 12px;
+  color: var(--simulated);
+  border-top: 1px solid var(--rule-soft);
+}
+
+.reto { border-left: 2px solid var(--accent); }
+.reto .live-head { color: var(--accent); }
+.reto-ask { padding: 12px 14px 2px; font-size: 15.5px; max-width: var(--read); }
+.verdict {
+  padding: 10px 14px;
+  border-top: 1px solid var(--rule-soft);
+  font-family: var(--data);
+  font-size: 12px;
+}
+.verdict.ok { color: var(--accent); }
+.verdict.no { color: var(--simulated); }
+
+.no-js .live-bar, .no-js .live-editor { display: none; }
+.no-js .live-static { display: block; }
+.live-static { display: none; }
+
+/* ---------------------------------------------------------- el doble trazo */
+
+.twin { max-width: var(--block); margin: 0 0 18px; }
+.twin svg { width: 100%; height: auto; display: block; }
+.twin .axis { stroke: var(--rule); fill: none; }
+.twin .tick { fill: var(--ink-faint); font-family: var(--data); font-size: 10px; }
+.twin .measured { stroke: var(--measured); fill: none; stroke-width: 1.8; }
+.twin .simulated { stroke: var(--simulated); fill: none; stroke-width: 1.8; stroke-dasharray: 5 4; }
+.twin .gap { fill: var(--simulated); opacity: .16; }
+.twin-key { display: flex; gap: 20px; flex-wrap: wrap; font-family: var(--data);
+            font-size: 11px; color: var(--ink-faint); margin-top: 6px; }
+.twin-key i { display: inline-block; width: 20px; height: 0; vertical-align: middle;
+              border-top-width: 2px; border-top-style: solid; margin-right: 7px; }
+.twin-key .k-measured i { border-color: var(--measured); }
+.twin-key .k-simulated i { border-top-style: dashed; border-color: var(--simulated); }
+
+.knob { display: flex; align-items: center; gap: 13px; flex-wrap: wrap; margin: 0 0 13px;
+        font-family: var(--data); font-size: 11px; color: var(--ink-faint); }
+.knob input[type="range"] { accent-color: var(--accent); flex: 1 1 200px; max-width: 300px; }
+.knob output { color: var(--accent); min-width: 72px; }
+
+/* -------------------------------------------------------- índice del curso */
+
+.toc { max-width: var(--block); }
+.toc .part {
+  font-family: var(--data);
+  font-size: 10px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin: 26px 0 2px;
+  padding-top: 11px;
+  border-top: 1px solid var(--rule);
+}
+.toc a, .toc .pending {
+  display: grid;
+  grid-template-columns: 34px 1fr auto;
+  gap: 15px;
+  align-items: baseline;
+  padding: 9px 6px 9px 8px;
+  border-bottom: 1px solid var(--rule-soft);
+  border-left: 2px solid transparent;
+  text-decoration: none;
+  color: var(--ink);
+}
+.toc a:hover { border-left-color: var(--accent); background: var(--panel); color: var(--accent); }
+.toc .pending { color: var(--ink-faint); }
+.toc .num { font-family: var(--data); font-size: 12px; color: var(--ink-faint); }
+.toc a:hover .num { color: var(--accent); }
+.toc .name { font-family: var(--display); font-size: 16px; }
+.toc .name small { display: block; font-family: var(--prose); color: var(--ink-faint);
+                   font-size: 13px; font-weight: 400; margin-top: 2px; max-width: 60ch; }
+.toc .mark { font-family: var(--data); font-size: 11px; color: var(--ink-faint); text-align: right; }
+.toc .tag { font-family: var(--data); font-size: 9.5px; letter-spacing: .1em;
+            text-transform: uppercase; color: var(--ink-faint); }
+
+/* ------------------------------------------------------------------- móvil */
+
+/* La barra deja de ser barra: pasa a cabecera compacta arriba, con los tramos en
+ * horizontal. La rejilla se colapsa a una columna. */
+@media (max-width: 900px) {
+  .shell { grid-template-columns: 1fr; }
+  .panel {
+    position: static;
+    height: auto;
+    border-right: 0;
+    border-bottom: 1px solid var(--rule);
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 16px;
+    padding: 13px 18px;
+  }
+  .panel-label { display: none; }
+  .panel .rail { display: flex; gap: 0 5px; flex-wrap: wrap; }
+  .rail-step { grid-template-columns: 11px auto; padding: 3px 0; font-size: 9.5px; }
+  .rail-step .range { display: none; }
+  .rail-step:not(:last-child)::after { display: none; }
+  .panel-figure { border-top: 0; padding-top: 0; }
+  .panel-figure .v { font-size: 13.5px; }
+  .panel-figure .l { display: none; }
+  .panel-progress { margin: 0; border-top: 0; padding-top: 0; }
+  .panel-bar { display: none; }
+  .stage-inner { padding: 0 18px; }
+  body { font-size: 16px; }
+  .head { padding-top: 22px; }
+  pre code { font-size: 12.5px; }
+}
+
+/* ------------------------------------------------- la perilla del gemelo */
+/*
+ * El doble trazo con su deslizador, de los modulos 24 y 25. El SVG llega ya
+ * dibujado del servidor, asi que sin JavaScript se ve igual: dos trazos, la
+ * referencia y la posicion de partida. El mando solo cambia cual se ensena.
+ *
+ * La regla de forma del curso: el color NUNCA es la unica pista. La referencia
+ * va punteada y en tono apagado, y la posicion elegida solida y en el acento.
+ */
+.perilla {
+  margin: 22px 0;
+  max-width: var(--block);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  background: var(--stage);
+  padding: 14px 16px 12px;
+}
+.perilla figcaption {
+  font-family: var(--data);
+  font-size: 11px;
+  color: var(--ink-faint);
+  letter-spacing: .02em;
+  margin-bottom: 10px;
+}
+.perilla svg { display: block; width: 100%; height: auto; }
+.perilla-referencia {
+  fill: none;
+  stroke: var(--ink-faint);
+  stroke-width: 1.4;
+  stroke-dasharray: 4 3;
+}
+.perilla-actual {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  transition: d .12s linear;
+}
+.perilla-pie {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 18px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--rule-soft);
+}
+.perilla-leyenda { font-size: 12px; color: var(--ink-faint); }
+.perilla-mandos {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+  font-family: var(--data);
+  font-size: 11px;
+  color: var(--ink-soft);
+}
+.perilla-mando { width: 190px; accent-color: var(--accent); }
+.perilla-mando[disabled] { opacity: .45; }
+.perilla-valor {
+  font-family: var(--data);
+  font-size: 12px;
+  color: var(--ink);
+  min-width: 88px;
+}
+.perilla-nota, .perilla-referencia-nota {
+  margin: 8px 0 0;
+  font-size: 12.5px;
+  color: var(--ink-soft);
+}
+.perilla-referencia-nota { color: var(--ink-faint); font-size: 12px; }
+
+@media (max-width: 620px) {
+  .perilla-mandos { margin-left: 0; width: 100%; }
+  .perilla-mando { flex: 1; width: auto; min-width: 0; }
+}
+
+/* ------------------------------------------------------ movimiento y papel */
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@media print {
+  .shell { display: block; }
+  .panel, .live-bar, .live-editor { display: none; }
+  .live-static { display: block; }
+  body { background: #fff; color: #000; }
+}
+
+/* ------------------------------------------------------ figuras, dos temas */
+
+/* Cada figura viaja dos veces, clara y oscura, y aquí se enseña la que toca.
+ * Con `<picture>` y una media query bastaría para la preferencia del sistema,
+ * pero no para el interruptor manual, y este curso respeta los dos. */
+.fig-oscuro { display: none; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .fig-claro { display: none; }
+  :root:not([data-theme="light"]) .fig-oscuro { display: block; }
+}
+:root[data-theme="dark"] .fig-claro { display: none; }
+:root[data-theme="dark"] .fig-oscuro { display: block; }
+
+/* El acento de este módulo, uno por tema. Los dos salen de src/site/palette.py
+   y los dos pasaron el contraste antes de llegar aquí. */
+:root { --accent: #8F684C; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --accent: #D8AD90; }
+}
+:root[data-theme="dark"] { --accent: #D8AD90; }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- La barra de instrumentos. No se mueve al bajar: el tramo del lago, la cifra
+       del módulo y el avance se quedan a la vista mientras se lee. -->
+  <aside class="panel">
+    <a class="panel-brand" href="index.en.html">Bellows
+      <small>Module 28 of 31</small></a>
+
+    <nav class="rail" aria-label="The arc of the project">
+      <p class="panel-label">the lake</p>
+      <span class="rail-step done"><i class="dot"></i><span>RAW</span><span class="range">1-3</span></span><span class="rail-step done"><i class="dot"></i><span>BRONZE</span><span class="range">4-13</span></span><span class="rail-step done"><i class="dot"></i><span>SILVER</span><span class="range">14-16</span></span><span class="rail-step done"><i class="dot"></i><span>GOLD</span><span class="range">17-22</span></span><span class="rail-step here"><i class="dot"></i><span>TWIN</span><span class="range">23-31</span></span>
+    </nav>
+
+    <div class="panel-figure">
+      <span class="v">4 of 4 against 2 of 4</span>
+      <span class="l">the failures the twin catches against the alarm already installed, at half the false alarms</span>
+    </div>
+
+    <div class="panel-progress">
+      <b>28</b> of 31
+      <span class="panel-bar"><i style="width: 90%"></i></span>
+    </div>
+
+    <nav class="panel-nav"><a href="m27_residual.en.html" title="27. The residual gives the leak away">← 27</a><a class="portfolio-link" href="m28_veredicto.html" hreflang="es" rel="alternate">Español</a></nav>
+  </aside>
+
+  <main class="stage">
+    <div class="stage-inner">
+      <header class="head">
+        <p class="head-id"><b>28</b> <span>part: The twin</span></p>
+        <h1>The verdict: four failures and how many false alarms</h1>
+        <p class="standfirst">Against the four real dates, and against the rival to beat: an ordinary threshold alarm. If the twin does not win, that is what gets published</p>
+      </header>
+
+      <section class="block is-brief"><span class="kicker">Summary</span><h2 class="block-title">In 30 seconds</h2><ul><li><strong>4 of 4 against 2 of 4</strong>: the failures the twin catches, and the ones the installed alarm catches.</li><li>And it does it waking somebody <strong>1.5 times a month</strong> against the installed one&#x27;s 11.4.</li><li>As a <strong>detector</strong> it wins. As a <strong>predictor</strong> it does not: it warns beforehand on one of the four, by a day.</li><li>It also finds the twelve days of March nobody documented, and that goes in both counts.</li><li>And an uncomfortable one, checked rather than assumed: **it orders the days just like a threshold on the duty cycle**.</li></ul></section>
+<section class="block "><span class="kicker">Context</span><h2 class="block-title">What this module solves</h2><p>This is where it pays off or it does not. Five modules building a twin, and the question left is whether it is good for anything that was not already covered.</p><p>And there are three ways of answering that question by cheating, so it is worth saying how all three are avoided before showing any number.</p><p><strong>The first is grading your own exam.</strong> Module 27 measured the residual and <strong>refused to choose a threshold</strong>. That way, whoever measures and whoever grades are not the same script. Here the threshold is swept whole, from 0.10 to 1.20, and the numbers are published for the complete sweep.</p><p><strong>The second is calling a standing alarm a warning.</strong> If the alarm fired twelve days before the report, that is twelve days of warning only if somebody would have done something. If it had been on for two months, it is worth nothing. That is why every lead time comes with <strong>how long the episode it belongs to had been sounding</strong>.</p><p><strong>And the third is competing against nobody.</strong> Two rivals: an ordinary threshold on the duty cycle, and <strong>the low pressure alarm this compressor already has fitted</strong>.</p></section>
+<section class="block is-toy"><span class="kicker">By hand</span><h2 class="block-title">Before the theory: a toy example</h2><p>A smoke detector in a kitchen. In a year there are <strong>2 fires</strong> and the detector goes off <strong>50 times</strong>.</p><div class="table-wrap"><table><thead><tr><th></th><th>Goes off</th><th>Does not</th></tr></thead><tbody><tr><td>There is a fire</td><td>2</td><td>0</td></tr><tr><td>There is no fire</td><td>48</td><td>313</td></tr></tbody></table></div><p>It catches both fires: as a detector it is perfect. And it goes off <strong>48 times for nothing</strong>, nearly one a week, so by the third somebody takes the battery out and the detector stops existing.</p><p><strong>The two figures always travel together.</strong> A detector that catches everything is easy: set the threshold at zero and there it is. A detector that never bothers anybody is just as easy. The question is where the pair lands, and against what pair it is compared.</p></section>
+<section class="block is-terms"><span class="kicker">Terms</span><h2 class="block-title">Glossary</h2><details class="fold"><summary>5 terms, in plain words</summary><ul><li><strong>Detector.</strong> Judged on whether it notices the failure while it is happening.</li><li><strong>Predictor.</strong> Judged on whether it warns <strong>beforehand</strong>. They are two different marks and this module gives both.</li><li><strong>False alarm.</strong> A day it goes off and there was nothing. Here they are counted per month, which is the unit whoever is on call suffers them in.</li><li><strong>Episode.</strong> Alarm days in a row. It is needed so as not to confuse a warning with an alarm that had already been on for half a week.</li><li><strong>Sweep.</strong> Trying every threshold and publishing the whole curve, instead of choosing one and showing only what comes out well with it.</li></ul></details></section>
+<section class="block is-method"><span class="kicker">Method</span><h2 class="block-title">Step by step</h2><h3 class="sub">Step 1. Decide what counts as a hit</h3><p>A failure report covers some days. If the alarm goes off on any of them, that report is detected. The four reports cover <strong>7 days</strong> between them.</p><h3 class="sub">Step 2. Decide what counts as a warning, which is harder</h3><p>It is not enough for the alarm to be on before the report. You have to look at <strong>when the episode that reaches it lit up</strong>. If it lit up the day before, it is a one day warning. If it had been on for three weeks, it is not a warning: it is background noise that happened to include the date.</p><h3 class="sub">Step 3. Sweep the threshold, do not choose it</h3><p>Twenty three thresholds, from 0.10 to 1.20 bar/min. The lowest sits just above the noise floor module 27 measured; below it, the alarm would be sounding in February.</p><h3 class="sub">Step 4. Find yourself real rivals</h3><p>A trivial one, to see whether the twin adds anything. And an installed one, to see whether it adds anything <strong>beyond what was already there</strong>.</p></section>
+<section class="block is-code"><span class="kicker">Code</span><h2 class="block-title">The code, in parts</h2><h3 class="sub">Step 5. The episode, which is what stops the lead time being inflated</h3><pre><code class="language-python">for ini, fin in rachas:
+    if ini &lt; suceso.date() &lt;= fin + timedelta(days=1):
+        antes = (suceso.date() - ini).days
+        largo = (fin - ini).days + 1</code></pre><details class="fold"><summary>line by line, 3 entries</summary><dl class="annot"><dt><code>rachas</code></dt><dd>the alarm days grouped into consecutive runs, not loose</dd><dt><code>antes</code></dt><dd>the days from the episode lighting up to the report. That is the real lead time</dd><dt><code>largo</code></dt><dd>and how long the whole episode lasted, which is what the lead time has to be read against</dd></dl></details><h3 class="sub">Step 6. The trivial rival gets checked, not asserted</h3><pre><code class="language-python">por_residual = sorted(dias, key=lambda f: -f.pico)
+por_carga = sorted(dias, key=lambda f: -f.carga)
+mismo_orden = por_residual == por_carga</code></pre><details class="fold"><summary>line by line, 3 entries</summary><dl class="annot"><dt><code>sorted(...)</code></dt><dd>the same days, ordered by the residual and by the duty cycle</dd><dt><code>==</code></dt><dd>if the two lists are identical, any threshold on one has its exact twin on the other</dd><dt><code>mismo_orden</code></dt><dd>it is the lesson&#x27;s most uncomfortable claim, and an uncomfortable claim left unchecked is an excuse</dd></dl></details><h3 class="sub">Step 7. Turn the knob</h3><figure class="perilla" data-perilla="../assets/perillas/m28_umbral.json?v=49e07fc2" data-decimal="."><figcaption>el umbral, y lo que cuesta bajarlo</figcaption><svg viewBox="0 0 640 200" role="img" data-margen="14" data-techo="143.0" aria-label="el umbral, y lo que cuesta bajarlo"><path class="perilla-referencia" d="M14.0 186.0 L17.0 186.0 L19.9 186.0 L22.9 186.0 L25.9 186.0 L28.9 186.0 L31.8 186.0 L34.8 186.0 L37.8 186.0 L40.7 186.0 L43.7 186.0 L46.7 186.0 L49.7 186.0 L52.6 186.0 L55.6 186.0 L58.6 186.0 L61.5 186.0 L64.5 186.0 L67.5 186.0 L70.4 186.0 L73.4 186.0 L76.4 186.0 L79.4 186.0 L82.3 186.0 L85.3 186.0 L88.3 186.0 L91.2 186.0 L94.2 186.0 L97.2 186.0 L100.2 186.0 L103.1 186.0 L106.1 186.0 L109.1 186.0 L112.0 186.0 L115.0 186.0 L118.0 186.0 L121.0 186.0 L123.9 186.0 L126.9 186.0 L129.9 186.0 L132.8 186.0 L135.8 186.0 L138.8 186.0 L141.7 186.0 L144.7 186.0 L147.7 186.0 L150.7 186.0 L153.6 186.0 L156.6 186.0 L159.6 186.0 L162.5 186.0 L165.5 186.0 L168.5 186.0 L171.5 186.0 L174.4 186.0 L177.4 186.0 L180.4 186.0 L183.3 186.0 L186.3 186.0 L189.3 186.0 L192.3 186.0 L195.2 186.0 L198.2 186.0 L201.2 186.0 L204.1 186.0 L207.1 186.0 L210.1 186.0 L213.0 186.0 L216.0 186.0 L219.0 186.0 L222.0 186.0 L224.9 186.0 L227.9 186.0 L230.9 186.0 L233.8 186.0 L236.8 186.0 L239.8 184.8 L242.8 184.8 L245.7 184.8 L248.7 184.8 L251.7 184.8 L254.6 184.8 L257.6 184.8 L260.6 184.8 L263.6 184.8 L266.5 184.8 L269.5 184.8 L272.5 184.8 L275.4 184.8 L278.4 184.8 L281.4 184.8 L284.3 184.8 L287.3 184.8 L290.3 184.8 L293.3 184.8 L296.2 184.8 L299.2 184.8 L302.2 184.8 L305.1 184.8 L308.1 184.8 L311.1 184.8 L314.1 184.8 L317.0 184.8 L320.0 184.8 L323.0 184.8 L325.9 184.8 L328.9 184.8 L331.9 184.8 L334.9 184.8 L337.8 184.8 L340.8 184.8 L343.8 184.8 L346.7 184.8 L349.7 183.6 L352.7 182.4 L355.7 182.4 L358.6 182.4 L361.6 182.4 L364.6 182.4 L367.5 182.4 L370.5 181.2 L373.5 180.0 L376.4 178.8 L379.4 178.8 L382.4 178.8 L385.4 178.8 L388.3 178.8 L391.3 178.8 L394.3 178.8 L397.2 178.8 L400.2 178.8 L403.2 178.8 L406.2 178.8 L409.1 178.8 L412.1 178.8 L415.1 178.8 L418.0 178.8 L421.0 178.8 L424.0 178.8 L427.0 178.8 L429.9 178.8 L432.9 178.8 L435.9 178.8 L438.8 178.8 L441.8 178.8 L444.8 178.8 L447.7 178.8 L450.7 178.8 L453.7 178.8 L456.7 178.8 L459.6 178.8 L462.6 178.8 L465.6 178.8 L468.5 178.8 L471.5 178.8 L474.5 178.8 L477.5 178.8 L480.4 178.8 L483.4 177.6 L486.4 177.6 L489.3 177.6 L492.3 177.6 L495.3 177.6 L498.3 177.6 L501.2 177.6 L504.2 177.6 L507.2 177.6 L510.1 177.6 L513.1 177.6 L516.1 177.6 L519.0 177.6 L522.0 177.6 L525.0 177.6 L528.0 177.6 L530.9 177.6 L533.9 177.6 L536.9 177.6 L539.8 177.6 L542.8 177.6 L545.8 177.6 L548.8 177.6 L551.7 177.6 L554.7 177.6 L557.7 177.6 L560.6 177.6 L563.6 177.6 L566.6 177.6 L569.6 177.6 L572.5 177.6 L575.5 177.6 L578.5 177.6 L581.4 177.6 L584.4 177.6 L587.4 177.6 L590.3 177.6 L593.3 177.6 L596.3 177.6 L599.3 177.6 L602.2 177.6 L605.2 177.6 L608.2 177.6 L611.1 177.6 L614.1 177.6 L617.1 177.6 L620.1 177.6 L623.0 177.6 L626.0 177.6"/><path class="perilla-actual" d="M14.0 186.0 L17.0 186.0 L19.9 186.0 L22.9 186.0 L25.9 186.0 L28.9 186.0 L31.8 186.0 L34.8 186.0 L37.8 186.0 L40.7 186.0 L43.7 186.0 L46.7 186.0 L49.7 186.0 L52.6 186.0 L55.6 186.0 L58.6 186.0 L61.5 186.0 L64.5 186.0 L67.5 186.0 L70.4 186.0 L73.4 186.0 L76.4 186.0 L79.4 186.0 L82.3 186.0 L85.3 186.0 L88.3 186.0 L91.2 186.0 L94.2 186.0 L97.2 186.0 L100.2 186.0 L103.1 186.0 L106.1 186.0 L109.1 186.0 L112.0 184.8 L115.0 184.8 L118.0 184.8 L121.0 184.8 L123.9 184.8 L126.9 184.8 L129.9 183.6 L132.8 183.6 L135.8 183.6 L138.8 183.6 L141.7 183.6 L144.7 183.6 L147.7 183.6 L150.7 183.6 L153.6 183.6 L156.6 183.6 L159.6 183.6 L162.5 183.6 L165.5 183.6 L168.5 183.6 L171.5 183.6 L174.4 182.4 L177.4 181.2 L180.4 180.0 L183.3 180.0 L186.3 180.0 L189.3 180.0 L192.3 180.0 L195.2 180.0 L198.2 180.0 L201.2 180.0 L204.1 180.0 L207.1 180.0 L210.1 180.0 L213.0 180.0 L216.0 180.0 L219.0 180.0 L222.0 178.8 L224.9 178.8 L227.9 178.8 L230.9 178.8 L233.8 178.8 L236.8 178.8 L239.8 177.6 L242.8 176.4 L245.7 176.4 L248.7 176.4 L251.7 176.4 L254.6 176.4 L257.6 176.4 L260.6 176.4 L263.6 176.4 L266.5 176.4 L269.5 176.4 L272.5 176.4 L275.4 176.4 L278.4 176.4 L281.4 176.4 L284.3 176.4 L287.3 176.4 L290.3 176.4 L293.3 176.4 L296.2 176.4 L299.2 176.4 L302.2 176.4 L305.1 176.4 L308.1 175.2 L311.1 174.0 L314.1 174.0 L317.0 174.0 L320.0 174.0 L323.0 174.0 L325.9 172.8 L328.9 171.6 L331.9 171.6 L334.9 171.6 L337.8 171.6 L340.8 171.6 L343.8 171.6 L346.7 171.6 L349.7 171.6 L352.7 170.4 L355.7 170.4 L358.6 170.4 L361.6 170.4 L364.6 170.4 L367.5 170.4 L370.5 169.2 L373.5 168.0 L376.4 166.8 L379.4 165.6 L382.4 165.6 L385.4 165.6 L388.3 165.6 L391.3 165.6 L394.3 165.6 L397.2 165.6 L400.2 165.6 L403.2 165.6 L406.2 165.6 L409.1 165.6 L412.1 165.6 L415.1 165.6 L418.0 165.6 L421.0 165.6 L424.0 165.6 L427.0 165.6 L429.9 165.6 L432.9 165.6 L435.9 165.6 L438.8 165.6 L441.8 165.6 L444.8 165.6 L447.7 165.6 L450.7 165.6 L453.7 165.6 L456.7 165.6 L459.6 165.6 L462.6 165.6 L465.6 165.6 L468.5 165.6 L471.5 165.6 L474.5 165.6 L477.5 165.6 L480.4 165.6 L483.4 164.3 L486.4 164.3 L489.3 164.3 L492.3 164.3 L495.3 164.3 L498.3 164.3 L501.2 164.3 L504.2 164.3 L507.2 164.3 L510.1 164.3 L513.1 164.3 L516.1 164.3 L519.0 164.3 L522.0 164.3 L525.0 164.3 L528.0 164.3 L530.9 164.3 L533.9 164.3 L536.9 164.3 L539.8 164.3 L542.8 164.3 L545.8 164.3 L548.8 164.3 L551.7 164.3 L554.7 164.3 L557.7 164.3 L560.6 164.3 L563.6 164.3 L566.6 164.3 L569.6 164.3 L572.5 164.3 L575.5 164.3 L578.5 164.3 L581.4 164.3 L584.4 164.3 L587.4 164.3 L590.3 164.3 L593.3 164.3 L596.3 164.3 L599.3 164.3 L602.2 164.3 L605.2 164.3 L608.2 164.3 L611.1 164.3 L614.1 164.3 L617.1 164.3 L620.1 164.3 L623.0 164.3 L626.0 164.3"/></svg><div class="perilla-pie"><span class="perilla-leyenda">días con la alarma puesta, acumulados</span><label class="perilla-mandos">umbral<input class="perilla-mando" type="range" min="0" max="22" value="21" step="1"><output class="perilla-valor">1.15 bar/min</output></label></div><p class="perilla-nota" data-plantilla="at this threshold it catches {detecta} failures out of four, and wakes someone on {falsas} days for nothing">at this threshold it catches 4 failures out of four, and wakes someone on 12 days for nothing</p><p class="perilla-referencia-nota">the dotted line is the reference, at 1.15 bar/min</p></figure><p>The knob starts at the threshold the sweep chose. Lower it and watch the trace pull away from the dotted line. That line is the days with a real failure, and everything above it is night shifts spent on nothing.</p></section>
+<section class="block is-result"><span class="kicker">Result</span><h2 class="block-title">The result, measured</h2><figure class="fig"><img class="fig-claro" src="../figuras/fig_m28_cuatro_averias.claro.en.png?v=9a8dc98e" alt="fig m28 cuatro averias" loading="lazy"><img class="fig-oscuro" src="../figuras/fig_m28_cuatro_averias.oscuro.en.png?v=4cc102c7" alt="fig m28 cuatro averias" loading="lazy"></figure><p><strong>What we expected.</strong> That the twin would detect all four and warn with some lead time.</p><p><strong>What came out.</strong> The first, yes, and well. The second, no.</p><div class="output"><span class="output-tag">prints</span><pre><code>  el suelo de ruido del módulo 27 está en 0.1165, y de ahí para arriba se barre el umbral
+  el registro abarca 8 meses, y ese es el divisor de todos
+  los cuatro partes cubren 7 días
+
+  congelado, marzo cuenta
+    umbral | detecta | avisa antes | antelación | falsas/mes
+       0.1 |  5 de 5 |           2 |       10 d |       15.6
+       0.3 |  5 de 5 |           1 |        1 d |        3.6
+       0.5 |  5 de 5 |           1 |        1 d |        2.9
+       0.7 |  5 de 5 |           1 |        1 d |        2.2
+       0.9 |  5 de 5 |           1 |        1 d |        1.9
+       1.1 |  5 de 5 |           0 |          - |        1.2</code></pre></div><h3 class="sub">As a detector: it wins, and it beats what was already there</h3><p>The highest threshold that still catches them all is <strong>1.15 bar/min</strong>. There the twin:</p><div class="table-wrap"><table><thead><tr><th></th><th>The twin</th><th>The installed alarm</th></tr></thead><tbody><tr><td>Failures detected</td><td><strong>4 of 4</strong></td><td>2 of 4</td></tr><tr><td>Days with an alarm</td><td>18</td><td>94</td></tr><tr><td>False alarms per month</td><td><strong>1.5</strong></td><td>11.4</td></tr></tbody></table></div><p><strong>Twice the failures at a seventh of the false alarms.</strong> In the trade off figure, the orange cross sits low and far to the right of the curve: worse on both counts at once.</p><p><strong>And now the qualification, which is compulsory.</strong> The LPS is not a leak detector the twin has beaten on its own ground. It is a low pressure alarm, and it fires above all <strong>when the record comes back after an outage</strong>, with the receiver empty and the compressor catching up. Of its 136 hours with the alarm on, 101 fall in incomplete hours of record.</p><p>So the honest comparison is not &quot;the twin detects better than the LPS&quot;. It is this other one, the one a plant cares about: <strong>the only thing installed on this machine sounds a third of the days and still misses half the failures</strong>. A twin made of four measured numbers improves on it in both. That the rival was answering a different question is part of the problem, not of the excuse.</p><p><strong>A note on method, because it changed the result.</strong> Those 94 days come from counting the LPS over raw readings. The first version counted it over the same complete hours the twin uses, and got 28 days and 3.1 false alarms a month. The complete hours filter exists because a duty cycle drawn from thirty readings is not that hour&#x27;s, but <strong>the LPS averages nothing</strong>: it fires or it does not. Applying a rule designed for the twin stripped three quarters of its firings and left it looking better than it is. Winning a comparison on a technicality is the quietest way to cheat.</p><figure class="fig"><img class="fig-claro" src="../figuras/fig_m28_antelacion_vs_falsas.claro.en.png?v=c974ee77" alt="fig m28 antelacion vs falsas" loading="lazy"><img class="fig-oscuro" src="../figuras/fig_m28_antelacion_vs_falsas.oscuro.en.png?v=ed3fdf79" alt="fig m28 antelacion vs falsas" loading="lazy"></figure><p>And notice the shape of that curve, because it says something I did not expect: <strong>it is a cliff, not a slope</strong>. Lowering the threshold below 1.15 does not buy a single failure more and does buy false alarms, up to 17 a month at the far end. The classic trade off between sensitivity and nuisance does not exist here, because all four failures take the residual to the ceiling.</p><h3 class="sub">As a predictor: no</h3><p>Of the four, <strong>only one warns beforehand</strong>: 15 July&#x27;s, by <strong>one day</strong>, in an episode that lasted two days in total. The other three raise the alarm <strong>on the day of the report itself</strong>.</p><p>In the magnifier&#x27;s five panels it looks the same: the curve rises right on the shaded band, not before. This course&#x27;s syllabus promised &quot;days of warning&quot;, and <strong>the data do not give them</strong>. So the module publishes the two marks separately and does not average one with the other.</p><p>There is a physical reason for it, and it is no consolation: an air leak in a pneumatic system does not grow slowly over days. It opens. The compressor goes from working 6 % of the time to working 100 % within hours, and there is no ramp to see in advance.</p><h3 class="sub">And the detection arrives late</h3><p>It is worth saying even though it spoils the headline. The threshold that gets the 4 of 4 is <strong>1.15</strong>, and the residual&#x27;s ceiling is at <strong>1.1796</strong>. So the alarm fires when the compressor is practically flat out. That is not subtlety, it is noting a disaster already under way.</p><p>With lower thresholds the alarm comes a little earlier and the false ones take off. The reason is module 27&#x27;s drift: the machine really does degrade and the twin notices. It is in the table, and everyone sets the threshold where it hurts them least.</p><h3 class="sub">The twelve days of March, in both counts</h3><p>Module 26 found that from 1 to 12 March the machine was broken without any report covering it. Counting it as a hit is believing your own model; not counting it is throwing away the best evidence there is in the twin&#x27;s favour. So both counts go in:</p><div class="table-wrap"><table><thead><tr><th>At threshold 1.15</th><th>Detects</th><th>False per month</th></tr></thead><tbody><tr><td>March counts as a failure</td><td><strong>5 of 5</strong></td><td><strong>1.2</strong></td></tr><tr><td>March counts as a false alarm</td><td><strong>4 of 4</strong></td><td><strong>1.5</strong></td></tr></tbody></table></div><p><strong>The difference between those two rows is what a missing label costs.</strong> Twelve days of sick machine left unwritten move this project&#x27;s result. In any plant it goes the same way: the model gets judged against a failure log, and that log is also a dataset with its holes.</p><h3 class="sub">The uncomfortable part, said in full</h3><p>With frozen parameters,</p><pre><code>residual = carga × entrega − consumo</code></pre><p>is an increasing function of the duty cycle and nothing else. So <strong>a threshold on the residual and one on the duty cycle order the days exactly alike</strong>. And this is not a piece of reasoning: the script checks it over the record&#x27;s <strong>207</strong> days and it comes out yes.</p><p>Put another way: <strong>anything this twin detects is also detected by counting how hard the compressor works</strong>, which is a three line SQL query and no model.</p><p>So what is the twin for? For three things the threshold does not give, and none of them is detecting:</p><ol><li><strong>Units.</strong> The twin says &quot;0.35 bar per minute are leaking&quot;, not &quot;the index is at 0.73&quot;. That gets taken into a maintenance meeting and argued about.</li><li><strong>It needs no history.</strong> A threshold has to be learned from past failures. The twin&#x27;s parameters are measured over a healthy month, without a single failure inside, as was done in module 24.</li><li><strong>It answers questions that have not happened.</strong> How much it would have to leak for the alarm to fire, how long the receiver would hold with half the plant stopped. Module 27&#x27;s knob is exactly that.</li></ol><p><strong>What it means.</strong> The twin works, it beats the installed alarm, and it is no good for what it is most often sold on. A project with only the first half of that sentence would be prettier and less true.</p></section>
+<section class="block is-live"><span class="kicker">Your turn</span><h2 class="block-title">Do it yourself</h2><p class="reto-ask">Reproduce the verdict in one query. Get each day&#x27;s maximum residual (<code>carga * 1.2507 - 0.0711</code>, skipping hours with fewer than 300 readings), classify each day as <code>con parte</code> or <code>sin parte</code> according to whether it is one of the seven days the four reports cover, and count how many days there are of each class and how many clear the threshold of 1.15. Return <code>clase</code>, <code>dias</code> and <code>saltan</code>. Two rows.</p><div class="live reto" data-expected='[[&quot;con parte&quot;, 7, 6], [&quot;sin parte&quot;, 200, 12]]'><div class="live-head"><span>challenge</span><span class="live-status">the engine downloads when you press</span></div><pre class="live-static"><code>SELECT hora::DATE AS dia,
+       max(carga * 1.2507 - 0.0711) AS residual
+FROM horas
+WHERE lecturas &gt;= 300
+GROUP BY 1;</code></pre><textarea class="live-editor" spellcheck="false" aria-label="challenge">SELECT hora::DATE AS dia,
+       max(carga * 1.2507 - 0.0711) AS residual
+FROM horas
+WHERE lecturas &gt;= 300
+GROUP BY 1;</textarea><div class="live-bar"><button type="button" class="live-run">check</button></div><div class="live-out"></div><div class="verdict"></div><details class="fold"><summary>a hint</summary><p>The starting point already gives one day per row. Wrap it in a <code>WITH</code> and classify on top with a <code>CASE WHEN dia IN (...)</code>. The seven days are 18 April, 29 and 30 May, 5, 6 and 7 June, and 15 July. To count the ones clearing the threshold, <code>count(*) FILTER (WHERE residual &gt; 1.15)</code>.</p></details><details class="fold"><summary>see the solution</summary><pre><code>WITH d AS (
+  SELECT hora::DATE AS dia,
+         max(carga * 1.2507 - 0.0711) AS residual
+  FROM horas WHERE lecturas &gt;= 300 GROUP BY 1
+)
+SELECT CASE WHEN dia IN (DATE &#x27;2020-04-18&#x27;, DATE &#x27;2020-05-29&#x27;,
+                         DATE &#x27;2020-05-30&#x27;, DATE &#x27;2020-06-05&#x27;,
+                         DATE &#x27;2020-06-06&#x27;, DATE &#x27;2020-06-07&#x27;,
+                         DATE &#x27;2020-07-15&#x27;) THEN &#x27;con parte&#x27;
+            ELSE &#x27;sin parte&#x27; END AS clase,
+       count(*)                               AS dias,
+       count(*) FILTER (WHERE residual &gt; 1.15) AS saltan
+FROM d GROUP BY 1 ORDER BY 1;</code></pre></details></div><p>Of the <strong>7</strong> days with a report <strong>6</strong> go off, and of the <strong>200</strong> without one <strong>12</strong> do.</p><p>And there is a lesson hidden there: <strong>6 of 7 days is not the same as 4 of 4 failures</strong>. The missing day is one of those covered by a long report, and the report is still detected because it went off on another of its days. Counting days and counting failures give different marks, and you have to say which one you are counting.</p></section>
+<section class="block is-warning"><span class="kicker">Traps</span><h2 class="block-title">Watch out</h2><ul><li><strong>Detector and predictor are two marks.</strong> Here one is good and the other is not. Publishing only the average would be hiding the bad one behind the good one.</li><li><strong>A lead time without the episode&#x27;s length says nothing.</strong> Twelve days of warning from an alarm that had been on for forty is zero days of warning.</li><li><strong>Compare against what is already installed</strong>, not against nothing. A detector that does not beat the alarm the machine came with does not get installed.</li><li><strong>Check the trivial rival.</strong> If an ordinary threshold orders the days just like your model, your model does not win on detection and you have to say what it does win on.</li><li><strong>Four failures are not a sample.</strong> It is a study of four cases and it is presented as one: with four events, one hit more or less changes the whole result.</li><li><strong>The failure log is also data, and it has holes.</strong> Twelve days of sick machine with no report were there from the start.</li><li>**A threshold that only fires with the compressor flat out detects disasters, it does not warn of them.**</li></ul></section>
+<section class="block is-bridge"><span class="kicker">Analogy</span><h2 class="block-title">Metallurgical bridge</h2><p>Anyone who has set a grade alarm on tailings knows this whole table. Set the threshold tight and the control room silences it within a week; set it loose and it does not warn about the upset that mattered. And the conversation always ends the same way: not on which threshold is correct, but on how many times a shift the operator is willing to get up.</p><p>The other parallel is the downtime log. The model gets validated against the maintenance book, and that book is written by people in a hurry at three in the morning. Short stops do not get written down, causes get copied from the one before, and a whole shift can end up blank. When the model flags a day the book does not cover, the first reaction is that the model is wrong. Sometimes it is the other way round, and here it was, for twelve days of March.</p></section>
+<section class="block is-review"><span class="kicker">Review</span><h2 class="block-title">Review</h2><details><summary>What exactly this module answers</summary><p>Whether the twin detects the four documented failures, with how many false alarms, with how much lead time, and whether that is better than the alarm the machine already carries. Four questions and four separate answers, without averaging them into an overall mark.</p></details><details><summary>Why the twin wins as a detector and loses as a predictor</summary><p>Because an air leak does not grow slowly. The compressor goes from 6 % to 100 % load within hours, so when there is something to see it is already enormous and when there is not there is nothing. Detecting is easy; anticipating would need a signal that moved earlier, and in this record there is none.</p></details><details><summary>Why the lead time is measured with the episode and not with the date</summary><p>Because an alarm on for weeks necessarily includes the day of the report, and presenting that as lead time would be claiming background noise as a merit. Measuring from when the episode lit up, only one of the four warns, and it warns by a day.</p></details><details><summary>If a threshold on the duty cycle does the same, what is the twin for</summary><p>For what the threshold does not do. It gives the leak in bar per minute rather than as an index with no units, it is calibrated on a healthy month with no need for a failure history, and it allows questions about a leak that has not happened yet. On pure detection it does not win, and the module checks that rather than assuming it.</p></details><details><summary>What it would take for this twin to predict</summary><p>Changing signal. The duty cycle fires with the leak already open. Something that moves earlier would be needed: the oil temperature, the starting current, or the valves&#x27; signature within a cycle. This project does not promise it nor deliver it, and saying so is part of the deliverable.</p></details></section>
+
+      <footer class="footer">
+        <span>Bellows / Module 28</span>
+        <span>generated on 2026-09-03</span>
+        <span>source: MetroPT-3, from a Porto Metro train compressor (CC BY 4.0)</span>
+      </footer>
+    </div>
+  </main>
+
+</div>
+<!-- El motor SQL no se descarga aquí: este fichero solo conecta los botones.
+     Los 8 MB llegan cuando el lector pulsa, y no antes. -->
+<script type="module" src="live.js"></script>
+<script src="perilla.js" defer></script>
+</body>
+</html>

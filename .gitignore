@@ -8,3 +8,6 @@ desktop.ini
 
 # Chrome's scratch profile, created by src/shoot.py when it takes the screenshots.
 assets/.chrome-profile/
+
+# Local preview config for the coding agent. With .nojekyll, Pages would publish it.
+.claude/

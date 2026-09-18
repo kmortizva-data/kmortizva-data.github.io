@@ -1,0 +1,1015 @@
+<!doctype html>
+<html lang="en" class="no-js" data-assets="../assets" data-tablas="telemetria=sin_timestamp_ligera.parquet">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Designing the schema: keys, relations and constraints · Bellows, module 20</title>
+<link rel="alternate" hreflang="es" href="m20_esquema.html">
+<style>
+/* Fuelle: la hoja de estilo del curso.
+ *
+ * REESCRITA ENTERA el 2026-08-30. La primera versión heredó la plantilla de Sílice
+ * junto con su motor, y Kevin la vio y dijo: "se parece a las otras 20 páginas de
+ * portafolio, el landing, coursera, silica, se ve y se siente igual". Tenía razón.
+ * Medido: mismo ancho de prosa (680), mismo ancho de bloques (1180), misma columna
+ * de margen (132), misma secuencia de cabecera, 36 clases compartidas de 40.
+ * Cambiar papel por grafito no toca la silueta, y la silueta es lo que se siente.
+ *
+ * Los cuatro sitios de Kevin son una columna de texto centrada, sin barra lateral,
+ * sin rejilla y sin nada pegajoso. Este es lo contrario: PANEL DE CONTROL. Una barra
+ * fija a la izquierda con los instrumentos siempre a la vista, y el contenido a su
+ * derecha. Ninguna de las tres medidas heredadas aparece aquí, y check_layout.py
+ * falla si alguna reaparece.
+ *
+ * El encargo que ordena las decisiones sigue siendo el mismo: "no muy escandaloso,
+ * que parezca ingeniero, pero que demuestres habilidades, que no seas un pdf que se
+ * lee de recorrido". La sobriedad va en la superficie, la ambición en lo que hace.
+ */
+
+/* --------------------------------------------------------------- tipografía */
+
+/* IBM Plex, autoalojada, OFL-1.1. Los cuatro sitios de Kevin usan la fuente del
+ * sistema, y eso es la otra mitad del "se siente igual". Plex tiene aire de
+ * documentación de ingeniería, que es exactamente el encargo.
+ *
+ * Cinco cortes y no tres: sin las semi-negritas el navegador falsifica la negrita
+ * engordando el trazo, y en una fuente técnica se nota enseguida. 289 KB en total,
+ * que se pueden bajar a unos 60 recortando al alfabeto latino con fonttools si
+ * llega a molestar. */
+@font-face {
+  font-family: "Plex Cond";
+  src: url("../assets/fonts/PlexSansCondensed-SemiBold.woff2") format("woff2");
+  font-weight: 600; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Plex";
+  src: url("../assets/fonts/PlexSans-Regular.woff2") format("woff2");
+  font-weight: 400; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Plex";
+  src: url("../assets/fonts/PlexSans-SemiBold.woff2") format("woff2");
+  font-weight: 600; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Plex Mono";
+  src: url("../assets/fonts/PlexMono-Regular.woff2") format("woff2");
+  font-weight: 400; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Plex Mono";
+  src: url("../assets/fonts/PlexMono-SemiBold.woff2") format("woff2");
+  font-weight: 600; font-style: normal; font-display: swap;
+}
+
+/* ------------------------------------------------------------------ tokens */
+
+:root {
+  --ground: #f4f2ee;
+  --panel: #e9e6e0;
+  --stage: #fbfaf8;
+  --ink: #191d20;
+  --ink-soft: #4c545a;
+  --ink-faint: #7c868d;
+  --rule: #d6d1c8;
+  --rule-soft: #e4e0d8;
+  --grid: rgba(25, 29, 32, .05);
+  --accent: #46787e;
+  --measured: #3d505b;
+  --simulated: #b57542;
+
+  --prose: "Plex", system-ui, "Segoe UI", Roboto, sans-serif;
+  --display: "Plex Cond", "Plex", system-ui, sans-serif;
+  --data: "Plex Mono", "Cascadia Mono", Consolas, monospace;
+
+  /* Medidas NUEVAS. Ninguna puede coincidir con las heredadas de Sílice
+   * (680 de prosa, 1180 de bloques, 132 de margen): volver a ellas es volver a
+   * la misma página, y hay un verificador que lo impide. */
+  --rail: 268px;      /* la barra fija, que ninguno de los otros sitios tiene */
+  --read: 646px;      /* la medida de la prosa, en píxeles y nunca en ch */
+  --block: 980px;     /* el borde derecho de los bloques anchos */
+
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ground: #101417;
+    --panel: #171c20;
+    --stage: #14181b;
+    --ink: #e2e7ea;
+    --ink-soft: #a6b0b6;
+    --ink-faint: #717e85;
+    --rule: #293036;
+    --rule-soft: #20272b;
+    --grid: rgba(226, 231, 234, .045);
+    --accent: #8ec2c8;
+    --measured: #cbe2ef;
+    --simulated: #c98754;
+  }
+}
+
+:root[data-theme="dark"] {
+  --ground: #101417;
+  --panel: #171c20;
+  --stage: #14181b;
+  --ink: #e2e7ea;
+  --ink-soft: #a6b0b6;
+  --ink-faint: #717e85;
+  --rule: #293036;
+  --rule-soft: #20272b;
+  --grid: rgba(226, 231, 234, .045);
+  --accent: #8ec2c8;
+  --measured: #cbe2ef;
+  --simulated: #c98754;
+}
+
+/* --------------------------------------------------------------- cimientos */
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--stage);
+  color: var(--ink);
+  font-family: var(--prose);
+  font-size: 16.5px;
+  line-height: 1.6;
+}
+
+::selection { background: var(--accent); color: var(--ground); }
+a { color: var(--accent); text-underline-offset: .18em; }
+
+/* LA REJILLA. Esto es lo que ninguno de los otros cuatro sitios tiene, y es la
+ * razón de que la página deje de sentirse igual: el texto ya no está centrado en
+ * la ventana, está al lado de un panel de instrumentos. */
+.shell {
+  display: grid;
+  grid-template-columns: var(--rail) minmax(0, 1fr);
+  min-height: 100vh;
+}
+
+/* -------------------------------------------------- la barra de instrumentos */
+
+.panel {
+  position: sticky;   /* lo primero pegajoso de todo el portafolio */
+  top: 0;
+  align-self: start;
+  height: 100vh;
+  overflow-y: auto;
+  padding: 22px 20px 22px;
+  background: var(--panel);
+  border-right: 1px solid var(--rule);
+  background-image: radial-gradient(var(--grid) 1px, transparent 1px);
+  background-size: 22px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.panel-brand {
+  font-family: var(--display);
+  font-size: 19px;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  color: var(--ink);
+  text-decoration: none;
+  display: block;
+}
+.panel-brand small {
+  display: block;
+  font-family: var(--data);
+  font-size: 10px;
+  letter-spacing: .08em;
+  color: var(--ink-faint);
+  text-transform: none;
+  margin-top: 4px;
+}
+
+.panel-label {
+  font-family: var(--data);
+  font-size: 9.5px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding-bottom: 7px;
+  border-bottom: 1px solid var(--rule);
+  margin-bottom: 10px;
+}
+
+/* El grafo del lago, EN VERTICAL. Antes iba horizontal y solo en la portada;
+ * aquí acompaña al lector todo el curso y marca en qué capa está. */
+.rail-step {
+  display: grid;
+  grid-template-columns: 15px 1fr auto;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 0;
+  font-family: var(--data);
+  font-size: 11px;
+  letter-spacing: .08em;
+  color: var(--ink-faint);
+  text-decoration: none;
+  position: relative;
+}
+.rail-step .dot {
+  width: 9px; height: 9px;
+  border: 1px solid var(--ink-faint);
+  border-radius: 50%;
+  justify-self: center;
+}
+.rail-step:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  left: 7px; top: 25px;
+  width: 1px; height: calc(100% - 17px);
+  background: var(--rule);
+}
+.rail-step.done { color: var(--ink-soft); }
+.rail-step.done .dot { background: var(--ink-faint); border-color: var(--ink-faint); }
+.rail-step.here { color: var(--accent); }
+.rail-step.here .dot { background: var(--accent); border-color: var(--accent); }
+.rail-step .range { font-size: 9.5px; opacity: .75; }
+
+/* La cifra del módulo ya no es una caja en una cabecera gigante: vive aquí y se
+ * queda a la vista mientras se lee la lección entera. */
+.panel-figure { border-top: 1px solid var(--rule); padding-top: 14px; }
+.panel-figure .v {
+  display: block;
+  font-family: var(--data);
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 1.3;
+  color: var(--accent);
+}
+.panel-figure .l {
+  display: block;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--ink-faint);
+  margin-top: 5px;
+}
+
+.panel-progress {
+  margin-top: auto;
+  border-top: 1px solid var(--rule);
+  padding-top: 13px;
+  font-family: var(--data);
+  font-size: 11px;
+  color: var(--ink-faint);
+}
+.panel-progress b { color: var(--ink); font-weight: 600; }
+.panel-bar { height: 2px; background: var(--rule); margin-top: 7px; }
+.panel-bar i { display: block; height: 2px; background: var(--accent); }
+
+.panel-nav { display: flex; gap: 7px; flex-wrap: wrap; }
+.panel-nav a {
+  font-family: var(--data);
+  font-size: 10.5px;
+  letter-spacing: .06em;
+  padding: 6px 9px;
+  border: 1px solid var(--rule);
+  text-decoration: none;
+  color: var(--ink-soft);
+}
+.panel-nav a:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ------------------------------------------------------------- el contenido */
+
+.stage { background: var(--stage); padding: 0 0 54px; min-width: 0; }
+.stage-inner { max-width: var(--block); padding: 0 40px; }
+
+/* La cabecera ya no ocupa media pantalla: una línea de identificación y el
+ * título. La cifra y la navegación se fueron a la barra. */
+.head {
+  padding: 30px 0 20px;
+  border-bottom: 1px solid var(--rule);
+  margin-bottom: 4px;
+}
+.head-id {
+  font-family: var(--data);
+  font-size: 10.5px;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  display: flex;
+  gap: 14px;
+  align-items: baseline;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.head-id b { color: var(--accent); font-weight: 600; }
+.head h1 {
+  font-family: var(--display);
+  font-size: clamp(26px, 3.3vw, 37px);
+  line-height: 1.08;
+  font-weight: 600;
+  margin: 0 0 10px;
+  max-width: 22ch;
+}
+.head .standfirst {
+  color: var(--ink-soft);
+  font-size: 16.5px;
+  line-height: 1.5;
+  max-width: var(--read);
+  margin: 0;
+}
+
+/* Las secciones ya no cuelgan de un margen de 132 px: la etiqueta va encima, en
+ * un recuadro pequeño, y el texto empieza en el borde. */
+.block { padding: 26px 0 2px; border-top: 1px solid var(--rule-soft); }
+.block:first-of-type { border-top: 0; }
+
+.kicker {
+  display: inline-block;
+  font-family: var(--data);
+  font-size: 9.5px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  border: 1px solid var(--rule);
+  padding: 2px 7px;
+  margin-bottom: 11px;
+}
+
+.block-title {
+  font-family: var(--display);
+  font-size: 22px;
+  font-weight: 600;
+  margin: 0 0 11px;
+  max-width: var(--read);
+}
+
+/* Justificado desde 33rem de columna y rasgado en móvil: la regla que Kevin
+ * fijó en el portafolio el 2026-08-22, después de medir que a 375 px salían
+ * huecos de 7,65x y ríos en cinco de cada seis líneas. Aquí la prosa mide 646 px
+ * (unos 40rem), así que le toca justificado.
+ *
+ * Y NADA de `hyphens`: sin guionado, por la regla de la casa. El precio es que
+ * hay que vigilar los ríos, y eso se mide con src/site/check_rivers.py en vez de
+ * mirarlo de reojo. */
+.block p, .block li { max-width: var(--read); }
+
+@media (min-width: 34rem) {
+  .block p,
+  .block li,
+  .standfirst,
+  .reto-ask,
+  .annot dd,
+  blockquote,
+  .is-review details p { text-align: justify; text-justify: inter-word; }
+  /* Tablas, código, pies de figura y la barra nunca se justifican: sus líneas
+   * son cortas y el hueco se vuelve un agujero. */
+  figcaption, th, td, pre, .panel, .live-status, .toc { text-align: left; }
+}
+.block p { margin: 0 0 14px; }
+.block ul, .block ol { padding-left: 21px; margin: 0 0 14px; }
+.block li { margin-bottom: 6px; }
+.block li::marker { color: var(--accent); font-family: var(--data); font-size: .82em; }
+
+h3.sub, h4.sub {
+  font-family: var(--display);
+  font-size: 17px;
+  font-weight: 600;
+  margin: 24px 0 8px;
+  max-width: var(--read);
+}
+h4.sub { font-size: 15px; color: var(--ink-soft); }
+
+blockquote {
+  margin: 0 0 14px;
+  padding-left: 15px;
+  border-left: 2px solid var(--rule);
+  color: var(--ink-soft);
+  max-width: var(--read);
+}
+strong, b { font-weight: 600; }
+
+.is-brief ul { list-style: none; padding-left: 0; }
+.is-brief li {
+  padding: 8px 0 8px 18px;
+  border-bottom: 1px solid var(--rule-soft);
+  position: relative;
+}
+.is-brief li::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 17px;
+  width: 8px; height: 1px;
+  background: var(--accent);
+}
+.is-brief li:last-child { border-bottom: 0; }
+.is-result .block-title, .is-warning .block-title { color: var(--accent); }
+
+/* ------------------------------------------------------------------ código */
+
+pre {
+  max-width: var(--block);
+  overflow-x: auto;
+  background: var(--panel);
+  border: 1px solid var(--rule-soft);
+  border-left: 2px solid var(--accent);
+  padding: 13px 15px;
+  margin: 0 0 13px;
+}
+pre code {
+  font-family: var(--data);
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ink);
+  white-space: pre;
+}
+p code, li code, dd code, td code {
+  font-family: var(--data);
+  font-size: .87em;
+  padding: 1px 4px;
+  background: var(--panel);
+  border: 1px solid var(--rule-soft);
+}
+
+/* Diagramas: esquemas conceptuales generados, no figuras de datos.
+   Nacen del bloque ```diagrama y usan los tokens de arriba, asi que el tema lo
+   resuelve el CSS y no hacen falta dos versiones como en las figuras. */
+.diagram { margin: 0 0 22px; max-width: var(--block); }
+.chain {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: 30px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: none;
+}
+.node {
+  position: relative;
+  /* 130 y no 132: 132px es la columna de margen de Sílice y check_layout la
+     prohíbe en este proyecto, con razón, aunque aquí signifique otra cosa. */
+  flex: 1 1 130px;
+  min-width: 0;
+  padding: 11px 13px 12px;
+  background: var(--panel);
+  border: 1px solid var(--rule);
+  border-top: 2px solid var(--ink-faint);
+}
+/* La flecha entre cajas. Va en el hueco del gap, asi que no roba ancho al
+   texto y desaparece sola cuando las cajas se apilan. */
+.node + .node::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: -22px;
+  width: 14px;
+  height: 1px;
+  background: var(--ink-faint);
+}
+.node + .node::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: -11px;
+  width: 5px; height: 5px;
+  border-top: 1px solid var(--ink-faint);
+  border-right: 1px solid var(--ink-faint);
+  transform: translateY(-50%) rotate(45deg);
+}
+.node.lit { border-top-color: var(--accent); background: var(--stage); }
+.node.lit .node-name { color: var(--accent); }
+.node-name {
+  display: block;
+  font-family: var(--data);
+  font-size: 10.5px;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+.node-what { display: block; margin-top: 5px; font-size: 13.5px; color: var(--ink); }
+.node-note { display: block; margin-top: 4px; font-size: 12px; color: var(--ink-faint); }
+
+@media (max-width: 640px) {
+  /* Apiladas, con la flecha girada hacia abajo. */
+  .chain { flex-direction: column; gap: 26px; }
+  .node { flex: 1 1 auto; }
+  .node + .node::before {
+    top: -19px; left: 21px;
+    width: 1px; height: 12px;
+  }
+  .node + .node::after {
+    top: -9px; left: 19px;
+    transform: rotate(135deg);
+  }
+}
+
+.output { position: relative; margin: 0 0 13px; max-width: var(--block); }
+.output pre { margin: 0; border-left: 2px solid var(--ink-faint); background: transparent; }
+.output pre code { color: var(--ink-soft); }
+.output-tag {
+  position: absolute;
+  top: -7px; left: 13px;
+  z-index: 1;
+  font-family: var(--data);
+  font-size: 9px;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  background: var(--stage);
+  padding: 0 5px;
+}
+
+details.fold, details { margin: 0 0 13px; max-width: var(--block); }
+details > summary {
+  cursor: pointer;
+  font-family: var(--data);
+  font-size: 11px;
+  letter-spacing: .05em;
+  color: var(--ink-faint);
+  padding: 5px 0;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+details > summary::-webkit-details-marker { display: none; }
+details > summary::before {
+  content: "+";
+  width: 13px; height: 13px;
+  line-height: 12px;
+  text-align: center;
+  border: 1px solid var(--rule);
+  color: var(--accent);
+}
+details[open] > summary::before { content: "\2212"; }
+details > summary:hover { color: var(--accent); }
+
+.annot {
+  margin: 2px 0 4px;
+  padding: 11px 13px;
+  border: 1px solid var(--rule-soft);
+  background: var(--panel);
+}
+.annot dt { margin-bottom: 3px; }
+.annot dt code {
+  font-family: var(--data);
+  font-size: 12px;
+  color: var(--accent);
+  background: transparent;
+  border: 0;
+  padding: 0;
+}
+.annot dd { margin: 0 0 10px; font-size: 14.5px; color: var(--ink-soft); max-width: var(--read); }
+.annot dd:last-of-type { margin-bottom: 0; }
+
+.is-review details { border-bottom: 1px solid var(--rule-soft); margin: 0; }
+.is-review details > summary {
+  font-family: var(--prose);
+  font-size: 15.5px;
+  color: var(--ink);
+  padding: 11px 0;
+}
+.is-review details > summary:hover { color: var(--accent); }
+.is-review details p { margin: 0 0 11px 21px; color: var(--ink-soft); }
+
+/* ------------------------------------------------------------------ tablas */
+
+.table-wrap { max-width: var(--block); overflow-x: auto; margin: 0 0 15px; }
+table { border-collapse: collapse; font-size: 14.5px; }
+th, td {
+  text-align: left;
+  padding: 6px 15px 6px 0;
+  border-bottom: 1px solid var(--rule-soft);
+  vertical-align: top;
+}
+th {
+  font-family: var(--data);
+  font-size: 10px;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  font-weight: 400;
+  border-bottom-color: var(--rule);
+}
+tbody tr:last-child td { border-bottom: 0; }
+
+figure { margin: 0 0 17px; max-width: var(--block); }
+figure img { max-width: 100%; height: auto; display: block; }
+figcaption { font-size: 12.5px; color: var(--ink-faint); margin-top: 7px; max-width: var(--read); }
+
+.footer {
+  border-top: 1px solid var(--rule);
+  margin-top: 32px;
+  padding: 18px 0 0;
+  font-size: 12px;
+  color: var(--ink-faint);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px 20px;
+}
+.footer a { color: var(--ink-faint); }
+.gone { color: var(--ink-faint); }
+
+/* ---------------------------------------------- la consulta viva y el reto */
+
+.live {
+  max-width: var(--block);
+  margin: 0 0 17px;
+  border: 1px solid var(--rule);
+  background: var(--panel);
+}
+.live-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 13px;
+  border-bottom: 1px solid var(--rule-soft);
+  font-family: var(--data);
+  font-size: 10px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.live-editor {
+  width: 100%;
+  border: 0;
+  resize: vertical;
+  min-height: 112px;
+  padding: 12px 14px;
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--data);
+  font-size: 13px;
+  line-height: 1.6;
+  tab-size: 2;
+}
+.live-editor:focus { outline: 2px solid var(--accent); outline-offset: -2px; }
+.live-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 13px;
+  border-top: 1px solid var(--rule-soft);
+  flex-wrap: wrap;
+}
+.live-run {
+  font-family: var(--data);
+  font-size: 11px;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  padding: 7px 14px;
+  border: 1px solid var(--accent);
+  background: transparent;
+  color: var(--accent);
+  cursor: pointer;
+}
+.live-run:hover { background: var(--accent); color: var(--ground); }
+.live-run[disabled] { opacity: .5; cursor: default; }
+.live-run[disabled]:hover { background: transparent; color: var(--accent); }
+.live-status { font-family: var(--data); font-size: 10.5px; color: var(--ink-faint); }
+.live-out { max-width: 100%; overflow-x: auto; }
+.live-out table { margin: 0; width: 100%; font-size: 12.5px; }
+.live-out td, .live-out th { padding: 5px 13px 5px 0; }
+.live-out td:first-child, .live-out th:first-child { padding-left: 13px; }
+.live-out td { font-family: var(--data); font-size: 12px; }
+.live-err {
+  padding: 10px 14px;
+  font-family: var(--data);
+  font-size: 12px;
+  color: var(--simulated);
+  border-top: 1px solid var(--rule-soft);
+}
+
+.reto { border-left: 2px solid var(--accent); }
+.reto .live-head { color: var(--accent); }
+.reto-ask { padding: 12px 14px 2px; font-size: 15.5px; max-width: var(--read); }
+.verdict {
+  padding: 10px 14px;
+  border-top: 1px solid var(--rule-soft);
+  font-family: var(--data);
+  font-size: 12px;
+}
+.verdict.ok { color: var(--accent); }
+.verdict.no { color: var(--simulated); }
+
+.no-js .live-bar, .no-js .live-editor { display: none; }
+.no-js .live-static { display: block; }
+.live-static { display: none; }
+
+/* ---------------------------------------------------------- el doble trazo */
+
+.twin { max-width: var(--block); margin: 0 0 18px; }
+.twin svg { width: 100%; height: auto; display: block; }
+.twin .axis { stroke: var(--rule); fill: none; }
+.twin .tick { fill: var(--ink-faint); font-family: var(--data); font-size: 10px; }
+.twin .measured { stroke: var(--measured); fill: none; stroke-width: 1.8; }
+.twin .simulated { stroke: var(--simulated); fill: none; stroke-width: 1.8; stroke-dasharray: 5 4; }
+.twin .gap { fill: var(--simulated); opacity: .16; }
+.twin-key { display: flex; gap: 20px; flex-wrap: wrap; font-family: var(--data);
+            font-size: 11px; color: var(--ink-faint); margin-top: 6px; }
+.twin-key i { display: inline-block; width: 20px; height: 0; vertical-align: middle;
+              border-top-width: 2px; border-top-style: solid; margin-right: 7px; }
+.twin-key .k-measured i { border-color: var(--measured); }
+.twin-key .k-simulated i { border-top-style: dashed; border-color: var(--simulated); }
+
+.knob { display: flex; align-items: center; gap: 13px; flex-wrap: wrap; margin: 0 0 13px;
+        font-family: var(--data); font-size: 11px; color: var(--ink-faint); }
+.knob input[type="range"] { accent-color: var(--accent); flex: 1 1 200px; max-width: 300px; }
+.knob output { color: var(--accent); min-width: 72px; }
+
+/* -------------------------------------------------------- índice del curso */
+
+.toc { max-width: var(--block); }
+.toc .part {
+  font-family: var(--data);
+  font-size: 10px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin: 26px 0 2px;
+  padding-top: 11px;
+  border-top: 1px solid var(--rule);
+}
+.toc a, .toc .pending {
+  display: grid;
+  grid-template-columns: 34px 1fr auto;
+  gap: 15px;
+  align-items: baseline;
+  padding: 9px 6px 9px 8px;
+  border-bottom: 1px solid var(--rule-soft);
+  border-left: 2px solid transparent;
+  text-decoration: none;
+  color: var(--ink);
+}
+.toc a:hover { border-left-color: var(--accent); background: var(--panel); color: var(--accent); }
+.toc .pending { color: var(--ink-faint); }
+.toc .num { font-family: var(--data); font-size: 12px; color: var(--ink-faint); }
+.toc a:hover .num { color: var(--accent); }
+.toc .name { font-family: var(--display); font-size: 16px; }
+.toc .name small { display: block; font-family: var(--prose); color: var(--ink-faint);
+                   font-size: 13px; font-weight: 400; margin-top: 2px; max-width: 60ch; }
+.toc .mark { font-family: var(--data); font-size: 11px; color: var(--ink-faint); text-align: right; }
+.toc .tag { font-family: var(--data); font-size: 9.5px; letter-spacing: .1em;
+            text-transform: uppercase; color: var(--ink-faint); }
+
+/* ------------------------------------------------------------------- móvil */
+
+/* La barra deja de ser barra: pasa a cabecera compacta arriba, con los tramos en
+ * horizontal. La rejilla se colapsa a una columna. */
+@media (max-width: 900px) {
+  .shell { grid-template-columns: 1fr; }
+  .panel {
+    position: static;
+    height: auto;
+    border-right: 0;
+    border-bottom: 1px solid var(--rule);
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 16px;
+    padding: 13px 18px;
+  }
+  .panel-label { display: none; }
+  .panel .rail { display: flex; gap: 0 5px; flex-wrap: wrap; }
+  .rail-step { grid-template-columns: 11px auto; padding: 3px 0; font-size: 9.5px; }
+  .rail-step .range { display: none; }
+  .rail-step:not(:last-child)::after { display: none; }
+  .panel-figure { border-top: 0; padding-top: 0; }
+  .panel-figure .v { font-size: 13.5px; }
+  .panel-figure .l { display: none; }
+  .panel-progress { margin: 0; border-top: 0; padding-top: 0; }
+  .panel-bar { display: none; }
+  .stage-inner { padding: 0 18px; }
+  body { font-size: 16px; }
+  .head { padding-top: 22px; }
+  pre code { font-size: 12.5px; }
+}
+
+/* ------------------------------------------------- la perilla del gemelo */
+/*
+ * El doble trazo con su deslizador, de los modulos 24 y 25. El SVG llega ya
+ * dibujado del servidor, asi que sin JavaScript se ve igual: dos trazos, la
+ * referencia y la posicion de partida. El mando solo cambia cual se ensena.
+ *
+ * La regla de forma del curso: el color NUNCA es la unica pista. La referencia
+ * va punteada y en tono apagado, y la posicion elegida solida y en el acento.
+ */
+.perilla {
+  margin: 22px 0;
+  max-width: var(--block);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  background: var(--stage);
+  padding: 14px 16px 12px;
+}
+.perilla figcaption {
+  font-family: var(--data);
+  font-size: 11px;
+  color: var(--ink-faint);
+  letter-spacing: .02em;
+  margin-bottom: 10px;
+}
+.perilla svg { display: block; width: 100%; height: auto; }
+.perilla-referencia {
+  fill: none;
+  stroke: var(--ink-faint);
+  stroke-width: 1.4;
+  stroke-dasharray: 4 3;
+}
+.perilla-actual {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  transition: d .12s linear;
+}
+.perilla-pie {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 18px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--rule-soft);
+}
+.perilla-leyenda { font-size: 12px; color: var(--ink-faint); }
+.perilla-mandos {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+  font-family: var(--data);
+  font-size: 11px;
+  color: var(--ink-soft);
+}
+.perilla-mando { width: 190px; accent-color: var(--accent); }
+.perilla-mando[disabled] { opacity: .45; }
+.perilla-valor {
+  font-family: var(--data);
+  font-size: 12px;
+  color: var(--ink);
+  min-width: 88px;
+}
+.perilla-nota, .perilla-referencia-nota {
+  margin: 8px 0 0;
+  font-size: 12.5px;
+  color: var(--ink-soft);
+}
+.perilla-referencia-nota { color: var(--ink-faint); font-size: 12px; }
+
+@media (max-width: 620px) {
+  .perilla-mandos { margin-left: 0; width: 100%; }
+  .perilla-mando { flex: 1; width: auto; min-width: 0; }
+}
+
+/* ------------------------------------------------------ movimiento y papel */
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@media print {
+  .shell { display: block; }
+  .panel, .live-bar, .live-editor { display: none; }
+  .live-static { display: block; }
+  body { background: #fff; color: #000; }
+}
+
+/* ------------------------------------------------------ figuras, dos temas */
+
+/* Cada figura viaja dos veces, clara y oscura, y aquí se enseña la que toca.
+ * Con `<picture>` y una media query bastaría para la preferencia del sistema,
+ * pero no para el interruptor manual, y este curso respeta los dos. */
+.fig-oscuro { display: none; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .fig-claro { display: none; }
+  :root:not([data-theme="light"]) .fig-oscuro { display: block; }
+}
+:root[data-theme="dark"] .fig-claro { display: none; }
+:root[data-theme="dark"] .fig-oscuro { display: block; }
+
+/* El acento de este módulo, uno por tema. Los dos salen de src/site/palette.py
+   y los dos pasaron el contraste antes de llegar aquí. */
+:root { --accent: #797033; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --accent: #C3B97B; }
+}
+:root[data-theme="dark"] { --accent: #C3B97B; }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- La barra de instrumentos. No se mueve al bajar: el tramo del lago, la cifra
+       del módulo y el avance se quedan a la vista mientras se lee. -->
+  <aside class="panel">
+    <a class="panel-brand" href="index.en.html">Bellows
+      <small>Module 20 of 31</small></a>
+
+    <nav class="rail" aria-label="The arc of the project">
+      <p class="panel-label">the lake</p>
+      <span class="rail-step done"><i class="dot"></i><span>RAW</span><span class="range">1-3</span></span><span class="rail-step done"><i class="dot"></i><span>BRONZE</span><span class="range">4-13</span></span><span class="rail-step done"><i class="dot"></i><span>SILVER</span><span class="range">14-16</span></span><span class="rail-step here"><i class="dot"></i><span>GOLD</span><span class="range">17-22</span></span><span class="rail-step"><i class="dot"></i><span>TWIN</span><span class="range">23-31</span></span>
+    </nav>
+
+    <div class="panel-figure">
+      <span class="v">6 of 6</span>
+      <span class="l">impossible writes the database rejects, each by a different guard</span>
+    </div>
+
+    <div class="panel-progress">
+      <b>20</b> of 31
+      <span class="panel-bar"><i style="width: 65%"></i></span>
+    </div>
+
+    <nav class="panel-nav"><a href="m19_postgres.en.html" title="19. PostgreSQL: install, connect, and how it differs">← 19</a><a href="m21_indices.en.html" title="21. Indexes: measure before and after">21 →</a><a class="portfolio-link" href="m20_esquema.html" hreflang="es" rel="alternate">Español</a></nav>
+  </aside>
+
+  <main class="stage">
+    <div class="stage-inner">
+      <header class="head">
+        <p class="head-id"><b>20</b> <span>part: Running a database</span></p>
+        <h1>Designing the schema: keys, relations and constraints</h1>
+        <p class="standfirst">Telling the database what is impossible, so it will not let you write it. A negative pressure or a failure with no machine should not be able to exist</p>
+      </header>
+
+      <section class="block is-brief"><span class="kicker">Summary</span><h2 class="block-title">In 30 seconds</h2><ul><li>Module 16 wrote promises a script checked. Here the engine enforces them.</li><li>The difference: a contract that <strong>warns</strong> against one that <strong>will not let you write</strong>.</li><li><strong>12 guards</strong> in place, tested the same way: by attempting <strong>6</strong> impossible writes.</li><li>The database rejects <strong>6 of 6</strong>, each by a different guard and each with its error.</li><li>And before adding a constraint you count who breaks it. That is the challenge.</li></ul></section>
+<section class="block "><span class="kicker">Context</span><h2 class="block-title">What this module solves</h2><p>Module 19&#x27;s table accepted anything. Two readings with the same timestamp, a pressure of minus nine hundred bar, a digital signal holding 2. It all went in without a complaint, exactly as it went into the Parquet.</p><p>Module 16&#x27;s contract detected those things, but <strong>afterwards</strong>, by running a script. Between the bad datum arriving and somebody looking, the dashboard has already shown it.</p><p>A database can do something a file cannot: <strong>refuse</strong>. This module is how you tell it what is impossible, and above all how you check that it really refuses.</p></section>
+<section class="block is-toy"><span class="kicker">By hand</span><h2 class="block-title">Before the theory: a toy example</h2><p>A weighing book with three columns:</p><div class="table-wrap"><table><thead><tr><th>batch</th><th>tonnes</th><th>shift</th></tr></thead><tbody><tr><td>L1</td><td>20</td><td>morning</td></tr><tr><td>L2</td><td>30</td><td>afternoon</td></tr><tr><td>L3</td><td>25</td><td>morning</td></tr></tbody></table></div><p>Four things should never be writable, and each needs a different guard:</p><div class="table-wrap"><table><thead><tr><th>The impossible</th><th>The guard</th></tr></thead><tbody><tr><td>two rows with batch <code>L1</code></td><td>the batch is <strong>unique</strong></td></tr><tr><td>a row with no tonnes</td><td>tonnes <strong>cannot be missing</strong></td></tr><tr><td><code>-5</code> tonnes</td><td>tonnes are <strong>between 0 and 500</strong></td></tr><tr><td>the shift <code>night</code>, which does not exist</td><td>the shift <strong>comes from the list of shifts</strong></td></tr></tbody></table></div><p>Notice that none of the four can be deduced from the data. That tonnes cannot be negative <strong>is not in the book</strong>: it is in your head, or in the head of whoever installed the weighbridge. Writing the schema is taking it out of there and putting it where the machine can enforce it.</p><p>And there is an order that matters. <strong>Before demanding tonnes be between 0 and 500, look at whether some row already falls outside.</strong> If there is one at 600, the database will refuse to add the rule and it will be right: the problem is not the rule, it is the data already inside.</p></section>
+<section class="block is-terms"><span class="kicker">Terms</span><h2 class="block-title">Glossary</h2><details class="fold"><summary>7 terms, in plain words</summary><ul><li><strong>Constraint.</strong> A condition the table forces to hold. A write that breaks it does not get in.</li><li><strong>Primary key.</strong> The column identifying a row. Unique and never empty.</li><li><strong>Foreign key.</strong> A column that only accepts values existing in another table.</li><li><strong><code>NOT NULL</code>.</strong> This cell cannot be left empty.</li><li><strong><code>CHECK</code>.</strong> Any condition at all on the values of the row.</li><li><strong>Catalogue.</strong> The internal tables where the database keeps what it knows about itself. <code>pg_constraint</code> and <code>information_schema</code> are part of it.</li><li><strong>Referential integrity.</strong> The formal name for what a foreign key does: no references left pointing at something that is not there.</li></ul></details></section>
+<section class="block is-method"><span class="kicker">Method</span><h2 class="block-title">Step by step</h2><h3 class="sub">Step 1. Decide what is impossible</h3><p>Not what is odd: what is <strong>impossible</strong>. A pressure of 14 bar is odd and can happen; one of minus nine hundred is not a measurement, it is a fault. The line gets drawn by looking at the data, like module 9&#x27;s cuts and module 16&#x27;s contract ranges.</p><h3 class="sub">Step 2. Write it into the table, with a name</h3><p>Every guard is named by hand. This is not cosmetic: <strong>the guard&#x27;s name is the only thing the person looking at the error at three in the morning will see.</strong> <code>tp2_en_rango</code> explains what happened and <code>lecturas_tp2_check1</code> explains nothing.</p><h3 class="sub">Step 3. Add the missing table</h3><p>A foreign key needs something to point at. <code>dias</code> appears, one row per day, and the readings point at it: <strong>a reading from a day that does not exist stops being writable</strong>.</p><h3 class="sub">Step 4. Attempt six absurdities</h3><p>And here is the only part that turns this into something checked. Six impossible writes get attempted, one per kind of guard, and the rejections get counted.</p><p>Without this, twelve constraints in the catalogue are twelve good intentions. It is module 16&#x27;s rule again, and module 17&#x27;s, and this course&#x27;s own verifiers&#x27;.</p></section>
+<section class="block is-code"><span class="kicker">Code</span><h2 class="block-title">The code, in parts</h2><h3 class="sub">Step 5. The guards, counted by the database itself</h3><pre><code class="language-postgres">SELECT conname AS guarda, pg_get_constraintdef(oid) AS dice
+FROM pg_constraint
+WHERE conrelid = &#x27;lecturas&#x27;::regclass AND contype IN (&#x27;p&#x27;, &#x27;f&#x27;)
+ORDER BY conname;</code></pre><details class="fold"><summary>line by line, 3 entries</summary><dl class="annot"><dt><code>pg_constraint</code></dt><dd>one of the catalogue tables: what the database knows about its own rules</dd><dt><code>conrelid = &#x27;lecturas&#x27;::regclass</code></dt><dd>keep the ones belonging to this table</dd><dt><code>contype IN (&#x27;p&#x27;, &#x27;f&#x27;)</code></dt><dd>p for primary key, f for foreign key. There are more letters: c for CHECK</dd></dl></details><div class="output"><span class="output-tag">prints</span><pre><code>            guarda            |                  dice
+------------------------------+------------------------------------------
+ el_dia_esta_en_el_calendario | FOREIGN KEY (day) REFERENCES dias(dia)
+ lecturas_pk                  | PRIMARY KEY (&quot;timestamp&quot;)
+(2 rows)</code></pre></div><p>I did not tell it: <strong>I asked it</strong>. It is what module 17 does with dbt&#x27;s map, and for the same reason: if a tool can describe itself, let it talk.</p><h3 class="sub">Step 6. The schema, where it has authority</h3><pre><code class="language-postgres">SELECT count(*) AS guardas
+FROM pg_constraint
+WHERE conrelid IN (&#x27;lecturas&#x27;::regclass, &#x27;dias&#x27;::regclass);</code></pre><details class="fold"><summary>line by line, 1 entry</summary><dl class="annot"><dt><code>count(*)</code></dt><dd>how many guards are in place between the two tables</dd></dl></details><div class="output"><span class="output-tag">prints</span><pre><code> guardas
+---------
+      12
+(1 row)</code></pre></div><p>Twelve, spread over <strong>13</strong> columns, and <strong>8</strong> of those columns also refuse to be empty.</p><p>None of them is new. TP2&#x27;s range is module 16&#x27;s contract range, and that the digital signals are only ever zero or one was module 2&#x27;s finding.</p><h3 class="sub">Step 7. The six impossible ones</h3><pre><code class="language-python">for que, sql in IMPOSIBLES.items():
+    try:
+        pg.execute(sql)
+        pg.commit()
+    except psycopg.errors.Error as e:
+        pg.rollback()
+        resultados.append({&quot;que&quot;: que, &quot;guarda&quot;: e.diag.constraint_name})</code></pre><details class="fold"><summary>line by line, 3 entries</summary><dl class="annot"><dt><code>try / except</code></dt><dd>the write is attempted expecting it to fail. If it does not, the guard is useless</dd><dt><code>pg.rollback()</code></dt><dd>essential: in PostgreSQL an error aborts the whole transaction, and without undoing it the next write would fail because of the previous one</dd><dt><code>e.diag.constraint_name</code></dt><dd>the name of the guard that fired, which the database returns inside the error</dd></dl></details><div class="output"><span class="output-tag">prints</span><pre><code>  y ahora, seis escrituras imposibles:
+    la rechaza     la misma marca de tiempo dos veces
+                   duplicate key value violates unique constraint &quot;lecturas_pk&quot;
+    la rechaza     una presion de -900 bar
+                   new row for relation &quot;lecturas&quot; violates check constraint &quot;tp2_en_rango&quot;
+    la rechaza     una casilla sin decir si se midio
+                   null value in column &quot;medido&quot; of relation &quot;lecturas&quot; violates not-null constraint
+    la rechaza     una digital que vale 2
+                   new row for relation &quot;lecturas&quot; violates check constraint &quot;comp_es_binaria&quot;
+    la rechaza     una lectura de un dia que no existe
+                   insert or update on table &quot;lecturas&quot; violates foreign key constraint &quot;el_dia_esta_en_el_calendario&quot;
+    la rechaza     un dia con 30 horas de carga
+                   new row for relation &quot;dias&quot; violates check constraint &quot;horas_de_un_dia&quot;</code></pre></div><p>Six attempts, six doors in the face, <strong>and each one says why</strong>. Compare that with module 16, where the same bad datum went in and a script found it later.</p><h3 class="sub">Step 8. What to do before adding a rule</h3><div class="live"><div class="live-head"><span>live query</span><span class="live-status">the engine downloads when you press</span></div><pre class="live-static"><code>SELECT count(*) AS incumplen,
+       round(count(*) * 100.0 / (SELECT count(*) FROM telemetria), 2) AS por_ciento
+FROM telemetria
+WHERE DV_eletric = COMP;</code></pre><textarea class="live-editor" spellcheck="false" aria-label="live query">SELECT count(*) AS incumplen,
+       round(count(*) * 100.0 / (SELECT count(*) FROM telemetria), 2) AS por_ciento
+FROM telemetria
+WHERE DV_eletric = COMP;</textarea><div class="live-bar"><button type="button" class="live-run">run</button></div><div class="live-out"></div></div><details class="fold"><summary>line by line, 2 entries</summary><dl class="annot"><dt><code>DV_eletric = COMP</code></dt><dd>the two signals are opposites by design, so here they hold the same value and that is impossible</dd><dt><code>la subconsulta</code></dt><dd>the total number of readings, so the percentage can be worked out. It is module 11&#x27;s</dd></dl></details><div class="output"><span class="output-tag">prints</span><pre><code>┌───────────┬────────────┐
+│ incumplen │ por_ciento │
+│   int64   │   double   │
+├───────────┼────────────┤
+│     16762 │        1.1 │
+└───────────┴────────────┘</code></pre></div><p><strong>16,762 readings would break a constraint saying those two signals are opposites.</strong> So that constraint cannot be added, and the database would be right to refuse. Module 14 chose to flag them with the <code>dudoso</code> column instead of deleting them, and this is the consequence of that decision.</p></section>
+<section class="block is-result"><span class="kicker">Result</span><h2 class="block-title">The result, measured</h2><figure class="fig"><img class="fig-claro" src="../figuras/fig_m20_esquema.claro.en.png?v=60373d9e" alt="fig m20 esquema" loading="lazy"><img class="fig-oscuro" src="../figuras/fig_m20_esquema.oscuro.en.png?v=d6303524" alt="fig m20 esquema" loading="lazy"></figure><p><strong>What we expected.</strong> That the database would reject all six, because I chose all six knowing which guards I had put in.</p><p><strong>What came out.</strong> It rejects <strong>6 of 6</strong>, and along the way there was a stumble that teaches more than the result. The fifth write was a reading dated <strong>29 February 2020</strong>, a day module 13 reported missing. It was rejected by <strong>the primary key rather than the foreign key</strong>.</p><p>Which means that day does exist in silver. And of course it does: module 14 put the data on a regular grid, and <strong>the grid created rows for the holes</strong>. In bronze 29 February was absent; in silver it is there, with <code>medido</code> false and everything else empty.</p><p>That is also why the <code>dias</code> table has <strong>214</strong> days where module 19 counted 212: that one counted only days with real readings. The fifth test&#x27;s absurdity had to move to 2019, which really is outside the record.</p><p>The figure shows the spread, and it is not drawn by hand: it comes from <code>pg_constraint</code> and <code>information_schema</code>, meaning from what the database says about itself.</p><p><strong>What it means.</strong> A schema is not documentation or decoration: it is the only layer that can say no.</p><p>Module 16&#x27;s contract is still needed, because there are promises that do not fit in a constraint. But whatever does fit <strong>belongs</strong> here, where it does not depend on somebody remembering to run a script.</p></section>
+<section class="block is-warning"><span class="kicker">Traps</span><h2 class="block-title">Watch out</h2><ul><li><strong>A guard nobody has seen refuse anything protects nothing.</strong> Twelve constraints in the catalogue are twelve assertions until something impossible is attempted.</li><li><strong>Name every one of them.</strong> With no name, PostgreSQL invents one and appends suffixes when the table is recreated. And in the error, the name is all anybody reads.</li><li><strong>Before adding a constraint, count who breaks it.</strong> If rows already fail it, the database will refuse to add it. That count is the challenge below.</li><li><strong>A <code>CHECK</code> cannot look at other rows.</strong> It only sees the row being written. &quot;The timestamp does not repeat&quot; needs a key, not a <code>CHECK</code>.</li><li><strong>A foreign key demands the table it points at goes first.</strong> That is why <code>dias</code> is filled first, and why deleting it forces deleting what points at it.</li><li><strong>Constraints cost on write.</strong> Every row gets checked. It does not matter on a daily load and it shows when millions of rows are inserted one at a time.</li></ul></section>
+<section class="block is-bridge"><span class="kicker">Analogy</span><h2 class="block-title">Metallurgical bridge</h2><p>A truck weighbridge has stops. Not a sign saying how much a truck weighs: <strong>physical stops</strong>, a load cell range outside which it gives no reading, a minimum tare, a maximum that raises an alarm.</p><p>Nobody reads that as distrust of the operator. It is that a truck of minus five tonnes is not a badly weighed truck: it is a broken sensor, and accepting that number contaminates the whole month&#x27;s balance.</p><p>And there is something else, which is the uncomfortable part. When those stops get installed in a plant that has been running for years, <strong>they almost always fire on historical data</strong>. That is when somebody discovers impossible weighings have been coming in for a year and nobody had looked.</p></section>
+<section class="block is-live"><span class="kicker">Your turn</span><h2 class="block-title">Do it yourself</h2><p class="reto-ask">Before adding a constraint you have to know who would break it. Return the five days with the most readings where <code>DV_eletric</code> and <code>COMP</code> hold the same value, with <code>day</code> and <code>lecturas</code>, largest first. Five rows.</p><div class="live reto" data-expected='[[&quot;2020-04-20&quot;, 5717], [&quot;2020-07-22&quot;, 1892], [&quot;2020-06-23&quot;, 1447], [&quot;2020-06-24&quot;, 1435], [&quot;2020-05-27&quot;, 1433]]'><div class="live-head"><span>challenge</span><span class="live-status">the engine downloads when you press</span></div><pre class="live-static"><code>SELECT day, count(*) AS lecturas
+FROM telemetria
+GROUP BY day;</code></pre><textarea class="live-editor" spellcheck="false" aria-label="challenge">SELECT day, count(*) AS lecturas
+FROM telemetria
+GROUP BY day;</textarea><div class="live-bar"><button type="button" class="live-run">check</button></div><div class="live-out"></div><div class="verdict"></div><details class="fold"><summary>a hint</summary><p>The starting point is missing the filter and the ordering. The filter is the impossible condition, <code>DV_eletric = COMP</code>, and it goes in a <code>WHERE</code> before grouping. Then you order by the count downwards and ask for five.</p></details><details class="fold"><summary>see the solution</summary><pre><code>SELECT day, count(*) AS lecturas
+FROM telemetria
+WHERE DV_eletric = COMP
+GROUP BY day
+ORDER BY lecturas DESC
+LIMIT 5;</code></pre></details></div><p>One day takes nearly a third of all the violations. That is not noise spread evenly: it is a specific episode, and it is a better lead than the total. Before deciding what to do with those readings, it is worth going to look at what happened that day.</p></section>
+<section class="block is-review"><span class="kicker">Review</span><h2 class="block-title">Review</h2><details><summary>How this differs from module 16&#x27;s contract</summary><p>In who enforces it and when. The contract is a script that looks at the data after it is written and warns. The schema is the engine refusing to write it. One detects and the other prevents, and both are needed: some promises do not fit in a constraint.</p></details><details><summary>Why every constraint gets a name</summary><p>Because the name travels inside the error message, and that message is what the person on call sees. With no name PostgreSQL generates one and also appends suffixes when the table is recreated, so the one showing up in an alert may not be last week&#x27;s.</p></details><details><summary>What to check before adding a constraint to a table that already has data</summary><p>How many rows already break it. The database scans the whole table before accepting the rule and refuses if it finds a single one that does not fit. Here, demanding <code>DV_eletric</code> and <code>COMP</code> be opposites would collide with 16,762 readings.</p></details><details><summary>The dias table has 214 days and module 19 counted 212. Which one is lying</summary><p>Neither. Module 19 counted days with real readings, and <code>dias</code> counts every calendar day silver covers. The difference is the two days with no record, which exist as empty rows ever since module 14 put the data on a regular grid.</p></details><details><summary>Your foreign key rejects a row you believe is correct. What do you look at first</summary><p>The table it points at, not the one you are writing. A foreign key only fails when the value does not exist on the other side. The question is not whether the datum is right: it is whether the day, the machine or the batch it points at was ever registered. Almost always the row above is missing, rather than the row below being wrong.</p></details></section>
+
+      <footer class="footer">
+        <span>Bellows / Module 20</span>
+        <span>generated on 2026-09-03</span>
+        <span>source: MetroPT-3, from a Porto Metro train compressor (CC BY 4.0)</span>
+      </footer>
+    </div>
+  </main>
+
+</div>
+<!-- El motor SQL no se descarga aquí: este fichero solo conecta los botones.
+     Los 8 MB llegan cuando el lector pulsa, y no antes. -->
+<script type="module" src="live.js"></script>
+<script src="perilla.js" defer></script>
+</body>
+</html>

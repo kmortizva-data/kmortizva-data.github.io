@@ -1,0 +1,1029 @@
+<!doctype html>
+<html lang="es" class="no-js" data-assets="../assets" data-tablas="telemetria=sql.parquet">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tipos y decisiones: cuando 8,2 no es 8,2 · Fuelle, módulo 9</title>
+<link rel="alternate" hreflang="en" href="m09_tipos_y_decisiones.en.html">
+<style>
+/* Fuelle: la hoja de estilo del curso.
+ *
+ * REESCRITA ENTERA el 2026-08-30. La primera versión heredó la plantilla de Sílice
+ * junto con su motor, y Kevin la vio y dijo: "se parece a las otras 20 páginas de
+ * portafolio, el landing, coursera, silica, se ve y se siente igual". Tenía razón.
+ * Medido: mismo ancho de prosa (680), mismo ancho de bloques (1180), misma columna
+ * de margen (132), misma secuencia de cabecera, 36 clases compartidas de 40.
+ * Cambiar papel por grafito no toca la silueta, y la silueta es lo que se siente.
+ *
+ * Los cuatro sitios de Kevin son una columna de texto centrada, sin barra lateral,
+ * sin rejilla y sin nada pegajoso. Este es lo contrario: PANEL DE CONTROL. Una barra
+ * fija a la izquierda con los instrumentos siempre a la vista, y el contenido a su
+ * derecha. Ninguna de las tres medidas heredadas aparece aquí, y check_layout.py
+ * falla si alguna reaparece.
+ *
+ * El encargo que ordena las decisiones sigue siendo el mismo: "no muy escandaloso,
+ * que parezca ingeniero, pero que demuestres habilidades, que no seas un pdf que se
+ * lee de recorrido". La sobriedad va en la superficie, la ambición en lo que hace.
+ */
+
+/* --------------------------------------------------------------- tipografía */
+
+/* IBM Plex, autoalojada, OFL-1.1. Los cuatro sitios de Kevin usan la fuente del
+ * sistema, y eso es la otra mitad del "se siente igual". Plex tiene aire de
+ * documentación de ingeniería, que es exactamente el encargo.
+ *
+ * Cinco cortes y no tres: sin las semi-negritas el navegador falsifica la negrita
+ * engordando el trazo, y en una fuente técnica se nota enseguida. 289 KB en total,
+ * que se pueden bajar a unos 60 recortando al alfabeto latino con fonttools si
+ * llega a molestar. */
+@font-face {
+  font-family: "Plex Cond";
+  src: url("../assets/fonts/PlexSansCondensed-SemiBold.woff2") format("woff2");
+  font-weight: 600; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Plex";
+  src: url("../assets/fonts/PlexSans-Regular.woff2") format("woff2");
+  font-weight: 400; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Plex";
+  src: url("../assets/fonts/PlexSans-SemiBold.woff2") format("woff2");
+  font-weight: 600; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Plex Mono";
+  src: url("../assets/fonts/PlexMono-Regular.woff2") format("woff2");
+  font-weight: 400; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Plex Mono";
+  src: url("../assets/fonts/PlexMono-SemiBold.woff2") format("woff2");
+  font-weight: 600; font-style: normal; font-display: swap;
+}
+
+/* ------------------------------------------------------------------ tokens */
+
+:root {
+  --ground: #f4f2ee;
+  --panel: #e9e6e0;
+  --stage: #fbfaf8;
+  --ink: #191d20;
+  --ink-soft: #4c545a;
+  --ink-faint: #7c868d;
+  --rule: #d6d1c8;
+  --rule-soft: #e4e0d8;
+  --grid: rgba(25, 29, 32, .05);
+  --accent: #46787e;
+  --measured: #3d505b;
+  --simulated: #b57542;
+
+  --prose: "Plex", system-ui, "Segoe UI", Roboto, sans-serif;
+  --display: "Plex Cond", "Plex", system-ui, sans-serif;
+  --data: "Plex Mono", "Cascadia Mono", Consolas, monospace;
+
+  /* Medidas NUEVAS. Ninguna puede coincidir con las heredadas de Sílice
+   * (680 de prosa, 1180 de bloques, 132 de margen): volver a ellas es volver a
+   * la misma página, y hay un verificador que lo impide. */
+  --rail: 268px;      /* la barra fija, que ninguno de los otros sitios tiene */
+  --read: 646px;      /* la medida de la prosa, en píxeles y nunca en ch */
+  --block: 980px;     /* el borde derecho de los bloques anchos */
+
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ground: #101417;
+    --panel: #171c20;
+    --stage: #14181b;
+    --ink: #e2e7ea;
+    --ink-soft: #a6b0b6;
+    --ink-faint: #717e85;
+    --rule: #293036;
+    --rule-soft: #20272b;
+    --grid: rgba(226, 231, 234, .045);
+    --accent: #8ec2c8;
+    --measured: #cbe2ef;
+    --simulated: #c98754;
+  }
+}
+
+:root[data-theme="dark"] {
+  --ground: #101417;
+  --panel: #171c20;
+  --stage: #14181b;
+  --ink: #e2e7ea;
+  --ink-soft: #a6b0b6;
+  --ink-faint: #717e85;
+  --rule: #293036;
+  --rule-soft: #20272b;
+  --grid: rgba(226, 231, 234, .045);
+  --accent: #8ec2c8;
+  --measured: #cbe2ef;
+  --simulated: #c98754;
+}
+
+/* --------------------------------------------------------------- cimientos */
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--stage);
+  color: var(--ink);
+  font-family: var(--prose);
+  font-size: 16.5px;
+  line-height: 1.6;
+}
+
+::selection { background: var(--accent); color: var(--ground); }
+a { color: var(--accent); text-underline-offset: .18em; }
+
+/* LA REJILLA. Esto es lo que ninguno de los otros cuatro sitios tiene, y es la
+ * razón de que la página deje de sentirse igual: el texto ya no está centrado en
+ * la ventana, está al lado de un panel de instrumentos. */
+.shell {
+  display: grid;
+  grid-template-columns: var(--rail) minmax(0, 1fr);
+  min-height: 100vh;
+}
+
+/* -------------------------------------------------- la barra de instrumentos */
+
+.panel {
+  position: sticky;   /* lo primero pegajoso de todo el portafolio */
+  top: 0;
+  align-self: start;
+  height: 100vh;
+  overflow-y: auto;
+  padding: 22px 20px 22px;
+  background: var(--panel);
+  border-right: 1px solid var(--rule);
+  background-image: radial-gradient(var(--grid) 1px, transparent 1px);
+  background-size: 22px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.panel-brand {
+  font-family: var(--display);
+  font-size: 19px;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  color: var(--ink);
+  text-decoration: none;
+  display: block;
+}
+.panel-brand small {
+  display: block;
+  font-family: var(--data);
+  font-size: 10px;
+  letter-spacing: .08em;
+  color: var(--ink-faint);
+  text-transform: none;
+  margin-top: 4px;
+}
+
+.panel-label {
+  font-family: var(--data);
+  font-size: 9.5px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding-bottom: 7px;
+  border-bottom: 1px solid var(--rule);
+  margin-bottom: 10px;
+}
+
+/* El grafo del lago, EN VERTICAL. Antes iba horizontal y solo en la portada;
+ * aquí acompaña al lector todo el curso y marca en qué capa está. */
+.rail-step {
+  display: grid;
+  grid-template-columns: 15px 1fr auto;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 0;
+  font-family: var(--data);
+  font-size: 11px;
+  letter-spacing: .08em;
+  color: var(--ink-faint);
+  text-decoration: none;
+  position: relative;
+}
+.rail-step .dot {
+  width: 9px; height: 9px;
+  border: 1px solid var(--ink-faint);
+  border-radius: 50%;
+  justify-self: center;
+}
+.rail-step:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  left: 7px; top: 25px;
+  width: 1px; height: calc(100% - 17px);
+  background: var(--rule);
+}
+.rail-step.done { color: var(--ink-soft); }
+.rail-step.done .dot { background: var(--ink-faint); border-color: var(--ink-faint); }
+.rail-step.here { color: var(--accent); }
+.rail-step.here .dot { background: var(--accent); border-color: var(--accent); }
+.rail-step .range { font-size: 9.5px; opacity: .75; }
+
+/* La cifra del módulo ya no es una caja en una cabecera gigante: vive aquí y se
+ * queda a la vista mientras se lee la lección entera. */
+.panel-figure { border-top: 1px solid var(--rule); padding-top: 14px; }
+.panel-figure .v {
+  display: block;
+  font-family: var(--data);
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 1.3;
+  color: var(--accent);
+}
+.panel-figure .l {
+  display: block;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--ink-faint);
+  margin-top: 5px;
+}
+
+.panel-progress {
+  margin-top: auto;
+  border-top: 1px solid var(--rule);
+  padding-top: 13px;
+  font-family: var(--data);
+  font-size: 11px;
+  color: var(--ink-faint);
+}
+.panel-progress b { color: var(--ink); font-weight: 600; }
+.panel-bar { height: 2px; background: var(--rule); margin-top: 7px; }
+.panel-bar i { display: block; height: 2px; background: var(--accent); }
+
+.panel-nav { display: flex; gap: 7px; flex-wrap: wrap; }
+.panel-nav a {
+  font-family: var(--data);
+  font-size: 10.5px;
+  letter-spacing: .06em;
+  padding: 6px 9px;
+  border: 1px solid var(--rule);
+  text-decoration: none;
+  color: var(--ink-soft);
+}
+.panel-nav a:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ------------------------------------------------------------- el contenido */
+
+.stage { background: var(--stage); padding: 0 0 54px; min-width: 0; }
+.stage-inner { max-width: var(--block); padding: 0 40px; }
+
+/* La cabecera ya no ocupa media pantalla: una línea de identificación y el
+ * título. La cifra y la navegación se fueron a la barra. */
+.head {
+  padding: 30px 0 20px;
+  border-bottom: 1px solid var(--rule);
+  margin-bottom: 4px;
+}
+.head-id {
+  font-family: var(--data);
+  font-size: 10.5px;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  display: flex;
+  gap: 14px;
+  align-items: baseline;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.head-id b { color: var(--accent); font-weight: 600; }
+.head h1 {
+  font-family: var(--display);
+  font-size: clamp(26px, 3.3vw, 37px);
+  line-height: 1.08;
+  font-weight: 600;
+  margin: 0 0 10px;
+  max-width: 22ch;
+}
+.head .standfirst {
+  color: var(--ink-soft);
+  font-size: 16.5px;
+  line-height: 1.5;
+  max-width: var(--read);
+  margin: 0;
+}
+
+/* Las secciones ya no cuelgan de un margen de 132 px: la etiqueta va encima, en
+ * un recuadro pequeño, y el texto empieza en el borde. */
+.block { padding: 26px 0 2px; border-top: 1px solid var(--rule-soft); }
+.block:first-of-type { border-top: 0; }
+
+.kicker {
+  display: inline-block;
+  font-family: var(--data);
+  font-size: 9.5px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  border: 1px solid var(--rule);
+  padding: 2px 7px;
+  margin-bottom: 11px;
+}
+
+.block-title {
+  font-family: var(--display);
+  font-size: 22px;
+  font-weight: 600;
+  margin: 0 0 11px;
+  max-width: var(--read);
+}
+
+/* Justificado desde 33rem de columna y rasgado en móvil: la regla que Kevin
+ * fijó en el portafolio el 2026-08-22, después de medir que a 375 px salían
+ * huecos de 7,65x y ríos en cinco de cada seis líneas. Aquí la prosa mide 646 px
+ * (unos 40rem), así que le toca justificado.
+ *
+ * Y NADA de `hyphens`: sin guionado, por la regla de la casa. El precio es que
+ * hay que vigilar los ríos, y eso se mide con src/site/check_rivers.py en vez de
+ * mirarlo de reojo. */
+.block p, .block li { max-width: var(--read); }
+
+@media (min-width: 34rem) {
+  .block p,
+  .block li,
+  .standfirst,
+  .reto-ask,
+  .annot dd,
+  blockquote,
+  .is-review details p { text-align: justify; text-justify: inter-word; }
+  /* Tablas, código, pies de figura y la barra nunca se justifican: sus líneas
+   * son cortas y el hueco se vuelve un agujero. */
+  figcaption, th, td, pre, .panel, .live-status, .toc { text-align: left; }
+}
+.block p { margin: 0 0 14px; }
+.block ul, .block ol { padding-left: 21px; margin: 0 0 14px; }
+.block li { margin-bottom: 6px; }
+.block li::marker { color: var(--accent); font-family: var(--data); font-size: .82em; }
+
+h3.sub, h4.sub {
+  font-family: var(--display);
+  font-size: 17px;
+  font-weight: 600;
+  margin: 24px 0 8px;
+  max-width: var(--read);
+}
+h4.sub { font-size: 15px; color: var(--ink-soft); }
+
+blockquote {
+  margin: 0 0 14px;
+  padding-left: 15px;
+  border-left: 2px solid var(--rule);
+  color: var(--ink-soft);
+  max-width: var(--read);
+}
+strong, b { font-weight: 600; }
+
+.is-brief ul { list-style: none; padding-left: 0; }
+.is-brief li {
+  padding: 8px 0 8px 18px;
+  border-bottom: 1px solid var(--rule-soft);
+  position: relative;
+}
+.is-brief li::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 17px;
+  width: 8px; height: 1px;
+  background: var(--accent);
+}
+.is-brief li:last-child { border-bottom: 0; }
+.is-result .block-title, .is-warning .block-title { color: var(--accent); }
+
+/* ------------------------------------------------------------------ código */
+
+pre {
+  max-width: var(--block);
+  overflow-x: auto;
+  background: var(--panel);
+  border: 1px solid var(--rule-soft);
+  border-left: 2px solid var(--accent);
+  padding: 13px 15px;
+  margin: 0 0 13px;
+}
+pre code {
+  font-family: var(--data);
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ink);
+  white-space: pre;
+}
+p code, li code, dd code, td code {
+  font-family: var(--data);
+  font-size: .87em;
+  padding: 1px 4px;
+  background: var(--panel);
+  border: 1px solid var(--rule-soft);
+}
+
+/* Diagramas: esquemas conceptuales generados, no figuras de datos.
+   Nacen del bloque ```diagrama y usan los tokens de arriba, asi que el tema lo
+   resuelve el CSS y no hacen falta dos versiones como en las figuras. */
+.diagram { margin: 0 0 22px; max-width: var(--block); }
+.chain {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: 30px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: none;
+}
+.node {
+  position: relative;
+  /* 130 y no 132: 132px es la columna de margen de Sílice y check_layout la
+     prohíbe en este proyecto, con razón, aunque aquí signifique otra cosa. */
+  flex: 1 1 130px;
+  min-width: 0;
+  padding: 11px 13px 12px;
+  background: var(--panel);
+  border: 1px solid var(--rule);
+  border-top: 2px solid var(--ink-faint);
+}
+/* La flecha entre cajas. Va en el hueco del gap, asi que no roba ancho al
+   texto y desaparece sola cuando las cajas se apilan. */
+.node + .node::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: -22px;
+  width: 14px;
+  height: 1px;
+  background: var(--ink-faint);
+}
+.node + .node::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: -11px;
+  width: 5px; height: 5px;
+  border-top: 1px solid var(--ink-faint);
+  border-right: 1px solid var(--ink-faint);
+  transform: translateY(-50%) rotate(45deg);
+}
+.node.lit { border-top-color: var(--accent); background: var(--stage); }
+.node.lit .node-name { color: var(--accent); }
+.node-name {
+  display: block;
+  font-family: var(--data);
+  font-size: 10.5px;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+.node-what { display: block; margin-top: 5px; font-size: 13.5px; color: var(--ink); }
+.node-note { display: block; margin-top: 4px; font-size: 12px; color: var(--ink-faint); }
+
+@media (max-width: 640px) {
+  /* Apiladas, con la flecha girada hacia abajo. */
+  .chain { flex-direction: column; gap: 26px; }
+  .node { flex: 1 1 auto; }
+  .node + .node::before {
+    top: -19px; left: 21px;
+    width: 1px; height: 12px;
+  }
+  .node + .node::after {
+    top: -9px; left: 19px;
+    transform: rotate(135deg);
+  }
+}
+
+.output { position: relative; margin: 0 0 13px; max-width: var(--block); }
+.output pre { margin: 0; border-left: 2px solid var(--ink-faint); background: transparent; }
+.output pre code { color: var(--ink-soft); }
+.output-tag {
+  position: absolute;
+  top: -7px; left: 13px;
+  z-index: 1;
+  font-family: var(--data);
+  font-size: 9px;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  background: var(--stage);
+  padding: 0 5px;
+}
+
+details.fold, details { margin: 0 0 13px; max-width: var(--block); }
+details > summary {
+  cursor: pointer;
+  font-family: var(--data);
+  font-size: 11px;
+  letter-spacing: .05em;
+  color: var(--ink-faint);
+  padding: 5px 0;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+details > summary::-webkit-details-marker { display: none; }
+details > summary::before {
+  content: "+";
+  width: 13px; height: 13px;
+  line-height: 12px;
+  text-align: center;
+  border: 1px solid var(--rule);
+  color: var(--accent);
+}
+details[open] > summary::before { content: "\2212"; }
+details > summary:hover { color: var(--accent); }
+
+.annot {
+  margin: 2px 0 4px;
+  padding: 11px 13px;
+  border: 1px solid var(--rule-soft);
+  background: var(--panel);
+}
+.annot dt { margin-bottom: 3px; }
+.annot dt code {
+  font-family: var(--data);
+  font-size: 12px;
+  color: var(--accent);
+  background: transparent;
+  border: 0;
+  padding: 0;
+}
+.annot dd { margin: 0 0 10px; font-size: 14.5px; color: var(--ink-soft); max-width: var(--read); }
+.annot dd:last-of-type { margin-bottom: 0; }
+
+.is-review details { border-bottom: 1px solid var(--rule-soft); margin: 0; }
+.is-review details > summary {
+  font-family: var(--prose);
+  font-size: 15.5px;
+  color: var(--ink);
+  padding: 11px 0;
+}
+.is-review details > summary:hover { color: var(--accent); }
+.is-review details p { margin: 0 0 11px 21px; color: var(--ink-soft); }
+
+/* ------------------------------------------------------------------ tablas */
+
+.table-wrap { max-width: var(--block); overflow-x: auto; margin: 0 0 15px; }
+table { border-collapse: collapse; font-size: 14.5px; }
+th, td {
+  text-align: left;
+  padding: 6px 15px 6px 0;
+  border-bottom: 1px solid var(--rule-soft);
+  vertical-align: top;
+}
+th {
+  font-family: var(--data);
+  font-size: 10px;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  font-weight: 400;
+  border-bottom-color: var(--rule);
+}
+tbody tr:last-child td { border-bottom: 0; }
+
+figure { margin: 0 0 17px; max-width: var(--block); }
+figure img { max-width: 100%; height: auto; display: block; }
+figcaption { font-size: 12.5px; color: var(--ink-faint); margin-top: 7px; max-width: var(--read); }
+
+.footer {
+  border-top: 1px solid var(--rule);
+  margin-top: 32px;
+  padding: 18px 0 0;
+  font-size: 12px;
+  color: var(--ink-faint);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px 20px;
+}
+.footer a { color: var(--ink-faint); }
+.gone { color: var(--ink-faint); }
+
+/* ---------------------------------------------- la consulta viva y el reto */
+
+.live {
+  max-width: var(--block);
+  margin: 0 0 17px;
+  border: 1px solid var(--rule);
+  background: var(--panel);
+}
+.live-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 13px;
+  border-bottom: 1px solid var(--rule-soft);
+  font-family: var(--data);
+  font-size: 10px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.live-editor {
+  width: 100%;
+  border: 0;
+  resize: vertical;
+  min-height: 112px;
+  padding: 12px 14px;
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--data);
+  font-size: 13px;
+  line-height: 1.6;
+  tab-size: 2;
+}
+.live-editor:focus { outline: 2px solid var(--accent); outline-offset: -2px; }
+.live-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 13px;
+  border-top: 1px solid var(--rule-soft);
+  flex-wrap: wrap;
+}
+.live-run {
+  font-family: var(--data);
+  font-size: 11px;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  padding: 7px 14px;
+  border: 1px solid var(--accent);
+  background: transparent;
+  color: var(--accent);
+  cursor: pointer;
+}
+.live-run:hover { background: var(--accent); color: var(--ground); }
+.live-run[disabled] { opacity: .5; cursor: default; }
+.live-run[disabled]:hover { background: transparent; color: var(--accent); }
+.live-status { font-family: var(--data); font-size: 10.5px; color: var(--ink-faint); }
+.live-out { max-width: 100%; overflow-x: auto; }
+.live-out table { margin: 0; width: 100%; font-size: 12.5px; }
+.live-out td, .live-out th { padding: 5px 13px 5px 0; }
+.live-out td:first-child, .live-out th:first-child { padding-left: 13px; }
+.live-out td { font-family: var(--data); font-size: 12px; }
+.live-err {
+  padding: 10px 14px;
+  font-family: var(--data);
+  font-size: 12px;
+  color: var(--simulated);
+  border-top: 1px solid var(--rule-soft);
+}
+
+.reto { border-left: 2px solid var(--accent); }
+.reto .live-head { color: var(--accent); }
+.reto-ask { padding: 12px 14px 2px; font-size: 15.5px; max-width: var(--read); }
+.verdict {
+  padding: 10px 14px;
+  border-top: 1px solid var(--rule-soft);
+  font-family: var(--data);
+  font-size: 12px;
+}
+.verdict.ok { color: var(--accent); }
+.verdict.no { color: var(--simulated); }
+
+.no-js .live-bar, .no-js .live-editor { display: none; }
+.no-js .live-static { display: block; }
+.live-static { display: none; }
+
+/* ---------------------------------------------------------- el doble trazo */
+
+.twin { max-width: var(--block); margin: 0 0 18px; }
+.twin svg { width: 100%; height: auto; display: block; }
+.twin .axis { stroke: var(--rule); fill: none; }
+.twin .tick { fill: var(--ink-faint); font-family: var(--data); font-size: 10px; }
+.twin .measured { stroke: var(--measured); fill: none; stroke-width: 1.8; }
+.twin .simulated { stroke: var(--simulated); fill: none; stroke-width: 1.8; stroke-dasharray: 5 4; }
+.twin .gap { fill: var(--simulated); opacity: .16; }
+.twin-key { display: flex; gap: 20px; flex-wrap: wrap; font-family: var(--data);
+            font-size: 11px; color: var(--ink-faint); margin-top: 6px; }
+.twin-key i { display: inline-block; width: 20px; height: 0; vertical-align: middle;
+              border-top-width: 2px; border-top-style: solid; margin-right: 7px; }
+.twin-key .k-measured i { border-color: var(--measured); }
+.twin-key .k-simulated i { border-top-style: dashed; border-color: var(--simulated); }
+
+.knob { display: flex; align-items: center; gap: 13px; flex-wrap: wrap; margin: 0 0 13px;
+        font-family: var(--data); font-size: 11px; color: var(--ink-faint); }
+.knob input[type="range"] { accent-color: var(--accent); flex: 1 1 200px; max-width: 300px; }
+.knob output { color: var(--accent); min-width: 72px; }
+
+/* -------------------------------------------------------- índice del curso */
+
+.toc { max-width: var(--block); }
+.toc .part {
+  font-family: var(--data);
+  font-size: 10px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin: 26px 0 2px;
+  padding-top: 11px;
+  border-top: 1px solid var(--rule);
+}
+.toc a, .toc .pending {
+  display: grid;
+  grid-template-columns: 34px 1fr auto;
+  gap: 15px;
+  align-items: baseline;
+  padding: 9px 6px 9px 8px;
+  border-bottom: 1px solid var(--rule-soft);
+  border-left: 2px solid transparent;
+  text-decoration: none;
+  color: var(--ink);
+}
+.toc a:hover { border-left-color: var(--accent); background: var(--panel); color: var(--accent); }
+.toc .pending { color: var(--ink-faint); }
+.toc .num { font-family: var(--data); font-size: 12px; color: var(--ink-faint); }
+.toc a:hover .num { color: var(--accent); }
+.toc .name { font-family: var(--display); font-size: 16px; }
+.toc .name small { display: block; font-family: var(--prose); color: var(--ink-faint);
+                   font-size: 13px; font-weight: 400; margin-top: 2px; max-width: 60ch; }
+.toc .mark { font-family: var(--data); font-size: 11px; color: var(--ink-faint); text-align: right; }
+.toc .tag { font-family: var(--data); font-size: 9.5px; letter-spacing: .1em;
+            text-transform: uppercase; color: var(--ink-faint); }
+
+/* ------------------------------------------------------------------- móvil */
+
+/* La barra deja de ser barra: pasa a cabecera compacta arriba, con los tramos en
+ * horizontal. La rejilla se colapsa a una columna. */
+@media (max-width: 900px) {
+  .shell { grid-template-columns: 1fr; }
+  .panel {
+    position: static;
+    height: auto;
+    border-right: 0;
+    border-bottom: 1px solid var(--rule);
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 16px;
+    padding: 13px 18px;
+  }
+  .panel-label { display: none; }
+  .panel .rail { display: flex; gap: 0 5px; flex-wrap: wrap; }
+  .rail-step { grid-template-columns: 11px auto; padding: 3px 0; font-size: 9.5px; }
+  .rail-step .range { display: none; }
+  .rail-step:not(:last-child)::after { display: none; }
+  .panel-figure { border-top: 0; padding-top: 0; }
+  .panel-figure .v { font-size: 13.5px; }
+  .panel-figure .l { display: none; }
+  .panel-progress { margin: 0; border-top: 0; padding-top: 0; }
+  .panel-bar { display: none; }
+  .stage-inner { padding: 0 18px; }
+  body { font-size: 16px; }
+  .head { padding-top: 22px; }
+  pre code { font-size: 12.5px; }
+}
+
+/* ------------------------------------------------- la perilla del gemelo */
+/*
+ * El doble trazo con su deslizador, de los modulos 24 y 25. El SVG llega ya
+ * dibujado del servidor, asi que sin JavaScript se ve igual: dos trazos, la
+ * referencia y la posicion de partida. El mando solo cambia cual se ensena.
+ *
+ * La regla de forma del curso: el color NUNCA es la unica pista. La referencia
+ * va punteada y en tono apagado, y la posicion elegida solida y en el acento.
+ */
+.perilla {
+  margin: 22px 0;
+  max-width: var(--block);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  background: var(--stage);
+  padding: 14px 16px 12px;
+}
+.perilla figcaption {
+  font-family: var(--data);
+  font-size: 11px;
+  color: var(--ink-faint);
+  letter-spacing: .02em;
+  margin-bottom: 10px;
+}
+.perilla svg { display: block; width: 100%; height: auto; }
+.perilla-referencia {
+  fill: none;
+  stroke: var(--ink-faint);
+  stroke-width: 1.4;
+  stroke-dasharray: 4 3;
+}
+.perilla-actual {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  transition: d .12s linear;
+}
+.perilla-pie {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 18px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--rule-soft);
+}
+.perilla-leyenda { font-size: 12px; color: var(--ink-faint); }
+.perilla-mandos {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+  font-family: var(--data);
+  font-size: 11px;
+  color: var(--ink-soft);
+}
+.perilla-mando { width: 190px; accent-color: var(--accent); }
+.perilla-mando[disabled] { opacity: .45; }
+.perilla-valor {
+  font-family: var(--data);
+  font-size: 12px;
+  color: var(--ink);
+  min-width: 88px;
+}
+.perilla-nota, .perilla-referencia-nota {
+  margin: 8px 0 0;
+  font-size: 12.5px;
+  color: var(--ink-soft);
+}
+.perilla-referencia-nota { color: var(--ink-faint); font-size: 12px; }
+
+@media (max-width: 620px) {
+  .perilla-mandos { margin-left: 0; width: 100%; }
+  .perilla-mando { flex: 1; width: auto; min-width: 0; }
+}
+
+/* ------------------------------------------------------ movimiento y papel */
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@media print {
+  .shell { display: block; }
+  .panel, .live-bar, .live-editor { display: none; }
+  .live-static { display: block; }
+  body { background: #fff; color: #000; }
+}
+
+/* ------------------------------------------------------ figuras, dos temas */
+
+/* Cada figura viaja dos veces, clara y oscura, y aquí se enseña la que toca.
+ * Con `<picture>` y una media query bastaría para la preferencia del sistema,
+ * pero no para el interruptor manual, y este curso respeta los dos. */
+.fig-oscuro { display: none; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .fig-claro { display: none; }
+  :root:not([data-theme="light"]) .fig-oscuro { display: block; }
+}
+:root[data-theme="dark"] .fig-claro { display: none; }
+:root[data-theme="dark"] .fig-oscuro { display: block; }
+
+/* El acento de este módulo, uno por tema. Los dos salen de src/site/palette.py
+   y los dos pasaron el contraste antes de llegar aquí. */
+:root { --accent: #3F7A5D; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --accent: #8BC7A7; }
+}
+:root[data-theme="dark"] { --accent: #8BC7A7; }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- La barra de instrumentos. No se mueve al bajar: el tramo del lago, la cifra
+       del módulo y el avance se quedan a la vista mientras se lee. -->
+  <aside class="panel">
+    <a class="panel-brand" href="index.html">Fuelle
+      <small>Módulo 9 de 31</small></a>
+
+    <nav class="rail" aria-label="El arco del proyecto">
+      <p class="panel-label">el lago</p>
+      <span class="rail-step done"><i class="dot"></i><span>CRUDO</span><span class="range">1-3</span></span><span class="rail-step here"><i class="dot"></i><span>BRONCE</span><span class="range">4-13</span></span><span class="rail-step"><i class="dot"></i><span>PLATA</span><span class="range">14-16</span></span><span class="rail-step"><i class="dot"></i><span>ORO</span><span class="range">17-22</span></span><span class="rail-step"><i class="dot"></i><span>GEMELO</span><span class="range">23-31</span></span>
+    </nav>
+
+    <div class="panel-figure">
+      <span class="v">54,6 / 30,1 / 15,2 %</span>
+      <span class="l">del tiempo parado, en vacío y en carga</span>
+    </div>
+
+    <div class="panel-progress">
+      <b>9</b> de 31
+      <span class="panel-bar"><i style="width: 29%"></i></span>
+    </div>
+
+    <nav class="panel-nav"><a href="m08_primera_consulta.html" title="8. Tu primera consulta, entera">← 8</a><a href="m10_agrupar.html" title="10. Agrupar y resumir: GROUP BY">10 →</a><a class="portfolio-link" href="m09_tipos_y_decisiones.en.html" hreflang="en" rel="alternate">English</a></nav>
+  </aside>
+
+  <main class="stage">
+    <div class="stage-inner">
+      <header class="head">
+        <p class="head-id"><b>9</b> <span>parte: SQL, lo que de verdad se usa</span></p>
+        <h1>Tipos y decisiones: cuando 8,2 no es 8,2</h1>
+        <p class="standfirst">Texto, número y fecha no son lo mismo aunque se parezcan. Y CASE, que es como se traduce un número a un estado con nombre</p>
+      </header>
+
+      <section class="block is-brief"><span class="kicker">Resumen</span><h2 class="block-title">En 30 segundos</h2><ul><li>Pedir <code>TP2 = 8.2</code> encuentra <strong>107 lecturas</strong>. Las que querías eran <strong>5.237</strong>.</li><li>No falla porque no encuentre nada: falla porque encuentra el <strong>2 %</strong> y parece bien.</li><li>La culpa no es del número, es del <strong>tipo</strong>. En DECIMAL sale exacto y en DOUBLE no.</li><li><code>CASE</code> traduce un número a un estado, y así la corriente se vuelve parado, vacío o carga.</li><li>El compresor pasa <strong>54,6 % parado, 30,1 % en vacío y 15,2 % en carga</strong>.</li></ul></section>
+<section class="block "><span class="kicker">Contexto</span><h2 class="block-title">Qué resuelve este módulo</h2><p>Hasta aquí las columnas eran números y ya está. Este módulo mira qué <strong>tipo</strong> tiene cada una, porque el tipo decide cómo se comparan y cuándo mienten.</p><p>Y después construye la primera regla del curso: convertir una medida continua en un estado con nombre. Eso es lo que hace útil un dato en bruto.</p></section>
+<section class="block is-toy"><span class="kicker">A mano</span><h2 class="block-title">Antes de la teoría: un ejemplo de juguete</h2><p>Seis lecturas de un turno, tal como las enseña la pantalla:</p><div class="table-wrap"><table><thead><tr><th>hora</th><th>presion</th><th>corriente</th></tr></thead><tbody><tr><td>06:00</td><td>8,20</td><td>0</td></tr><tr><td>06:10</td><td>8,20</td><td>0</td></tr><tr><td>06:20</td><td>8,15</td><td>4</td></tr><tr><td>06:30</td><td>8,20</td><td>4</td></tr><tr><td>06:40</td><td>8,31</td><td>6</td></tr><tr><td>06:50</td><td>8,15</td><td>6</td></tr></tbody></table></div><p><strong>Primera pregunta: ¿cuántas veces la presión fue exactamente 8,20?</strong> Cuentas y salen <strong>tres</strong>.</p><p>Ahora mira lo que el sensor midió de verdad, que trae un decimal más:</p><div class="table-wrap"><table><thead><tr><th>hora</th><th>lo que enseña la pantalla</th><th>lo que hay guardado</th></tr></thead><tbody><tr><td>06:00</td><td>8,20</td><td>8,202</td></tr><tr><td>06:10</td><td>8,20</td><td>8,200</td></tr><tr><td>06:30</td><td>8,20</td><td>8,198</td></tr></tbody></table></div><p>Preguntando por el valor exacto, <strong>el ordenador encuentra una, no tres</strong>. Las otras dos no son 8,2: son 8,202 y 8,198, y la pantalla te las enseñaba iguales porque solo tenía sitio para dos decimales.</p><p>Y ahí está lo peligroso: no da error, y una es un número perfectamente creíble.</p><p>La pantalla redondea. La comparación no. Esa frase es medio módulo.</p><p><strong>Segunda pregunta: ¿en qué estado estaba el motor en cada fila?</strong> Con la regla de que menos de 1 A es parado, de 1 a 5 A es vacío y más de 5 A es carga, salen <strong>dos de cada</strong>. Un tercio del turno en cada estado.</p><p>Esa traducción, de un número a una palabra, es lo que hace <code>CASE</code>.</p></section>
+<section class="block is-terms"><span class="kicker">Términos</span><h2 class="block-title">Glosario</h2><details class="fold"><summary>7 términos, en palabras simples</summary><ul><li><strong>Tipo.</strong> Qué clase de valor guarda una columna, y por tanto qué operaciones tienen sentido.</li><li><strong>DOUBLE.</strong> El tipo de los números con coma que usan casi todos los sensores. Guarda el número en binario y <strong>no todos los decimales caben exactos</strong>.</li><li><strong>DECIMAL.</strong> Otro tipo para números con coma que sí guarda los decimales exactos. Se usa en dinero, donde un céntimo perdido es un problema.</li><li><strong>Coma flotante.</strong> La forma en que DOUBLE guarda los números. Rápida, y aproximada.</li><li><strong><code>CASE</code>.</strong> La forma de escribir «si pasa esto, entonces aquello» dentro de una consulta.</li><li><strong><code>CAST</code>.</strong> Convertir un valor de un tipo a otro, a propósito.</li><li><strong>Umbral.</strong> El valor a partir del cual algo cambia de estado. Aquí, los amperios que separan parado de vacío y vacío de carga.</li></ul></details></section>
+<section class="block is-method"><span class="kicker">Método</span><h2 class="block-title">Paso a paso</h2><h3 class="sub">Paso 1. Mirar de qué tipo es cada columna</h3><p>Antes de comparar nada conviene saber con qué se está comparando. La base de datos lo dice, y no hay que adivinarlo.</p><h3 class="sub">Paso 2. Preguntar por el umbral de la ficha, y contar lo que sale</h3><p>La ficha del dataset dice que el compresor arranca cuando la presión baja de 8,2 bar. Parece una pregunta directa: cuántas lecturas hay a 8,2. Se hace, se cuenta, y luego se hace bien y se vuelve a contar.</p><h3 class="sub">Paso 3. Elegir los cortes mirando la distribución</h3><p>La ficha dice que el motor consume unos 0 A parado, unos 4 A en vacío y unos 7 A en carga. Eso son tres puntos, no dos cortes, y hay que decidir dónde poner la frontera.</p><p>Se pone donde la distribución tiene sus valles, que es donde menos lecturas hay y por tanto donde menos gente se clasifica mal.</p><h3 class="sub">Paso 4. Comprobar la regla con una señal que no se usó para hacerla</h3><p>Y este paso es el que separa una regla de una opinión. <code>DV_eletric</code> marca la carga por su cuenta, sin mirar la corriente. Si los cortes están bien, casi todas las lecturas por encima del corte de carga tienen que llevar esa marca.</p></section>
+<section class="block is-code"><span class="kicker">Código</span><h2 class="block-title">El código, por partes</h2><h3 class="sub">Paso 5. Qué tipo tiene cada cosa</h3><pre><code class="language-sql">SELECT typeof(TP2) AS tipo_de_la_columna,
+       typeof(0.1) AS tipo_de_un_literal,
+       0.1 + 0.2 = 0.3 AS suman_exacto,
+       0.1::DOUBLE + 0.2::DOUBLE = 0.3::DOUBLE AS suman_exacto_en_double
+FROM telemetria LIMIT 1;</code></pre><details class="fold"><summary>línea por línea, 4 entradas</summary><dl class="annot"><dt><code>typeof(x)</code></dt><dd>dice de qué tipo es un valor, sin tener que adivinarlo</dd><dt><code>0.1</code></dt><dd>un número escrito a mano en la consulta; SQL elige un tipo para él</dd><dt><code>::DOUBLE</code></dt><dd>convierte a coma flotante; los dos puntos dobles son la forma corta de CAST</dd><dt><code>=</code></dt><dd>comparar; aquí el resultado es verdadero o falso, y sale como una columna más</dd></dl></details><div class="output"><span class="output-tag">sale</span><pre><code>┌────────────────────┬────────────────────┬──────────────┬────────────────────────┐
+│ tipo_de_la_columna │ tipo_de_un_literal │ suman_exacto │ suman_exacto_en_double │
+├────────────────────┼────────────────────┼──────────────┼────────────────────────┤
+│ DOUBLE             │ DECIMAL(2,1)       │ true         │ false                  │
+└────────────────────┴────────────────────┴──────────────┴────────────────────────┘</code></pre></div><p>Lee esa fila despacio, porque desmonta lo que casi todo el mundo cree.</p><p>El famoso «0,1 más 0,2 no es 0,3» <strong>es falso aquí</strong>: sale <code>true</code>. Porque un número escrito a mano en la consulta es DECIMAL, y DECIMAL guarda los decimales exactos.</p><p>El fallo aparece solo al pedir el tipo coma flotante, con <code>::DOUBLE</code>, y entonces sale <code>false</code>. Y mira de qué tipo es <code>TP2</code>: <strong>DOUBLE</strong>. La columna del sensor está guardada precisamente en el tipo que no es exacto.</p><h3 class="sub">Paso 6. La pregunta directa, y lo que se deja fuera</h3><div class="live"><div class="live-head"><span>consulta viva</span><span class="live-status">el motor se descarga al pulsar</span></div><pre class="live-static"><code>SELECT count(*) AS con_el_igual
+FROM telemetria
+WHERE TP2 = 8.2;</code></pre><textarea class="live-editor" spellcheck="false" aria-label="consulta viva">SELECT count(*) AS con_el_igual
+FROM telemetria
+WHERE TP2 = 8.2;</textarea><div class="live-bar"><button type="button" class="live-run">correr</button></div><div class="live-out"></div></div><details class="fold"><summary>línea por línea, 2 entradas</summary><dl class="annot"><dt><code>WHERE TP2 = 8.2</code></dt><dd>pide las filas cuya presión sea exactamente ese valor</dd><dt><code>count(*) AS con_el_igual</code></dt><dd>cuenta cuántas son y le pone nombre al resultado</dd></dl></details><div class="output"><span class="output-tag">sale</span><pre><code>┌──────────────┐
+│ con_el_igual │
+│    int64     │
+├──────────────┤
+│          107 │
+└──────────────┘</code></pre></div><p>Ciento siete. Cámbialo por <code>WHERE round(TP2, 1) = 8.2</code> y vuelve a correrlo.</p><h3 class="sub">Paso 7. La pregunta bien hecha</h3><pre><code class="language-sql">SELECT count(*) AS redondeando
+FROM telemetria
+WHERE round(TP2, 1) = 8.2;</code></pre><details class="fold"><summary>línea por línea, 1 entrada</summary><dl class="annot"><dt><code>round(TP2, 1)</code></dt><dd>redondea a un decimal antes de comparar, que es lo que hace el ojo al leer 8,2</dd></dl></details><div class="output"><span class="output-tag">sale</span><pre><code>┌─────────────┐
+│ redondeando │
+│    int64    │
+├─────────────┤
+│        5237 │
+└─────────────┘</code></pre></div><p>Cinco mil doscientas treinta y siete. La pregunta directa encontraba el <strong>2 %</strong> de eso.</p><h3 class="sub">Paso 8. Traducir la corriente a un estado</h3><div class="live"><div class="live-head"><span>consulta viva</span><span class="live-status">el motor se descarga al pulsar</span></div><pre class="live-static"><code>SELECT CASE WHEN Motor_current &lt; 1 THEN &#x27;parado&#x27;
+            WHEN Motor_current &lt; 5 THEN &#x27;en vacio&#x27;
+            ELSE &#x27;en carga&#x27; END AS estado,
+       count(*) AS lecturas,
+       round(avg(Motor_current), 2) AS corriente_media,
+       round(avg(DV_eletric) * 100, 1) AS por_ciento_marcado_en_carga
+FROM telemetria
+GROUP BY estado
+ORDER BY corriente_media;</code></pre><textarea class="live-editor" spellcheck="false" aria-label="consulta viva">SELECT CASE WHEN Motor_current &lt; 1 THEN &#x27;parado&#x27;
+            WHEN Motor_current &lt; 5 THEN &#x27;en vacio&#x27;
+            ELSE &#x27;en carga&#x27; END AS estado,
+       count(*) AS lecturas,
+       round(avg(Motor_current), 2) AS corriente_media,
+       round(avg(DV_eletric) * 100, 1) AS por_ciento_marcado_en_carga
+FROM telemetria
+GROUP BY estado
+ORDER BY corriente_media;</textarea><div class="live-bar"><button type="button" class="live-run">correr</button></div><div class="live-out"></div></div><details class="fold"><summary>línea por línea, 6 entradas</summary><dl class="annot"><dt><code>CASE WHEN ... THEN ...</code></dt><dd>si se cumple la condición, el valor es ese; si no, se prueba la siguiente</dd><dt><code>ELSE</code></dt><dd>lo que vale cuando no se cumplió ninguna condición anterior</dd><dt><code>END</code></dt><dd>cierra el CASE; sin él la consulta no es válida</dd><dt><code>AS estado</code></dt><dd>el CASE produce una columna nueva, y aquí se le pone nombre</dd><dt><code>GROUP BY estado</code></dt><dd>agrupa por esa columna recién inventada, que ahora existe como cualquier otra</dd><dt><code>avg(DV_eletric) * 100</code></dt><dd>el porcentaje de filas marcadas en carga, porque la señal vale cero o uno</dd></dl></details><div class="output"><span class="output-tag">sale</span><pre><code>┌──────────┬──────────┬─────────────────┬─────────────────────────────┐
+│  estado  │ lecturas │ corriente_media │ por_ciento_marcado_en_carga │
+├──────────┼──────────┼─────────────────┼─────────────────────────────┤
+│ parado   │   829000 │            0.04 │                         0.2 │
+│ en vacio │   457356 │            3.79 │                         3.4 │
+│ en carga │   230592 │            5.82 │                        98.1 │
+└──────────┴──────────┴─────────────────┴─────────────────────────────┘</code></pre></div><p>La última columna es la que valida la regla, y no se usó para construirla.</p></section>
+<section class="block is-result"><span class="kicker">Resultado</span><h2 class="block-title">El resultado, medido</h2><figure class="fig"><img class="fig-claro" src="../figuras/fig_m09_coma_flotante.claro.png?v=101363c6" alt="fig m09 coma flotante" loading="lazy"><img class="fig-oscuro" src="../figuras/fig_m09_coma_flotante.oscuro.png?v=bcbdf738" alt="fig m09 coma flotante" loading="lazy"></figure><p><strong>Qué esperábamos.</strong> Cero filas. Es lo que cuentan todos los manuales sobre la coma flotante.</p><p><strong>Qué salió.</strong> Peor: devolvió <strong>107</strong>. En una pantalla de dos decimales se ven como 8,20 nada menos que <strong>498</strong> lecturas, y las que hay alrededor de 8,2 con un decimal son <strong>5.237</strong>. Contra esas, el igual encontró el <strong>2,0 %</strong>.</p><p>Cero filas habría sido una suerte, porque un resultado vacío hace sospechar a cualquiera. Ciento siete lecturas es un número creíble, cabe en un informe y nadie lo mira dos veces.</p><p>En la figura se ve por qué. Alrededor de 8,2 bar no hay un valor: hay una nube de valores parecidos. El igual cae en una sola rendija de esa nube.</p><figure class="fig"><img class="fig-claro" src="../figuras/fig_m09_tres_estados.claro.png?v=5e2ae9bf" alt="fig m09 tres estados" loading="lazy"><img class="fig-oscuro" src="../figuras/fig_m09_tres_estados.oscuro.png?v=472ff8a4" alt="fig m09 tres estados" loading="lazy"></figure><p><strong>Y la regla de los tres estados.</strong> El reparto del tiempo sale <strong>54,6 / 30,1 / 15,2 %</strong>: parado, en vacío y en carga.</p><p>La figura enseña por qué los cortes están en 1 y en 5 A. Son los dos valles de la distribución, las zonas donde casi no hay lecturas. Poner una frontera donde hay pocos datos es ponerla donde pocas lecturas se clasifican mal.</p><p><strong>Qué significa.</strong> La regla se sostiene sola: el <strong>98,1 %</strong> de las lecturas que llama «en carga» llevan la marca de <code>DV_eletric</code>, una señal que no se usó para escribirla. Dos formas independientes de saber lo mismo coinciden.</p><p>Y hay un desacuerdo con la ficha que conviene decir. La ficha declara unos <strong>7 A</strong> en carga y en el fichero lo más frecuente son <strong>6,0 A</strong>. En la figura, la línea de puntos de los 7 A cae en una zona casi vacía. No es un error grave, y es el segundo sitio del curso donde el papel y el fichero no coinciden del todo.</p></section>
+<section class="block is-warning"><span class="kicker">Trampas</span><h2 class="block-title">Ojo</h2><ul><li><strong>Nunca compares un decimal con el igual.</strong> Ni en SQL ni en ningún otro sitio. Se compara con <code>round()</code>, con <code>BETWEEN</code> o pidiendo que la diferencia sea pequeña.</li><li><strong>El fallo no es «no encuentra nada», es «encuentra algo».</strong> Un cero llama la atención; un 2 % se publica. Por eso este error sobrevive tanto tiempo en los informes.</li><li><strong>El tipo manda sobre el número.</strong> El mismo 0,1 es exacto como DECIMAL e inexacto como DOUBLE. Antes de comparar, mira <code>typeof</code>.</li><li><strong>Aquí hay dos causas, y la común no es la famosa.</strong> La que más gente conoce es la binaria, la de DOUBLE. La que de verdad rompe esta consulta es más tonta: **el sensor da tres decimales y la pantalla enseña dos**. Las dos llevan al mismo sitio, y las dos se arreglan igual.</li><li><strong>Un <code>CASE</code> sin <code>ELSE</code> deja huecos.</strong> Las filas que no cumplen ninguna condición se quedan en NULL, y el módulo 8 ya enseñó lo silencioso que es eso.</li><li><strong>El orden de los <code>WHEN</code> importa.</strong> Se evalúan de arriba abajo y gana el primero que se cumple. Poniendo <code>&lt; 5</code> antes que <code>&lt; 1</code>, todo lo parado acabaría clasificado como vacío.</li><li><strong>Los cortes son una decisión, no un dato.</strong> Aquí están justificados con la distribución y comprobados con una segunda señal. Sin eso serían dos números elegidos a ojo.</li></ul></section>
+<section class="block is-bridge"><span class="kicker">Analogía</span><h2 class="block-title">Puente metalúrgico</h2><p>Una ley de corte no se elige con el igual. Nadie dice «mándame al concentrador el mineral que tenga exactamente 0,5 % de cobre», porque no existe una muestra con exactamente esa ley: existen 0,4987 y 0,5013.</p><p>Lo que se dice es «por encima de 0,5». Un umbral, no una igualdad.</p><p>Y esa ley de corte tampoco se copia del informe de otra mina. Se calcula con el precio del metal, el coste de proceso y la recuperación de la planta, y se revisa cuando cambian. Es exactamente lo que hacen los dos cortes de amperios de este módulo: se eligen mirando los datos propios, y se comprueban contra algo que no se usó para elegirlos.</p></section>
+<section class="block is-live"><span class="kicker">Hazlo tú</span><h2 class="block-title">Hazlo tú</h2><p class="reto-ask">Escribe la regla que reparte las lecturas en los tres estados y devuelve dos columnas, <code>estado</code> y <code>horas</code>, con las horas que el compresor pasó en cada uno. Tres filas. Cada lectura son 10 segundos.</p><div class="live reto" data-expected='[[&quot;parado&quot;, 2302.8], [&quot;en vacio&quot;, 1270.4], [&quot;en carga&quot;, 640.5]]'><div class="live-head"><span>reto</span><span class="live-status">el motor se descarga al pulsar</span></div><pre class="live-static"><code>SELECT CASE WHEN Motor_current &lt; 1 THEN &#x27;parado&#x27;
+            WHEN Motor_current &lt; 5 THEN &#x27;en vacio&#x27;
+            ELSE &#x27;en carga&#x27; END AS estado,
+       count(*) AS lecturas
+FROM telemetria
+GROUP BY estado
+ORDER BY lecturas DESC;</code></pre><textarea class="live-editor" spellcheck="false" aria-label="reto">SELECT CASE WHEN Motor_current &lt; 1 THEN &#x27;parado&#x27;
+            WHEN Motor_current &lt; 5 THEN &#x27;en vacio&#x27;
+            ELSE &#x27;en carga&#x27; END AS estado,
+       count(*) AS lecturas
+FROM telemetria
+GROUP BY estado
+ORDER BY lecturas DESC;</textarea><div class="live-bar"><button type="button" class="live-run">comprobar</button></div><div class="live-out"></div><div class="verdict"></div><details class="fold"><summary>una pista</summary><p>El <code>CASE</code> ya está escrito en el punto de partida y no hay que tocarlo. Lo que cambia es la segunda columna: en vez de contar lecturas, hay que pasar esas lecturas a horas. Cada lectura son 10 segundos y una hora son 3.600, así que se multiplica por 10 y se divide entre 3600.0. Redondea a un decimal con <code>round(..., 1)</code>.</p></details><details class="fold"><summary>ver la solución</summary><pre><code>SELECT CASE WHEN Motor_current &lt; 1 THEN &#x27;parado&#x27;
+            WHEN Motor_current &lt; 5 THEN &#x27;en vacio&#x27;
+            ELSE &#x27;en carga&#x27; END AS estado,
+       round(count(*) * 10 / 3600.0, 1) AS horas
+FROM telemetria
+GROUP BY estado
+ORDER BY horas DESC;</code></pre></details></div></section>
+<section class="block is-review"><span class="kicker">Repaso</span><h2 class="block-title">Repaso</h2><details><summary>Por qué WHERE TP2 = 8.2 no encuentra lo que esperabas</summary><p>Porque <code>TP2</code> es DOUBLE, que guarda los números en binario, y 8,2 no tiene una representación binaria exacta. Lo que hay guardado son valores como 8,1999999999999993, que no son iguales a 8,2 aunque en pantalla se vean igual. El igual compara los bits, no lo que se ve.</p></details><details><summary>Y cómo se pregunta bien</summary><p>Con un margen en vez de con una igualdad. <code>round(TP2, 1) = 8.2</code> redondea antes de comparar, que es lo que hace el ojo al leer la pantalla. También sirve <code>TP2 BETWEEN 8.15 AND 8.25</code>. Lo importante es decidir el margen a propósito, en vez de heredarlo del azar.</p></details><details><summary>Encontró 107 filas en vez de 5.237. Por qué es eso peor que encontrar cero</summary><p>Porque cero se nota. Un resultado vacío hace que cualquiera revise la consulta. Ciento siete es un número plausible que entra en un informe sin llamar la atención, y el error puede vivir años ahí dentro. Los fallos que dan un resultado creíble son los caros.</p></details><details><summary>Para qué sirve CASE si ya tienes el número</summary><p>Para convertir una medida en una decisión. Nadie opera una planta preguntándose cuántos amperios consume el motor: se pregunta si está parado, en vacío o en carga. <code>CASE</code> es donde se escribe esa traducción, una sola vez y a la vista, en vez de repartirla por hojas de cálculo distintas.</p></details><details><summary>Cómo sabes que los cortes de 1 A y 5 A son los correctos</summary><p>Por dos motivos, y ninguno es la ficha. Primero, están en los valles de la distribución, donde casi no hay lecturas y por tanto casi nada se clasifica mal. Segundo, y más importante: el 98,1 % de lo que la regla llama «en carga» lleva la marca de <code>DV_eletric</code>. Esa señal es distinta y no se usó para construir la regla. Cuando dos caminos independientes llegan al mismo sitio, la regla es más que una opinión.</p></details></section>
+
+      <footer class="footer">
+        <span>Fuelle / Módulo 9</span>
+        <span>generado el 2026-09-03</span>
+        <span>fuente: MetroPT-3, del compresor de un tren del Metro de Oporto (CC BY 4.0)</span>
+      </footer>
+    </div>
+  </main>
+
+</div>
+<!-- El motor SQL no se descarga aquí: este fichero solo conecta los botones.
+     Los 8 MB llegan cuando el lector pulsa, y no antes. -->
+<script type="module" src="live.js"></script>
+<script src="perilla.js" defer></script>
+</body>
+</html>

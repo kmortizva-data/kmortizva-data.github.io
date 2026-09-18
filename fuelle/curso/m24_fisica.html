@@ -1,0 +1,1007 @@
+<!doctype html>
+<html lang="es" class="no-js" data-assets="../assets" data-tablas="telemetria=un_dia.parquet">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>La física del compresor: depósito, presostato y motor · Fuelle, módulo 24</title>
+<link rel="alternate" hreflang="en" href="m24_fisica.en.html">
+<style>
+/* Fuelle: la hoja de estilo del curso.
+ *
+ * REESCRITA ENTERA el 2026-08-30. La primera versión heredó la plantilla de Sílice
+ * junto con su motor, y Kevin la vio y dijo: "se parece a las otras 20 páginas de
+ * portafolio, el landing, coursera, silica, se ve y se siente igual". Tenía razón.
+ * Medido: mismo ancho de prosa (680), mismo ancho de bloques (1180), misma columna
+ * de margen (132), misma secuencia de cabecera, 36 clases compartidas de 40.
+ * Cambiar papel por grafito no toca la silueta, y la silueta es lo que se siente.
+ *
+ * Los cuatro sitios de Kevin son una columna de texto centrada, sin barra lateral,
+ * sin rejilla y sin nada pegajoso. Este es lo contrario: PANEL DE CONTROL. Una barra
+ * fija a la izquierda con los instrumentos siempre a la vista, y el contenido a su
+ * derecha. Ninguna de las tres medidas heredadas aparece aquí, y check_layout.py
+ * falla si alguna reaparece.
+ *
+ * El encargo que ordena las decisiones sigue siendo el mismo: "no muy escandaloso,
+ * que parezca ingeniero, pero que demuestres habilidades, que no seas un pdf que se
+ * lee de recorrido". La sobriedad va en la superficie, la ambición en lo que hace.
+ */
+
+/* --------------------------------------------------------------- tipografía */
+
+/* IBM Plex, autoalojada, OFL-1.1. Los cuatro sitios de Kevin usan la fuente del
+ * sistema, y eso es la otra mitad del "se siente igual". Plex tiene aire de
+ * documentación de ingeniería, que es exactamente el encargo.
+ *
+ * Cinco cortes y no tres: sin las semi-negritas el navegador falsifica la negrita
+ * engordando el trazo, y en una fuente técnica se nota enseguida. 289 KB en total,
+ * que se pueden bajar a unos 60 recortando al alfabeto latino con fonttools si
+ * llega a molestar. */
+@font-face {
+  font-family: "Plex Cond";
+  src: url("../assets/fonts/PlexSansCondensed-SemiBold.woff2") format("woff2");
+  font-weight: 600; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Plex";
+  src: url("../assets/fonts/PlexSans-Regular.woff2") format("woff2");
+  font-weight: 400; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Plex";
+  src: url("../assets/fonts/PlexSans-SemiBold.woff2") format("woff2");
+  font-weight: 600; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Plex Mono";
+  src: url("../assets/fonts/PlexMono-Regular.woff2") format("woff2");
+  font-weight: 400; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Plex Mono";
+  src: url("../assets/fonts/PlexMono-SemiBold.woff2") format("woff2");
+  font-weight: 600; font-style: normal; font-display: swap;
+}
+
+/* ------------------------------------------------------------------ tokens */
+
+:root {
+  --ground: #f4f2ee;
+  --panel: #e9e6e0;
+  --stage: #fbfaf8;
+  --ink: #191d20;
+  --ink-soft: #4c545a;
+  --ink-faint: #7c868d;
+  --rule: #d6d1c8;
+  --rule-soft: #e4e0d8;
+  --grid: rgba(25, 29, 32, .05);
+  --accent: #46787e;
+  --measured: #3d505b;
+  --simulated: #b57542;
+
+  --prose: "Plex", system-ui, "Segoe UI", Roboto, sans-serif;
+  --display: "Plex Cond", "Plex", system-ui, sans-serif;
+  --data: "Plex Mono", "Cascadia Mono", Consolas, monospace;
+
+  /* Medidas NUEVAS. Ninguna puede coincidir con las heredadas de Sílice
+   * (680 de prosa, 1180 de bloques, 132 de margen): volver a ellas es volver a
+   * la misma página, y hay un verificador que lo impide. */
+  --rail: 268px;      /* la barra fija, que ninguno de los otros sitios tiene */
+  --read: 646px;      /* la medida de la prosa, en píxeles y nunca en ch */
+  --block: 980px;     /* el borde derecho de los bloques anchos */
+
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ground: #101417;
+    --panel: #171c20;
+    --stage: #14181b;
+    --ink: #e2e7ea;
+    --ink-soft: #a6b0b6;
+    --ink-faint: #717e85;
+    --rule: #293036;
+    --rule-soft: #20272b;
+    --grid: rgba(226, 231, 234, .045);
+    --accent: #8ec2c8;
+    --measured: #cbe2ef;
+    --simulated: #c98754;
+  }
+}
+
+:root[data-theme="dark"] {
+  --ground: #101417;
+  --panel: #171c20;
+  --stage: #14181b;
+  --ink: #e2e7ea;
+  --ink-soft: #a6b0b6;
+  --ink-faint: #717e85;
+  --rule: #293036;
+  --rule-soft: #20272b;
+  --grid: rgba(226, 231, 234, .045);
+  --accent: #8ec2c8;
+  --measured: #cbe2ef;
+  --simulated: #c98754;
+}
+
+/* --------------------------------------------------------------- cimientos */
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--stage);
+  color: var(--ink);
+  font-family: var(--prose);
+  font-size: 16.5px;
+  line-height: 1.6;
+}
+
+::selection { background: var(--accent); color: var(--ground); }
+a { color: var(--accent); text-underline-offset: .18em; }
+
+/* LA REJILLA. Esto es lo que ninguno de los otros cuatro sitios tiene, y es la
+ * razón de que la página deje de sentirse igual: el texto ya no está centrado en
+ * la ventana, está al lado de un panel de instrumentos. */
+.shell {
+  display: grid;
+  grid-template-columns: var(--rail) minmax(0, 1fr);
+  min-height: 100vh;
+}
+
+/* -------------------------------------------------- la barra de instrumentos */
+
+.panel {
+  position: sticky;   /* lo primero pegajoso de todo el portafolio */
+  top: 0;
+  align-self: start;
+  height: 100vh;
+  overflow-y: auto;
+  padding: 22px 20px 22px;
+  background: var(--panel);
+  border-right: 1px solid var(--rule);
+  background-image: radial-gradient(var(--grid) 1px, transparent 1px);
+  background-size: 22px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.panel-brand {
+  font-family: var(--display);
+  font-size: 19px;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  color: var(--ink);
+  text-decoration: none;
+  display: block;
+}
+.panel-brand small {
+  display: block;
+  font-family: var(--data);
+  font-size: 10px;
+  letter-spacing: .08em;
+  color: var(--ink-faint);
+  text-transform: none;
+  margin-top: 4px;
+}
+
+.panel-label {
+  font-family: var(--data);
+  font-size: 9.5px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding-bottom: 7px;
+  border-bottom: 1px solid var(--rule);
+  margin-bottom: 10px;
+}
+
+/* El grafo del lago, EN VERTICAL. Antes iba horizontal y solo en la portada;
+ * aquí acompaña al lector todo el curso y marca en qué capa está. */
+.rail-step {
+  display: grid;
+  grid-template-columns: 15px 1fr auto;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 0;
+  font-family: var(--data);
+  font-size: 11px;
+  letter-spacing: .08em;
+  color: var(--ink-faint);
+  text-decoration: none;
+  position: relative;
+}
+.rail-step .dot {
+  width: 9px; height: 9px;
+  border: 1px solid var(--ink-faint);
+  border-radius: 50%;
+  justify-self: center;
+}
+.rail-step:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  left: 7px; top: 25px;
+  width: 1px; height: calc(100% - 17px);
+  background: var(--rule);
+}
+.rail-step.done { color: var(--ink-soft); }
+.rail-step.done .dot { background: var(--ink-faint); border-color: var(--ink-faint); }
+.rail-step.here { color: var(--accent); }
+.rail-step.here .dot { background: var(--accent); border-color: var(--accent); }
+.rail-step .range { font-size: 9.5px; opacity: .75; }
+
+/* La cifra del módulo ya no es una caja en una cabecera gigante: vive aquí y se
+ * queda a la vista mientras se lee la lección entera. */
+.panel-figure { border-top: 1px solid var(--rule); padding-top: 14px; }
+.panel-figure .v {
+  display: block;
+  font-family: var(--data);
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 1.3;
+  color: var(--accent);
+}
+.panel-figure .l {
+  display: block;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--ink-faint);
+  margin-top: 5px;
+}
+
+.panel-progress {
+  margin-top: auto;
+  border-top: 1px solid var(--rule);
+  padding-top: 13px;
+  font-family: var(--data);
+  font-size: 11px;
+  color: var(--ink-faint);
+}
+.panel-progress b { color: var(--ink); font-weight: 600; }
+.panel-bar { height: 2px; background: var(--rule); margin-top: 7px; }
+.panel-bar i { display: block; height: 2px; background: var(--accent); }
+
+.panel-nav { display: flex; gap: 7px; flex-wrap: wrap; }
+.panel-nav a {
+  font-family: var(--data);
+  font-size: 10.5px;
+  letter-spacing: .06em;
+  padding: 6px 9px;
+  border: 1px solid var(--rule);
+  text-decoration: none;
+  color: var(--ink-soft);
+}
+.panel-nav a:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ------------------------------------------------------------- el contenido */
+
+.stage { background: var(--stage); padding: 0 0 54px; min-width: 0; }
+.stage-inner { max-width: var(--block); padding: 0 40px; }
+
+/* La cabecera ya no ocupa media pantalla: una línea de identificación y el
+ * título. La cifra y la navegación se fueron a la barra. */
+.head {
+  padding: 30px 0 20px;
+  border-bottom: 1px solid var(--rule);
+  margin-bottom: 4px;
+}
+.head-id {
+  font-family: var(--data);
+  font-size: 10.5px;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  display: flex;
+  gap: 14px;
+  align-items: baseline;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.head-id b { color: var(--accent); font-weight: 600; }
+.head h1 {
+  font-family: var(--display);
+  font-size: clamp(26px, 3.3vw, 37px);
+  line-height: 1.08;
+  font-weight: 600;
+  margin: 0 0 10px;
+  max-width: 22ch;
+}
+.head .standfirst {
+  color: var(--ink-soft);
+  font-size: 16.5px;
+  line-height: 1.5;
+  max-width: var(--read);
+  margin: 0;
+}
+
+/* Las secciones ya no cuelgan de un margen de 132 px: la etiqueta va encima, en
+ * un recuadro pequeño, y el texto empieza en el borde. */
+.block { padding: 26px 0 2px; border-top: 1px solid var(--rule-soft); }
+.block:first-of-type { border-top: 0; }
+
+.kicker {
+  display: inline-block;
+  font-family: var(--data);
+  font-size: 9.5px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  border: 1px solid var(--rule);
+  padding: 2px 7px;
+  margin-bottom: 11px;
+}
+
+.block-title {
+  font-family: var(--display);
+  font-size: 22px;
+  font-weight: 600;
+  margin: 0 0 11px;
+  max-width: var(--read);
+}
+
+/* Justificado desde 33rem de columna y rasgado en móvil: la regla que Kevin
+ * fijó en el portafolio el 2026-08-22, después de medir que a 375 px salían
+ * huecos de 7,65x y ríos en cinco de cada seis líneas. Aquí la prosa mide 646 px
+ * (unos 40rem), así que le toca justificado.
+ *
+ * Y NADA de `hyphens`: sin guionado, por la regla de la casa. El precio es que
+ * hay que vigilar los ríos, y eso se mide con src/site/check_rivers.py en vez de
+ * mirarlo de reojo. */
+.block p, .block li { max-width: var(--read); }
+
+@media (min-width: 34rem) {
+  .block p,
+  .block li,
+  .standfirst,
+  .reto-ask,
+  .annot dd,
+  blockquote,
+  .is-review details p { text-align: justify; text-justify: inter-word; }
+  /* Tablas, código, pies de figura y la barra nunca se justifican: sus líneas
+   * son cortas y el hueco se vuelve un agujero. */
+  figcaption, th, td, pre, .panel, .live-status, .toc { text-align: left; }
+}
+.block p { margin: 0 0 14px; }
+.block ul, .block ol { padding-left: 21px; margin: 0 0 14px; }
+.block li { margin-bottom: 6px; }
+.block li::marker { color: var(--accent); font-family: var(--data); font-size: .82em; }
+
+h3.sub, h4.sub {
+  font-family: var(--display);
+  font-size: 17px;
+  font-weight: 600;
+  margin: 24px 0 8px;
+  max-width: var(--read);
+}
+h4.sub { font-size: 15px; color: var(--ink-soft); }
+
+blockquote {
+  margin: 0 0 14px;
+  padding-left: 15px;
+  border-left: 2px solid var(--rule);
+  color: var(--ink-soft);
+  max-width: var(--read);
+}
+strong, b { font-weight: 600; }
+
+.is-brief ul { list-style: none; padding-left: 0; }
+.is-brief li {
+  padding: 8px 0 8px 18px;
+  border-bottom: 1px solid var(--rule-soft);
+  position: relative;
+}
+.is-brief li::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 17px;
+  width: 8px; height: 1px;
+  background: var(--accent);
+}
+.is-brief li:last-child { border-bottom: 0; }
+.is-result .block-title, .is-warning .block-title { color: var(--accent); }
+
+/* ------------------------------------------------------------------ código */
+
+pre {
+  max-width: var(--block);
+  overflow-x: auto;
+  background: var(--panel);
+  border: 1px solid var(--rule-soft);
+  border-left: 2px solid var(--accent);
+  padding: 13px 15px;
+  margin: 0 0 13px;
+}
+pre code {
+  font-family: var(--data);
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ink);
+  white-space: pre;
+}
+p code, li code, dd code, td code {
+  font-family: var(--data);
+  font-size: .87em;
+  padding: 1px 4px;
+  background: var(--panel);
+  border: 1px solid var(--rule-soft);
+}
+
+/* Diagramas: esquemas conceptuales generados, no figuras de datos.
+   Nacen del bloque ```diagrama y usan los tokens de arriba, asi que el tema lo
+   resuelve el CSS y no hacen falta dos versiones como en las figuras. */
+.diagram { margin: 0 0 22px; max-width: var(--block); }
+.chain {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: 30px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: none;
+}
+.node {
+  position: relative;
+  /* 130 y no 132: 132px es la columna de margen de Sílice y check_layout la
+     prohíbe en este proyecto, con razón, aunque aquí signifique otra cosa. */
+  flex: 1 1 130px;
+  min-width: 0;
+  padding: 11px 13px 12px;
+  background: var(--panel);
+  border: 1px solid var(--rule);
+  border-top: 2px solid var(--ink-faint);
+}
+/* La flecha entre cajas. Va en el hueco del gap, asi que no roba ancho al
+   texto y desaparece sola cuando las cajas se apilan. */
+.node + .node::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: -22px;
+  width: 14px;
+  height: 1px;
+  background: var(--ink-faint);
+}
+.node + .node::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: -11px;
+  width: 5px; height: 5px;
+  border-top: 1px solid var(--ink-faint);
+  border-right: 1px solid var(--ink-faint);
+  transform: translateY(-50%) rotate(45deg);
+}
+.node.lit { border-top-color: var(--accent); background: var(--stage); }
+.node.lit .node-name { color: var(--accent); }
+.node-name {
+  display: block;
+  font-family: var(--data);
+  font-size: 10.5px;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+.node-what { display: block; margin-top: 5px; font-size: 13.5px; color: var(--ink); }
+.node-note { display: block; margin-top: 4px; font-size: 12px; color: var(--ink-faint); }
+
+@media (max-width: 640px) {
+  /* Apiladas, con la flecha girada hacia abajo. */
+  .chain { flex-direction: column; gap: 26px; }
+  .node { flex: 1 1 auto; }
+  .node + .node::before {
+    top: -19px; left: 21px;
+    width: 1px; height: 12px;
+  }
+  .node + .node::after {
+    top: -9px; left: 19px;
+    transform: rotate(135deg);
+  }
+}
+
+.output { position: relative; margin: 0 0 13px; max-width: var(--block); }
+.output pre { margin: 0; border-left: 2px solid var(--ink-faint); background: transparent; }
+.output pre code { color: var(--ink-soft); }
+.output-tag {
+  position: absolute;
+  top: -7px; left: 13px;
+  z-index: 1;
+  font-family: var(--data);
+  font-size: 9px;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  background: var(--stage);
+  padding: 0 5px;
+}
+
+details.fold, details { margin: 0 0 13px; max-width: var(--block); }
+details > summary {
+  cursor: pointer;
+  font-family: var(--data);
+  font-size: 11px;
+  letter-spacing: .05em;
+  color: var(--ink-faint);
+  padding: 5px 0;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+details > summary::-webkit-details-marker { display: none; }
+details > summary::before {
+  content: "+";
+  width: 13px; height: 13px;
+  line-height: 12px;
+  text-align: center;
+  border: 1px solid var(--rule);
+  color: var(--accent);
+}
+details[open] > summary::before { content: "\2212"; }
+details > summary:hover { color: var(--accent); }
+
+.annot {
+  margin: 2px 0 4px;
+  padding: 11px 13px;
+  border: 1px solid var(--rule-soft);
+  background: var(--panel);
+}
+.annot dt { margin-bottom: 3px; }
+.annot dt code {
+  font-family: var(--data);
+  font-size: 12px;
+  color: var(--accent);
+  background: transparent;
+  border: 0;
+  padding: 0;
+}
+.annot dd { margin: 0 0 10px; font-size: 14.5px; color: var(--ink-soft); max-width: var(--read); }
+.annot dd:last-of-type { margin-bottom: 0; }
+
+.is-review details { border-bottom: 1px solid var(--rule-soft); margin: 0; }
+.is-review details > summary {
+  font-family: var(--prose);
+  font-size: 15.5px;
+  color: var(--ink);
+  padding: 11px 0;
+}
+.is-review details > summary:hover { color: var(--accent); }
+.is-review details p { margin: 0 0 11px 21px; color: var(--ink-soft); }
+
+/* ------------------------------------------------------------------ tablas */
+
+.table-wrap { max-width: var(--block); overflow-x: auto; margin: 0 0 15px; }
+table { border-collapse: collapse; font-size: 14.5px; }
+th, td {
+  text-align: left;
+  padding: 6px 15px 6px 0;
+  border-bottom: 1px solid var(--rule-soft);
+  vertical-align: top;
+}
+th {
+  font-family: var(--data);
+  font-size: 10px;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  font-weight: 400;
+  border-bottom-color: var(--rule);
+}
+tbody tr:last-child td { border-bottom: 0; }
+
+figure { margin: 0 0 17px; max-width: var(--block); }
+figure img { max-width: 100%; height: auto; display: block; }
+figcaption { font-size: 12.5px; color: var(--ink-faint); margin-top: 7px; max-width: var(--read); }
+
+.footer {
+  border-top: 1px solid var(--rule);
+  margin-top: 32px;
+  padding: 18px 0 0;
+  font-size: 12px;
+  color: var(--ink-faint);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px 20px;
+}
+.footer a { color: var(--ink-faint); }
+.gone { color: var(--ink-faint); }
+
+/* ---------------------------------------------- la consulta viva y el reto */
+
+.live {
+  max-width: var(--block);
+  margin: 0 0 17px;
+  border: 1px solid var(--rule);
+  background: var(--panel);
+}
+.live-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 13px;
+  border-bottom: 1px solid var(--rule-soft);
+  font-family: var(--data);
+  font-size: 10px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.live-editor {
+  width: 100%;
+  border: 0;
+  resize: vertical;
+  min-height: 112px;
+  padding: 12px 14px;
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--data);
+  font-size: 13px;
+  line-height: 1.6;
+  tab-size: 2;
+}
+.live-editor:focus { outline: 2px solid var(--accent); outline-offset: -2px; }
+.live-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 13px;
+  border-top: 1px solid var(--rule-soft);
+  flex-wrap: wrap;
+}
+.live-run {
+  font-family: var(--data);
+  font-size: 11px;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  padding: 7px 14px;
+  border: 1px solid var(--accent);
+  background: transparent;
+  color: var(--accent);
+  cursor: pointer;
+}
+.live-run:hover { background: var(--accent); color: var(--ground); }
+.live-run[disabled] { opacity: .5; cursor: default; }
+.live-run[disabled]:hover { background: transparent; color: var(--accent); }
+.live-status { font-family: var(--data); font-size: 10.5px; color: var(--ink-faint); }
+.live-out { max-width: 100%; overflow-x: auto; }
+.live-out table { margin: 0; width: 100%; font-size: 12.5px; }
+.live-out td, .live-out th { padding: 5px 13px 5px 0; }
+.live-out td:first-child, .live-out th:first-child { padding-left: 13px; }
+.live-out td { font-family: var(--data); font-size: 12px; }
+.live-err {
+  padding: 10px 14px;
+  font-family: var(--data);
+  font-size: 12px;
+  color: var(--simulated);
+  border-top: 1px solid var(--rule-soft);
+}
+
+.reto { border-left: 2px solid var(--accent); }
+.reto .live-head { color: var(--accent); }
+.reto-ask { padding: 12px 14px 2px; font-size: 15.5px; max-width: var(--read); }
+.verdict {
+  padding: 10px 14px;
+  border-top: 1px solid var(--rule-soft);
+  font-family: var(--data);
+  font-size: 12px;
+}
+.verdict.ok { color: var(--accent); }
+.verdict.no { color: var(--simulated); }
+
+.no-js .live-bar, .no-js .live-editor { display: none; }
+.no-js .live-static { display: block; }
+.live-static { display: none; }
+
+/* ---------------------------------------------------------- el doble trazo */
+
+.twin { max-width: var(--block); margin: 0 0 18px; }
+.twin svg { width: 100%; height: auto; display: block; }
+.twin .axis { stroke: var(--rule); fill: none; }
+.twin .tick { fill: var(--ink-faint); font-family: var(--data); font-size: 10px; }
+.twin .measured { stroke: var(--measured); fill: none; stroke-width: 1.8; }
+.twin .simulated { stroke: var(--simulated); fill: none; stroke-width: 1.8; stroke-dasharray: 5 4; }
+.twin .gap { fill: var(--simulated); opacity: .16; }
+.twin-key { display: flex; gap: 20px; flex-wrap: wrap; font-family: var(--data);
+            font-size: 11px; color: var(--ink-faint); margin-top: 6px; }
+.twin-key i { display: inline-block; width: 20px; height: 0; vertical-align: middle;
+              border-top-width: 2px; border-top-style: solid; margin-right: 7px; }
+.twin-key .k-measured i { border-color: var(--measured); }
+.twin-key .k-simulated i { border-top-style: dashed; border-color: var(--simulated); }
+
+.knob { display: flex; align-items: center; gap: 13px; flex-wrap: wrap; margin: 0 0 13px;
+        font-family: var(--data); font-size: 11px; color: var(--ink-faint); }
+.knob input[type="range"] { accent-color: var(--accent); flex: 1 1 200px; max-width: 300px; }
+.knob output { color: var(--accent); min-width: 72px; }
+
+/* -------------------------------------------------------- índice del curso */
+
+.toc { max-width: var(--block); }
+.toc .part {
+  font-family: var(--data);
+  font-size: 10px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin: 26px 0 2px;
+  padding-top: 11px;
+  border-top: 1px solid var(--rule);
+}
+.toc a, .toc .pending {
+  display: grid;
+  grid-template-columns: 34px 1fr auto;
+  gap: 15px;
+  align-items: baseline;
+  padding: 9px 6px 9px 8px;
+  border-bottom: 1px solid var(--rule-soft);
+  border-left: 2px solid transparent;
+  text-decoration: none;
+  color: var(--ink);
+}
+.toc a:hover { border-left-color: var(--accent); background: var(--panel); color: var(--accent); }
+.toc .pending { color: var(--ink-faint); }
+.toc .num { font-family: var(--data); font-size: 12px; color: var(--ink-faint); }
+.toc a:hover .num { color: var(--accent); }
+.toc .name { font-family: var(--display); font-size: 16px; }
+.toc .name small { display: block; font-family: var(--prose); color: var(--ink-faint);
+                   font-size: 13px; font-weight: 400; margin-top: 2px; max-width: 60ch; }
+.toc .mark { font-family: var(--data); font-size: 11px; color: var(--ink-faint); text-align: right; }
+.toc .tag { font-family: var(--data); font-size: 9.5px; letter-spacing: .1em;
+            text-transform: uppercase; color: var(--ink-faint); }
+
+/* ------------------------------------------------------------------- móvil */
+
+/* La barra deja de ser barra: pasa a cabecera compacta arriba, con los tramos en
+ * horizontal. La rejilla se colapsa a una columna. */
+@media (max-width: 900px) {
+  .shell { grid-template-columns: 1fr; }
+  .panel {
+    position: static;
+    height: auto;
+    border-right: 0;
+    border-bottom: 1px solid var(--rule);
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 16px;
+    padding: 13px 18px;
+  }
+  .panel-label { display: none; }
+  .panel .rail { display: flex; gap: 0 5px; flex-wrap: wrap; }
+  .rail-step { grid-template-columns: 11px auto; padding: 3px 0; font-size: 9.5px; }
+  .rail-step .range { display: none; }
+  .rail-step:not(:last-child)::after { display: none; }
+  .panel-figure { border-top: 0; padding-top: 0; }
+  .panel-figure .v { font-size: 13.5px; }
+  .panel-figure .l { display: none; }
+  .panel-progress { margin: 0; border-top: 0; padding-top: 0; }
+  .panel-bar { display: none; }
+  .stage-inner { padding: 0 18px; }
+  body { font-size: 16px; }
+  .head { padding-top: 22px; }
+  pre code { font-size: 12.5px; }
+}
+
+/* ------------------------------------------------- la perilla del gemelo */
+/*
+ * El doble trazo con su deslizador, de los modulos 24 y 25. El SVG llega ya
+ * dibujado del servidor, asi que sin JavaScript se ve igual: dos trazos, la
+ * referencia y la posicion de partida. El mando solo cambia cual se ensena.
+ *
+ * La regla de forma del curso: el color NUNCA es la unica pista. La referencia
+ * va punteada y en tono apagado, y la posicion elegida solida y en el acento.
+ */
+.perilla {
+  margin: 22px 0;
+  max-width: var(--block);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  background: var(--stage);
+  padding: 14px 16px 12px;
+}
+.perilla figcaption {
+  font-family: var(--data);
+  font-size: 11px;
+  color: var(--ink-faint);
+  letter-spacing: .02em;
+  margin-bottom: 10px;
+}
+.perilla svg { display: block; width: 100%; height: auto; }
+.perilla-referencia {
+  fill: none;
+  stroke: var(--ink-faint);
+  stroke-width: 1.4;
+  stroke-dasharray: 4 3;
+}
+.perilla-actual {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  transition: d .12s linear;
+}
+.perilla-pie {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 18px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--rule-soft);
+}
+.perilla-leyenda { font-size: 12px; color: var(--ink-faint); }
+.perilla-mandos {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+  font-family: var(--data);
+  font-size: 11px;
+  color: var(--ink-soft);
+}
+.perilla-mando { width: 190px; accent-color: var(--accent); }
+.perilla-mando[disabled] { opacity: .45; }
+.perilla-valor {
+  font-family: var(--data);
+  font-size: 12px;
+  color: var(--ink);
+  min-width: 88px;
+}
+.perilla-nota, .perilla-referencia-nota {
+  margin: 8px 0 0;
+  font-size: 12.5px;
+  color: var(--ink-soft);
+}
+.perilla-referencia-nota { color: var(--ink-faint); font-size: 12px; }
+
+@media (max-width: 620px) {
+  .perilla-mandos { margin-left: 0; width: 100%; }
+  .perilla-mando { flex: 1; width: auto; min-width: 0; }
+}
+
+/* ------------------------------------------------------ movimiento y papel */
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@media print {
+  .shell { display: block; }
+  .panel, .live-bar, .live-editor { display: none; }
+  .live-static { display: block; }
+  body { background: #fff; color: #000; }
+}
+
+/* ------------------------------------------------------ figuras, dos temas */
+
+/* Cada figura viaja dos veces, clara y oscura, y aquí se enseña la que toca.
+ * Con `<picture>` y una media query bastaría para la preferencia del sistema,
+ * pero no para el interruptor manual, y este curso respeta los dos. */
+.fig-oscuro { display: none; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .fig-claro { display: none; }
+  :root:not([data-theme="light"]) .fig-oscuro { display: block; }
+}
+:root[data-theme="dark"] .fig-claro { display: none; }
+:root[data-theme="dark"] .fig-oscuro { display: block; }
+
+/* El acento de este módulo, uno por tema. Los dos salen de src/site/palette.py
+   y los dos pasaron el contraste antes de llegar aquí. */
+:root { --accent: #896C3C; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --accent: #D2B280; }
+}
+:root[data-theme="dark"] { --accent: #D2B280; }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- La barra de instrumentos. No se mueve al bajar: el tramo del lago, la cifra
+       del módulo y el avance se quedan a la vista mientras se lee. -->
+  <aside class="panel">
+    <a class="panel-brand" href="index.html">Fuelle
+      <small>Módulo 24 de 31</small></a>
+
+    <nav class="rail" aria-label="El arco del proyecto">
+      <p class="panel-label">el lago</p>
+      <span class="rail-step done"><i class="dot"></i><span>CRUDO</span><span class="range">1-3</span></span><span class="rail-step done"><i class="dot"></i><span>BRONCE</span><span class="range">4-13</span></span><span class="rail-step done"><i class="dot"></i><span>PLATA</span><span class="range">14-16</span></span><span class="rail-step done"><i class="dot"></i><span>ORO</span><span class="range">17-22</span></span><span class="rail-step here"><i class="dot"></i><span>GEMELO</span><span class="range">23-31</span></span>
+    </nav>
+
+    <div class="panel-figure">
+      <span class="v">8,2 contra 8,05</span>
+      <span class="l">lo que promete la ficha y lo que arranca el compresor de verdad</span>
+    </div>
+
+    <div class="panel-progress">
+      <b>24</b> de 31
+      <span class="panel-bar"><i style="width: 77%"></i></span>
+    </div>
+
+    <nav class="panel-nav"><a href="m23_que_es_un_gemelo.html" title="23. Qué es un gemelo digital, y qué no">← 23</a><a href="m25_simular.html" title="25. Simular: avanzar el modelo paso a paso">25 →</a><a class="portfolio-link" href="m24_fisica.en.html" hreflang="en" rel="alternate">English</a></nav>
+  </aside>
+
+  <main class="stage">
+    <div class="stage-inner">
+      <header class="head">
+        <p class="head-id"><b>24</b> <span>parte: El gemelo</span></p>
+        <h1>La física del compresor: depósito, presostato y motor</h1>
+        <p class="standfirst">Un depósito que se llena y se vacía, un interruptor que arranca a 8,2 bar, y un motor que consume distinto según lo que esté haciendo. Nada más</p>
+      </header>
+
+      <section class="block is-brief"><span class="kicker">Resumen</span><h2 class="block-title">En 30 segundos</h2><ul><li>Un depósito que se llena y se vacía, y un interruptor con memoria. No hay más.</li><li>La ficha promete que arranca a <strong>8,2 bar</strong> y arranca a 8,05: <strong>8,2 contra 8,05</strong>.</li><li>Los dos parámetros del modelo salen de un <strong>balance de aire</strong> que cuadra al <strong>0,7 %</strong>.</li><li>Y con ellos el modelo predice una carga de <strong>0,0568</strong> cuando la máquina hizo <strong>0,0572</strong>.</li><li>Ojo con los huecos del registro: <strong>28 tramos</strong> se tragaban <strong>3.129 minutos</strong> de compresor que nunca existieron.</li></ul></section>
+<section class="block "><span class="kicker">Contexto</span><h2 class="block-title">Qué resuelve este módulo</h2><p>Para que un gemelo sirva tiene que ser un modelo de algo, y ese algo aquí es sencillo: <strong>un depósito de aire con un interruptor de presión</strong>. El compresor lo llena, la planta lo vacía, y un presostato decide cuándo arrancar.</p><p>Lo difícil no es escribir esas ecuaciones. Es <strong>de dónde salen sus números</strong>, porque un modelo con parámetros inventados es un dibujo animado.</p><p>Aquí no se inventa ninguno. Los cuatro se miden del lago y se contrastan con la ficha del fabricante donde se puede. Y se comprueban con <strong>una ley que no admite discusión</strong>: el aire entrado iguala al gastado.</p></section>
+<section class="block is-toy"><span class="kicker">A mano</span><h2 class="block-title">Antes de la teoría: un ejemplo de juguete</h2><p>Un tanque de agua con una bomba y un grifo abierto.</p><div class="table-wrap"><table><thead><tr><th>Qué</th><th>Cuánto</th></tr></thead><tbody><tr><td>El tanque, lleno</td><td>100 litros</td></tr><tr><td>La bomba mete</td><td>10 litros por minuto</td></tr><tr><td>El grifo saca</td><td>2 litros por minuto</td></tr><tr><td>La bomba arranca por debajo de</td><td>40 litros</td></tr><tr><td>La bomba para al llegar a</td><td>80 litros</td></tr></tbody></table></div><p>Con eso ya se puede contar todo lo que hace ese tanque, sin más física.</p><p><strong>Llenando:</strong> entran 10 y salen 2, así que sube 8 litros por minuto. De 40 a 80 hay 40 litros, o sea <strong>5 minutos bombeando</strong>.</p><p><strong>Vaciando:</strong> la bomba está parada y el grifo sigue, así que baja 2 por minuto. De 80 a 40 hay 40 litros, o sea <strong>20 minutos de descanso</strong>.</p><p>Así que el ciclo dura 25 minutos y la bomba trabaja 5, o sea <strong>el 20 % del tiempo</strong>. Y ese 20 % sale también de una cuenta más corta: lo gastado partido por lo metido, 2 entre 10.</p><p>Eso último es el resultado que hay que llevarse. <strong>El ciclo de trabajo es el consumo dividido por la entrega</strong>, y no hace falta simular nada para saberlo. Simular sirve para lo que viene después.</p><p>Y ahora la parte incómoda. En el tanque de juguete te he dado los cinco números. En el compresor de verdad <strong>no te los da nadie</strong>: la ficha da uno, se equivoca en él, y los demás hay que sacarlos de los datos.</p></section>
+<section class="block is-terms"><span class="kicker">Términos</span><h2 class="block-title">Glosario</h2><details class="fold"><summary>7 términos, en palabras simples</summary><ul><li><strong>Depósito.</strong> El volumen de aire a presión, que amortigua entre entrada y salida. En este tren es la APU con sus botellas.</li><li><strong>Presostato.</strong> El interruptor que mira la presión y decide. <code>MPG</code> en este fichero.</li><li><strong>Histéresis.</strong> Que arranque a una presión y pare a otra más alta. Sin eso, el compresor encendería y apagaría sin parar en el umbral.</li><li><strong>Banda.</strong> La distancia entre esas dos presiones.</li><li><strong>Entrega.</strong> Lo que el compresor mete por minuto, medido en subida de presión.</li><li><strong>Consumo.</strong> Lo que la planta gasta, medido igual.</li><li><strong>Ciclo de trabajo.</strong> La fracción del tiempo que el compresor pasa cargando.</li></ul></details></section>
+<section class="block is-method"><span class="kicker">Método</span><h2 class="block-title">Paso a paso</h2><h3 class="sub">Paso 1. Encontrar las dos presiones del presostato</h3><p>No se pregunta a la ficha: se miran los momentos en que <code>DV_eletric</code> cambia, y se anota qué presión había. La mediana de esos momentos es la presión de conmutación.</p><h3 class="sub">Paso 2. Partir el registro en tramos</h3><p>Cada carga y cada vacío, de punta a punta. Un tramo es un trozo con el compresor haciendo lo mismo.</p><p><strong>Sin filtrar por duración</strong>, y eso costó un rato entenderlo. El primer intento se quedaba solo con los tramos de dos minutos o más, para que la pendiente fuera fiable. Como las cargas duran 1,8 minutos y los vacíos 22, aquel filtro tiraba casi todas las cargas y ningún vacío.</p><h3 class="sub">Paso 3. Cuadrar el aire</h3><p>Sobre un mes entero la presión acaba donde empezó, así que <strong>los bar metidos tienen que igualar a los gastados</strong>. Es la comprobación que decide si la medida vale algo.</p><p>Si no cuadran, lo que está mal es la medida, no la máquina. Y si cuadran, los dos parámetros salen solos: la subida por minuto cargando, y la bajada por minuto en vacío.</p><h3 class="sub">Paso 4. Comprobar que predicen el ciclo</h3><p>El ciclo de trabajo del ejemplo de juguete, consumo entre entrega, tiene que dar lo que la máquina hizo de verdad. <strong>Ninguno de los dos parámetros se ajustó para eso</strong>, así que si coinciden es porque el modelo describe la máquina.</p></section>
+<section class="block is-code"><span class="kicker">Código</span><h2 class="block-title">El código, por partes</h2><h3 class="sub">Paso 5. Las dos presiones, medidas</h3><pre><code class="language-sql">SELECT CASE WHEN antes = 0 THEN &#x27;arranca&#x27; ELSE &#x27;para&#x27; END AS momento,
+       round(median(TP3), 2) AS presion
+FROM (SELECT TP3, DV_eletric,
+             lag(DV_eletric) OVER (ORDER BY timestamp) AS antes
+      FROM plata WHERE medido AND day BETWEEN DATE &#x27;2020-02-01&#x27; AND DATE &#x27;2020-02-29&#x27;)
+WHERE antes IS NOT NULL AND antes &lt;&gt; DV_eletric
+GROUP BY momento
+ORDER BY momento;</code></pre><details class="fold"><summary>línea por línea, 3 entradas</summary><dl class="annot"><dt><code>lag(DV_eletric)</code></dt><dd>lo que hacía el compresor en la lectura anterior. Es la función de ventana del módulo 13</dd><dt><code>antes &lt;&gt; DV_eletric</code></dt><dd>quédate solo con las lecturas donde cambió de idea</dd><dt><code>median(TP3)</code></dt><dd>la presión típica en ese momento. La mediana y no la media, porque alguna transición cae en un hueco del registro</dd></dl></details><div class="output"><span class="output-tag">sale</span><pre><code>┌─────────┬─────────┐
+│ momento │ presion │
+│ varchar │ double  │
+├─────────┼─────────┤
+│ arranca │    8.05 │
+│ para    │    10.1 │
+└─────────┴─────────┘</code></pre></div><p><strong>La ficha dice 8,2 y la máquina arranca a 8,05.</strong> Es el módulo 1 otra vez, y la ficha no está equivocada: un presostato real tiene tolerancia, e importa el que está montado en este tren. La presión de parada la ficha no la da, y son <strong>10,10</strong>.</p><h3 class="sub">Paso 6. El balance, que es lo que valida la medida</h3><pre><code class="language-python">metidos  = sum(p_fin - p_ini for tramo in tramos if tramo.cargando)
+gastados = sum(p_ini - p_fin for tramo in tramos if not tramo.cargando)
+entrega  = metidos / minutos_cargando + consumo
+consumo  = gastados / minutos_en_vacio</code></pre><details class="fold"><summary>línea por línea, 3 entradas</summary><dl class="annot"><dt><code>metidos y gastados</code></dt><dd>los bar que suben mientras carga y los que bajan mientras no. Sobre un mes entero tienen que ser iguales</dd><dt><code>partido por minutos</code></dt><dd>de ahí salen los dos parámetros, por minuto y no por lectura: lo que mueve el aire es el total, no la pendiente de un instante</dd><dt><code>entrega = subida + consumo</code></dt><dd>mientras carga también se está gastando, así que lo que el compresor mete es lo que se ve subir más lo que se va</dd></dl></details><div class="output"><span class="output-tag">sale</span><pre><code>  el balance de aire, que es lo que decide si la medida vale:
+    metidos             2311.7 bar
+    gastados            2295.0 bar
+    descuadre             0.7%
+
+  sube por minuto cargando   1.1796 bar/min
+  mediana instantánea         1.248 bar/min   un 6% de más
+  consumo                    0.0711 bar/min</code></pre></div><p>Cuadra al <strong>0,7 %</strong> en un mes. Eso no lo he impuesto yo: los dos números se miden por separado y coinciden, y esa coincidencia es la que dice que la medida está bien hecha.</p><h3 class="sub">Paso 7. Y el modelo entero, en cuatro líneas</h3><pre><code class="language-python">if cargando:
+    p += (entrega - consumo) * paso
+    if p &gt;= para: cargando = False
+else:
+    p -= consumo * paso
+    if p &lt;= arranca: cargando = True</code></pre><details class="fold"><summary>línea por línea, 3 entradas</summary><dl class="annot"><dt><code>p</code></dt><dd>la presión, que es todo el estado del gemelo. Una sola variable</dd><dt><code>paso</code></dt><dd>el trocito de tiempo que se avanza cada vez. De eso va el módulo 25</dd><dt><code>las dos condiciones</code></dt><dd>el presostato entero. La histéresis es que los dos umbrales sean distintos</dd></dl></details><p>Eso es el gemelo. Cuatro líneas y cuatro números, y ninguno de los cuatro está inventado.</p><h3 class="sub">Paso 8. Toca la perilla</h3><figure class="perilla" data-perilla="../assets/perillas/m24_consumo.json?v=3133e43a" data-decimal=","><figcaption>el consumo, y lo que el compresor tiene que hacer para sostenerlo</figcaption><svg viewBox="0 0 640 200" role="img" data-margen="14" data-techo="41.83" aria-label="el consumo, y lo que el compresor tiene que hacer para sostenerlo"><path class="perilla-referencia" d="M14.0 186.0 L16.6 186.0 L19.1 186.0 L21.7 186.0 L24.2 186.0 L26.8 186.0 L29.4 186.0 L31.9 186.0 L34.5 186.0 L37.0 186.0 L39.6 186.0 L42.2 186.0 L44.7 186.0 L47.3 186.0 L49.8 186.0 L52.4 186.0 L55.0 186.0 L57.5 186.0 L60.1 186.0 L62.7 186.0 L65.2 186.0 L67.8 186.0 L70.3 186.0 L72.9 186.0 L75.5 186.0 L78.0 186.0 L80.6 186.0 L83.1 186.0 L85.7 186.0 L88.3 183.9 L90.8 179.8 L93.4 178.5 L95.9 178.5 L98.5 178.5 L101.1 178.5 L103.6 178.5 L106.2 178.5 L108.7 178.5 L111.3 178.5 L113.9 178.5 L116.4 178.5 L119.0 178.5 L121.5 178.5 L124.1 178.5 L126.7 178.5 L129.2 178.5 L131.8 178.5 L134.4 178.5 L136.9 178.5 L139.5 178.5 L142.0 178.5 L144.6 178.5 L147.2 178.5 L149.7 178.5 L152.3 178.5 L154.8 178.5 L157.4 178.5 L160.0 178.5 L162.5 178.5 L165.1 178.5 L167.6 178.5 L170.2 177.8 L172.8 173.7 L175.3 170.9 L177.9 170.9 L180.4 170.9 L183.0 170.9 L185.6 170.9 L188.1 170.9 L190.7 170.9 L193.2 170.9 L195.8 170.9 L198.4 170.9 L200.9 170.9 L203.5 170.9 L206.1 170.9 L208.6 170.9 L211.2 170.9 L213.7 170.9 L216.3 170.9 L218.9 170.9 L221.4 170.9 L224.0 170.9 L226.5 170.9 L229.1 170.9 L231.7 170.9 L234.2 170.9 L236.8 170.9 L239.3 170.9 L241.9 170.9 L244.5 170.9 L247.0 170.9 L249.6 170.9 L252.1 170.9 L254.7 166.8 L257.3 163.4 L259.8 163.4 L262.4 163.4 L264.9 163.4 L267.5 163.4 L270.1 163.4 L272.6 163.4 L275.2 163.4 L277.7 163.4 L280.3 163.4 L282.9 163.4 L285.4 163.4 L288.0 163.4 L290.6 163.4 L293.1 163.4 L295.7 163.4 L298.2 163.4 L300.8 163.4 L303.4 163.4 L305.9 163.4 L308.5 163.4 L311.0 163.4 L313.6 163.4 L316.2 163.4 L318.7 163.4 L321.3 163.4 L323.8 163.4 L326.4 163.4 L329.0 163.4 L331.5 163.4 L334.1 163.4 L336.6 160.6 L339.2 156.5 L341.8 155.9 L344.3 155.9 L346.9 155.9 L349.4 155.9 L352.0 155.9 L354.6 155.9 L357.1 155.9 L359.7 155.9 L362.3 155.9 L364.8 155.9 L367.4 155.9 L369.9 155.9 L372.5 155.9 L375.1 155.9 L377.6 155.9 L380.2 155.9 L382.7 155.9 L385.3 155.9 L387.9 155.9 L390.4 155.9 L393.0 155.9 L395.5 155.9 L398.1 155.9 L400.7 155.9 L403.2 155.9 L405.8 155.9 L408.3 155.9 L410.9 155.9 L413.5 155.9 L416.0 155.9 L418.6 153.8 L421.1 149.7 L423.7 148.3 L426.3 148.3 L428.8 148.3 L431.4 148.3 L433.9 148.3 L436.5 148.3 L439.1 148.3 L441.6 148.3 L444.2 148.3 L446.8 148.3 L449.3 148.3 L451.9 148.3 L454.4 148.3 L457.0 148.3 L459.6 148.3 L462.1 148.3 L464.7 148.3 L467.2 148.3 L469.8 148.3 L472.4 148.3 L474.9 148.3 L477.5 148.3 L480.0 148.3 L482.6 148.3 L485.2 148.3 L487.7 148.3 L490.3 148.3 L492.8 148.3 L495.4 148.3 L498.0 148.3 L500.5 147.6 L503.1 143.5 L505.6 140.8 L508.2 140.8 L510.8 140.8 L513.3 140.8 L515.9 140.8 L518.5 140.8 L521.0 140.8 L523.6 140.8 L526.1 140.8 L528.7 140.8 L531.3 140.8 L533.8 140.8 L536.4 140.8 L538.9 140.8 L541.5 140.8 L544.1 140.8 L546.6 140.8 L549.2 140.8 L551.7 140.8 L554.3 140.8 L556.9 140.8 L559.4 140.8 L562.0 140.8 L564.5 140.8 L567.1 140.8 L569.7 140.8 L572.2 140.8 L574.8 140.8 L577.3 140.8 L579.9 140.8 L582.5 140.8 L585.0 136.7 L587.6 133.2 L590.2 133.2 L592.7 133.2 L595.3 133.2 L597.8 133.2 L600.4 133.2 L603.0 133.2 L605.5 133.2 L608.1 133.2 L610.6 133.2 L613.2 133.2 L615.8 133.2 L618.3 133.2 L620.9 133.2 L623.4 133.2 L626.0 133.2"/><path class="perilla-actual" d="M14.0 186.0 L16.6 186.0 L19.1 186.0 L21.7 186.0 L24.2 186.0 L26.8 186.0 L29.4 186.0 L31.9 186.0 L34.5 186.0 L37.0 186.0 L39.6 186.0 L42.2 186.0 L44.7 186.0 L47.3 186.0 L49.8 186.0 L52.4 186.0 L55.0 186.0 L57.5 186.0 L60.1 186.0 L62.7 186.0 L65.2 186.0 L67.8 186.0 L70.3 186.0 L72.9 186.0 L75.5 186.0 L78.0 186.0 L80.6 186.0 L83.1 186.0 L85.7 186.0 L88.3 186.0 L90.8 181.9 L93.4 178.5 L95.9 178.5 L98.5 178.5 L101.1 178.5 L103.6 178.5 L106.2 178.5 L108.7 178.5 L111.3 178.5 L113.9 178.5 L116.4 178.5 L119.0 178.5 L121.5 178.5 L124.1 178.5 L126.7 178.5 L129.2 178.5 L131.8 178.5 L134.4 178.5 L136.9 178.5 L139.5 178.5 L142.0 178.5 L144.6 178.5 L147.2 178.5 L149.7 178.5 L152.3 178.5 L154.8 178.5 L157.4 178.5 L160.0 178.5 L162.5 178.5 L165.1 178.5 L167.6 178.5 L170.2 178.5 L172.8 177.8 L175.3 173.7 L177.9 170.9 L180.4 170.9 L183.0 170.9 L185.6 170.9 L188.1 170.9 L190.7 170.9 L193.2 170.9 L195.8 170.9 L198.4 170.9 L200.9 170.9 L203.5 170.9 L206.1 170.9 L208.6 170.9 L211.2 170.9 L213.7 170.9 L216.3 170.9 L218.9 170.9 L221.4 170.9 L224.0 170.9 L226.5 170.9 L229.1 170.9 L231.7 170.9 L234.2 170.9 L236.8 170.9 L239.3 170.9 L241.9 170.9 L244.5 170.9 L247.0 170.9 L249.6 170.9 L252.1 170.9 L254.7 170.9 L257.3 168.9 L259.8 164.7 L262.4 163.4 L264.9 163.4 L267.5 163.4 L270.1 163.4 L272.6 163.4 L275.2 163.4 L277.7 163.4 L280.3 163.4 L282.9 163.4 L285.4 163.4 L288.0 163.4 L290.6 163.4 L293.1 163.4 L295.7 163.4 L298.2 163.4 L300.8 163.4 L303.4 163.4 L305.9 163.4 L308.5 163.4 L311.0 163.4 L313.6 163.4 L316.2 163.4 L318.7 163.4 L321.3 163.4 L323.8 163.4 L326.4 163.4 L329.0 163.4 L331.5 163.4 L334.1 163.4 L336.6 163.4 L339.2 163.4 L341.8 160.6 L344.3 156.5 L346.9 155.9 L349.4 155.9 L352.0 155.9 L354.6 155.9 L357.1 155.9 L359.7 155.9 L362.3 155.9 L364.8 155.9 L367.4 155.9 L369.9 155.9 L372.5 155.9 L375.1 155.9 L377.6 155.9 L380.2 155.9 L382.7 155.9 L385.3 155.9 L387.9 155.9 L390.4 155.9 L393.0 155.9 L395.5 155.9 L398.1 155.9 L400.7 155.9 L403.2 155.9 L405.8 155.9 L408.3 155.9 L410.9 155.9 L413.5 155.9 L416.0 155.9 L418.6 155.9 L421.1 155.9 L423.7 155.9 L426.3 151.7 L428.8 148.3 L431.4 148.3 L433.9 148.3 L436.5 148.3 L439.1 148.3 L441.6 148.3 L444.2 148.3 L446.8 148.3 L449.3 148.3 L451.9 148.3 L454.4 148.3 L457.0 148.3 L459.6 148.3 L462.1 148.3 L464.7 148.3 L467.2 148.3 L469.8 148.3 L472.4 148.3 L474.9 148.3 L477.5 148.3 L480.0 148.3 L482.6 148.3 L485.2 148.3 L487.7 148.3 L490.3 148.3 L492.8 148.3 L495.4 148.3 L498.0 148.3 L500.5 148.3 L503.1 148.3 L505.6 148.3 L508.2 147.6 L510.8 143.5 L513.3 140.8 L515.9 140.8 L518.5 140.8 L521.0 140.8 L523.6 140.8 L526.1 140.8 L528.7 140.8 L531.3 140.8 L533.8 140.8 L536.4 140.8 L538.9 140.8 L541.5 140.8 L544.1 140.8 L546.6 140.8 L549.2 140.8 L551.7 140.8 L554.3 140.8 L556.9 140.8 L559.4 140.8 L562.0 140.8 L564.5 140.8 L567.1 140.8 L569.7 140.8 L572.2 140.8 L574.8 140.8 L577.3 140.8 L579.9 140.8 L582.5 140.8 L585.0 140.8 L587.6 140.8 L590.2 140.8 L592.7 138.7 L595.3 134.6 L597.8 133.2 L600.4 133.2 L603.0 133.2 L605.5 133.2 L608.1 133.2 L610.6 133.2 L613.2 133.2 L615.8 133.2 L618.3 133.2 L620.9 133.2 L623.4 133.2 L626.0 133.2"/></svg><div class="perilla-pie"><span class="perilla-leyenda">minutos cargando, acumulados</span><label class="perilla-mandos">consumo<input class="perilla-mando" type="range" min="0" max="20" value="5" step="1"><output class="perilla-valor">0,07 bar/min</output></label></div><p class="perilla-nota" data-plantilla="así el compresor pasa el {carga} % del tiempo cargando, con {arranques} arranques">así el compresor pasa el 5,3 % del tiempo cargando, con 7 arranques</p><p class="perilla-referencia-nota">la línea de puntos es la referencia, con 0,0711 bar/min</p></figure><p>Sube el consumo y mira el trazo: el compresor pasa más tiempo cargando, y los escalones se juntan. Baja el consumo y se separan. <strong>La presión no aparece por ninguna parte</strong>, y es a propósito: es la variable que el control sostiene, y por eso no cuenta nada.</p></section>
+<section class="block is-result"><span class="kicker">Resultado</span><h2 class="block-title">El resultado, medido</h2><figure class="fig"><img class="fig-claro" src="../figuras/fig_m24_balance_del_deposito.claro.png?v=e1e0effa" alt="fig m24 balance del deposito" loading="lazy"><img class="fig-oscuro" src="../figuras/fig_m24_balance_del_deposito.oscuro.png?v=468393aa" alt="fig m24 balance del deposito" loading="lazy"></figure><p><strong>Qué esperábamos.</strong> Que el compresor llenara a un ritmo, uno solo, medible tomando una pendiente cualquiera de las que sube.</p><p><strong>Qué salió.</strong> Que no hay un ritmo, hay una rampa. Los primeros diez segundos la presión sube <strong>0,804 bar/min</strong>, porque el motor está arrancando y es la corriente de 9 A que la ficha menciona. Después pica en <strong>1,608</strong> y a partir de ahí <strong>cae</strong> según se llena el depósito y empuja hacia atrás.</p><p>La <strong>mediana instantánea</strong> de esas pendientes es <strong>1,248 bar/min</strong>, y lo que el compresor consigue de verdad por minuto cargando es <strong>1,1796</strong>. Un <strong>5,8 %</strong> de diferencia, y la mediana es la que sale si uno mide sin pensar.</p><p><strong>Cuesta menos de lo que parece, y conviene decirlo así.</strong> Un modelo montado sobre la mediana predice una carga de <strong>0,0539</strong>, un <strong>5,8 %</strong> por debajo de lo que la máquina hizo. La rampa es real y la mediana es la medida equivocada, pero el precio de equivocarse aquí es pequeño. Con la media por minuto:</p><div class="table-wrap"><table><thead><tr><th>Qué</th><th>Valor</th></tr></thead><tbody><tr><td>Carga que predice el modelo</td><td><strong>0,0568</strong></td></tr><tr><td>Carga que hizo la máquina</td><td><strong>0,0572</strong></td></tr><tr><td>Se llevan</td><td>0,7 %</td></tr></tbody></table></div><p><strong>Qué significa.</strong> Que el gemelo ya existe, y que sus dos parámetros no se tocaron para hacerlo cuadrar. Se midieron por separado, se comprobó el balance de aire, y la predicción salió sola.</p></section>
+<section class="block is-warning"><span class="kicker">Trampas</span><h2 class="block-title">Ojo</h2><ul><li><strong>Una mediana de pendientes no es una tasa media.</strong> Aquí se llevan un 5,8 %, y la buena para un ciclo de trabajo es la media por minuto, porque lo que cuenta es el aire total.</li><li><strong>Filtra con cuidado.</strong> Descartar tramos cortos parecía prudente y tiraba casi todas las cargas, que duran 1,8 minutos. El balance salía descuadrado por un factor de 2,3 por culpa del filtro.</li><li><strong>La ficha del fabricante es una pista, no un dato.</strong> Dice 8,2 y son 8,05. Un presostato tiene tolerancia, y se modela la pieza montada.</li><li><strong>El consumo instantáneo se queda corto a diez segundos, y no por culpa del sensor.</strong> La mediana instantánea da 0,0480 bar/min contra los 0,0711 de la media, un 32 % menos. El escalón de TP3, medido y no supuesto, es de 0,001 bar: ocho veces más fino que esa mediana, así que no explica nada. La razón es otra: <strong>el consumo va a ráfagas</strong>, y la mitad de los pasos salen más tranquilos que la media.</li><li><strong>Cuadrar el aire antes de creerse nada.</strong> Si los bar que entran no son los que salen, no hay modelo posible y el fallo está en la medición.</li><li><strong>La presión no es la variable interesante.</strong> El control la sostiene, así que apenas se mueve. Todo lo que este gemelo va a decir sale del ciclo de trabajo.</li></ul></section>
+<section class="block is-bridge"><span class="kicker">Analogía</span><h2 class="block-title">Puente metalúrgico</h2><p>Un balance metalúrgico es esto mismo y se hace desde siempre. Lo que entra a la planta sale por el concentrado más las colas. Si no cierra, el balance no vale, y <strong>no se discute ninguna recuperación hasta que cierre</strong>.</p><p>Y la razón de hacerlo es la misma que aquí: no es por gusto contable. Un balance que cierra al 1 % dice que las básculas, los muestreos y las leyes son coherentes entre sí. Uno que cierra al 30 % dice que hay un instrumento mintiendo, y hasta encontrarlo cualquier conclusión sobre el proceso es aire.</p><p>El balance de aire de este módulo cierra al 0,7 %. Por eso se puede seguir.</p></section>
+<section class="block is-live"><span class="kicker">Hazlo tú</span><h2 class="block-title">Hazlo tú</h2><p class="reto-ask">Mide tú la banda del presostato, con un solo día. Devuelve <code>momento</code>, <code>veces</code> y <code>presion</code> con la presión mediana en las transiciones del 5 de junio de 2020, ordenado por <code>momento</code>. Dos filas.</p><div class="live reto" data-expected='[[&quot;arranca&quot;, 31, 8.04], [&quot;para&quot;, 30, 10.13]]'><div class="live-head"><span>reto</span><span class="live-status">el motor se descarga al pulsar</span></div><pre class="live-static"><code>SELECT TP3, DV_eletric,
+       lag(DV_eletric) OVER (ORDER BY timestamp) AS antes
+FROM telemetria
+WHERE day = DATE &#x27;2020-06-05&#x27;;</code></pre><textarea class="live-editor" spellcheck="false" aria-label="reto">SELECT TP3, DV_eletric,
+       lag(DV_eletric) OVER (ORDER BY timestamp) AS antes
+FROM telemetria
+WHERE day = DATE &#x27;2020-06-05&#x27;;</textarea><div class="live-bar"><button type="button" class="live-run">comprobar</button></div><div class="live-out"></div><div class="verdict"></div><details class="fold"><summary>una pista</summary><p>El punto de partida ya trae la columna que dice qué hacía antes. Falta envolverlo en un <code>SELECT</code> de fuera que se quede solo con las filas donde <code>antes &lt;&gt; DV_eletric</code>, agrupe por si arranca o para, y saque <code>count(*)</code> y <code>round(median(TP3), 2)</code>.</p></details><details class="fold"><summary>ver la solución</summary><pre><code>SELECT CASE WHEN antes = 0 THEN &#x27;arranca&#x27; ELSE &#x27;para&#x27; END AS momento,
+       count(*)              AS veces,
+       round(median(TP3), 2) AS presion
+FROM (SELECT TP3, DV_eletric,
+             lag(DV_eletric) OVER (ORDER BY timestamp) AS antes
+      FROM telemetria WHERE day = DATE &#x27;2020-06-05&#x27;)
+WHERE antes IS NOT NULL AND antes &lt;&gt; DV_eletric
+GROUP BY momento
+ORDER BY momento;</code></pre></details></div><p>Un solo día da <strong>8,04</strong> y <strong>10,13</strong>, contra los 8,05 y 10,10 de un mes entero. Con treinta y una transiciones ya se ve la banda entera: el presostato es de las cosas más estables que tiene esta máquina.</p></section>
+<section class="block is-review"><span class="kicker">Repaso</span><h2 class="block-title">Repaso</h2><details><summary>Qué necesita un modelo del compresor, y qué no</summary><p>Necesita un depósito, dos presiones de conmutación y dos tasas: lo que entra y lo que sale. No necesita geometría, ni temperatura, ni el modelo del motor. Con cuatro números se reproduce el ciclo de trabajo, que es de donde va a salir todo lo demás.</p></details><details><summary>Por qué el ciclo de trabajo es el consumo dividido por la entrega</summary><p>Porque en régimen la presión ni sube ni baja a la larga. Todo el aire gastado lo metió el compresor mientras cargaba, así que si mete 10 y se gastan 2, carga la quinta parte del tiempo. No hace falta simular nada para saberlo.</p></details><details><summary>Por qué la mediana de las pendientes de llenado no sirve</summary><p>Porque el compresor no llena a ritmo constante. Arranca despacio, unos 0,8 bar/min los primeros diez segundos, pica en 1,6 y va cayendo según sube la presión. La mediana coge el tramo bueno del medio y sale un 5,8 % por encima de su media por minuto, que es la cifra que mueve el aire.</p><p>Y hay que decir la otra mitad: un 5,8 % es poco. La mediana es la medida equivocada por una razón que se entiende, pero en esta máquina te habría costado barato. La versión anterior de esta lección publicaba aquí un 53 %, y ese número era casi todo un fallo de medida propio, no de la mediana. Está contado en el módulo 26.</p></details><details><summary>Qué comprobación decide si estos parámetros valen</summary><p>Que el aire cuadre. Sobre febrero entero entraron 2.311,7 bar y salieron 2.295,0, un 0,7 % de diferencia. Sin ese cierre, dos números medidos por separado no son un modelo, son dos números.</p><p>Y hay una segunda comprobación que este módulo no tenía y ahora sí: <strong>cuántas veces arranca por hora</strong>. Hace falta porque el balance no puede verlo todo. Si las dos duraciones se midieran mal por el mismo factor, el ciclo de trabajo es un cociente y no se enteraría; los arranques se cuentan contra el reloj y sí. Pasó, y lo cuenta el módulo 26.</p></details><details><summary>La ficha dice 8,2 bar y tú publicas 8,05. Quién se equivoca</summary><p>Ninguno de los dos. La ficha describe el modelo de presostato y los datos describen la pieza montada en este tren, con su tolerancia y su desgaste. Para un gemelo de esta máquina manda la segunda, igual que en el módulo 1 mandaba el fichero sobre la ficha.</p></details></section>
+
+      <footer class="footer">
+        <span>Fuelle / Módulo 24</span>
+        <span>generado el 2026-09-03</span>
+        <span>fuente: MetroPT-3, del compresor de un tren del Metro de Oporto (CC BY 4.0)</span>
+      </footer>
+    </div>
+  </main>
+
+</div>
+<!-- El motor SQL no se descarga aquí: este fichero solo conecta los botones.
+     Los 8 MB llegan cuando el lector pulsa, y no antes. -->
+<script type="module" src="live.js"></script>
+<script src="perilla.js" defer></script>
+</body>
+</html>

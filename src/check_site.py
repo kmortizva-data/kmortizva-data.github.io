@@ -40,6 +40,11 @@ PAIRS = [
     ("--iron", "--bg", "iron accent"),
     ("--mint", "--bg", "mint accent"),
     ("--slate", "--bg", "slate accent"),
+    # The gold accent went live with the geostatistics course and never got its
+    # pair here, so nothing measured it. It passes (8.52:1), but a gate that
+    # skips a colour is not a gate for that colour.
+    ("--gold", "--bg", "gold accent"),
+    ("--air", "--bg", "Bellows accent, compressed air line blue"),
 ]
 
 MINIMUM = 4.5          # WCAG AA for text below 24 px

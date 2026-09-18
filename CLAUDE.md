@@ -14,10 +14,14 @@ python src/build.py && python src/check_site.py
 ```
 
 - El build espeja dentro del sitio los proyectos estáticos (`silice/curso`,
-  `concentra/cursos`, `geostat/curso`), neutraliza los enlaces que salen del sitio y
-  **borra `prueba_scrolly.html`** (página de prueba del motor de Geoestadística).
+  `concentra/cursos`, `geostat/curso`, y **`fuelle/curso` con `fuelle/figuras` y
+  `fuelle/assets` al lado**, porque sus páginas piden `../figuras/` y `../assets/`),
+  neutraliza los enlaces que salen del sitio y **borra `prueba_scrolly.html` y
+  `prueba_visual.html`** (páginas de prueba de Geoestadística y de Fuelle).
 - `python src/shoot.py <proyecto>` retoma las capturas de `assets/shots/` (Chrome headless;
-  `geostat` se lee de disco con `file://`, los demás necesitan su servidor).
+  `geostat` y `fuelle` se leen de disco con `file://`, los demás necesitan su servidor).
+  **La de Fuelle va en oscuro** (`--force-dark-mode`): en claro es papel, como Sílice y
+  Geoestadística, y la sala de control oscura es lo que la distingue.
 - `CNAME` solo se escribe con `"publish_domain": true`; hoy está en `false` porque el
   dominio datageeksunited.com **no se paga** (decisión de Kevin, 2026-08-22).
 
@@ -49,7 +53,7 @@ python src/build.py && python src/check_site.py
 | Who I am | Tres párrafos (identidad / crisis de los metales críticos / postura y autoformación); el de «quality control» se quitó | `site.json` `about` |
 | Credenciales | Cuatro filas (MSc, BEng, becas y honores, idiomas) | `credentials` |
 | The work | Índice con panel de imagen: filas numeradas (nombre, tagline, mark, área, botón abrir ↗); el panel **sigue al cursor ±6 px** y toma el acento del proyecto activo en el borde (solo con `hover: hover` y sin reduced-motion) | `work_index()`, `theme.js`, `.index-*` |
-| Proyectos visibles | Froth (amber) · Sílice (iron) · Concentra (mint) · **Oro bajo el ruido** (gold, sin repo público: el enlace al código no se imprime) | `site.json` `projects` |
+| Proyectos visibles | Froth (amber) · Sílice (iron) · Concentra (mint) · **Oro bajo el ruido** (gold, sin repo público: el enlace al código no se imprime) · **Fuelle** (air, desde el 2026-09-18, partes 1 a 6) | `site.json` `projects` |
 | Página de proyecto | Estado, título, tagline, captura, bloque «Measured», **figura calculada** si `inline_figure` (Geoestadística trae su variograma dibujado con las reglas `.dibujar`), prosa, stack, botón abrir | `project_page()`, `inline_figure()` |
 | Get in touch | Texto, **dirección grande con `mailto:`**, botón **Copy address** (solo con JS; si el portapapeles se niega, selecciona la dirección), LinkedIn y GitHub. **Sin formulario, por decisión de Kevin (2026-08-23)**: las tres llamadas a la acción (cabecera, héroe y páginas de proyecto) bajan a esta sección, donde están el correo y LinkedIn. El formulario Formspree se quitó entero (generador, `site.json`, JS y CSS) para no dejar código muerto | `contact_ways()`, `theme.js`, `.contact-*` |
 | Pie | © año, correo, GitHub | `shell()` |
@@ -77,6 +81,27 @@ Kevin: «no sé por qué no puedo poner mi página así de primerazo como mi ami
   el inventario). Para forzar a LinkedIn a releer una URL cacheada:
   `linkedin.com/post-inspector/`.
 - Si Kevin quiere otro texto en la tarjeta: perfil → Destacado → lápiz → Editar.
+
+## Fuelle entra al portafolio (2026-09-18)
+
+- **Acento `air`, #83A0E0.** Ni el cian del propio curso (#8EC2C8) ni otro turquesa: el
+  acento de Froth, aunque se llama `amber`, es **#6BA8B8, un turquesa**, y a la luminosidad
+  de la familia (0,70 a 0,74 en OKLCH) el cian del curso sería el mismo color. Se eligió
+  midiendo en OKLab el tono libre más alejado de los cinco acentos a L 0,71 y C 0,10: el
+  azul de 265°. Y es el **azul claro con que se pintan las líneas de aire comprimido en
+  planta**. 7,63:1 contra el fondo. Kevin lo ve antes de publicar.
+- **El oro no tenía par de contraste** en `check_site.py` desde que entró Geoestadística.
+  Pasa (8,52:1), pero una puerta que se salta un color no es puerta para ese color. Añadido.
+- **Fuelle suma unos 49 MB** al sitio: el motor SQL del navegador son 34,3 MB de un solo
+  `.wasm`, que viaja comprimido a 7,74 y solo se baja al pulsar. Sus licencias (DuckDB MIT,
+  Apache Arrow y FlatBuffers Apache 2.0, tslib 0BSD) viajan en `fuelle/assets/duckdb-wasm/licenses/`.
+- `.claude/` en `.gitignore`: hay `.nojekyll`, así que Pages publicaría cualquier carpeta
+  con punto. Ahí vive la configuración `portafolio` del panel de vista previa.
+- Verificado sirviendo el sitio en local: 2.059 enlaces resueltos en 213 páginas, la perilla
+  del módulo 24 moviéndose desde el origen del portafolio, los ficheros del motor, las
+  muestras y las licencias en 200, y 375 px sin desbordes en la portada y en las dos páginas
+  del proyecto. **La consulta viva no se puede probar en el panel** (el motor no arranca
+  ahí): se prueba en Chrome sobre el sitio publicado.
 
 ## Decisiones de Kevin cerradas (2026-08-23)
 

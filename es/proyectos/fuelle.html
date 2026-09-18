@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fuelle - Kevin Ortiz</title>
+<meta name="description" content="Un lago de datos y un gemelo digital construidos desde cero en módulos bilingües, sobre 1.516.948 lecturas del compresor de aire de un tren del Metro de Oporto.">
+<meta property="og:title" content="Fuelle - Kevin Ortiz">
+<meta property="og:description" content="Un lago de datos y un gemelo digital construidos desde cero en módulos bilingües, sobre 1.516.948 lecturas del compresor de aire de un tren del Metro de Oporto.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://kmortizva-data.github.io/assets/shots/og-card.png">
+<meta property="og:image:alt" content="Un lago de datos y un gemelo digital construidos desde cero en módulos bilingües, sobre 1.516.948 lecturas del compresor de aire de un tren del Metro de Oporto.">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="alternate" hreflang="en" href="../../work/fuelle.html">
+<script>document.documentElement.className="js"</script>
+<link rel="stylesheet" href="../../style.css?v=325400c1">
+</head>
+<body>
+<a class="skip" href="#main">Ir al contenido</a>
+<header class="wrap masthead">
+  <a class="mark" href="../../es/index.html"><svg class="mark-logo" viewBox="0 0 26 26" width="22" height="22" aria-hidden="true" focusable="false"><circle cx="13" cy="13" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M13 1.5v5.5M13 19v5.5M1.5 13H7M19 13h5.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span>Kevin Ortiz</span></a>
+  <nav>
+    <a href="../../es/index.html#about">Quién soy</a>
+    <a href="../../es/index.html#work">Proyectos</a>
+    <a href="../../work/fuelle.html" rel="alternate" hreflang="en">English</a>
+    <a class="cta" href="../../es/index.html#contact">Escríbeme</a>
+  </nav>
+</header>
+<main id="main">
+<article class="wrap section">
+  <a class="back" href="../../es/index.html#work">Todos los proyectos</a>
+  <p class="eyebrow">28 de 31 módulos, español e inglés, publicados.</p>
+  <h1 class="project-title">Fuelle</h1>
+  <p class="project-tagline">Un lago de datos y un gemelo digital construidos desde cero en módulos bilingües, sobre 1.516.948 lecturas del compresor de aire de un tren del Metro de Oporto.</p>
+
+  <figure class="figure"><img src="../../assets/shots/fuelle-index.png" alt="El índice de Fuelle en su tema oscuro: el lago dibujado en el lateral, de crudo a gemelo, y 28 de 31 lecciones escritas" width="1440" height="900" decoding="async"><figcaption>El índice de Fuelle en su tema oscuro: el lago dibujado en el lateral, de crudo a gemelo, y 28 de 31 lecciones escritas</figcaption></figure>
+
+  <div class="assay assay-solo" data-accent="air">
+    <div class="assay-body">
+      <dl class="streams"><div><dt>El problema</dt><dd>Un archivo público de la UCI: 1.516.948 lecturas, una cada diez segundos, quince señales, siete meses de 2020, 208 MB de CSV. Cuatro fugas de aire documentadas con fecha, y una ficha que dice que el compresor arranca a 8,2 bar cuando el archivo dice 8,05.</dd></div><div><dt>Cómo lo resolví</dt><dd>Bronce, plata y oro en Parquet con DuckDB, una capa de oro modelada en dbt, el viaje en el tiempo comparado en Delta e Iceberg, los mismos datos servidos desde PostgreSQL con restricciones, índices y una copia restaurada, y un gemelo de primeros principios: cuatro números medidos del lago y sostenidos por un balance de aire que cierra al 0,7 %.</dd></div><div><dt>El resultado</dt><dd>Un detector que pilla 4 de las 4 fugas documentadas con 1,5 falsas alarmas al mes, donde la alarma que la máquina ya lleva pilla 2 con 11,4. Como predictor no funciona, un aviso de cuatro y con un solo día, y el curso publica las dos notas una al lado de la otra.</dd></div></dl>
+      <div class="assay-figure">
+        <p class="eyebrow">Medido</p>
+        <q>La ventana sana no estaba sana</q>
+        <p>Buscar los parámetros del gemelo no coincidía con medirlos. Persiguiendo por qué aparecieron huecos del registro contados como tiempo de compresor, y después doce días de marzo en los que el ciclo de trabajo sube de 0,06 a 0,58, el aceite se calienta diez grados y la alarma de baja presión salta por primera vez en todo el registro: una avería que nadie apuntó, dentro de la ventana con la que se calibraba el gemelo. Se recalibró con febrero solo y se reescribieron tres módulos ya publicados.</p>
+      </div>
+    </div>
+  </div>
+
+  
+
+  <div class="prose"><p>Todos los demás proyectos de esta página parten de un CSV que alguien ya había limpiado. Este va de dónde sale ese archivo: un lago construido capa a capa desde 208 MB de datos crudos de un compresor, y encima un gemelo digital que dice claro lo que ve y lo que no. Lo escribí para alguien que empieza de cero, que es de donde empecé yo.</p><p>Cada número del curso sale de la corrida de un script, y diez comprobaciones se ponen entre una lección y un commit: toda consulta publicada se ejecuta contra el lago y tiene que imprimir lo que dice la lección, todo número de la prosa tiene que existir en un fichero de resultados, y las ediciones en español y en inglés tienen que coincidir en cada cifra. Han cazado errores de verdad, uno de ellos en mis propias mediciones, que destapó un módulo posterior.</p><p>Las lecciones de SQL corren en el navegador del lector. La página descarga un motor de base de datos solo cuando se lo piden, 7,74 MB, ejecuta la consulta del lector contra datos reales del compresor y comprueba el resultado, no el texto. Las lecciones del gemelo llevan perillas cuya física corre antes en Python, así que la figura y la perilla no pueden llevarse la contraria.</p><p>Lo que falta es la orquestación, borrar el lago entero y verlo reconstruirse solo; un panel de una página para quien no va a leer treinta y un módulos; y un folio con el veredicto y la parte que más me importa: qué de todo esto aguantaría una planta de verdad y qué no.</p></div>
+
+  <p class="eyebrow stack-label">Hecho con</p>
+  <ul class="stack"><li>Python</li><li>DuckDB</li><li>Parquet</li><li>dbt</li><li>Delta Lake</li><li>Apache Iceberg</li><li>PostgreSQL</li><li>WebAssembly</li><li>matplotlib</li><li>HTML</li><li>CSS</li></ul>
+
+  <p class="assay-links"><a class="cta" href="../../fuelle/curso/index.html" target="_blank" rel="noopener">Abrir el curso</a></p>
+</article>
+</main>
+<footer class="wrap foot">
+  <span>&copy; 2026 Kevin Ortiz</span>
+  <span><a href="mailto:kmortizva@datageeksunited.com">kmortizva@datageeksunited.com</a></span>
+  <span><a href="https://github.com/kmortizva-data">github.com/kmortizva-data</a></span>
+</footer>
+<div class="curtain" aria-hidden="true"></div>
+<script src="../../assets/lenis.min.js" defer></script>
+<script src="../../theme.js?v=3afb8790" defer></script>
+</body>
+</html>
