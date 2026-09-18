@@ -83,7 +83,7 @@ PROJECTS = {
     # does, and the index never loads it.
     "fuelle": ((ROOT.parent / "Fuelle" / "out" / "index.en.html").as_uri(),
                "fuelle-index.png",
-               "Fuelle. Corre .venv\Scripts\python.exe src\site\build_site.py en Fuelle."),
+               r"Fuelle. Corre .venv\Scripts\python.exe src\site\build_site.py en Fuelle."),
 }
 
 
