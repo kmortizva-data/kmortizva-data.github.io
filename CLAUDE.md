@@ -53,7 +53,7 @@ python src/build.py && python src/check_site.py
 | Who I am | Tres párrafos (identidad / crisis de los metales críticos / postura y autoformación); el de «quality control» se quitó | `site.json` `about` |
 | Credenciales | Cuatro filas (MSc, BEng, becas y honores, idiomas) | `credentials` |
 | The work | Índice con panel de imagen: filas numeradas (nombre, tagline, mark, área, botón abrir ↗); el panel **sigue al cursor ±6 px** y toma el acento del proyecto activo en el borde (solo con `hover: hover` y sin reduced-motion) | `work_index()`, `theme.js`, `.index-*` |
-| Proyectos visibles | Froth (amber) · Sílice (iron) · Concentra (mint) · **Oro bajo el ruido** (gold, sin repo público: el enlace al código no se imprime) · **Fuelle** (air, desde el 2026-09-18, partes 1 a 6, repo público ) | `site.json` `projects` |
+| Proyectos visibles | Froth (amber) · Sílice (iron) · Concentra (mint) · **Oro bajo el ruido** (gold, sin repo público: el enlace al código no se imprime) · **Fuelle** (air, desde el 2026-09-18, partes 1 a 6, repo público `kmortizva-data/fuelle`) | `site.json` `projects` |
 | Página de proyecto | Estado, título, tagline, captura, bloque «Measured», **figura calculada** si `inline_figure` (Geoestadística trae su variograma dibujado con las reglas `.dibujar`), prosa, stack, botón abrir | `project_page()`, `inline_figure()` |
 | Get in touch | Texto, **dirección grande con `mailto:`**, botón **Copy address** (solo con JS; si el portapapeles se niega, selecciona la dirección), LinkedIn y GitHub. **Sin formulario, por decisión de Kevin (2026-08-23)**: las tres llamadas a la acción (cabecera, héroe y páginas de proyecto) bajan a esta sección, donde están el correo y LinkedIn. El formulario Formspree se quitó entero (generador, `site.json`, JS y CSS) para no dejar código muerto | `contact_ways()`, `theme.js`, `.contact-*` |
 | Pie | © año, correo, GitHub | `shell()` |
@@ -93,8 +93,17 @@ Kevin: «no sé por qué no puedo poner mi página así de primerazo como mi ami
 - **El oro no tenía par de contraste** en `check_site.py` desde que entró Geoestadística.
   Pasa (8,52:1), pero una puerta que se salta un color no es puerta para ese color. Añadido.
 - **Fuelle suma unos 49 MB** al sitio: el motor SQL del navegador son 34,3 MB de un solo
-  `.wasm`, que viaja comprimido a 7,74 y solo se baja al pulsar. Sus licencias (DuckDB MIT,
-  Apache Arrow y FlatBuffers Apache 2.0, tslib 0BSD) viajan en `fuelle/assets/duckdb-wasm/licenses/`.
+  `.wasm`, y el motor entero viaja comprimido a **8,12 MB**, medido sobre el sitio publicado.
+  Solo se baja al pulsar. Sus licencias (DuckDB MIT, Apache Arrow y FlatBuffers Apache 2.0,
+  tslib 0BSD) viajan en `fuelle/assets/duckdb-wasm/licenses/`.
+- **La ficha salió publicada con 7,74 MB y era 8,12.** `make_sample.py` de Fuelle sumaba solo
+  el wasm (la página baja también su worker y cuatro módulos) y comprimía a gzip nivel 6.
+  **GitHub Pages comprime a nivel 5**: medido el 2026-09-18, el nivel 5 reproduce byte a byte
+  lo que Pages manda del wasm y del worker. Corregido en el origen y en la ficha. Regla: un
+  peso de descarga se mide contra el servidor de verdad, no contra una compresión local.
+- **Publicado el 2026-09-18** (commit 5c4ec2a). Comprobado en vivo: los **233 ficheros** de
+  `fuelle/` responden 200, el wasm llega con `Content-Encoding: gzip`, y las dos páginas del
+  proyecto llevan «Read the code» / «Ver el código» a `github.com/kmortizva-data/fuelle`.
 - `.claude/` en `.gitignore`: hay `.nojekyll`, así que Pages publicaría cualquier carpeta
   con punto. Ahí vive la configuración `portafolio` del panel de vista previa.
 - Verificado sirviendo el sitio en local: 2.059 enlaces resueltos en 213 páginas, la perilla
