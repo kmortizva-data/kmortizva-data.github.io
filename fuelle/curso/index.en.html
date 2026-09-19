@@ -861,6 +861,294 @@ figcaption { font-size: 12.5px; color: var(--ink-faint); margin-top: 7px; max-wi
   .perilla-mando { flex: 1; width: auto; min-width: 0; }
 }
 
+/* --------------------------------------------------- el panel del gemelo */
+/*
+ * Módulo 30: la página propia del panel y el bloque ```panel de la lección.
+ *
+ * El gráfico es un SVG que se estira al hueco que le dan (preserveAspectRatio
+ * none) y sus trazos no engordan al estirarse (vector-effect en el HTML). Todo
+ * lo que es texto va encima en HTML: un texto dentro de un SVG que se encoge a
+ * 375 px se queda en cuatro píxeles. Los huecos del registro y las rayas de las
+ * marcas también son HTML, porque un rayado dentro de un SVG estirado se tuerce.
+ *
+ * La regla de forma del curso sigue mandando: la máquina medida va continua, el
+ * gemelo discontinuo, y el color nunca es la única pista.
+ */
+.pg {
+  margin: 20px 0 26px;
+  max-width: var(--block);
+  border: 1px solid var(--rule);
+  background: var(--stage);
+}
+.pg-cabeza {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  padding: 13px 16px 0;
+}
+.pg-fecha {
+  font-family: var(--display);
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--ink);
+}
+.pg-clase {
+  font-family: var(--data);
+  font-size: 10px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border: 1px solid var(--rule);
+  color: var(--ink-soft);
+}
+.pg-clase[data-clase="acierto"] { border-color: var(--accent); color: var(--accent); }
+.pg-clase[data-clase="falsa"],
+.pg-clase[data-clase="marzo_alarma"] { border-color: var(--simulated); color: var(--simulated); }
+.pg-clase[data-clase="escapa"] { border-style: dashed; border-color: var(--accent); color: var(--accent); }
+
+.pg-grafico { position: relative; padding: 16px 22px 50px 70px; }
+.pg-lienzo {
+  position: relative;
+  height: clamp(230px, 32vw, 360px);
+  border-left: 1px solid var(--ink-faint);
+  border-bottom: 1px solid var(--ink-faint);
+}
+.pg-svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.pg-rejilla { fill: none; stroke: var(--rule-soft); stroke-width: 1; }
+.pg-zona {
+  fill: var(--measured);
+  fill-opacity: .1;
+  stroke: var(--measured);
+  stroke-opacity: .45;
+  stroke-width: 1;
+  stroke-dasharray: 1 3;
+}
+.pg-gemelo { fill: none; stroke: var(--simulated); stroke-width: 2; stroke-dasharray: 7 5; }
+.pg-maquina { fill: none; stroke: var(--measured); stroke-width: 2.4; stroke-linejoin: round; }
+
+.pg-huecos, .pg-marcas { position: absolute; inset: 0; pointer-events: none; }
+.pg-hueco {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: repeating-linear-gradient(135deg, var(--rule) 0 1px, transparent 1px 7px);
+}
+.pg-raya { position: absolute; top: 0; bottom: 0; border-left: 1.5px solid var(--accent); }
+.pg-raya[data-tipo="parte"] { border-left: 1px dashed var(--ink-soft); }
+.pg-raya[data-tipo="cierre"] { border-left: 1px dotted var(--ink-soft); }
+.pg-marca {
+  position: absolute;
+  top: 5px;
+  padding: 1px 5px;
+  font-family: var(--data);
+  font-size: 10.5px;
+  line-height: 1.5;
+  white-space: nowrap;
+  color: var(--accent);
+  background: var(--stage);
+  transform: translateX(3px);
+}
+.pg-marca[data-fila="1"] { top: 26px; }
+.pg-marca[data-fila="2"] { top: 47px; }
+.pg-marca[data-lado="izq"] { transform: translateX(calc(-100% - 3px)); }
+.pg-marca[data-tipo="parte"], .pg-marca[data-tipo="cierre"] { color: var(--ink-soft); }
+
+.pg-ty, .pg-tx {
+  position: absolute;
+  font-family: var(--data);
+  font-size: 10.5px;
+  color: var(--ink-faint);
+  white-space: nowrap;
+}
+.pg-ty { right: calc(100% + 8px); transform: translateY(50%); }
+.pg-tx { top: calc(100% + 7px); transform: translateX(-50%); }
+.pg-eje-y, .pg-eje-x {
+  position: absolute;
+  font-family: var(--data);
+  font-size: 10.5px;
+  letter-spacing: .05em;
+  color: var(--ink-soft);
+}
+.pg-eje-y {
+  left: 8px;
+  top: 16px;
+  bottom: 50px;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  text-align: center;
+}
+.pg-eje-x { left: 70px; right: 22px; bottom: 9px; text-align: center; }
+
+.pg-leyenda {
+  list-style: none;
+  margin: 0;
+  padding: 10px 16px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 22px;
+  border-top: 1px solid var(--rule-soft);
+  font-size: 12.5px;
+  color: var(--ink-soft);
+}
+.block .pg-leyenda li { margin: 0; max-width: none; }
+.pg-leyenda li { display: flex; align-items: center; gap: 8px; }
+.pg-leyenda i { display: inline-block; width: 24px; height: 0; border-top: 2px solid; }
+.pg-leyenda b { font-family: var(--data); font-weight: 600; color: var(--ink); }
+.pg-k-maquina i { border-color: var(--measured); border-top-width: 2.4px; }
+.pg-k-gemelo i { border-top-style: dashed; border-color: var(--simulated); }
+.pg-k-zona i {
+  height: 11px;
+  border: 1px dotted var(--measured);
+  background: color-mix(in srgb, var(--measured) 12%, transparent);
+}
+.pg-k-sin_registro i {
+  height: 11px;
+  border: 1px solid var(--rule);
+  background: repeating-linear-gradient(135deg, var(--rule) 0 1px, transparent 1px 5px);
+}
+
+.block .pg-frase, .pg-frase {
+  margin: 0;
+  max-width: none;
+  padding: 12px 16px 14px;
+  border-top: 1px solid var(--rule-soft);
+  font-size: 15.5px;
+  line-height: 1.55;
+  text-align: left;
+}
+
+.pg-mando { padding: 12px 16px 14px; border-top: 1px solid var(--rule-soft); }
+.block .pg-tira-nota, .pg-tira-nota {
+  margin: 0 0 9px;
+  max-width: none;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--ink-faint);
+  text-align: left;
+}
+.pg-tira { position: relative; height: 70px; }
+.pg-tira:focus-within { outline: 2px solid var(--accent); outline-offset: 4px; }
+.pg-tira-svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.pg-b { fill: var(--ink-faint); opacity: .55; }
+.pg-b-alta { fill: var(--ink); }
+.pg-b-sin { fill: var(--ink-faint); opacity: .35; }
+.pg-b-elegido { fill: var(--accent); opacity: 1; }
+.pg-t-parte { fill: var(--accent); }
+.pg-t-marzo { fill: none; stroke: var(--simulated); stroke-width: 2; }
+.pg-t-umbral { fill: none; stroke: var(--accent); stroke-width: 1; stroke-dasharray: 4 3; }
+.pg-t-suelo { fill: none; stroke: var(--ink-faint); stroke-width: 1; stroke-dasharray: 1 3; }
+.pg-t-cursor { fill: none; stroke: var(--accent); stroke-width: 1.5; }
+
+/* El mando es un deslizador de verdad, invisible y del tamaño de la tira: se
+ * pincha o se arrastra sobre las barras, y las flechas del teclado funcionan
+ * solas. El pulgar mide dos píxeles para que el día que marca caiga debajo del
+ * dedo: con el de fábrica, de dieciséis, en un móvil se desplazaba cinco días. */
+.pg-cursor {
+  -webkit-appearance: none;
+  appearance: none;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+  background: transparent;
+}
+.pg-cursor::-webkit-slider-runnable-track { height: 70px; background: transparent; }
+.pg-cursor::-webkit-slider-thumb { -webkit-appearance: none; width: 2px; height: 70px; }
+.pg-cursor::-moz-range-track { height: 70px; background: transparent; }
+.pg-cursor::-moz-range-thumb { width: 2px; height: 70px; border: 0; border-radius: 0; }
+.pg-cursor[disabled] { cursor: default; }
+
+.pg-meses { position: relative; height: 17px; margin-top: 3px; }
+.pg-mes {
+  position: absolute;
+  top: 0;
+  padding-left: 4px;
+  border-left: 1px solid var(--rule);
+  font-family: var(--data);
+  font-size: 10px;
+  line-height: 17px;
+  color: var(--ink-faint);
+}
+
+.pg-botones {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+.pg-atajos-titulo {
+  flex-basis: 100%;
+  margin-top: 4px;
+  font-family: var(--data);
+  font-size: 9.5px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.pg-paso, .pg-atajo {
+  font-family: var(--data);
+  font-size: 11px;
+  padding: 6px 10px;
+  border: 1px solid var(--rule);
+  background: transparent;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+.pg-paso:hover, .pg-atajo:hover { border-color: var(--accent); color: var(--accent); }
+.pg-paso:focus-visible, .pg-atajo:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.pg-atajo[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
+.pg-paso[disabled], .pg-atajo[disabled] { opacity: .45; cursor: default; }
+.pg-paso[disabled]:hover, .pg-atajo[disabled]:hover { border-color: var(--rule); color: var(--ink-soft); }
+
+.pg-sinjs { display: none; }
+.no-js .pg-sinjs { display: block; margin: 10px 0 0; font-size: 12.5px; color: var(--ink-faint); }
+.no-js .pg-botones { display: none; }
+
+@media (max-width: 620px) {
+  .pg-grafico { padding: 14px 12px 48px 52px; }
+  .pg-eje-y { left: 4px; }
+  .pg-eje-x { left: 52px; right: 12px; }
+  .pg-lienzo { height: 250px; }
+  .pg-ty, .pg-tx, .pg-marca { font-size: 9.5px; }
+  .pg-fecha { font-size: 19px; }
+  .pg-leyenda { gap: 5px 16px; font-size: 12px; }
+  .pg-frase { font-size: 15px; }
+}
+
+/* La puerta del índice hacia el panel: para quien no va a leer 31 módulos. */
+.door {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 3px 18px;
+  margin: 22px 0 4px;
+  padding: 14px 16px;
+  max-width: var(--block);
+  border: 1px solid var(--rule);
+  border-left: 2px solid var(--accent);
+  background: var(--panel);
+  color: var(--ink);
+  text-decoration: none;
+}
+.door:hover { border-color: var(--accent); }
+.door-k {
+  grid-column: 1;
+  font-family: var(--data);
+  font-size: 10px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.door-t { grid-column: 1; font-family: var(--display); font-size: 19px; font-weight: 600; line-height: 1.25; }
+.door-s { grid-column: 1; font-size: 13.5px; line-height: 1.45; color: var(--ink-soft); }
+.door-a { grid-column: 2; grid-row: 1 / span 3; font-family: var(--data); font-size: 22px; color: var(--accent); }
+
 /* ------------------------------------------------------ movimiento y papel */
 
 @media (prefers-reduced-motion: reduce) {
@@ -932,6 +1220,8 @@ figcaption { font-size: 12.5px; color: var(--ink-faint); margin-top: 7px; max-wi
         <p class="standfirst">Building the data lake and the digital twin of a real compressor, from not knowing what a table is to measuring whether the twin sees failures coming before the alarms do</p>
       </header>
 
+      <a class="door" href="panel.en.html"><span class="door-k">the panel</span><span class="door-t">The whole semester, day by day, on one page</span><span class="door-s">For anyone who will not read thirty one modules: one knob, two curves and each day&#x27;s verdict.</span><span class="door-a" aria-hidden="true">→</span></a>
+
       <section class="block is-brief"><span class="kicker">The brief</span><h2 class="block-title">What this is</h2><p>An air compressor on a Porto Metro train logged fifteen signals every ten seconds for seven months. Inside that record there are <strong>four real failures</strong>, each with its date and its maintenance report, and every one of them was an air leak.</p><p>This course builds two things around that archive. First the <strong>data lake</strong>: how a 208 MB file is brought in without breaking it, how it is stored so it answers quickly, and how it is questioned in SQL. Then the <strong>digital twin</strong>: a model of the compressor&#x27;s physics running alongside the original, whose disagreement with reality gives the leak away.</p><p>It starts without knowing what a table is.</p></section>
 <section class="block is-bridge"><span class="kicker">Why</span><h2 class="block-title">Why a compressor</h2><p>Because compressed air is what feeds the flotation columns of a plant, and because a leak in the air line is lost recovery without any alarm noticing.</p><p>And for something this project will repeat to the end: <strong>pressure does not drop when there is a leak</strong>, because the control loop holds it. What rises is how hard the compressor has to work to hold it. Watching the wrong variable is seeing nothing.</p></section>
 <section class="block is-method"><span class="kicker">Method</span><h2 class="block-title">How it is made</h2><p>Every figure in a lesson came from running its script against the real data. None is copied from somewhere else or rounded to look neat. When a number disagrees with what was expected, the lesson says so instead of adjusting it.</p><p>The SQL lessons are not read, they are touched. The query runs inside your browser, against the compressor&#x27;s data, and the challenge at the end checks your answer.</p></section>
@@ -940,12 +1230,12 @@ figcaption { font-size: 12.5px; color: var(--ink-faint); margin-top: 7px; max-wi
       <section class="block">
         <span class="kicker">Syllabus</span>
         <h2 class="block-title">The thirty one lessons</h2>
-        <div class="toc"><p class="part">The brief and the ground</p><a href="m01_el_encargo.en.html" style="--accent: #8EC2C8"><span class="num">01</span><span class="name">The brief: a compressor breathing for the whole plant<small>What this machine does, why its failure stops everything, and the four times it really failed</small></span><span class="mark">15,169,480 → 1,516,948</span></a><a href="m02_dato_tabla_tipo.en.html" style="--accent: #8BC3C6"><span class="num">02</span><span class="name">What a value, a table and a type are<small>The three words everything else rests on, explained with this compressor&#x27;s readings rather than with theory</small></span><span class="mark">15</span></a><a href="m03_donde_viven_los_datos.en.html" style="--accent: #89C4C3"><span class="num">03</span><span class="name">Where data lives: file, database, lake and warehouse<small>Four words used as synonyms that are not. Which is for what, and why this project needs more than one</small></span><span class="mark">186 times</span></a><p class="part">Bringing the data in without breaking it</p><a href="m04_bronce.en.html" style="--accent: #87C5BF"><span class="num">04</span><span class="name">Bronze: raw is sacred<small>The first layer does not clean, fix or interpret. It keeps what arrived exactly as it arrived, and that discipline saves you later</small></span><span class="mark">212 partitions</span></a><a href="m05_idempotencia.en.html" style="--accent: #86C6BB"><span class="num">05</span><span class="name">Running twice without duplicating anything<small>What a file fingerprint is, what idempotent means, and why a process that is not will eventually lie to you in the totals</small></span><span class="mark">4,550,844 against 1,516,948</span></a><a href="m06_particionar.en.html" style="--accent: #86C7B7"><span class="num">06</span><span class="name">Splitting by date: what partitioning is and at what size<small>Storing the same data in folders by day is the advice repeated everywhere. With a stopwatch on it, it turns out to be the worst of the four layouts at this scale, and the size is chosen by reading the curve</small></span><span class="mark">0.014 s against 0.171 s</span></a><a href="m07_filas_contra_columnas.en.html" style="--accent: #86C7B2"><span class="num">07</span><span class="name">Rows against columns: CSV versus Parquet<small>Why the format you store in changes the time of a question by a large factor, timed on your own machine</small></span><span class="mark">54 times</span></a><p class="part">SQL, what actually gets used</p><a href="m08_primera_consulta.en.html" style="--accent: #88C7AD"><span class="num">08</span><span class="name">Your first query, all of it<small>Asking for columns, keeping the rows that matter, sorting them and cutting. And the empty that is not zero, the very first trap</small></span><span class="mark">5,188 readings</span></a><a href="m09_tipos_y_decisiones.en.html" style="--accent: #8BC7A7"><span class="num">09</span><span class="name">Types and decisions: when 8.2 is not 8.2<small>Text, number and date are not the same even when they look alike. And CASE, which is how a number becomes a named state</small></span><span class="mark">54.6 / 30.1 / 15.2 %</span></a><a href="m10_agrupar.en.html" style="--accent: #8EC7A2"><span class="num">10</span><span class="name">Grouping and summarising: GROUP BY<small>From a million and a half readings to a seven month table that fits on screen. Counting, summing, averaging, and the mistake of averaging averages</small></span><span class="mark">3.42 h against 23.81 h</span></a><a href="m11_consultas_por_pasos.en.html" style="--accent: #92C69C"><span class="num">11</span><span class="name">Queries in steps: subqueries and WITH<small>Breaking a big problem into named steps. What turns an unreadable twenty line query into three blocks you can follow</small></span><span class="mark">2 named steps</span></a><a href="m12_juntar_tablas.en.html" style="--accent: #97C697"><span class="num">12</span><span class="name">Joining tables: JOINs, and the one that lies to you<small>Crossing telemetry with the failure reports. What a key is, why a bad JOIN silently multiplies rows, and how to catch it</small></span><span class="mark">4 rows into 6</span></a><a href="m13_ventanas.en.html" style="--accent: #9CC591"><span class="num">13</span><span class="name">Looking at the row next door: window functions<small>Comparing each reading with the one before. Without this there are no time series; with it you can measure a start, a stop and a gap</small></span><span class="mark">179,426</span></a><p class="part">From raw to answer</p><a href="m14_plata.en.html" style="--accent: #A2C48C"><span class="num">14</span><span class="name">Silver: clean, type and resample<small>This is where a good record gets defined, and the definition lives in code instead of in somebody&#x27;s head</small></span><span class="mark">337,653 holes</span></a><a href="m15_otras_fuentes.en.html" style="--accent: #A8C287"><span class="num">15</span><span class="name">The other sources: weather, and reports with errata<small>The air entering the compressor comes off the street, so weather matters. And the maintenance reports arrive with factory faults that are not fixed</small></span><span class="mark">0.529 against 0.432</span></a><a href="m16_calidad.en.html" style="--accent: #ADC183"><span class="num">16</span><span class="name">Data quality: tests and contracts<small>What happens on Monday when a new column arrives or pressure comes in different units. A contract is a promise a machine checks by itself</small></span><span class="mark">5 of 5</span></a><a href="m17_oro_dbt.en.html" style="--accent: #B3BF80"><span class="num">17</span><span class="name">Gold with dbt: model in SQL and let lineage draw itself<small>The tables that answer questions, written in the SQL you now know, with docs and a dependency map the tool generates</small></span><span class="mark">9</span></a><a href="m18_viaje_en_el_tiempo.en.html" style="--accent: #B9BD7D"><span class="num">18</span><span class="name">Time travel: seeing the data as it was<small>An open table format keeps every version. Go back to June 5th and query the lake as it stood, without having kept a single copy</small></span><span class="mark">0.32 h vs 3.17 h</span></a><p class="part">Running a database</p><a href="m19_postgres.en.html" style="--accent: #BEBB7C"><span class="num">19</span><span class="name">PostgreSQL: install, connect, and how it differs<small>Until now the database was a file. Now it is a service serving several people at once, and that changes every rule</small></span><span class="mark">about 20 s</span></a><a href="m20_esquema.en.html" style="--accent: #C3B97B"><span class="num">20</span><span class="name">Designing the schema: keys, relations and constraints<small>Telling the database what is impossible, so it will not let you write it. A negative pressure or a failure with no machine should not be able to exist</small></span><span class="mark">6 of 6</span></a><a href="m21_indices.en.html" style="--accent: #C7B77B"><span class="num">21</span><span class="name">Indexes: measure before and after<small>What an index is, why it speeds some questions and slows writes, and how to read the plan the database shows you if you ask</small></span><span class="mark">between 58.1 and 114.3 times</span></a><a href="m22_mantenimiento.en.html" style="--accent: #CBB57C"><span class="num">22</span><span class="name">Users, backups and maintenance<small>Who gets in and to what. And the test almost nobody runs: actually restoring the backup, because a backup never restored is not a backup</small></span><span class="mark">22.2 MB</span></a><p class="part">The twin</p><a href="m23_que_es_un_gemelo.en.html" style="--accent: #CFB47E"><span class="num">23</span><span class="name">What a digital twin is, and what it is not<small>Not a three dimensional drawing nor a pretty dashboard. It is a model running alongside the machine, whose disagreement means something</small></span><span class="mark">95 times</span></a><a href="m24_fisica.en.html" style="--accent: #D2B280"><span class="num">24</span><span class="name">Compressor physics: receiver, pressure switch and motor<small>A vessel that fills and empties, a switch that fires at 8.2 bar, and a motor drawing different current depending on what it is doing. Nothing more</small></span><span class="mark">8.2 against 8.05</span></a><a href="m25_simular.en.html" style="--accent: #D4B184"><span class="num">25</span><span class="name">Simulating: stepping the model through time<small>What integrating in time means, why the step size changes the answer, and how to check the simulation has not run away</small></span><span class="mark">5 s</span></a><a href="m26_calibrar.en.html" style="--accent: #D6AF87"><span class="num">26</span><span class="name">Calibrating: parameters come from the data<small>Receiver volume and compressor flow are not invented. They are searched for until the twin breathes like the original, and then you declare where it fails</small></span><span class="mark">1.18 against 1.27</span></a><a href="m27_residual.en.html" style="--accent: #D7AE8B"><span class="num">27</span><span class="name">The residual gives the leak away<small>Pressure does not change, because the control loop holds it. What changes is how hard the compressor works to hold it, and that difference does show</small></span><span class="mark">0.1165 against 1.1796</span></a><a href="m28_veredicto.en.html" style="--accent: #D8AD90"><span class="num">28</span><span class="name">The verdict: four failures and how many false alarms<small>Against the four real dates, and against the rival to beat: an ordinary threshold alarm. If the twin does not win, that is what gets published</small></span><span class="mark">4 of 4 against 2 of 4</span></a><p class="part">The factory and the delivery</p><span class="pending"><span class="num">29</span><span class="name">Making all of this run by itself<small>An orchestrator knows the order, retries what fails and backfills. Deleting the whole lake and watching it rebuild is the only proof that counts</small></span><span class="tag">pending</span></span><span class="pending"><span class="num">30</span><span class="name">The twin&#x27;s panel<small>What someone who will not read thirty five modules sees: one knob, two curves, and the moment they part</small></span><span class="tag">pending</span></span><span class="pending"><span class="num">31</span><span class="name">Delivering, and saying what would break<small>The one page verdict, the repo, and the honest part: what of all this would survive a real plant, and what would not</small></span><span class="tag">pending</span></span></div>
+        <div class="toc"><p class="part">The brief and the ground</p><a href="m01_el_encargo.en.html" style="--accent: #8EC2C8"><span class="num">01</span><span class="name">The brief: a compressor breathing for the whole plant<small>What this machine does, why its failure stops everything, and the four times it really failed</small></span><span class="mark">15,169,480 → 1,516,948</span></a><a href="m02_dato_tabla_tipo.en.html" style="--accent: #8BC3C6"><span class="num">02</span><span class="name">What a value, a table and a type are<small>The three words everything else rests on, explained with this compressor&#x27;s readings rather than with theory</small></span><span class="mark">15</span></a><a href="m03_donde_viven_los_datos.en.html" style="--accent: #89C4C3"><span class="num">03</span><span class="name">Where data lives: file, database, lake and warehouse<small>Four words used as synonyms that are not. Which is for what, and why this project needs more than one</small></span><span class="mark">186 times</span></a><p class="part">Bringing the data in without breaking it</p><a href="m04_bronce.en.html" style="--accent: #87C5BF"><span class="num">04</span><span class="name">Bronze: raw is sacred<small>The first layer does not clean, fix or interpret. It keeps what arrived exactly as it arrived, and that discipline saves you later</small></span><span class="mark">212 partitions</span></a><a href="m05_idempotencia.en.html" style="--accent: #86C6BB"><span class="num">05</span><span class="name">Running twice without duplicating anything<small>What a file fingerprint is, what idempotent means, and why a process that is not will eventually lie to you in the totals</small></span><span class="mark">4,550,844 against 1,516,948</span></a><a href="m06_particionar.en.html" style="--accent: #86C7B7"><span class="num">06</span><span class="name">Splitting by date: what partitioning is and at what size<small>Storing the same data in folders by day is the advice repeated everywhere. With a stopwatch on it, it turns out to be the worst of the four layouts at this scale, and the size is chosen by reading the curve</small></span><span class="mark">0.014 s against 0.171 s</span></a><a href="m07_filas_contra_columnas.en.html" style="--accent: #86C7B2"><span class="num">07</span><span class="name">Rows against columns: CSV versus Parquet<small>Why the format you store in changes the time of a question by a large factor, timed on your own machine</small></span><span class="mark">54 times</span></a><p class="part">SQL, what actually gets used</p><a href="m08_primera_consulta.en.html" style="--accent: #88C7AD"><span class="num">08</span><span class="name">Your first query, all of it<small>Asking for columns, keeping the rows that matter, sorting them and cutting. And the empty that is not zero, the very first trap</small></span><span class="mark">5,188 readings</span></a><a href="m09_tipos_y_decisiones.en.html" style="--accent: #8BC7A7"><span class="num">09</span><span class="name">Types and decisions: when 8.2 is not 8.2<small>Text, number and date are not the same even when they look alike. And CASE, which is how a number becomes a named state</small></span><span class="mark">54.6 / 30.1 / 15.2 %</span></a><a href="m10_agrupar.en.html" style="--accent: #8EC7A2"><span class="num">10</span><span class="name">Grouping and summarising: GROUP BY<small>From a million and a half readings to a seven month table that fits on screen. Counting, summing, averaging, and the mistake of averaging averages</small></span><span class="mark">3.42 h against 23.81 h</span></a><a href="m11_consultas_por_pasos.en.html" style="--accent: #92C69C"><span class="num">11</span><span class="name">Queries in steps: subqueries and WITH<small>Breaking a big problem into named steps. What turns an unreadable twenty line query into three blocks you can follow</small></span><span class="mark">2 named steps</span></a><a href="m12_juntar_tablas.en.html" style="--accent: #97C697"><span class="num">12</span><span class="name">Joining tables: JOINs, and the one that lies to you<small>Crossing telemetry with the failure reports. What a key is, why a bad JOIN silently multiplies rows, and how to catch it</small></span><span class="mark">4 rows into 6</span></a><a href="m13_ventanas.en.html" style="--accent: #9CC591"><span class="num">13</span><span class="name">Looking at the row next door: window functions<small>Comparing each reading with the one before. Without this there are no time series; with it you can measure a start, a stop and a gap</small></span><span class="mark">179,426</span></a><p class="part">From raw to answer</p><a href="m14_plata.en.html" style="--accent: #A2C48C"><span class="num">14</span><span class="name">Silver: clean, type and resample<small>This is where a good record gets defined, and the definition lives in code instead of in somebody&#x27;s head</small></span><span class="mark">337,653 holes</span></a><a href="m15_otras_fuentes.en.html" style="--accent: #A8C287"><span class="num">15</span><span class="name">The other sources: weather, and reports with errata<small>The air entering the compressor comes off the street, so weather matters. And the maintenance reports arrive with factory faults that are not fixed</small></span><span class="mark">0.529 against 0.432</span></a><a href="m16_calidad.en.html" style="--accent: #ADC183"><span class="num">16</span><span class="name">Data quality: tests and contracts<small>What happens on Monday when a new column arrives or pressure comes in different units. A contract is a promise a machine checks by itself</small></span><span class="mark">5 of 5</span></a><a href="m17_oro_dbt.en.html" style="--accent: #B3BF80"><span class="num">17</span><span class="name">Gold with dbt: model in SQL and let lineage draw itself<small>The tables that answer questions, written in the SQL you now know, with docs and a dependency map the tool generates</small></span><span class="mark">9</span></a><a href="m18_viaje_en_el_tiempo.en.html" style="--accent: #B9BD7D"><span class="num">18</span><span class="name">Time travel: seeing the data as it was<small>An open table format keeps every version. Go back to June 5th and query the lake as it stood, without having kept a single copy</small></span><span class="mark">0.32 h vs 3.17 h</span></a><p class="part">Running a database</p><a href="m19_postgres.en.html" style="--accent: #BEBB7C"><span class="num">19</span><span class="name">PostgreSQL: install, connect, and how it differs<small>Until now the database was a file. Now it is a service serving several people at once, and that changes every rule</small></span><span class="mark">about 20 s</span></a><a href="m20_esquema.en.html" style="--accent: #C3B97B"><span class="num">20</span><span class="name">Designing the schema: keys, relations and constraints<small>Telling the database what is impossible, so it will not let you write it. A negative pressure or a failure with no machine should not be able to exist</small></span><span class="mark">6 of 6</span></a><a href="m21_indices.en.html" style="--accent: #C7B77B"><span class="num">21</span><span class="name">Indexes: measure before and after<small>What an index is, why it speeds some questions and slows writes, and how to read the plan the database shows you if you ask</small></span><span class="mark">between 58.1 and 114.3 times</span></a><a href="m22_mantenimiento.en.html" style="--accent: #CBB57C"><span class="num">22</span><span class="name">Users, backups and maintenance<small>Who gets in and to what. And the test almost nobody runs: actually restoring the backup, because a backup never restored is not a backup</small></span><span class="mark">22.2 MB</span></a><p class="part">The twin</p><a href="m23_que_es_un_gemelo.en.html" style="--accent: #CFB47E"><span class="num">23</span><span class="name">What a digital twin is, and what it is not<small>Not a three dimensional drawing nor a pretty dashboard. It is a model running alongside the machine, whose disagreement means something</small></span><span class="mark">95 times</span></a><a href="m24_fisica.en.html" style="--accent: #D2B280"><span class="num">24</span><span class="name">Compressor physics: receiver, pressure switch and motor<small>A vessel that fills and empties, a switch that fires at 8.2 bar, and a motor drawing different current depending on what it is doing. Nothing more</small></span><span class="mark">8.2 against 8.05</span></a><a href="m25_simular.en.html" style="--accent: #D4B184"><span class="num">25</span><span class="name">Simulating: stepping the model through time<small>What integrating in time means, why the step size changes the answer, and how to check the simulation has not run away</small></span><span class="mark">5 s</span></a><a href="m26_calibrar.en.html" style="--accent: #D6AF87"><span class="num">26</span><span class="name">Calibrating: parameters come from the data<small>Receiver volume and compressor flow are not invented. They are searched for until the twin breathes like the original, and then you declare where it fails</small></span><span class="mark">1.18 against 1.27</span></a><a href="m27_residual.en.html" style="--accent: #D7AE8B"><span class="num">27</span><span class="name">The residual gives the leak away<small>Pressure does not change, because the control loop holds it. What changes is how hard the compressor works to hold it, and that difference does show</small></span><span class="mark">0.1165 against 1.1796</span></a><a href="m28_veredicto.en.html" style="--accent: #D8AD90"><span class="num">28</span><span class="name">The verdict: four failures and how many false alarms<small>Against the four real dates, and against the rival to beat: an ordinary threshold alarm. If the twin does not win, that is what gets published</small></span><span class="mark">4 of 4 against 2 of 4</span></a><p class="part">The factory and the delivery</p><span class="pending"><span class="num">29</span><span class="name">Making all of this run by itself<small>An orchestrator knows the order, retries what fails and backfills. Deleting the whole lake and watching it rebuild is the only proof that counts</small></span><span class="tag">pending</span></span><span class="pending"><span class="num">30</span><span class="name">The twin&#x27;s panel<small>What someone who will not read thirty one modules sees: one knob, two curves, and the moment they part</small></span><span class="tag">pending</span></span><span class="pending"><span class="num">31</span><span class="name">Delivering, and saying what would break<small>The one page verdict, the repo, and the honest part: what of all this would survive a real plant, and what would not</small></span><span class="tag">pending</span></span></div>
       </section>
 
       <footer class="footer">
         <span>Bellows</span>
-        <span>generated on 2026-09-03</span>
+        <span>generated on 2026-09-19</span>
         <span>source: MetroPT-3, from a Porto Metro train compressor (CC BY 4.0)</span>
       </footer>
     </div>

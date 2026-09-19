@@ -1,0 +1,1326 @@
+<!doctype html>
+<html lang="es" class="no-js" data-assets="../assets" data-tablas="telemetria=sin_timestamp_ligera.parquet">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Que todo esto corra solo · Fuelle, módulo 29</title>
+
+<style>
+/* Fuelle: la hoja de estilo del curso.
+ *
+ * REESCRITA ENTERA el 2026-08-30. La primera versión heredó la plantilla de Sílice
+ * junto con su motor, y Kevin la vio y dijo: "se parece a las otras 20 páginas de
+ * portafolio, el landing, coursera, silica, se ve y se siente igual". Tenía razón.
+ * Medido: mismo ancho de prosa (680), mismo ancho de bloques (1180), misma columna
+ * de margen (132), misma secuencia de cabecera, 36 clases compartidas de 40.
+ * Cambiar papel por grafito no toca la silueta, y la silueta es lo que se siente.
+ *
+ * Los cuatro sitios de Kevin son una columna de texto centrada, sin barra lateral,
+ * sin rejilla y sin nada pegajoso. Este es lo contrario: PANEL DE CONTROL. Una barra
+ * fija a la izquierda con los instrumentos siempre a la vista, y el contenido a su
+ * derecha. Ninguna de las tres medidas heredadas aparece aquí, y check_layout.py
+ * falla si alguna reaparece.
+ *
+ * El encargo que ordena las decisiones sigue siendo el mismo: "no muy escandaloso,
+ * que parezca ingeniero, pero que demuestres habilidades, que no seas un pdf que se
+ * lee de recorrido". La sobriedad va en la superficie, la ambición en lo que hace.
+ */
+
+/* --------------------------------------------------------------- tipografía */
+
+/* IBM Plex, autoalojada, OFL-1.1. Los cuatro sitios de Kevin usan la fuente del
+ * sistema, y eso es la otra mitad del "se siente igual". Plex tiene aire de
+ * documentación de ingeniería, que es exactamente el encargo.
+ *
+ * Cinco cortes y no tres: sin las semi-negritas el navegador falsifica la negrita
+ * engordando el trazo, y en una fuente técnica se nota enseguida. 289 KB en total,
+ * que se pueden bajar a unos 60 recortando al alfabeto latino con fonttools si
+ * llega a molestar. */
+@font-face {
+  font-family: "Plex Cond";
+  src: url("../assets/fonts/PlexSansCondensed-SemiBold.woff2") format("woff2");
+  font-weight: 600; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Plex";
+  src: url("../assets/fonts/PlexSans-Regular.woff2") format("woff2");
+  font-weight: 400; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Plex";
+  src: url("../assets/fonts/PlexSans-SemiBold.woff2") format("woff2");
+  font-weight: 600; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Plex Mono";
+  src: url("../assets/fonts/PlexMono-Regular.woff2") format("woff2");
+  font-weight: 400; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Plex Mono";
+  src: url("../assets/fonts/PlexMono-SemiBold.woff2") format("woff2");
+  font-weight: 600; font-style: normal; font-display: swap;
+}
+
+/* ------------------------------------------------------------------ tokens */
+
+:root {
+  --ground: #f4f2ee;
+  --panel: #e9e6e0;
+  --stage: #fbfaf8;
+  --ink: #191d20;
+  --ink-soft: #4c545a;
+  --ink-faint: #7c868d;
+  --rule: #d6d1c8;
+  --rule-soft: #e4e0d8;
+  --grid: rgba(25, 29, 32, .05);
+  --accent: #46787e;
+  --measured: #3d505b;
+  --simulated: #b57542;
+
+  --prose: "Plex", system-ui, "Segoe UI", Roboto, sans-serif;
+  --display: "Plex Cond", "Plex", system-ui, sans-serif;
+  --data: "Plex Mono", "Cascadia Mono", Consolas, monospace;
+
+  /* Medidas NUEVAS. Ninguna puede coincidir con las heredadas de Sílice
+   * (680 de prosa, 1180 de bloques, 132 de margen): volver a ellas es volver a
+   * la misma página, y hay un verificador que lo impide. */
+  --rail: 268px;      /* la barra fija, que ninguno de los otros sitios tiene */
+  --read: 646px;      /* la medida de la prosa, en píxeles y nunca en ch */
+  --block: 980px;     /* el borde derecho de los bloques anchos */
+
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ground: #101417;
+    --panel: #171c20;
+    --stage: #14181b;
+    --ink: #e2e7ea;
+    --ink-soft: #a6b0b6;
+    --ink-faint: #717e85;
+    --rule: #293036;
+    --rule-soft: #20272b;
+    --grid: rgba(226, 231, 234, .045);
+    --accent: #8ec2c8;
+    --measured: #cbe2ef;
+    --simulated: #c98754;
+  }
+}
+
+:root[data-theme="dark"] {
+  --ground: #101417;
+  --panel: #171c20;
+  --stage: #14181b;
+  --ink: #e2e7ea;
+  --ink-soft: #a6b0b6;
+  --ink-faint: #717e85;
+  --rule: #293036;
+  --rule-soft: #20272b;
+  --grid: rgba(226, 231, 234, .045);
+  --accent: #8ec2c8;
+  --measured: #cbe2ef;
+  --simulated: #c98754;
+}
+
+/* --------------------------------------------------------------- cimientos */
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--stage);
+  color: var(--ink);
+  font-family: var(--prose);
+  font-size: 16.5px;
+  line-height: 1.6;
+}
+
+::selection { background: var(--accent); color: var(--ground); }
+a { color: var(--accent); text-underline-offset: .18em; }
+
+/* LA REJILLA. Esto es lo que ninguno de los otros cuatro sitios tiene, y es la
+ * razón de que la página deje de sentirse igual: el texto ya no está centrado en
+ * la ventana, está al lado de un panel de instrumentos. */
+.shell {
+  display: grid;
+  grid-template-columns: var(--rail) minmax(0, 1fr);
+  min-height: 100vh;
+}
+
+/* -------------------------------------------------- la barra de instrumentos */
+
+.panel {
+  position: sticky;   /* lo primero pegajoso de todo el portafolio */
+  top: 0;
+  align-self: start;
+  height: 100vh;
+  overflow-y: auto;
+  padding: 22px 20px 22px;
+  background: var(--panel);
+  border-right: 1px solid var(--rule);
+  background-image: radial-gradient(var(--grid) 1px, transparent 1px);
+  background-size: 22px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.panel-brand {
+  font-family: var(--display);
+  font-size: 19px;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  color: var(--ink);
+  text-decoration: none;
+  display: block;
+}
+.panel-brand small {
+  display: block;
+  font-family: var(--data);
+  font-size: 10px;
+  letter-spacing: .08em;
+  color: var(--ink-faint);
+  text-transform: none;
+  margin-top: 4px;
+}
+
+.panel-label {
+  font-family: var(--data);
+  font-size: 9.5px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding-bottom: 7px;
+  border-bottom: 1px solid var(--rule);
+  margin-bottom: 10px;
+}
+
+/* El grafo del lago, EN VERTICAL. Antes iba horizontal y solo en la portada;
+ * aquí acompaña al lector todo el curso y marca en qué capa está. */
+.rail-step {
+  display: grid;
+  grid-template-columns: 15px 1fr auto;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 0;
+  font-family: var(--data);
+  font-size: 11px;
+  letter-spacing: .08em;
+  color: var(--ink-faint);
+  text-decoration: none;
+  position: relative;
+}
+.rail-step .dot {
+  width: 9px; height: 9px;
+  border: 1px solid var(--ink-faint);
+  border-radius: 50%;
+  justify-self: center;
+}
+.rail-step:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  left: 7px; top: 25px;
+  width: 1px; height: calc(100% - 17px);
+  background: var(--rule);
+}
+.rail-step.done { color: var(--ink-soft); }
+.rail-step.done .dot { background: var(--ink-faint); border-color: var(--ink-faint); }
+.rail-step.here { color: var(--accent); }
+.rail-step.here .dot { background: var(--accent); border-color: var(--accent); }
+.rail-step .range { font-size: 9.5px; opacity: .75; }
+
+/* La cifra del módulo ya no es una caja en una cabecera gigante: vive aquí y se
+ * queda a la vista mientras se lee la lección entera. */
+.panel-figure { border-top: 1px solid var(--rule); padding-top: 14px; }
+.panel-figure .v {
+  display: block;
+  font-family: var(--data);
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 1.3;
+  color: var(--accent);
+}
+.panel-figure .l {
+  display: block;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--ink-faint);
+  margin-top: 5px;
+}
+
+.panel-progress {
+  margin-top: auto;
+  border-top: 1px solid var(--rule);
+  padding-top: 13px;
+  font-family: var(--data);
+  font-size: 11px;
+  color: var(--ink-faint);
+}
+.panel-progress b { color: var(--ink); font-weight: 600; }
+.panel-bar { height: 2px; background: var(--rule); margin-top: 7px; }
+.panel-bar i { display: block; height: 2px; background: var(--accent); }
+
+.panel-nav { display: flex; gap: 7px; flex-wrap: wrap; }
+.panel-nav a {
+  font-family: var(--data);
+  font-size: 10.5px;
+  letter-spacing: .06em;
+  padding: 6px 9px;
+  border: 1px solid var(--rule);
+  text-decoration: none;
+  color: var(--ink-soft);
+}
+.panel-nav a:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ------------------------------------------------------------- el contenido */
+
+.stage { background: var(--stage); padding: 0 0 54px; min-width: 0; }
+.stage-inner { max-width: var(--block); padding: 0 40px; }
+
+/* La cabecera ya no ocupa media pantalla: una línea de identificación y el
+ * título. La cifra y la navegación se fueron a la barra. */
+.head {
+  padding: 30px 0 20px;
+  border-bottom: 1px solid var(--rule);
+  margin-bottom: 4px;
+}
+.head-id {
+  font-family: var(--data);
+  font-size: 10.5px;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  display: flex;
+  gap: 14px;
+  align-items: baseline;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.head-id b { color: var(--accent); font-weight: 600; }
+.head h1 {
+  font-family: var(--display);
+  font-size: clamp(26px, 3.3vw, 37px);
+  line-height: 1.08;
+  font-weight: 600;
+  margin: 0 0 10px;
+  max-width: 22ch;
+}
+.head .standfirst {
+  color: var(--ink-soft);
+  font-size: 16.5px;
+  line-height: 1.5;
+  max-width: var(--read);
+  margin: 0;
+}
+
+/* Las secciones ya no cuelgan de un margen de 132 px: la etiqueta va encima, en
+ * un recuadro pequeño, y el texto empieza en el borde. */
+.block { padding: 26px 0 2px; border-top: 1px solid var(--rule-soft); }
+.block:first-of-type { border-top: 0; }
+
+.kicker {
+  display: inline-block;
+  font-family: var(--data);
+  font-size: 9.5px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  border: 1px solid var(--rule);
+  padding: 2px 7px;
+  margin-bottom: 11px;
+}
+
+.block-title {
+  font-family: var(--display);
+  font-size: 22px;
+  font-weight: 600;
+  margin: 0 0 11px;
+  max-width: var(--read);
+}
+
+/* Justificado desde 33rem de columna y rasgado en móvil: la regla que Kevin
+ * fijó en el portafolio el 2026-08-22, después de medir que a 375 px salían
+ * huecos de 7,65x y ríos en cinco de cada seis líneas. Aquí la prosa mide 646 px
+ * (unos 40rem), así que le toca justificado.
+ *
+ * Y NADA de `hyphens`: sin guionado, por la regla de la casa. El precio es que
+ * hay que vigilar los ríos, y eso se mide con src/site/check_rivers.py en vez de
+ * mirarlo de reojo. */
+.block p, .block li { max-width: var(--read); }
+
+@media (min-width: 34rem) {
+  .block p,
+  .block li,
+  .standfirst,
+  .reto-ask,
+  .annot dd,
+  blockquote,
+  .is-review details p { text-align: justify; text-justify: inter-word; }
+  /* Tablas, código, pies de figura y la barra nunca se justifican: sus líneas
+   * son cortas y el hueco se vuelve un agujero. */
+  figcaption, th, td, pre, .panel, .live-status, .toc { text-align: left; }
+}
+.block p { margin: 0 0 14px; }
+.block ul, .block ol { padding-left: 21px; margin: 0 0 14px; }
+.block li { margin-bottom: 6px; }
+.block li::marker { color: var(--accent); font-family: var(--data); font-size: .82em; }
+
+h3.sub, h4.sub {
+  font-family: var(--display);
+  font-size: 17px;
+  font-weight: 600;
+  margin: 24px 0 8px;
+  max-width: var(--read);
+}
+h4.sub { font-size: 15px; color: var(--ink-soft); }
+
+blockquote {
+  margin: 0 0 14px;
+  padding-left: 15px;
+  border-left: 2px solid var(--rule);
+  color: var(--ink-soft);
+  max-width: var(--read);
+}
+strong, b { font-weight: 600; }
+
+.is-brief ul { list-style: none; padding-left: 0; }
+.is-brief li {
+  padding: 8px 0 8px 18px;
+  border-bottom: 1px solid var(--rule-soft);
+  position: relative;
+}
+.is-brief li::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 17px;
+  width: 8px; height: 1px;
+  background: var(--accent);
+}
+.is-brief li:last-child { border-bottom: 0; }
+.is-result .block-title, .is-warning .block-title { color: var(--accent); }
+
+/* ------------------------------------------------------------------ código */
+
+pre {
+  max-width: var(--block);
+  overflow-x: auto;
+  background: var(--panel);
+  border: 1px solid var(--rule-soft);
+  border-left: 2px solid var(--accent);
+  padding: 13px 15px;
+  margin: 0 0 13px;
+}
+pre code {
+  font-family: var(--data);
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ink);
+  white-space: pre;
+}
+p code, li code, dd code, td code {
+  font-family: var(--data);
+  font-size: .87em;
+  padding: 1px 4px;
+  background: var(--panel);
+  border: 1px solid var(--rule-soft);
+}
+
+/* Diagramas: esquemas conceptuales generados, no figuras de datos.
+   Nacen del bloque ```diagrama y usan los tokens de arriba, asi que el tema lo
+   resuelve el CSS y no hacen falta dos versiones como en las figuras. */
+.diagram { margin: 0 0 22px; max-width: var(--block); }
+.chain {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: 30px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: none;
+}
+.node {
+  position: relative;
+  /* 130 y no 132: 132px es la columna de margen de Sílice y check_layout la
+     prohíbe en este proyecto, con razón, aunque aquí signifique otra cosa. */
+  flex: 1 1 130px;
+  min-width: 0;
+  padding: 11px 13px 12px;
+  background: var(--panel);
+  border: 1px solid var(--rule);
+  border-top: 2px solid var(--ink-faint);
+}
+/* La flecha entre cajas. Va en el hueco del gap, asi que no roba ancho al
+   texto y desaparece sola cuando las cajas se apilan. */
+.node + .node::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: -22px;
+  width: 14px;
+  height: 1px;
+  background: var(--ink-faint);
+}
+.node + .node::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: -11px;
+  width: 5px; height: 5px;
+  border-top: 1px solid var(--ink-faint);
+  border-right: 1px solid var(--ink-faint);
+  transform: translateY(-50%) rotate(45deg);
+}
+.node.lit { border-top-color: var(--accent); background: var(--stage); }
+.node.lit .node-name { color: var(--accent); }
+.node-name {
+  display: block;
+  font-family: var(--data);
+  font-size: 10.5px;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+.node-what { display: block; margin-top: 5px; font-size: 13.5px; color: var(--ink); }
+.node-note { display: block; margin-top: 4px; font-size: 12px; color: var(--ink-faint); }
+
+@media (max-width: 640px) {
+  /* Apiladas, con la flecha girada hacia abajo. */
+  .chain { flex-direction: column; gap: 26px; }
+  .node { flex: 1 1 auto; }
+  .node + .node::before {
+    top: -19px; left: 21px;
+    width: 1px; height: 12px;
+  }
+  .node + .node::after {
+    top: -9px; left: 19px;
+    transform: rotate(135deg);
+  }
+}
+
+.output { position: relative; margin: 0 0 13px; max-width: var(--block); }
+.output pre { margin: 0; border-left: 2px solid var(--ink-faint); background: transparent; }
+.output pre code { color: var(--ink-soft); }
+.output-tag {
+  position: absolute;
+  top: -7px; left: 13px;
+  z-index: 1;
+  font-family: var(--data);
+  font-size: 9px;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  background: var(--stage);
+  padding: 0 5px;
+}
+
+details.fold, details { margin: 0 0 13px; max-width: var(--block); }
+details > summary {
+  cursor: pointer;
+  font-family: var(--data);
+  font-size: 11px;
+  letter-spacing: .05em;
+  color: var(--ink-faint);
+  padding: 5px 0;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+details > summary::-webkit-details-marker { display: none; }
+details > summary::before {
+  content: "+";
+  width: 13px; height: 13px;
+  line-height: 12px;
+  text-align: center;
+  border: 1px solid var(--rule);
+  color: var(--accent);
+}
+details[open] > summary::before { content: "\2212"; }
+details > summary:hover { color: var(--accent); }
+
+.annot {
+  margin: 2px 0 4px;
+  padding: 11px 13px;
+  border: 1px solid var(--rule-soft);
+  background: var(--panel);
+}
+.annot dt { margin-bottom: 3px; }
+.annot dt code {
+  font-family: var(--data);
+  font-size: 12px;
+  color: var(--accent);
+  background: transparent;
+  border: 0;
+  padding: 0;
+}
+.annot dd { margin: 0 0 10px; font-size: 14.5px; color: var(--ink-soft); max-width: var(--read); }
+.annot dd:last-of-type { margin-bottom: 0; }
+
+.is-review details { border-bottom: 1px solid var(--rule-soft); margin: 0; }
+.is-review details > summary {
+  font-family: var(--prose);
+  font-size: 15.5px;
+  color: var(--ink);
+  padding: 11px 0;
+}
+.is-review details > summary:hover { color: var(--accent); }
+.is-review details p { margin: 0 0 11px 21px; color: var(--ink-soft); }
+
+/* ------------------------------------------------------------------ tablas */
+
+.table-wrap { max-width: var(--block); overflow-x: auto; margin: 0 0 15px; }
+table { border-collapse: collapse; font-size: 14.5px; }
+th, td {
+  text-align: left;
+  padding: 6px 15px 6px 0;
+  border-bottom: 1px solid var(--rule-soft);
+  vertical-align: top;
+}
+th {
+  font-family: var(--data);
+  font-size: 10px;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  font-weight: 400;
+  border-bottom-color: var(--rule);
+}
+tbody tr:last-child td { border-bottom: 0; }
+
+figure { margin: 0 0 17px; max-width: var(--block); }
+figure img { max-width: 100%; height: auto; display: block; }
+figcaption { font-size: 12.5px; color: var(--ink-faint); margin-top: 7px; max-width: var(--read); }
+
+.footer {
+  border-top: 1px solid var(--rule);
+  margin-top: 32px;
+  padding: 18px 0 0;
+  font-size: 12px;
+  color: var(--ink-faint);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px 20px;
+}
+.footer a { color: var(--ink-faint); }
+.gone { color: var(--ink-faint); }
+
+/* ---------------------------------------------- la consulta viva y el reto */
+
+.live {
+  max-width: var(--block);
+  margin: 0 0 17px;
+  border: 1px solid var(--rule);
+  background: var(--panel);
+}
+.live-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 13px;
+  border-bottom: 1px solid var(--rule-soft);
+  font-family: var(--data);
+  font-size: 10px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.live-editor {
+  width: 100%;
+  border: 0;
+  resize: vertical;
+  min-height: 112px;
+  padding: 12px 14px;
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--data);
+  font-size: 13px;
+  line-height: 1.6;
+  tab-size: 2;
+}
+.live-editor:focus { outline: 2px solid var(--accent); outline-offset: -2px; }
+.live-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 13px;
+  border-top: 1px solid var(--rule-soft);
+  flex-wrap: wrap;
+}
+.live-run {
+  font-family: var(--data);
+  font-size: 11px;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  padding: 7px 14px;
+  border: 1px solid var(--accent);
+  background: transparent;
+  color: var(--accent);
+  cursor: pointer;
+}
+.live-run:hover { background: var(--accent); color: var(--ground); }
+.live-run[disabled] { opacity: .5; cursor: default; }
+.live-run[disabled]:hover { background: transparent; color: var(--accent); }
+.live-status { font-family: var(--data); font-size: 10.5px; color: var(--ink-faint); }
+.live-out { max-width: 100%; overflow-x: auto; }
+.live-out table { margin: 0; width: 100%; font-size: 12.5px; }
+.live-out td, .live-out th { padding: 5px 13px 5px 0; }
+.live-out td:first-child, .live-out th:first-child { padding-left: 13px; }
+.live-out td { font-family: var(--data); font-size: 12px; }
+.live-err {
+  padding: 10px 14px;
+  font-family: var(--data);
+  font-size: 12px;
+  color: var(--simulated);
+  border-top: 1px solid var(--rule-soft);
+}
+
+.reto { border-left: 2px solid var(--accent); }
+.reto .live-head { color: var(--accent); }
+.reto-ask { padding: 12px 14px 2px; font-size: 15.5px; max-width: var(--read); }
+.verdict {
+  padding: 10px 14px;
+  border-top: 1px solid var(--rule-soft);
+  font-family: var(--data);
+  font-size: 12px;
+}
+.verdict.ok { color: var(--accent); }
+.verdict.no { color: var(--simulated); }
+
+.no-js .live-bar, .no-js .live-editor { display: none; }
+.no-js .live-static { display: block; }
+.live-static { display: none; }
+
+/* ---------------------------------------------------------- el doble trazo */
+
+.twin { max-width: var(--block); margin: 0 0 18px; }
+.twin svg { width: 100%; height: auto; display: block; }
+.twin .axis { stroke: var(--rule); fill: none; }
+.twin .tick { fill: var(--ink-faint); font-family: var(--data); font-size: 10px; }
+.twin .measured { stroke: var(--measured); fill: none; stroke-width: 1.8; }
+.twin .simulated { stroke: var(--simulated); fill: none; stroke-width: 1.8; stroke-dasharray: 5 4; }
+.twin .gap { fill: var(--simulated); opacity: .16; }
+.twin-key { display: flex; gap: 20px; flex-wrap: wrap; font-family: var(--data);
+            font-size: 11px; color: var(--ink-faint); margin-top: 6px; }
+.twin-key i { display: inline-block; width: 20px; height: 0; vertical-align: middle;
+              border-top-width: 2px; border-top-style: solid; margin-right: 7px; }
+.twin-key .k-measured i { border-color: var(--measured); }
+.twin-key .k-simulated i { border-top-style: dashed; border-color: var(--simulated); }
+
+.knob { display: flex; align-items: center; gap: 13px; flex-wrap: wrap; margin: 0 0 13px;
+        font-family: var(--data); font-size: 11px; color: var(--ink-faint); }
+.knob input[type="range"] { accent-color: var(--accent); flex: 1 1 200px; max-width: 300px; }
+.knob output { color: var(--accent); min-width: 72px; }
+
+/* -------------------------------------------------------- índice del curso */
+
+.toc { max-width: var(--block); }
+.toc .part {
+  font-family: var(--data);
+  font-size: 10px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin: 26px 0 2px;
+  padding-top: 11px;
+  border-top: 1px solid var(--rule);
+}
+.toc a, .toc .pending {
+  display: grid;
+  grid-template-columns: 34px 1fr auto;
+  gap: 15px;
+  align-items: baseline;
+  padding: 9px 6px 9px 8px;
+  border-bottom: 1px solid var(--rule-soft);
+  border-left: 2px solid transparent;
+  text-decoration: none;
+  color: var(--ink);
+}
+.toc a:hover { border-left-color: var(--accent); background: var(--panel); color: var(--accent); }
+.toc .pending { color: var(--ink-faint); }
+.toc .num { font-family: var(--data); font-size: 12px; color: var(--ink-faint); }
+.toc a:hover .num { color: var(--accent); }
+.toc .name { font-family: var(--display); font-size: 16px; }
+.toc .name small { display: block; font-family: var(--prose); color: var(--ink-faint);
+                   font-size: 13px; font-weight: 400; margin-top: 2px; max-width: 60ch; }
+.toc .mark { font-family: var(--data); font-size: 11px; color: var(--ink-faint); text-align: right; }
+.toc .tag { font-family: var(--data); font-size: 9.5px; letter-spacing: .1em;
+            text-transform: uppercase; color: var(--ink-faint); }
+
+/* ------------------------------------------------------------------- móvil */
+
+/* La barra deja de ser barra: pasa a cabecera compacta arriba, con los tramos en
+ * horizontal. La rejilla se colapsa a una columna. */
+@media (max-width: 900px) {
+  .shell { grid-template-columns: 1fr; }
+  .panel {
+    position: static;
+    height: auto;
+    border-right: 0;
+    border-bottom: 1px solid var(--rule);
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 16px;
+    padding: 13px 18px;
+  }
+  .panel-label { display: none; }
+  .panel .rail { display: flex; gap: 0 5px; flex-wrap: wrap; }
+  .rail-step { grid-template-columns: 11px auto; padding: 3px 0; font-size: 9.5px; }
+  .rail-step .range { display: none; }
+  .rail-step:not(:last-child)::after { display: none; }
+  .panel-figure { border-top: 0; padding-top: 0; }
+  .panel-figure .v { font-size: 13.5px; }
+  .panel-figure .l { display: none; }
+  .panel-progress { margin: 0; border-top: 0; padding-top: 0; }
+  .panel-bar { display: none; }
+  .stage-inner { padding: 0 18px; }
+  body { font-size: 16px; }
+  .head { padding-top: 22px; }
+  pre code { font-size: 12.5px; }
+}
+
+/* ------------------------------------------------- la perilla del gemelo */
+/*
+ * El doble trazo con su deslizador, de los modulos 24 y 25. El SVG llega ya
+ * dibujado del servidor, asi que sin JavaScript se ve igual: dos trazos, la
+ * referencia y la posicion de partida. El mando solo cambia cual se ensena.
+ *
+ * La regla de forma del curso: el color NUNCA es la unica pista. La referencia
+ * va punteada y en tono apagado, y la posicion elegida solida y en el acento.
+ */
+.perilla {
+  margin: 22px 0;
+  max-width: var(--block);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  background: var(--stage);
+  padding: 14px 16px 12px;
+}
+.perilla figcaption {
+  font-family: var(--data);
+  font-size: 11px;
+  color: var(--ink-faint);
+  letter-spacing: .02em;
+  margin-bottom: 10px;
+}
+.perilla svg { display: block; width: 100%; height: auto; }
+.perilla-referencia {
+  fill: none;
+  stroke: var(--ink-faint);
+  stroke-width: 1.4;
+  stroke-dasharray: 4 3;
+}
+.perilla-actual {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  transition: d .12s linear;
+}
+.perilla-pie {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 18px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--rule-soft);
+}
+.perilla-leyenda { font-size: 12px; color: var(--ink-faint); }
+.perilla-mandos {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+  font-family: var(--data);
+  font-size: 11px;
+  color: var(--ink-soft);
+}
+.perilla-mando { width: 190px; accent-color: var(--accent); }
+.perilla-mando[disabled] { opacity: .45; }
+.perilla-valor {
+  font-family: var(--data);
+  font-size: 12px;
+  color: var(--ink);
+  min-width: 88px;
+}
+.perilla-nota, .perilla-referencia-nota {
+  margin: 8px 0 0;
+  font-size: 12.5px;
+  color: var(--ink-soft);
+}
+.perilla-referencia-nota { color: var(--ink-faint); font-size: 12px; }
+
+@media (max-width: 620px) {
+  .perilla-mandos { margin-left: 0; width: 100%; }
+  .perilla-mando { flex: 1; width: auto; min-width: 0; }
+}
+
+/* --------------------------------------------------- el panel del gemelo */
+/*
+ * Módulo 30: la página propia del panel y el bloque ```panel de la lección.
+ *
+ * El gráfico es un SVG que se estira al hueco que le dan (preserveAspectRatio
+ * none) y sus trazos no engordan al estirarse (vector-effect en el HTML). Todo
+ * lo que es texto va encima en HTML: un texto dentro de un SVG que se encoge a
+ * 375 px se queda en cuatro píxeles. Los huecos del registro y las rayas de las
+ * marcas también son HTML, porque un rayado dentro de un SVG estirado se tuerce.
+ *
+ * La regla de forma del curso sigue mandando: la máquina medida va continua, el
+ * gemelo discontinuo, y el color nunca es la única pista.
+ */
+.pg {
+  margin: 20px 0 26px;
+  max-width: var(--block);
+  border: 1px solid var(--rule);
+  background: var(--stage);
+}
+.pg-cabeza {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  padding: 13px 16px 0;
+}
+.pg-fecha {
+  font-family: var(--display);
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--ink);
+}
+.pg-clase {
+  font-family: var(--data);
+  font-size: 10px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border: 1px solid var(--rule);
+  color: var(--ink-soft);
+}
+.pg-clase[data-clase="acierto"] { border-color: var(--accent); color: var(--accent); }
+.pg-clase[data-clase="falsa"],
+.pg-clase[data-clase="marzo_alarma"] { border-color: var(--simulated); color: var(--simulated); }
+.pg-clase[data-clase="escapa"] { border-style: dashed; border-color: var(--accent); color: var(--accent); }
+
+.pg-grafico { position: relative; padding: 16px 22px 50px 70px; }
+.pg-lienzo {
+  position: relative;
+  height: clamp(230px, 32vw, 360px);
+  border-left: 1px solid var(--ink-faint);
+  border-bottom: 1px solid var(--ink-faint);
+}
+.pg-svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.pg-rejilla { fill: none; stroke: var(--rule-soft); stroke-width: 1; }
+.pg-zona {
+  fill: var(--measured);
+  fill-opacity: .1;
+  stroke: var(--measured);
+  stroke-opacity: .45;
+  stroke-width: 1;
+  stroke-dasharray: 1 3;
+}
+.pg-gemelo { fill: none; stroke: var(--simulated); stroke-width: 2; stroke-dasharray: 7 5; }
+.pg-maquina { fill: none; stroke: var(--measured); stroke-width: 2.4; stroke-linejoin: round; }
+
+.pg-huecos, .pg-marcas { position: absolute; inset: 0; pointer-events: none; }
+.pg-hueco {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: repeating-linear-gradient(135deg, var(--rule) 0 1px, transparent 1px 7px);
+}
+.pg-raya { position: absolute; top: 0; bottom: 0; border-left: 1.5px solid var(--accent); }
+.pg-raya[data-tipo="parte"] { border-left: 1px dashed var(--ink-soft); }
+.pg-raya[data-tipo="cierre"] { border-left: 1px dotted var(--ink-soft); }
+.pg-marca {
+  position: absolute;
+  top: 5px;
+  padding: 1px 5px;
+  font-family: var(--data);
+  font-size: 10.5px;
+  line-height: 1.5;
+  white-space: nowrap;
+  color: var(--accent);
+  background: var(--stage);
+  transform: translateX(3px);
+}
+.pg-marca[data-fila="1"] { top: 26px; }
+.pg-marca[data-fila="2"] { top: 47px; }
+.pg-marca[data-lado="izq"] { transform: translateX(calc(-100% - 3px)); }
+.pg-marca[data-tipo="parte"], .pg-marca[data-tipo="cierre"] { color: var(--ink-soft); }
+
+.pg-ty, .pg-tx {
+  position: absolute;
+  font-family: var(--data);
+  font-size: 10.5px;
+  color: var(--ink-faint);
+  white-space: nowrap;
+}
+.pg-ty { right: calc(100% + 8px); transform: translateY(50%); }
+.pg-tx { top: calc(100% + 7px); transform: translateX(-50%); }
+.pg-eje-y, .pg-eje-x {
+  position: absolute;
+  font-family: var(--data);
+  font-size: 10.5px;
+  letter-spacing: .05em;
+  color: var(--ink-soft);
+}
+.pg-eje-y {
+  left: 8px;
+  top: 16px;
+  bottom: 50px;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  text-align: center;
+}
+.pg-eje-x { left: 70px; right: 22px; bottom: 9px; text-align: center; }
+
+.pg-leyenda {
+  list-style: none;
+  margin: 0;
+  padding: 10px 16px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 22px;
+  border-top: 1px solid var(--rule-soft);
+  font-size: 12.5px;
+  color: var(--ink-soft);
+}
+.block .pg-leyenda li { margin: 0; max-width: none; }
+.pg-leyenda li { display: flex; align-items: center; gap: 8px; }
+.pg-leyenda i { display: inline-block; width: 24px; height: 0; border-top: 2px solid; }
+.pg-leyenda b { font-family: var(--data); font-weight: 600; color: var(--ink); }
+.pg-k-maquina i { border-color: var(--measured); border-top-width: 2.4px; }
+.pg-k-gemelo i { border-top-style: dashed; border-color: var(--simulated); }
+.pg-k-zona i {
+  height: 11px;
+  border: 1px dotted var(--measured);
+  background: color-mix(in srgb, var(--measured) 12%, transparent);
+}
+.pg-k-sin_registro i {
+  height: 11px;
+  border: 1px solid var(--rule);
+  background: repeating-linear-gradient(135deg, var(--rule) 0 1px, transparent 1px 5px);
+}
+
+.block .pg-frase, .pg-frase {
+  margin: 0;
+  max-width: none;
+  padding: 12px 16px 14px;
+  border-top: 1px solid var(--rule-soft);
+  font-size: 15.5px;
+  line-height: 1.55;
+  text-align: left;
+}
+
+.pg-mando { padding: 12px 16px 14px; border-top: 1px solid var(--rule-soft); }
+.block .pg-tira-nota, .pg-tira-nota {
+  margin: 0 0 9px;
+  max-width: none;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--ink-faint);
+  text-align: left;
+}
+.pg-tira { position: relative; height: 70px; }
+.pg-tira:focus-within { outline: 2px solid var(--accent); outline-offset: 4px; }
+.pg-tira-svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.pg-b { fill: var(--ink-faint); opacity: .55; }
+.pg-b-alta { fill: var(--ink); }
+.pg-b-sin { fill: var(--ink-faint); opacity: .35; }
+.pg-b-elegido { fill: var(--accent); opacity: 1; }
+.pg-t-parte { fill: var(--accent); }
+.pg-t-marzo { fill: none; stroke: var(--simulated); stroke-width: 2; }
+.pg-t-umbral { fill: none; stroke: var(--accent); stroke-width: 1; stroke-dasharray: 4 3; }
+.pg-t-suelo { fill: none; stroke: var(--ink-faint); stroke-width: 1; stroke-dasharray: 1 3; }
+.pg-t-cursor { fill: none; stroke: var(--accent); stroke-width: 1.5; }
+
+/* El mando es un deslizador de verdad, invisible y del tamaño de la tira: se
+ * pincha o se arrastra sobre las barras, y las flechas del teclado funcionan
+ * solas. El pulgar mide dos píxeles para que el día que marca caiga debajo del
+ * dedo: con el de fábrica, de dieciséis, en un móvil se desplazaba cinco días. */
+.pg-cursor {
+  -webkit-appearance: none;
+  appearance: none;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+  background: transparent;
+}
+.pg-cursor::-webkit-slider-runnable-track { height: 70px; background: transparent; }
+.pg-cursor::-webkit-slider-thumb { -webkit-appearance: none; width: 2px; height: 70px; }
+.pg-cursor::-moz-range-track { height: 70px; background: transparent; }
+.pg-cursor::-moz-range-thumb { width: 2px; height: 70px; border: 0; border-radius: 0; }
+.pg-cursor[disabled] { cursor: default; }
+
+.pg-meses { position: relative; height: 17px; margin-top: 3px; }
+.pg-mes {
+  position: absolute;
+  top: 0;
+  padding-left: 4px;
+  border-left: 1px solid var(--rule);
+  font-family: var(--data);
+  font-size: 10px;
+  line-height: 17px;
+  color: var(--ink-faint);
+}
+
+.pg-botones {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+.pg-atajos-titulo {
+  flex-basis: 100%;
+  margin-top: 4px;
+  font-family: var(--data);
+  font-size: 9.5px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.pg-paso, .pg-atajo {
+  font-family: var(--data);
+  font-size: 11px;
+  padding: 6px 10px;
+  border: 1px solid var(--rule);
+  background: transparent;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+.pg-paso:hover, .pg-atajo:hover { border-color: var(--accent); color: var(--accent); }
+.pg-paso:focus-visible, .pg-atajo:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.pg-atajo[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
+.pg-paso[disabled], .pg-atajo[disabled] { opacity: .45; cursor: default; }
+.pg-paso[disabled]:hover, .pg-atajo[disabled]:hover { border-color: var(--rule); color: var(--ink-soft); }
+
+.pg-sinjs { display: none; }
+.no-js .pg-sinjs { display: block; margin: 10px 0 0; font-size: 12.5px; color: var(--ink-faint); }
+.no-js .pg-botones { display: none; }
+
+@media (max-width: 620px) {
+  .pg-grafico { padding: 14px 12px 48px 52px; }
+  .pg-eje-y { left: 4px; }
+  .pg-eje-x { left: 52px; right: 12px; }
+  .pg-lienzo { height: 250px; }
+  .pg-ty, .pg-tx, .pg-marca { font-size: 9.5px; }
+  .pg-fecha { font-size: 19px; }
+  .pg-leyenda { gap: 5px 16px; font-size: 12px; }
+  .pg-frase { font-size: 15px; }
+}
+
+/* La puerta del índice hacia el panel: para quien no va a leer 31 módulos. */
+.door {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 3px 18px;
+  margin: 22px 0 4px;
+  padding: 14px 16px;
+  max-width: var(--block);
+  border: 1px solid var(--rule);
+  border-left: 2px solid var(--accent);
+  background: var(--panel);
+  color: var(--ink);
+  text-decoration: none;
+}
+.door:hover { border-color: var(--accent); }
+.door-k {
+  grid-column: 1;
+  font-family: var(--data);
+  font-size: 10px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.door-t { grid-column: 1; font-family: var(--display); font-size: 19px; font-weight: 600; line-height: 1.25; }
+.door-s { grid-column: 1; font-size: 13.5px; line-height: 1.45; color: var(--ink-soft); }
+.door-a { grid-column: 2; grid-row: 1 / span 3; font-family: var(--data); font-size: 22px; color: var(--accent); }
+
+/* ------------------------------------------------------ movimiento y papel */
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@media print {
+  .shell { display: block; }
+  .panel, .live-bar, .live-editor { display: none; }
+  .live-static { display: block; }
+  body { background: #fff; color: #000; }
+}
+
+/* ------------------------------------------------------ figuras, dos temas */
+
+/* Cada figura viaja dos veces, clara y oscura, y aquí se enseña la que toca.
+ * Con `<picture>` y una media query bastaría para la preferencia del sistema,
+ * pero no para el interruptor manual, y este curso respeta los dos. */
+.fig-oscuro { display: none; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .fig-claro { display: none; }
+  :root:not([data-theme="light"]) .fig-oscuro { display: block; }
+}
+:root[data-theme="dark"] .fig-claro { display: none; }
+:root[data-theme="dark"] .fig-oscuro { display: block; }
+
+/* El acento de este módulo, uno por tema. Los dos salen de src/site/palette.py
+   y los dos pasaron el contraste antes de llegar aquí. */
+:root { --accent: #8F6751; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --accent: #D8AD94; }
+}
+:root[data-theme="dark"] { --accent: #D8AD94; }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- La barra de instrumentos. No se mueve al bajar: el tramo del lago, la cifra
+       del módulo y el avance se quedan a la vista mientras se lee. -->
+  <aside class="panel">
+    <a class="panel-brand" href="index.html">Fuelle
+      <small>Módulo 29 de 31</small></a>
+
+    <nav class="rail" aria-label="El arco del proyecto">
+      <p class="panel-label">el lago</p>
+      <span class="rail-step done"><i class="dot"></i><span>CRUDO</span><span class="range">1-3</span></span><span class="rail-step done"><i class="dot"></i><span>BRONCE</span><span class="range">4-13</span></span><span class="rail-step done"><i class="dot"></i><span>PLATA</span><span class="range">14-16</span></span><span class="rail-step done"><i class="dot"></i><span>ORO</span><span class="range">17-22</span></span><span class="rail-step here"><i class="dot"></i><span>GEMELO</span><span class="range">23-31</span></span>
+    </nav>
+
+    <div class="panel-figure">
+      <span class="v">14 de 14</span>
+      <span class="l">tablas que vuelven iguales tras borrar el lago entero y pedírselo a Dagster; la primera vez fueron 13</span>
+    </div>
+
+    <div class="panel-progress">
+      <b>29</b> de 31
+      <span class="panel-bar"><i style="width: 94%"></i></span>
+    </div>
+
+    <nav class="panel-nav"><a href="m28_veredicto.html" title="28. El veredicto: cuatro averías y cuántas falsas alarmas">← 28</a><a href="m30_panel.html" title="30. El panel del gemelo">30 →</a><a class="portfolio-link" href="https://kmortizva-data.github.io/work/fuelle.html" target="_blank" rel="noopener">English summary on the portfolio ↗</a></nav>
+  </aside>
+
+  <main class="stage">
+    <div class="stage-inner">
+      <header class="head">
+        <p class="head-id"><b>29</b> <span>parte: La fábrica y la entrega</span></p>
+        <h1>Que todo esto corra solo</h1>
+        <p class="standfirst">Un orquestador conoce el orden, reintenta lo que falla y rellena hacia atrás. Borrar el lago entero y verlo reconstruirse es la única prueba que vale</p>
+      </header>
+
+      <section class="block is-brief"><span class="kicker">Resumen</span><h2 class="block-title">En 30 segundos</h2><ul><li>Hasta aquí el lago se construía <strong>a mano</strong>, script a script, en un orden que solo estaba escrito en una tabla del README.</li><li>Un <strong>orquestador</strong> sabe el orden solo, porque cada pieza declara de qué sale: <strong>27 activos y 31 flechas</strong>, y ninguna dibujada a mano.</li><li>La prueba es borrar el lago entero y pedírselo todo. <strong>La primera vez no salió igual</strong>, y lo que encontró corrigió cuatro lecciones ya publicadas.</li><li>Arreglado, sale <strong>14 de 14</strong>: todas las tablas iguales, y cada fichero Parquet idéntico <strong>byte a byte</strong>.</li><li>La regla de todo el módulo: <strong>lo que corre el orquestador tiene que dar lo mismo cada vez</strong>. Por eso el cronómetro se queda fuera.</li></ul></section>
+<section class="block "><span class="kicker">Contexto</span><h2 class="block-title">Qué resuelve este módulo</h2><p>Todas las piezas del lago existen y están comprobadas, de la ingesta al veredicto del gemelo. Pero existen en esta máquina, y se construyeron corriendo scripts a mano en un orden que había que saber.</p><p>Eso aguanta mientras nada se rompe. Tres situaciones lo rompen, y las tres pasan en cualquier planta:</p><ul><li><strong>Una máquina nueva.</strong> Alguien clona el repositorio y tiene que reconstruir el lago. ¿En qué orden? El README lo dice, si está al día.</li><li><strong>Un fallo de red a las tres de la mañana.</strong> El clima se pide a una API ajena. Si esa noche no contesta, alguien tiene que acordarse de volver a pedirlo.</li><li><strong>Un día que llega mal.</strong> Si el 5 de junio se estropea, rehacer el lago entero para arreglar un día es tirar casi todo el trabajo.</li></ul><p>Un orquestador resuelve las tres: <strong>conoce el orden, reintenta lo que falla y rellena hacia atrás</strong>. Y con él llega la única prueba honesta de que el lago se puede reconstruir: borrarlo y mirar.</p></section>
+<section class="block is-toy"><span class="kicker">A mano</span><h2 class="block-title">Antes de la teoría: un ejemplo de juguete</h2><p>Una concentradora cierra cada día con cuatro tareas:</p><div class="table-wrap"><table><thead><tr><th>Tarea</th><th>Necesita antes</th></tr></thead><tbody><tr><td>pesar el mineral</td><td>nada, sale de la báscula</td></tr><tr><td>muestrear</td><td>nada, sale del muestreador</td></tr><tr><td>analizar la ley</td><td>la muestra</td></tr><tr><td>cerrar el balance</td><td>el peso y la ley</td></tr></tbody></table></div><p><strong>Tres flechas.</strong> Nadie tiene que escribir «primero esto, luego aquello»: el orden sale de las flechas. Pesar y muestrear pueden ir a la vez, analizar va después de muestrear, y el balance va el último porque necesita las otras dos.</p><p>Ahora, tres noches malas de un mes de 30 días:</p><ol><li><strong>El analizador del laboratorio falla a las tres de la mañana.</strong> Casi siempre es un tropiezo: se reintenta a los diez minutos y funciona. Nadie debería despertarse por eso.</li><li><strong>La muestra del martes llegó contaminada.</strong> Se repite el análisis del martes y el balance del martes. <strong>Un día de 30</strong>, no el mes entero.</li><li><strong>Se pierde el libro de balances del mes.</strong> Si se puede rehacer entero desde los pesos y las leyes, y sale igual, el procedimiento está escrito de verdad. Si no sale igual, algo dependía de la memoria de alguien.</li></ol><p>Las tres cosas tienen nombre: <strong>reintentar, rellenar hacia atrás y reconstruir</strong>. Este módulo las hace con el lago, y la tercera fue la que dio la sorpresa.</p></section>
+<section class="block is-terms"><span class="kicker">Términos</span><h2 class="block-title">Glosario</h2><details class="fold"><summary>11 términos, en palabras simples</summary><ul><li><strong>Orquestador.</strong> El programa que sabe qué hay que construir, en qué orden, y qué hacer cuando algo falla. Aquí es <strong>Dagster</strong>.</li><li><strong>Activo.</strong> Algo que debería existir: una carpeta de Parquet, una tabla, un fichero de resultados. Cada uno declara de qué se construye.</li><li><strong>Materializar.</strong> Construir un activo y dejar apuntado cuándo y con qué resultado.</li><li><strong>Dependencia.</strong> La flecha «se construye a partir de». Es la misma idea que el <code>ref()</code> del módulo 17, para todo el proyecto y no solo para el oro.</li><li><strong>Partición.</strong> Un trozo de un activo que se puede construir por separado. Aquí, un día del bronce.</li><li><strong>Rellenar hacia atrás.</strong> Reconstruir un tramo de particiones pasadas sin tocar las demás. En inglés se dice <em>backfill</em>, y así lo llama Dagster.</li><li><strong>Política de reintentos.</strong> Cuántas veces se repite un paso que falla y cuánto se espera entre intento e intento.</li><li><strong>Comprobación de activo.</strong> Una prueba que corre justo después de construir un activo. Es el contrato del módulo 16 con otro nombre.</li><li><strong>Determinista.</strong> Que con las mismas entradas dé siempre lo mismo, hasta el último byte. Un cronómetro no lo es, y resultó que un escritor en paralelo tampoco.</li><li><strong>Hilo.</strong> Cada una de las tareas que un programa corre a la vez. DuckDB usa tantos como núcleos tiene la máquina, y eso tiene un precio que este módulo mide.</li><li><strong>Huella de contenido.</strong> Cuántas filas tiene una tabla y la suma de un número sacado de cada una. La del módulo 5 miraba los bytes del fichero; esta mira lo que dicen.</li></ul></details></section>
+<section class="block is-method"><span class="kicker">Método</span><h2 class="block-title">Paso a paso</h2><h3 class="sub">Paso 1. Declarar cada pieza, y de qué sale</h3><p>Cada activo lleva un nombre y la lista de lo que necesita. Con eso Dagster dibuja el grafo, decide el orden y sabe qué queda viejo cuando algo cambia aguas arriba.</p><h3 class="sub">Paso 2. Declarar también lo que nadie construye</h3><p>El CSV de la UCI, la API del clima y los partes de avería no los construye nadie aquí. <strong>Se declaran igual</strong>, porque el grafo tiene que empezar donde empieza de verdad. No se pueden materializar, y en la figura van con el borde discontinuo.</p><h3 class="sub">Paso 3. Partir por día lo que llega por días</h3><p>El bronce ya estaba en una carpeta por día desde el módulo 4. Ahora Dagster lo sabe, y eso le permite rehacer un día suelto o un tramo de días sin tocar los demás.</p><h3 class="sub">Paso 4. Reintentar solo donde hay red</h3><p>Solo una pieza habla con el exterior: la descarga del clima. <strong>Es la única con reintentos.</strong> Poner reintentos en todo esconde fallos de verdad detrás de repeticiones que nunca van a funcionar.</p><h3 class="sub">Paso 5. Colgar de cada activo las pruebas que ya existían</h3><p>El contrato del módulo 16 pasa a vigilar la plata, las once pruebas de dbt del módulo 17 entran solas, y la restauración del módulo 22 vigila la copia. Ninguna se reescribe: se cuelgan.</p><h3 class="sub">Paso 6. Separar construir de cronometrar</h3><p>Los scripts de las lecciones hacían dos cosas a la vez: construir, y medir cuánto tardaban en construir con la mediana de siete corridas.</p><p><strong>Un orquestador no puede cronometrar.</strong> El cronómetro no da dos veces lo mismo, así que cada reconstrucción reescribiría las cifras que publican las lecciones. La regla quedó así: lo que corre el orquestador tiene que dar lo mismo cada vez. <strong>Seis scripts se partieron en dos</strong>, y su parte de medir sigue ahí, para correrla a mano.</p></section>
+<section class="block is-code"><span class="kicker">Código</span><h2 class="block-title">El código, por partes</h2><h3 class="sub">Paso 7. Un activo que llama a lo que ya había</h3><pre><code class="language-python">@dg.asset(key=[&quot;lago&quot;, &quot;plata&quot;], deps=[bronce], group_name=&quot;lago&quot;)
+def plata() -&gt; dg.MaterializeResult:
+    from transform import silver
+
+    hecho = _corre(silver.construye)
+    return dg.MaterializeResult(metadata=hecho)</code></pre><details class="fold"><summary>línea por línea, 6 entradas</summary><dl class="annot"><dt><code>@dg.asset</code></dt><dd>convierte la función en un activo: algo que Dagster sabe construir</dd><dt><code>key=[&quot;lago&quot;, &quot;plata&quot;]</code></dt><dd>su nombre en el grafo, con el grupo delante como en una carpeta</dd><dt><code>deps=[bronce]</code></dt><dd>la flecha: la plata se construye a partir del bronce. De aquí sale el orden</dd><dt><code>silver.construye</code></dt><dd>la función del módulo 14: el orquestador no calcula nada nuevo</dd><dt><code>_corre</code></dt><dd>convierte el «me niego a seguir» de un script en un fallo del activo, con el mismo mensaje</dd><dt><code>MaterializeResult</code></dt><dd>lo que queda apuntado de esta construcción: filas, lecturas y huecos</dd></dl></details><p>Ni una línea de la plata se reescribe aquí. <strong>El orquestador pone el orden, no la aritmética.</strong></p><h3 class="sub">Paso 8. El bronce, día a día</h3><pre><code class="language-python">DIAS = dg.DailyPartitionsDefinition(start_date=&quot;2020-02-01&quot;, end_date=&quot;2020-09-02&quot;)
+
+@dg.asset(key=[&quot;lago&quot;, &quot;bronce&quot;], deps=[CSV], partitions_def=DIAS,
+          backfill_policy=dg.BackfillPolicy.single_run())
+def bronce(context: dg.AssetExecutionContext) -&gt; dg.MaterializeResult:
+    tramo = context.partition_key_range
+    dias = (tramo.start, tramo.end)
+    bronze.clear(dias)
+    bronze.write(con, dias)</code></pre><details class="fold"><summary>línea por línea, 5 entradas</summary><dl class="annot"><dt><code>DailyPartitionsDefinition</code></dt><dd>una partición por día de calendario. El último no entra, por eso se escribe el 2 de septiembre</dd><dt><code>partitions_def=DIAS</code></dt><dd>el bronce queda partido por días: se puede construir entero o a trozos</dd><dt><code>BackfillPolicy.single_run()</code></dt><dd>un tramo de días va en una sola corrida y no en una por día: leer el CSV entero cada vez sería absurdo</dd><dt><code>partition_key_range</code></dt><dd>el tramo que toca construir: del primer día al último, o un día solo</dd><dt><code>bronze.clear(dias)</code></dt><dd>borra solo las carpetas de ese tramo. Las demás ni se abren</dd></dl></details><p>El calendario tiene <strong>214 días</strong> y el bronce, <strong>212 carpetas</strong>. Los dos que faltan son el 29 de febrero y el 26 de abril, los días sin una sola lectura que encontró el módulo 8. <strong>El orquestador conoce el calendario; el dato, no.</strong> Esos dos días se construyen igual y salen vacíos.</p><h3 class="sub">Paso 9. El clima, con reintentos</h3><pre><code class="language-python">@dg.asset(key=[&quot;lago&quot;, &quot;clima&quot;], deps=[OPEN_METEO],
+          retry_policy=dg.RetryPolicy(max_retries=3, delay=10,
+                                      backoff=dg.Backoff.EXPONENTIAL))
+def clima() -&gt; dg.MaterializeResult:</code></pre><details class="fold"><summary>línea por línea, 4 entradas</summary><dl class="annot"><dt><code>retry_policy</code></dt><dd>qué hacer si el paso falla: repetirlo en vez de rendirse</dd><dt><code>max_retries=3</code></dt><dd>hasta tres intentos más después del primero</dd><dt><code>delay=10</code></dt><dd>espera diez segundos antes del primer reintento</dd><dt><code>Backoff.EXPONENTIAL</code></dt><dd>y cada espera dobla la anterior: diez, veinte y cuarenta</dd></dl></details><p>Esperar cada vez más no es capricho. Si la API está saturada, reintentar enseguida la satura más, y cuatro intentos seguidos en un segundo fallan los cuatro por la misma razón.</p><h3 class="sub">Paso 10. El oro, sin reescribir dbt</h3><pre><code class="language-python">@dbt_assets(manifest=DBT.manifest_path, project=DBT)
+def oro(context: dg.AssetExecutionContext, dbt: DbtCliResource):
+    yield from dbt.cli([&quot;build&quot;], context=context).stream()</code></pre><details class="fold"><summary>línea por línea, 4 entradas</summary><dl class="annot"><dt><code>@dbt_assets</code></dt><dd>lee el manifest del módulo 17 y convierte cada modelo en un activo</dd><dt><code>manifest=DBT.manifest_path</code></dt><dd>el mismo fichero del que salía el mapa del módulo 17</dd><dt><code>dbt.cli([&quot;build&quot;])</code></dt><dd>la misma orden de siempre: construir y probar en el orden del grafo</dd><dt><code>.stream()</code></dt><dd>cada modelo terminado se apunta en Dagster, y cada prueba de dbt, como comprobación</dd></dl></details><p>Las fuentes del proyecto dbt se llaman <code>lago.plata</code>, <code>lago.clima</code> y <code>lago.averias</code>. Los activos de los pasos anteriores se llaman igual, así que <strong>las flechas entre Dagster y dbt se ponen solas</strong>.</p><h3 class="sub">Paso 11. La huella de una tabla, en una consulta</h3><p>La prueba compara cada tabla por lo que contiene, no por sus bytes. Delta e Iceberg escriben fechas y nombres aleatorios en su propio registro, así que dos tablas idénticas nunca tienen los mismos bytes. Lo que se compara es esto:</p><pre><code class="language-sql">SELECT count(*) AS filas, sum(hash(t)::HUGEINT) AS huella
+FROM read_parquet(&#x27;lake/bronze/failures/failures.parquet&#x27;) t;</code></pre><details class="fold"><summary>línea por línea, 3 entradas</summary><dl class="annot"><dt><code>hash(t)</code></dt><dd>un número sacado de la fila entera. Dos filas con un solo valor distinto dan números distintos</dd><dt><code>::HUGEINT</code></dt><dd>un entero enorme, para que la suma de millones de filas no se desborde</dd><dt><code>sum(...)</code></dt><dd>sumar no depende del orden de las filas, y una fila repetida sí mueve la suma</dd></dl></details><div class="output"><span class="output-tag">sale</span><pre><code>┌───────┬──────────────────────┐
+│ filas │        huella        │
+│ int64 │        int128        │
+├───────┼──────────────────────┤
+│     4 │ 41458351517739629285 │
+└───────┴──────────────────────┘</code></pre></div><p>Una fila duplicada, un valor cambiado o una fila de menos mueven la huella. Una tabla escrita en otro orden, o partida en otros ficheros, no. Y esa segunda mitad es la que casi esconde el hallazgo del módulo.</p><h3 class="sub">Paso 12. Apartar el lago entero y pedirlo todo</h3><pre><code class="language-python">LAGO.rename(ANTES)
+for grupo, que, seleccion, extra in pasos:
+    tardo, r = materializa(seleccion, **extra)</code></pre><details class="fold"><summary>línea por línea, 2 entradas</summary><dl class="annot"><dt><code>LAGO.rename(ANTES)</code></dt><dd>el lago entero pasa a otra carpeta. Desde aquí, no hay lago</dd><dt><code>materializa(seleccion)</code></dt><dd>le pide a Dagster un grupo entero, y él decide el orden dentro</dd></dl></details><p>Esta es la última corrida, la que salió igual. Los tiempos son de esta corrida y no se repiten; lo que se repite es cada «igual».</p><div class="output"><span class="output-tag">sale</span><pre><code>  el grafo: 27 activos, 24 que se pueden construir, 31 dependencias y 13 comprobaciones
+  1. las huellas del lago de ahora, tabla a tabla
+     14 tablas y versiones, 642 ficheros Parquet
+  2. el lago entero pasa a lake_antes/: desde aquí, no hay lago
+  3. Dagster lo construye todo, con los mismos pasos que construye.py
+     bien  el bronce, los 214 días en una corrida       26.0 s
+     bien  el resto del lago, con el oro de dbt         51.4 s
+     bien  lo que consultan las lecciones                5.3 s
+     bien  el gemelo, de la física al veredicto         45.0 s
+     bien  PostgreSQL, desde initdb                    146.2 s
+  4. las huellas del lago nuevo, y la comparación
+     igual    lago/bronce                          1,516,948 filas
+     igual    lago/clima                               5,136 filas
+     igual    lago/averias                                 4 filas
+     igual    lago/plata                           1,841,760 filas
+     igual    lago/historia, Delta, versión 0            212 filas
+     igual    lago/historia, Delta, versión 1            212 filas
+     igual    lago/historia, Iceberg, versión 0          212 filas
+     igual    lago/historia, Iceberg, versión 1          212 filas
+     igual    lecciones/todo_en_un_parquet         1,516,948 filas
+     igual    lago/oro_averias                             4 filas
+     igual    lago/oro_ciclo_diario                      212 filas
+     igual    lago/oro_horas                           4,416 filas
+     igual    servidor/lecturas                    1,841,760 filas
+     igual    servidor/dias                              214 filas
+     igual    el servidor: 12 guardas, 3 índices, roles fuelle, mirona
+     iguales  642 de 642 ficheros Parquet byte a byte (642 ahora)
+     0 ficheros versionados distintos en results/ y assets/
+     13 de 13 comprobaciones de Dagster en verde
+  5. las diez puertas, contra el lago nuevo
+     10 en verde, salida 0
+  6. rellenar hacia atrás: se estropea el 2020-06-05 y se rehace solo ese día
+     igual    el día rehecho, byte a byte
+     211 de 211 ficheros de los otros días, sin tocar
+  todo igual: lake_antes/ borrado
+  4.6 minutos en total</code></pre></div><h3 class="sub">Paso 13. Escribir con un solo hilo</h3><pre><code class="language-python">@contextlib.contextmanager
+def un_solo_hilo(con):
+    antes = con.sql(&quot;SELECT current_setting(&#x27;threads&#x27;)&quot;).fetchone()[0]
+    con.execute(&quot;SET threads = 1&quot;)
+    try:
+        yield
+    finally:
+        con.execute(f&quot;SET threads = {antes}&quot;)</code></pre><details class="fold"><summary>línea por línea, 3 entradas</summary><dl class="annot"><dt><code>current_setting(&#x27;threads&#x27;)</code></dt><dd>cuántos hilos usa DuckDB ahora, para dejarlo igual al terminar</dd><dt><code>SET threads = 1</code></dt><dd>una sola tarea escribiendo, así que las filas salen siempre en el mismo orden y en los mismos ficheros</dd><dt><code>finally</code></dt><dd>pase lo que pase dentro, la conexión vuelve a como estaba</dd></dl></details><p>Y la plata, además, se escribe en orden de tiempo: un <code>ORDER BY r.timestamp</code> al final de su consulta. Ninguna de las dos cosas estaba en el plan. Salieron de la primera reconstrucción, y son lo que cuenta el resultado.</p></section>
+<section class="block is-result"><span class="kicker">Resultado</span><h2 class="block-title">El resultado, medido</h2><figure class="fig"><img class="fig-claro" src="../figuras/fig_m29_grafo_de_activos.claro.png?v=accc44e1" alt="fig m29 grafo de activos" loading="lazy"><img class="fig-oscuro" src="../figuras/fig_m29_grafo_de_activos.oscuro.png?v=ff379661" alt="fig m29 grafo de activos" loading="lazy"></figure><p><strong>Qué esperábamos.</strong> Que Dagster reconstruyera el lago y que saliera igual. Todos los scripts ya estaban comprobados, así que la prueba parecía un trámite.</p><p><strong>Qué salió la primera vez.</strong> <strong>13 de 14</strong> tablas iguales, las diez puertas con una en rojo, y tres cosas que nadie había visto en 28 módulos:</p><ol><li><strong>Una dependencia escondida.</strong> El script del clima lee la plata para las correlaciones del módulo 15, y el grafo no lo decía. Dagster lo corrió antes de que la plata existiera, y el script, en vez de negarse, <strong>escribió <code>null</code> en siete cifras publicadas</strong>. A mano nunca pasó, porque el 15 siempre se corrió después del 14.</li><li><strong>Las mismas filas, otros ficheros.</strong> El bronce y la plata volvieron con exactamente el mismo contenido, pero repartido en otros ficheros y en otro orden. DuckDB escribe con varios hilos a la vez, y cada corrida lo reparte a su manera.</li><li><strong>Y eso movía números.</strong> Una media de coma flotante sumada en otro orden cambia en su último decimal, y cuando cae justo en la mitad de un redondeo, salta. En <code>oro_horas</code>, <strong>cinco horas de 4.416 cambiaron una centésima</strong>. Y los pesos de columna que publica el módulo 7, unos bytes.</li></ol><p>Para saber qué lo causaba, un experimento escribe cada capa dos veces de cada manera. Las maneras son dos: con los hilos de DuckDB o con uno solo. La plata, además, sin orden o en orden de tiempo. Después compara los ficheros de las dos escrituras y las medias horarias de cada una.</p><div class="output"><span class="output-tag">sale</span><pre><code>  bronce varios hilos              213 y  213 ficheros,  198 idénticos,  22.06 MB
+  bronce un hilo                   212 y  212 ficheros,  212 idénticos,  22.05 MB
+  plata  varios hilos, sin orden   402 y  405 ficheros,    1 idénticos,  24.12 MB, 2 de 4416 medias horarias distintas
+  plata  un hilo, sin orden        400 y  400 ficheros,  400 idénticos,  22.08 MB, 0 de 4416 medias horarias distintas
+  plata  varios hilos, en orden    214 y  214 ficheros,  207 idénticos,  21.88 MB, 0 de 4416 medias horarias distintas
+  plata  un hilo, en orden         214 y  214 ficheros,  214 idénticos,  21.88 MB, 0 de 4416 medias horarias distintas</code></pre></div><p><strong>Eran dos causas, y cada una arregla una cosa.</strong> El orden de las filas arregla las medias. La plata de antes salía en un orden revuelto, distinto en cada corrida, y ordenarla por tiempo deja las medias quietas incluso con varios hilos. El hilo único arregla los bytes: con varios, aunque las filas vayan en orden, algún fichero sale distinto cada vez. El lago usa las dos cosas, y es el paso 13.</p><p><strong>El arreglo del clima</strong> fue partir su script: el orquestador solo lo baja y lo escribe, y el análisis del módulo 15 se niega si no hay plata.</p><p><strong>Y el arreglo destapó lo peor.</strong> Escrita en orden, la plata ocupa <strong>21,88 MB</strong>, cuando antes salía en torno a 24: el desorden la inflaba, repartida en unos cuatrocientos ficheros revueltos. Tres lecciones publicadas se apoyaban en ese tamaño inflado y quedaron corregidas, cada una contando qué decía:</p><div class="table-wrap"><table><thead><tr><th>Módulo</th><th>Decía</th><th>Dice ahora</th></tr></thead><tbody><tr><td>14</td><td>los huecos cuestan casi dos megas</td><td><strong>1,38 MB</strong>, medidos escribiendo la plata sin ellos</td></tr><tr><td>19</td><td>el servidor ocupa once veces más</td><td><strong>12,2 veces</strong>: 21,9 MB contra 267,8</td></tr><tr><td>22</td><td>la copia pesa menos que el Parquet</td><td>pesa un poco más: 22,2 contra 21,9</td></tr><tr><td>7</td><td>los pesos de un fichero escrito desde el bronce revuelto</td><td><strong>16,84 MB</strong>, y el factor de siete columnas baja de 25 a 22</td></tr></tbody></table></div><p><strong>Qué salió la última vez.</strong> Con los dos arreglos, la tercera reconstrucción salió idéntica en todo:</p><ul><li><strong>14 de 14</strong> tablas iguales por su contenido.</li><li><strong>642 de 642</strong> ficheros Parquet iguales byte a byte.</li><li>Ni un resultado publicado distinto.</li><li>Las 13 comprobaciones y las diez puertas, en verde.</li></ul><p>Y el relleno hacia atrás: se borró del bronce el 5 de junio, como si hubiera llegado corrupto, y Dagster rehízo ese día y solo ese. Volvió idéntico byte a byte, y los otros <strong>211</strong> ficheros del bronce ni se tocaron.</p><p><strong>Qué significa.</strong> Que la prueba sirvió para lo que existe. Los 28 módulos anteriores estaban comprobados uno a uno, por diez puertas. Aun así, tres de sus cifras dependían de algo que ninguna comprobación miraba: <strong>que escribir dos veces lo mismo diera los mismos bytes</strong>. Solo se ve reconstruyendo, porque solo entonces hay dos versiones que comparar.</p></section>
+<section class="block is-warning"><span class="kicker">Trampas</span><h2 class="block-title">Ojo</h2><ul><li><strong>Reproducible no es correcto.</strong> Si un script tuviera un fallo, Dagster lo reconstruiría igual de mal y la comparación saldría perfecta. Esta prueba dice que el lago <strong>se puede rehacer</strong>; que diga la verdad lo dicen las diez puertas y los módulos anteriores.</li><li><strong>Una huella de contenido no ve el orden, a propósito.</strong> Por eso la primera reconstrucción dio iguales el bronce y la plata mientras sus ficheros eran otros. Hacen falta las dos comparaciones: el contenido para las tablas, los bytes para lo que se escribe igual.</li><li><strong>Un script que escribe <code>null</code> en vez de negarse es peor que un fallo.</strong> El fallo del clima no dio error: dejó siete huecos en cifras publicadas, y solo lo cazó la puerta de números.</li><li><strong>El cronómetro se queda fuera, y no por comodidad.</strong> Un orquestador que midiera tiempos reescribiría en cada corrida las cifras que publican las lecciones.</li><li><strong>La reconstrucción no tocó <code>data/</code>.</strong> El CSV y el clima descargado son la entrada, no el lago. Por eso el clima no habló con la red, y <strong>el reintento no tuvo que actuar</strong>.</li><li><strong>Una partición vacía no es un error.</strong> El 29 de febrero y el 26 de abril se materializan sin una lectura. Dagster no sabe que ese día no hubo datos: eso lo sabe el dato.</li><li><strong>La interfaz de Dagster es para mirar.</strong> La prueba corre sin ella, desde Python. Si la abres, hazlo con <code>src/orchestration/abre.py</code>, que fija la carpeta de configuración. Sin ella, Dagster manda estadísticas de uso a sus autores.</li></ul></section>
+<section class="block is-bridge"><span class="kicker">Analogía</span><h2 class="block-title">Puente metalúrgico</h2><p>El arranque de un circuito de molienda y flotación lleva décadas funcionando así. Nadie arranca las celdas antes de las bombas que las alimentan, ni el molino antes de su lubricación. Y nadie se lo sabe de memoria: <strong>el sistema de control lo impide con enclavamientos</strong>, porque cada equipo tiene declarado qué necesita aguas arriba.</p><p>Un orquestador es esa secuencia de arranque para los datos. Y el balance metalúrgico reconciliado enseña lo mismo que el relleno hacia atrás: cuando el laboratorio corrige el ensayo de un turno, se recalcula el balance de ese turno. <strong>No el del año.</strong></p><p>Lo de los hilos también tiene su planta. Dos muestreadores que cortan el mismo flujo con otro ritmo dan la misma ley media y <strong>otra ley en cada muestra</strong>. Si un informe publica la ley de una muestra concreta, depende de qué muestreador cortó.</p></section>
+<section class="block is-review"><span class="kicker">Repaso</span><h2 class="block-title">Repaso</h2><details><summary>Qué sabe Dagster que no supiera ya el README</summary><p>Lo mismo, pero leído del código en vez de escrito a mano. El README tenía una tabla con el orden de los scripts, y le faltaban dos: el del clima y el de los partes. El grafo de Dagster sale de lo que cada activo declara, así que no puede olvidarse de nadie. Lo que sí puede es fiarse de una declaración incompleta, y eso es lo que pasó con el clima.</p></details><details><summary>Por qué el cronómetro no puede entrar en el orquestador</summary><p>Porque un orquestador corre lo mismo muchas veces, y cada vez tiene que dar lo mismo. Un tiempo medido nunca se repite, así que cada reconstrucción reescribiría las cifras publicadas. Construir se orquesta; medir se queda en los scripts de las lecciones, para correrlo a mano.</p></details><details><summary>Por qué la prueba compara contenido y además bytes</summary><p>Porque cada comparación ve lo que la otra no ve. El contenido se puede comparar en cualquier tabla, también en Delta, Iceberg y PostgreSQL, que nunca repiten sus bytes. Pero no ve el orden de las filas. Los bytes sí lo ven, y fueron los que destaparon las filas revueltas.</p></details><details><summary>El 5 de junio llega corrupto. Qué se rehace y qué no</summary><p>Se rehace la partición de ese día del bronce, y nada más del bronce: la prueba lo hizo y los demás ficheros no se tocaron. Después hay que rehacer lo que cuelga de él, y ahí entra la plata entera: en Dagster la plata no está partida por días.</p></details><details><summary>Una comprobación en verde después de reconstruir. Qué garantiza</summary><p>Que lo que prometía esa comprobación se cumple sobre el lago nuevo, y nada más. Las once pruebas de dbt y el contrato del módulo 16 pasaron en la primera reconstrucción, y aun así había siete cifras a <code>null</code>. Una comprobación vigila lo que se le dijo que vigilara.</p></details></section>
+
+      <footer class="footer">
+        <span>Fuelle / Módulo 29</span>
+        <span>generado el 2026-09-19</span>
+        <span>fuente: MetroPT-3, del compresor de un tren del Metro de Oporto (CC BY 4.0)</span>
+      </footer>
+    </div>
+  </main>
+
+</div>
+<!-- El motor SQL no se descarga aquí: este fichero solo conecta los botones.
+     Los 8 MB llegan cuando el lector pulsa, y no antes. -->
+<script type="module" src="live.js"></script>
+<script src="perilla.js" defer></script>
+
+</body>
+</html>

@@ -861,6 +861,294 @@ figcaption { font-size: 12.5px; color: var(--ink-faint); margin-top: 7px; max-wi
   .perilla-mando { flex: 1; width: auto; min-width: 0; }
 }
 
+/* --------------------------------------------------- el panel del gemelo */
+/*
+ * Módulo 30: la página propia del panel y el bloque ```panel de la lección.
+ *
+ * El gráfico es un SVG que se estira al hueco que le dan (preserveAspectRatio
+ * none) y sus trazos no engordan al estirarse (vector-effect en el HTML). Todo
+ * lo que es texto va encima en HTML: un texto dentro de un SVG que se encoge a
+ * 375 px se queda en cuatro píxeles. Los huecos del registro y las rayas de las
+ * marcas también son HTML, porque un rayado dentro de un SVG estirado se tuerce.
+ *
+ * La regla de forma del curso sigue mandando: la máquina medida va continua, el
+ * gemelo discontinuo, y el color nunca es la única pista.
+ */
+.pg {
+  margin: 20px 0 26px;
+  max-width: var(--block);
+  border: 1px solid var(--rule);
+  background: var(--stage);
+}
+.pg-cabeza {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  padding: 13px 16px 0;
+}
+.pg-fecha {
+  font-family: var(--display);
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--ink);
+}
+.pg-clase {
+  font-family: var(--data);
+  font-size: 10px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border: 1px solid var(--rule);
+  color: var(--ink-soft);
+}
+.pg-clase[data-clase="acierto"] { border-color: var(--accent); color: var(--accent); }
+.pg-clase[data-clase="falsa"],
+.pg-clase[data-clase="marzo_alarma"] { border-color: var(--simulated); color: var(--simulated); }
+.pg-clase[data-clase="escapa"] { border-style: dashed; border-color: var(--accent); color: var(--accent); }
+
+.pg-grafico { position: relative; padding: 16px 22px 50px 70px; }
+.pg-lienzo {
+  position: relative;
+  height: clamp(230px, 32vw, 360px);
+  border-left: 1px solid var(--ink-faint);
+  border-bottom: 1px solid var(--ink-faint);
+}
+.pg-svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.pg-rejilla { fill: none; stroke: var(--rule-soft); stroke-width: 1; }
+.pg-zona {
+  fill: var(--measured);
+  fill-opacity: .1;
+  stroke: var(--measured);
+  stroke-opacity: .45;
+  stroke-width: 1;
+  stroke-dasharray: 1 3;
+}
+.pg-gemelo { fill: none; stroke: var(--simulated); stroke-width: 2; stroke-dasharray: 7 5; }
+.pg-maquina { fill: none; stroke: var(--measured); stroke-width: 2.4; stroke-linejoin: round; }
+
+.pg-huecos, .pg-marcas { position: absolute; inset: 0; pointer-events: none; }
+.pg-hueco {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: repeating-linear-gradient(135deg, var(--rule) 0 1px, transparent 1px 7px);
+}
+.pg-raya { position: absolute; top: 0; bottom: 0; border-left: 1.5px solid var(--accent); }
+.pg-raya[data-tipo="parte"] { border-left: 1px dashed var(--ink-soft); }
+.pg-raya[data-tipo="cierre"] { border-left: 1px dotted var(--ink-soft); }
+.pg-marca {
+  position: absolute;
+  top: 5px;
+  padding: 1px 5px;
+  font-family: var(--data);
+  font-size: 10.5px;
+  line-height: 1.5;
+  white-space: nowrap;
+  color: var(--accent);
+  background: var(--stage);
+  transform: translateX(3px);
+}
+.pg-marca[data-fila="1"] { top: 26px; }
+.pg-marca[data-fila="2"] { top: 47px; }
+.pg-marca[data-lado="izq"] { transform: translateX(calc(-100% - 3px)); }
+.pg-marca[data-tipo="parte"], .pg-marca[data-tipo="cierre"] { color: var(--ink-soft); }
+
+.pg-ty, .pg-tx {
+  position: absolute;
+  font-family: var(--data);
+  font-size: 10.5px;
+  color: var(--ink-faint);
+  white-space: nowrap;
+}
+.pg-ty { right: calc(100% + 8px); transform: translateY(50%); }
+.pg-tx { top: calc(100% + 7px); transform: translateX(-50%); }
+.pg-eje-y, .pg-eje-x {
+  position: absolute;
+  font-family: var(--data);
+  font-size: 10.5px;
+  letter-spacing: .05em;
+  color: var(--ink-soft);
+}
+.pg-eje-y {
+  left: 8px;
+  top: 16px;
+  bottom: 50px;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  text-align: center;
+}
+.pg-eje-x { left: 70px; right: 22px; bottom: 9px; text-align: center; }
+
+.pg-leyenda {
+  list-style: none;
+  margin: 0;
+  padding: 10px 16px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 22px;
+  border-top: 1px solid var(--rule-soft);
+  font-size: 12.5px;
+  color: var(--ink-soft);
+}
+.block .pg-leyenda li { margin: 0; max-width: none; }
+.pg-leyenda li { display: flex; align-items: center; gap: 8px; }
+.pg-leyenda i { display: inline-block; width: 24px; height: 0; border-top: 2px solid; }
+.pg-leyenda b { font-family: var(--data); font-weight: 600; color: var(--ink); }
+.pg-k-maquina i { border-color: var(--measured); border-top-width: 2.4px; }
+.pg-k-gemelo i { border-top-style: dashed; border-color: var(--simulated); }
+.pg-k-zona i {
+  height: 11px;
+  border: 1px dotted var(--measured);
+  background: color-mix(in srgb, var(--measured) 12%, transparent);
+}
+.pg-k-sin_registro i {
+  height: 11px;
+  border: 1px solid var(--rule);
+  background: repeating-linear-gradient(135deg, var(--rule) 0 1px, transparent 1px 5px);
+}
+
+.block .pg-frase, .pg-frase {
+  margin: 0;
+  max-width: none;
+  padding: 12px 16px 14px;
+  border-top: 1px solid var(--rule-soft);
+  font-size: 15.5px;
+  line-height: 1.55;
+  text-align: left;
+}
+
+.pg-mando { padding: 12px 16px 14px; border-top: 1px solid var(--rule-soft); }
+.block .pg-tira-nota, .pg-tira-nota {
+  margin: 0 0 9px;
+  max-width: none;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--ink-faint);
+  text-align: left;
+}
+.pg-tira { position: relative; height: 70px; }
+.pg-tira:focus-within { outline: 2px solid var(--accent); outline-offset: 4px; }
+.pg-tira-svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.pg-b { fill: var(--ink-faint); opacity: .55; }
+.pg-b-alta { fill: var(--ink); }
+.pg-b-sin { fill: var(--ink-faint); opacity: .35; }
+.pg-b-elegido { fill: var(--accent); opacity: 1; }
+.pg-t-parte { fill: var(--accent); }
+.pg-t-marzo { fill: none; stroke: var(--simulated); stroke-width: 2; }
+.pg-t-umbral { fill: none; stroke: var(--accent); stroke-width: 1; stroke-dasharray: 4 3; }
+.pg-t-suelo { fill: none; stroke: var(--ink-faint); stroke-width: 1; stroke-dasharray: 1 3; }
+.pg-t-cursor { fill: none; stroke: var(--accent); stroke-width: 1.5; }
+
+/* El mando es un deslizador de verdad, invisible y del tamaño de la tira: se
+ * pincha o se arrastra sobre las barras, y las flechas del teclado funcionan
+ * solas. El pulgar mide dos píxeles para que el día que marca caiga debajo del
+ * dedo: con el de fábrica, de dieciséis, en un móvil se desplazaba cinco días. */
+.pg-cursor {
+  -webkit-appearance: none;
+  appearance: none;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+  background: transparent;
+}
+.pg-cursor::-webkit-slider-runnable-track { height: 70px; background: transparent; }
+.pg-cursor::-webkit-slider-thumb { -webkit-appearance: none; width: 2px; height: 70px; }
+.pg-cursor::-moz-range-track { height: 70px; background: transparent; }
+.pg-cursor::-moz-range-thumb { width: 2px; height: 70px; border: 0; border-radius: 0; }
+.pg-cursor[disabled] { cursor: default; }
+
+.pg-meses { position: relative; height: 17px; margin-top: 3px; }
+.pg-mes {
+  position: absolute;
+  top: 0;
+  padding-left: 4px;
+  border-left: 1px solid var(--rule);
+  font-family: var(--data);
+  font-size: 10px;
+  line-height: 17px;
+  color: var(--ink-faint);
+}
+
+.pg-botones {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+.pg-atajos-titulo {
+  flex-basis: 100%;
+  margin-top: 4px;
+  font-family: var(--data);
+  font-size: 9.5px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.pg-paso, .pg-atajo {
+  font-family: var(--data);
+  font-size: 11px;
+  padding: 6px 10px;
+  border: 1px solid var(--rule);
+  background: transparent;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+.pg-paso:hover, .pg-atajo:hover { border-color: var(--accent); color: var(--accent); }
+.pg-paso:focus-visible, .pg-atajo:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.pg-atajo[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
+.pg-paso[disabled], .pg-atajo[disabled] { opacity: .45; cursor: default; }
+.pg-paso[disabled]:hover, .pg-atajo[disabled]:hover { border-color: var(--rule); color: var(--ink-soft); }
+
+.pg-sinjs { display: none; }
+.no-js .pg-sinjs { display: block; margin: 10px 0 0; font-size: 12.5px; color: var(--ink-faint); }
+.no-js .pg-botones { display: none; }
+
+@media (max-width: 620px) {
+  .pg-grafico { padding: 14px 12px 48px 52px; }
+  .pg-eje-y { left: 4px; }
+  .pg-eje-x { left: 52px; right: 12px; }
+  .pg-lienzo { height: 250px; }
+  .pg-ty, .pg-tx, .pg-marca { font-size: 9.5px; }
+  .pg-fecha { font-size: 19px; }
+  .pg-leyenda { gap: 5px 16px; font-size: 12px; }
+  .pg-frase { font-size: 15px; }
+}
+
+/* La puerta del índice hacia el panel: para quien no va a leer 31 módulos. */
+.door {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 3px 18px;
+  margin: 22px 0 4px;
+  padding: 14px 16px;
+  max-width: var(--block);
+  border: 1px solid var(--rule);
+  border-left: 2px solid var(--accent);
+  background: var(--panel);
+  color: var(--ink);
+  text-decoration: none;
+}
+.door:hover { border-color: var(--accent); }
+.door-k {
+  grid-column: 1;
+  font-family: var(--data);
+  font-size: 10px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.door-t { grid-column: 1; font-family: var(--display); font-size: 19px; font-weight: 600; line-height: 1.25; }
+.door-s { grid-column: 1; font-size: 13.5px; line-height: 1.45; color: var(--ink-soft); }
+.door-a { grid-column: 2; grid-row: 1 / span 3; font-family: var(--data); font-size: 22px; color: var(--accent); }
+
 /* ------------------------------------------------------ movimiento y papel */
 
 @media (prefers-reduced-motion: reduce) {
@@ -936,11 +1224,11 @@ figcaption { font-size: 12.5px; color: var(--ink-faint); margin-top: 7px; max-wi
         <p class="standfirst">Until now the database was a file. Now it is a service serving several people at once, and that changes every rule</p>
       </header>
 
-      <section class="block is-brief"><span class="kicker">Summary</span><h2 class="block-title">In 30 seconds</h2><ul><li>Until now the database was <strong>a file</strong>. Now it is <strong>a service</strong> you have to start.</li><li>Handing it the <strong>1,841,760</strong> readings costs <strong>about 20 s</strong>. The file already had them.</li><li>And the surprise: answering <strong>does not get faster</strong>. The ranges overlap, so they do not differ.</li><li>What does change is disk: <strong>23.8 MB</strong> in Parquet against <strong>267.8</strong> in the server.</li><li>The table we just created accepts any nonsense. That is module 20.</li></ul></section>
+      <section class="block is-brief"><span class="kicker">Summary</span><h2 class="block-title">In 30 seconds</h2><ul><li>Until now the database was <strong>a file</strong>. Now it is <strong>a service</strong> you have to start.</li><li>Handing it the <strong>1,841,760</strong> readings costs <strong>about 20 s</strong>. The file already had them.</li><li>And the surprise: answering <strong>does not get faster</strong>. The ranges overlap, so they do not differ.</li><li>What does change is disk: <strong>21.9 MB</strong> in Parquet against <strong>267.8</strong> in the server.</li><li>The table we just created accepts any nonsense. That is module 20.</li></ul></section>
 <section class="block "><span class="kicker">Context</span><h2 class="block-title">What this module solves</h2><p>Everything this course has done fitted in one process. DuckDB opens the file, answers and closes, and meanwhile nobody else can touch it.</p><p>That ends the moment there are two people. Or a dashboard querying while the ingestion writes. Or somebody who needs read permission and nothing else.</p><p>A database server exists for that: a process that stays up, serves several clients at once and decides who may do what. <strong>PostgreSQL</strong> is the one the job adverts ask for and the one with thirty years of head start at that task.</p><p>What this module measures is what the change costs, because it is not free.</p></section>
 <section class="block is-toy"><span class="kicker">By hand</span><h2 class="block-title">Before the theory: a toy example</h2><p>The laboratory notebook is on your desk. You write down each batch&#x27;s grade and look it up whenever you like. It is fast, it is yours, and nobody has to give you permission.</p><p>Now three more people turn up:</p><div class="table-wrap"><table><thead><tr><th>Who</th><th>What they need</th></tr></thead><tbody><tr><td>the shift supervisor</td><td>to read the last batch&#x27;s grade</td></tr><tr><td>the laboratory</td><td>to write the next one</td></tr><tr><td>the client</td><td>to read, and only to read</td></tr></tbody></table></div><p>With the notebook on your desk there are three problems and none is about speed. <strong>They cannot look at it at once</strong>, because the notebook is where you are. <strong>There is no way to let the client read without being able to write</strong>, because a notebook cannot tell them apart. And if two people write at once, <strong>the last one to close wins</strong> and the other never finds out.</p><p>The answer is not a faster notebook. It is putting the notebook on a counter, with somebody behind it serving in turn who knows who everyone is.</p><p>That is a database server. And notice what has <strong>not</strong> improved: looking up a grade still costs the same. What has been bought is the counter, not the speed.</p></section>
 <section class="block is-terms"><span class="kicker">Terms</span><h2 class="block-title">Glossary</h2><details class="fold"><summary>7 terms, in plain words</summary><ul><li><strong>Server.</strong> A process that stays up waiting for requests. If it is not started, there is no database at all.</li><li><strong>Client.</strong> Anybody asking it: <code>psql</code>, a Python script, a dashboard.</li><li><strong>Port.</strong> The number you talk to it on. PostgreSQL&#x27;s standard is 5432; this course uses <strong>5433</strong> so it never clashes with a real install.</li><li><strong>Cluster.</strong> The folder holding all the server&#x27;s files, here <code>lake/pg</code>. Confusingly, it has nothing to do with several machines.</li><li><strong><code>initdb</code>.</strong> The program that creates that folder the first time.</li><li><strong><code>COPY</code>.</strong> PostgreSQL&#x27;s bulk load command. It brings in millions of rows without going through <code>INSERT</code> one at a time.</li><li><strong>OLTP and OLAP.</strong> Two ways of using a database: many small operations (OLTP), or few questions that sweep everything (OLAP). PostgreSQL was born for the first and DuckDB for the second.</li></ul></details></section>
-<section class="block is-method"><span class="kicker">Method</span><h2 class="block-title">Step by step</h2><h3 class="sub">Step 1. Get PostgreSQL without being an administrator</h3><p>The official installer wants administrator rights and leaves a Windows service running. The same binaries are also published as a zip, and that one <strong>unzips wherever you like and runs as it is</strong>.</p><p>It is what this project already does with Tectonic and with ffmpeg. Part 5 stops depending on anybody having permissions for anything.</p><h3 class="sub">Step 2. Create the cluster</h3><p><code>initdb</code> prepares the data folder: the system database, the configuration and the log files. It is done once and never touched again.</p><p>It goes inside <code>lake/</code>, which this project already keeps out of git. The database gets rebuilt like the rest of the lake, and not one byte of it goes to the repository.</p><h3 class="sub">Step 3. Start it on a port that is not everybody&#x27;s</h3><p>Two decisions, both visible in <code>postgresql.conf</code> and both worth explaining:</p><ul><li><strong>Port 5433</strong>, not 5432, so a real PostgreSQL installed here tomorrow can live alongside this one without either of them noticing.</li><li><strong><code>listen_addresses = &#x27;localhost&#x27;</code></strong>, so the instance is not reachable from the network. Authentication is <code>trust</code>, meaning no password, and **that is only defensible because of that line**: nothing outside this machine can open a connection. Module 22 replaces it with users that mean something.</li></ul><h3 class="sub">Step 4. Hand it the rows</h3><p>Here is the difference a file never charges for. The Parquet was already on disk: DuckDB reads it where it lies. The server <strong>does not have the data until you give it</strong>, row by row, over a connection.</p><h3 class="sub">Step 5. Ask both the same question</h3><p>And compare them by measuring, not by opining. The question is the project&#x27;s: how many hours a day the compressor spends loaded.</p></section>
+<section class="block is-method"><span class="kicker">Method</span><h2 class="block-title">Step by step</h2><h3 class="sub">Step 1. Get PostgreSQL without being an administrator</h3><p>The official installer wants administrator rights and leaves a Windows service running. The same binaries are also published as a zip, and that one <strong>unzips wherever you like and runs as it is</strong>.</p><p>It is what this project already does with Tectonic and with ffmpeg. Part 5 stops depending on anybody having permissions for anything.</p><h3 class="sub">Step 2. Create the cluster</h3><p><code>initdb</code> prepares the data folder: the system database, the configuration and the log files. It is done once and never touched again.</p><p>It goes inside <code>lake/</code>, which this project already keeps out of git. The database gets rebuilt like the rest of the lake, and not one byte of it goes to the repository.</p><h3 class="sub">Step 3. Start it on a port that is not everybody&#x27;s</h3><p>Two decisions, both visible in <code>postgresql.conf</code> and both worth explaining:</p><ul><li><strong>Port 5433</strong>, not 5432, so a real PostgreSQL installed here tomorrow can live alongside this one without either of them noticing.</li><li><strong><code>listen_addresses = &#x27;localhost&#x27;</code></strong>, so the instance is not reachable from the network. Authentication is <code>trust</code>, meaning no password, and <strong>that is only defensible because of that line</strong>: nothing outside this machine can open a connection. Module 22 replaces it with users that mean something.</li></ul><h3 class="sub">Step 4. Hand it the rows</h3><p>Here is the difference a file never charges for. The Parquet was already on disk: DuckDB reads it where it lies. The server <strong>does not have the data until you give it</strong>, row by row, over a connection.</p><h3 class="sub">Step 5. Ask both the same question</h3><p>And compare them by measuring, not by opining. The question is the project&#x27;s: how many hours a day the compressor spends loaded.</p></section>
 <section class="block is-code"><span class="kicker">Code</span><h2 class="block-title">The code, in parts</h2><h3 class="sub">Step 6. The three commands that set the server up</h3><pre><code class="language-consola">initdb  -D lake/pg -U fuelle --encoding=UTF8 --locale=C --auth=trust
 pg_ctl  -D lake/pg -l lake/pg/servidor.log start
 psql    -h localhost -p 5433 -U fuelle -d fuelle</code></pre><details class="fold"><summary>line by line, 4 entries</summary><dl class="annot"><dt><code>initdb</code></dt><dd>creates the cluster folder. Only the first time</dd><dt><code>--locale=C</code></dt><dd>sorting and messages independent of the system language, so the result does not change from one machine to another</dd><dt><code>pg_ctl start</code></dt><dd>brings the server up. Without this, everything else says «connection refused»</dd><dt><code>psql</code></dt><dd>the command line client PostgreSQL ships with</dd></dl></details><p>None of the three asks for administrator, and when you are done no service is left installed: it stops with <code>pg_ctl stop</code> and it is gone.</p><h3 class="sub">Step 7. The table, deliberately naive</h3><pre><code class="language-postgres">SELECT count(*) AS filas, min(day) AS desde, max(day) AS hasta
@@ -952,7 +1240,7 @@ FROM lecturas;</code></pre><details class="fold"><summary>line by line, 1 entry<
     with io.open(CSV, &quot;rb&quot;) as fh:
         while bloque := fh.read(1 &lt;&lt; 20):
             copia.write(bloque)</code></pre><details class="fold"><summary>line by line, 3 entries</summary><dl class="annot"><dt><code>COPY ... FROM STDIN</code></dt><dd>bulk load over the connection. One INSERT per row would take hours</dd><dt><code>STDIN y no una ruta</code></dt><dd>reading a file from the server&#x27;s disk requires the file to be on its machine and permission to read it. Over the connection it always works, including with the server somewhere else</dd><dt><code>fh.read(1 &lt;&lt; 20)</code></dt><dd>it goes a megabyte at a time, so 190 MB never sit in memory</dd></dl></details><div class="output"><span class="output-tag">prints</span><pre><code>  1,841,760 filas, 190.0 MB de CSV
-  1,841,760 filas en el servidor</code></pre></div><p>The intermediate CSV weighs <strong>190.0 MB</strong> for data that takes 23.8 in Parquet. It is module 7 again: text compresses badly, and here you pay for it twice, on disk and in what has to be pushed down the connection.</p><h3 class="sub">Step 9. The project&#x27;s question, against the server</h3><pre><code class="language-postgres">SELECT day,
+  1,841,760 filas en el servidor</code></pre></div><p>The intermediate CSV weighs <strong>190.0 MB</strong> for data that takes 21.9 in Parquet. It is module 7 again: text compresses badly, and here you pay for it twice, on disk and in what has to be pushed down the connection.</p><h3 class="sub">Step 9. The project&#x27;s question, against the server</h3><pre><code class="language-postgres">SELECT day,
        count(*) AS lecturas,
        round((sum(CASE WHEN dv_eletric = 1 THEN 1 ELSE 0 END) * 10 / 3600.0)::numeric, 2) AS horas
 FROM lecturas
@@ -967,14 +1255,14 @@ LIMIT 5;</code></pre><details class="fold"><summary>line by line, 2 entries</sum
  2020-03-29 |     7136 | 19.82
  2020-06-24 |     7162 | 15.91
 (5 rows)</code></pre></div><p>The same days and the same hours module 18 produced. <strong>The SQL you learned works here</strong>, which is half the module solved: changing engine does not change the language.</p></section>
-<section class="block is-result"><span class="kicker">Result</span><h2 class="block-title">The result, measured</h2><figure class="fig"><img class="fig-claro" src="../figuras/fig_m19_fichero_vs_servicio.claro.en.png?v=0ea71e69" alt="fig m19 fichero vs servicio" loading="lazy"><img class="fig-oscuro" src="../figuras/fig_m19_fichero_vs_servicio.oscuro.en.png?v=15239b7e" alt="fig m19 fichero vs servicio" loading="lazy"></figure><p><strong>What we expected.</strong> That a columnar engine like DuckDB would beat a row store hands down on an analytical question. It is what module 7&#x27;s theory says and it is what I took for granted.</p><p><strong>What came out.</strong> That <strong>they do not differ</strong>. Their ranges over seven runs overlap, so by module 6&#x27;s rule there is no difference to report. At 1.8 million rows both sweep the table and neither breaks a sweat.</p><p>The exact medians are in the figure and not here on purpose: <strong>they move from one run to the next</strong>, like anything measured in tenths of a second. What does not move is that the ranges overlap.</p><p>What does separate, and by a lot, is everything else:</p><div class="table-wrap"><table><thead><tr><th>What</th><th>A file</th><th>A service</th></tr></thead><tbody><tr><td>Having it ready</td><td>it already was</td><td><strong>about 20 s</strong> of loading</td></tr><tr><td>On disk</td><td>23.8 MB</td><td><strong>267.8 MB</strong></td></tr><tr><td>Starting it</td><td>nothing</td><td>a process kept up</td></tr><tr><td>Several at once</td><td>no</td><td>yes</td></tr><tr><td>Per user permissions</td><td>no</td><td>yes</td></tr></tbody></table></div><p><strong>Eleven times more disk.</strong> <strong>11.2</strong> to be exact, for the very same readings. And the whole cluster folder goes past the gigabyte, because besides the table it keeps the write ahead log that lets it lose nothing when the power goes.</p><p><strong>What it means.</strong> That the question &quot;which is faster&quot; was the wrong question. <strong>A server does not sell you speed: it sells concurrency, permissions and guarantees.</strong> And they are paid for in disk, in loading, and in having a process running.</p><p>For the work of this course so far, a file was the right choice and still is. What a file cannot do is let three people in with different permissions. And that will be needed when module 30&#x27;s dashboard queries while the ingestion writes.</p></section>
+<section class="block is-result"><span class="kicker">Result</span><h2 class="block-title">The result, measured</h2><figure class="fig"><img class="fig-claro" src="../figuras/fig_m19_fichero_vs_servicio.claro.en.png?v=05edfbed" alt="fig m19 fichero vs servicio" loading="lazy"><img class="fig-oscuro" src="../figuras/fig_m19_fichero_vs_servicio.oscuro.en.png?v=e71e7187" alt="fig m19 fichero vs servicio" loading="lazy"></figure><p><strong>What we expected.</strong> That a columnar engine like DuckDB would beat a row store hands down on an analytical question. It is what module 7&#x27;s theory says and it is what I took for granted.</p><p><strong>What came out.</strong> That <strong>they do not differ</strong>. Their ranges over seven runs overlap, so by module 6&#x27;s rule there is no difference to report. At 1.8 million rows both sweep the table and neither breaks a sweat.</p><p>The exact medians are in the figure and not here on purpose: <strong>they move from one run to the next</strong>, like anything measured in tenths of a second. What does not move is that the ranges overlap.</p><p>What does separate, and by a lot, is everything else:</p><div class="table-wrap"><table><thead><tr><th>What</th><th>A file</th><th>A service</th></tr></thead><tbody><tr><td>Having it ready</td><td>it already was</td><td><strong>about 20 s</strong> of loading</td></tr><tr><td>On disk</td><td>21.9 MB</td><td><strong>267.8 MB</strong></td></tr><tr><td>Starting it</td><td>nothing</td><td>a process kept up</td></tr><tr><td>Several at once</td><td>no</td><td>yes</td></tr><tr><td>Per user permissions</td><td>no</td><td>yes</td></tr></tbody></table></div><p><strong>Twelve times more disk.</strong> <strong>12.2</strong> to be exact, for the very same readings. This lesson used to say eleven, with the silver DuckDB wrote back then with several threads and in no order, which came out inflated: module 29 found it. And the whole cluster folder goes past the gigabyte, because besides the table it keeps the write ahead log that lets it lose nothing when the power goes.</p><p><strong>What it means.</strong> That the question &quot;which is faster&quot; was the wrong question. <strong>A server does not sell you speed: it sells concurrency, permissions and guarantees.</strong> And they are paid for in disk, in loading, and in having a process running.</p><p>For the work of this course so far, a file was the right choice and still is. What a file cannot do is let three people in with different permissions. And that will be needed when module 30&#x27;s dashboard queries while the ingestion writes.</p></section>
 <section class="block is-warning"><span class="kicker">Traps</span><h2 class="block-title">Watch out</h2><ul><li><strong>A stopped server is not a database.</strong> It is the number one mistake with PostgreSQL: everything says &quot;connection refused&quot; and it is not the network, it is that nobody started it. That is why in this project a single file starts and stops it.</li><li><strong><code>trust</code> is only acceptable because it listens on localhost.</strong> With no password and open to the network it would be giving the database away. The two decisions travel together or not at all.</li><li><strong>Port 5432 is left free on purpose.</strong> Occupying the standard one with a toy instance is the fastest way to break somebody&#x27;s real one.</li><li><strong>Load with <code>COPY</code>, never with <code>INSERT</code> row by row.</strong> The difference between twenty seconds and an afternoon.</li><li><strong>The intermediate CSV gets deleted.</strong> It is 190 MB that contribute nothing once loaded, and leaving it there is the kind of litter that fills a disk with nobody knowing why.</li><li><strong>This table promises nothing yet.</strong> It would take a duplicate or an impossible pressure without blinking. Module 20 fixes that, and until then the server is no safer than the file.</li></ul></section>
 <section class="block is-bridge"><span class="kicker">Analogy</span><h2 class="block-title">Metallurgical bridge</h2><p>A small laboratory keeps its results in a spreadsheet. It works while there is one person.</p><p>As soon as the plant grows a LIMS arrives, meaning a database with its server behind it. And the first thing everybody notices: <strong>it does not analyse any faster</strong>. The test takes what it takes.</p><p>What changes is something else. The night shift queries without calling anybody. The client sees their own certificates and not somebody else&#x27;s. Two technicians load results at once without overwriting each other. And when somebody asks who changed a grade, there is an answer.</p><p>Nobody buys a LIMS for speed. It gets bought for the same reasons as a database server, and it costs the same: more disk, more maintenance, and something switched on around the clock.</p></section>
-<section class="block is-review"><span class="kicker">Review</span><h2 class="block-title">Review</h2><details><summary>What a database server gains over a file</summary><p>Serving several clients at once, telling them apart and knowing what each may do, and guaranteeing two simultaneous writes do not overwrite each other. It does not gain speed: here the same question takes the same in both, with overlapping ranges.</p></details><details><summary>Why loading costs twenty seconds if the data was already on disk</summary><p>Because it was on disk but not inside the server. A file gets read where it lies. A server has to be handed every row over a connection, and it writes each one again in its own format and in its write ahead log. Those twenty seconds are the price of delivery.</p></details><details><summary>What it means that the two measurements have overlapping ranges</summary><p>That the difference between their medians cannot be defended. It is module 6&#x27;s rule: if over seven runs the worst case of one falls inside the other&#x27;s range, what is being measured is the machine&#x27;s noise. Publishing a winner there would be inventing a result.</p></details><details><summary>Why the table is created with no primary key and no constraints</summary><p>Because the module starts where the reader was: with a Parquet that accepted anything. Creating the table already armoured would hide module 20&#x27;s lesson, that a database protects against nothing until you tell it what is impossible. It is module 4&#x27;s criterion, which partitions by day knowing full well it is the worst option.</p></details><details><summary>The server takes eleven times more for the same data. In exchange for what</summary><p>For being able to recover. Much of that weight is the write ahead log, which notes every change before applying it so a power cut does not leave the table half written. A Parquet offers nothing like it: if the write is cut off, the file is broken and has to be redone.</p></details></section>
+<section class="block is-review"><span class="kicker">Review</span><h2 class="block-title">Review</h2><details><summary>What a database server gains over a file</summary><p>Serving several clients at once, telling them apart and knowing what each may do, and guaranteeing two simultaneous writes do not overwrite each other. It does not gain speed: here the same question takes the same in both, with overlapping ranges.</p></details><details><summary>Why loading costs twenty seconds if the data was already on disk</summary><p>Because it was on disk but not inside the server. A file gets read where it lies. A server has to be handed every row over a connection, and it writes each one again in its own format and in its write ahead log. Those twenty seconds are the price of delivery.</p></details><details><summary>What it means that the two measurements have overlapping ranges</summary><p>That the difference between their medians cannot be defended. It is module 6&#x27;s rule: if over seven runs the worst case of one falls inside the other&#x27;s range, what is being measured is the machine&#x27;s noise. Publishing a winner there would be inventing a result.</p></details><details><summary>Why the table is created with no primary key and no constraints</summary><p>Because the module starts where the reader was: with a Parquet that accepted anything. Creating the table already armoured would hide module 20&#x27;s lesson, that a database protects against nothing until you tell it what is impossible. It is module 4&#x27;s criterion, which partitions by day knowing full well it is the worst option.</p></details><details><summary>The server takes twelve times more for the same data. In exchange for what</summary><p>For being able to recover. Much of that weight is the write ahead log, which notes every change before applying it so a power cut does not leave the table half written. A Parquet offers nothing like it: if the write is cut off, the file is broken and has to be redone.</p></details></section>
 
       <footer class="footer">
         <span>Bellows / Module 19</span>
-        <span>generated on 2026-09-03</span>
+        <span>generated on 2026-09-19</span>
         <span>source: MetroPT-3, from a Porto Metro train compressor (CC BY 4.0)</span>
       </footer>
     </div>
@@ -985,5 +1273,6 @@ LIMIT 5;</code></pre><details class="fold"><summary>line by line, 2 entries</sum
      Los 8 MB llegan cuando el lector pulsa, y no antes. -->
 <script type="module" src="live.js"></script>
 <script src="perilla.js" defer></script>
+
 </body>
 </html>

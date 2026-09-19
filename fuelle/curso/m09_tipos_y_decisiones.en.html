@@ -861,6 +861,294 @@ figcaption { font-size: 12.5px; color: var(--ink-faint); margin-top: 7px; max-wi
   .perilla-mando { flex: 1; width: auto; min-width: 0; }
 }
 
+/* --------------------------------------------------- el panel del gemelo */
+/*
+ * Módulo 30: la página propia del panel y el bloque ```panel de la lección.
+ *
+ * El gráfico es un SVG que se estira al hueco que le dan (preserveAspectRatio
+ * none) y sus trazos no engordan al estirarse (vector-effect en el HTML). Todo
+ * lo que es texto va encima en HTML: un texto dentro de un SVG que se encoge a
+ * 375 px se queda en cuatro píxeles. Los huecos del registro y las rayas de las
+ * marcas también son HTML, porque un rayado dentro de un SVG estirado se tuerce.
+ *
+ * La regla de forma del curso sigue mandando: la máquina medida va continua, el
+ * gemelo discontinuo, y el color nunca es la única pista.
+ */
+.pg {
+  margin: 20px 0 26px;
+  max-width: var(--block);
+  border: 1px solid var(--rule);
+  background: var(--stage);
+}
+.pg-cabeza {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  padding: 13px 16px 0;
+}
+.pg-fecha {
+  font-family: var(--display);
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--ink);
+}
+.pg-clase {
+  font-family: var(--data);
+  font-size: 10px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border: 1px solid var(--rule);
+  color: var(--ink-soft);
+}
+.pg-clase[data-clase="acierto"] { border-color: var(--accent); color: var(--accent); }
+.pg-clase[data-clase="falsa"],
+.pg-clase[data-clase="marzo_alarma"] { border-color: var(--simulated); color: var(--simulated); }
+.pg-clase[data-clase="escapa"] { border-style: dashed; border-color: var(--accent); color: var(--accent); }
+
+.pg-grafico { position: relative; padding: 16px 22px 50px 70px; }
+.pg-lienzo {
+  position: relative;
+  height: clamp(230px, 32vw, 360px);
+  border-left: 1px solid var(--ink-faint);
+  border-bottom: 1px solid var(--ink-faint);
+}
+.pg-svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.pg-rejilla { fill: none; stroke: var(--rule-soft); stroke-width: 1; }
+.pg-zona {
+  fill: var(--measured);
+  fill-opacity: .1;
+  stroke: var(--measured);
+  stroke-opacity: .45;
+  stroke-width: 1;
+  stroke-dasharray: 1 3;
+}
+.pg-gemelo { fill: none; stroke: var(--simulated); stroke-width: 2; stroke-dasharray: 7 5; }
+.pg-maquina { fill: none; stroke: var(--measured); stroke-width: 2.4; stroke-linejoin: round; }
+
+.pg-huecos, .pg-marcas { position: absolute; inset: 0; pointer-events: none; }
+.pg-hueco {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: repeating-linear-gradient(135deg, var(--rule) 0 1px, transparent 1px 7px);
+}
+.pg-raya { position: absolute; top: 0; bottom: 0; border-left: 1.5px solid var(--accent); }
+.pg-raya[data-tipo="parte"] { border-left: 1px dashed var(--ink-soft); }
+.pg-raya[data-tipo="cierre"] { border-left: 1px dotted var(--ink-soft); }
+.pg-marca {
+  position: absolute;
+  top: 5px;
+  padding: 1px 5px;
+  font-family: var(--data);
+  font-size: 10.5px;
+  line-height: 1.5;
+  white-space: nowrap;
+  color: var(--accent);
+  background: var(--stage);
+  transform: translateX(3px);
+}
+.pg-marca[data-fila="1"] { top: 26px; }
+.pg-marca[data-fila="2"] { top: 47px; }
+.pg-marca[data-lado="izq"] { transform: translateX(calc(-100% - 3px)); }
+.pg-marca[data-tipo="parte"], .pg-marca[data-tipo="cierre"] { color: var(--ink-soft); }
+
+.pg-ty, .pg-tx {
+  position: absolute;
+  font-family: var(--data);
+  font-size: 10.5px;
+  color: var(--ink-faint);
+  white-space: nowrap;
+}
+.pg-ty { right: calc(100% + 8px); transform: translateY(50%); }
+.pg-tx { top: calc(100% + 7px); transform: translateX(-50%); }
+.pg-eje-y, .pg-eje-x {
+  position: absolute;
+  font-family: var(--data);
+  font-size: 10.5px;
+  letter-spacing: .05em;
+  color: var(--ink-soft);
+}
+.pg-eje-y {
+  left: 8px;
+  top: 16px;
+  bottom: 50px;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  text-align: center;
+}
+.pg-eje-x { left: 70px; right: 22px; bottom: 9px; text-align: center; }
+
+.pg-leyenda {
+  list-style: none;
+  margin: 0;
+  padding: 10px 16px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 22px;
+  border-top: 1px solid var(--rule-soft);
+  font-size: 12.5px;
+  color: var(--ink-soft);
+}
+.block .pg-leyenda li { margin: 0; max-width: none; }
+.pg-leyenda li { display: flex; align-items: center; gap: 8px; }
+.pg-leyenda i { display: inline-block; width: 24px; height: 0; border-top: 2px solid; }
+.pg-leyenda b { font-family: var(--data); font-weight: 600; color: var(--ink); }
+.pg-k-maquina i { border-color: var(--measured); border-top-width: 2.4px; }
+.pg-k-gemelo i { border-top-style: dashed; border-color: var(--simulated); }
+.pg-k-zona i {
+  height: 11px;
+  border: 1px dotted var(--measured);
+  background: color-mix(in srgb, var(--measured) 12%, transparent);
+}
+.pg-k-sin_registro i {
+  height: 11px;
+  border: 1px solid var(--rule);
+  background: repeating-linear-gradient(135deg, var(--rule) 0 1px, transparent 1px 5px);
+}
+
+.block .pg-frase, .pg-frase {
+  margin: 0;
+  max-width: none;
+  padding: 12px 16px 14px;
+  border-top: 1px solid var(--rule-soft);
+  font-size: 15.5px;
+  line-height: 1.55;
+  text-align: left;
+}
+
+.pg-mando { padding: 12px 16px 14px; border-top: 1px solid var(--rule-soft); }
+.block .pg-tira-nota, .pg-tira-nota {
+  margin: 0 0 9px;
+  max-width: none;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--ink-faint);
+  text-align: left;
+}
+.pg-tira { position: relative; height: 70px; }
+.pg-tira:focus-within { outline: 2px solid var(--accent); outline-offset: 4px; }
+.pg-tira-svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.pg-b { fill: var(--ink-faint); opacity: .55; }
+.pg-b-alta { fill: var(--ink); }
+.pg-b-sin { fill: var(--ink-faint); opacity: .35; }
+.pg-b-elegido { fill: var(--accent); opacity: 1; }
+.pg-t-parte { fill: var(--accent); }
+.pg-t-marzo { fill: none; stroke: var(--simulated); stroke-width: 2; }
+.pg-t-umbral { fill: none; stroke: var(--accent); stroke-width: 1; stroke-dasharray: 4 3; }
+.pg-t-suelo { fill: none; stroke: var(--ink-faint); stroke-width: 1; stroke-dasharray: 1 3; }
+.pg-t-cursor { fill: none; stroke: var(--accent); stroke-width: 1.5; }
+
+/* El mando es un deslizador de verdad, invisible y del tamaño de la tira: se
+ * pincha o se arrastra sobre las barras, y las flechas del teclado funcionan
+ * solas. El pulgar mide dos píxeles para que el día que marca caiga debajo del
+ * dedo: con el de fábrica, de dieciséis, en un móvil se desplazaba cinco días. */
+.pg-cursor {
+  -webkit-appearance: none;
+  appearance: none;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+  background: transparent;
+}
+.pg-cursor::-webkit-slider-runnable-track { height: 70px; background: transparent; }
+.pg-cursor::-webkit-slider-thumb { -webkit-appearance: none; width: 2px; height: 70px; }
+.pg-cursor::-moz-range-track { height: 70px; background: transparent; }
+.pg-cursor::-moz-range-thumb { width: 2px; height: 70px; border: 0; border-radius: 0; }
+.pg-cursor[disabled] { cursor: default; }
+
+.pg-meses { position: relative; height: 17px; margin-top: 3px; }
+.pg-mes {
+  position: absolute;
+  top: 0;
+  padding-left: 4px;
+  border-left: 1px solid var(--rule);
+  font-family: var(--data);
+  font-size: 10px;
+  line-height: 17px;
+  color: var(--ink-faint);
+}
+
+.pg-botones {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+.pg-atajos-titulo {
+  flex-basis: 100%;
+  margin-top: 4px;
+  font-family: var(--data);
+  font-size: 9.5px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.pg-paso, .pg-atajo {
+  font-family: var(--data);
+  font-size: 11px;
+  padding: 6px 10px;
+  border: 1px solid var(--rule);
+  background: transparent;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+.pg-paso:hover, .pg-atajo:hover { border-color: var(--accent); color: var(--accent); }
+.pg-paso:focus-visible, .pg-atajo:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.pg-atajo[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
+.pg-paso[disabled], .pg-atajo[disabled] { opacity: .45; cursor: default; }
+.pg-paso[disabled]:hover, .pg-atajo[disabled]:hover { border-color: var(--rule); color: var(--ink-soft); }
+
+.pg-sinjs { display: none; }
+.no-js .pg-sinjs { display: block; margin: 10px 0 0; font-size: 12.5px; color: var(--ink-faint); }
+.no-js .pg-botones { display: none; }
+
+@media (max-width: 620px) {
+  .pg-grafico { padding: 14px 12px 48px 52px; }
+  .pg-eje-y { left: 4px; }
+  .pg-eje-x { left: 52px; right: 12px; }
+  .pg-lienzo { height: 250px; }
+  .pg-ty, .pg-tx, .pg-marca { font-size: 9.5px; }
+  .pg-fecha { font-size: 19px; }
+  .pg-leyenda { gap: 5px 16px; font-size: 12px; }
+  .pg-frase { font-size: 15px; }
+}
+
+/* La puerta del índice hacia el panel: para quien no va a leer 31 módulos. */
+.door {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 3px 18px;
+  margin: 22px 0 4px;
+  padding: 14px 16px;
+  max-width: var(--block);
+  border: 1px solid var(--rule);
+  border-left: 2px solid var(--accent);
+  background: var(--panel);
+  color: var(--ink);
+  text-decoration: none;
+}
+.door:hover { border-color: var(--accent); }
+.door-k {
+  grid-column: 1;
+  font-family: var(--data);
+  font-size: 10px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.door-t { grid-column: 1; font-family: var(--display); font-size: 19px; font-weight: 600; line-height: 1.25; }
+.door-s { grid-column: 1; font-size: 13.5px; line-height: 1.45; color: var(--ink-soft); }
+.door-a { grid-column: 2; grid-row: 1 / span 3; font-family: var(--data); font-size: 22px; color: var(--accent); }
+
 /* ------------------------------------------------------ movimiento y papel */
 
 @media (prefers-reduced-motion: reduce) {
@@ -989,7 +1277,7 @@ ORDER BY corriente_media;</textarea><div class="live-bar"><button type="button" 
 │ en carga │   230592 │            5.82 │                        98.1 │
 └──────────┴──────────┴─────────────────┴─────────────────────────────┘</code></pre></div><p>The last column is what validates the rule, and it was not used to build it.</p></section>
 <section class="block is-result"><span class="kicker">Result</span><h2 class="block-title">The result, measured</h2><figure class="fig"><img class="fig-claro" src="../figuras/fig_m09_coma_flotante.claro.en.png?v=d25cf6ba" alt="fig m09 coma flotante" loading="lazy"><img class="fig-oscuro" src="../figuras/fig_m09_coma_flotante.oscuro.en.png?v=06b7836e" alt="fig m09 coma flotante" loading="lazy"></figure><p><strong>What we expected.</strong> Zero rows. It is what every manual on floating point says.</p><p><strong>What came out.</strong> Worse: it returned <strong>107</strong>. On a two decimal screen, no fewer than <strong>498</strong> readings show as 8.20, and the ones around 8.2 to one decimal are <strong>5,237</strong>. Against those, the equals found <strong>2.0 %</strong>.</p><p>Zero rows would have been lucky, because an empty result makes anyone suspicious. One hundred and seven readings is a believable number, it fits in a report and nobody looks twice.</p><p>The figure shows why. Around 8.2 bar there is no value: there is a cloud of similar values. The equals falls into one single slit of that cloud.</p><figure class="fig"><img class="fig-claro" src="../figuras/fig_m09_tres_estados.claro.en.png?v=9cc0b190" alt="fig m09 tres estados" loading="lazy"><img class="fig-oscuro" src="../figuras/fig_m09_tres_estados.oscuro.en.png?v=df1a41da" alt="fig m09 tres estados" loading="lazy"></figure><p><strong>And the three states rule.</strong> The split of the time comes out at <strong>54.6 / 30.1 / 15.2 %</strong>: stopped, offloaded and loaded.</p><p>The figure shows why the cuts are at 1 and 5 A. They are the two valleys of the distribution, the zones where there are almost no readings. Putting a boundary where there is little data is putting it where few readings get misclassified.</p><p><strong>What it means.</strong> The rule stands on its own: <strong>98.1 %</strong> of the readings it calls loaded carry the <code>DV_eletric</code> mark, a signal that was not used to write it. Two independent ways of knowing the same thing agree.</p><p>And there is a disagreement with the datasheet worth saying. The datasheet declares about <strong>7 A</strong> loaded and in the file the commonest is <strong>6.0 A</strong>. In the figure, the dotted line at 7 A falls in an almost empty zone. It is not a serious error, and it is the second place in this course where the paper and the file do not quite agree.</p></section>
-<section class="block is-warning"><span class="kicker">Traps</span><h2 class="block-title">Watch out</h2><ul><li><strong>Never compare a decimal with equals.</strong> Not in SQL nor anywhere else. You compare with <code>round()</code>, with <code>BETWEEN</code>, or by asking that the difference be small.</li><li><strong>The failure is not &quot;it finds nothing&quot;, it is &quot;it finds something&quot;.</strong> A zero draws attention; a 2 % gets published. That is why this error survives so long inside reports.</li><li><strong>The type rules over the number.</strong> The same 0.1 is exact as DECIMAL and inexact as DOUBLE. Before comparing, look at <code>typeof</code>.</li><li><strong>There are two causes here, and the common one is not the famous one.</strong> The one most people know is the binary one, DOUBLE&#x27;s. What really breaks this query is sillier: **the sensor gives three decimals and the screen shows two**. Both lead to the same place, and both are fixed the same way.</li><li><strong>A <code>CASE</code> with no <code>ELSE</code> leaves gaps.</strong> The rows that meet no condition end up NULL, and module 8 already showed how silent that is.</li><li><strong>The order of the <code>WHEN</code>s matters.</strong> They get evaluated top to bottom and the first that holds wins. Putting <code>&lt; 5</code> before <code>&lt; 1</code> would classify everything stopped as offloaded.</li><li><strong>The cuts are a decision, not a datum.</strong> Here they are justified with the distribution and checked with a second signal. Without that they would be two numbers picked by eye.</li></ul></section>
+<section class="block is-warning"><span class="kicker">Traps</span><h2 class="block-title">Watch out</h2><ul><li><strong>Never compare a decimal with equals.</strong> Not in SQL nor anywhere else. You compare with <code>round()</code>, with <code>BETWEEN</code>, or by asking that the difference be small.</li><li><strong>The failure is not &quot;it finds nothing&quot;, it is &quot;it finds something&quot;.</strong> A zero draws attention; a 2 % gets published. That is why this error survives so long inside reports.</li><li><strong>The type rules over the number.</strong> The same 0.1 is exact as DECIMAL and inexact as DOUBLE. Before comparing, look at <code>typeof</code>.</li><li><strong>There are two causes here, and the common one is not the famous one.</strong> The one most people know is the binary one, DOUBLE&#x27;s. What really breaks this query is sillier: <strong>the sensor gives three decimals and the screen shows two</strong>. Both lead to the same place, and both are fixed the same way.</li><li><strong>A <code>CASE</code> with no <code>ELSE</code> leaves gaps.</strong> The rows that meet no condition end up NULL, and module 8 already showed how silent that is.</li><li><strong>The order of the <code>WHEN</code>s matters.</strong> They get evaluated top to bottom and the first that holds wins. Putting <code>&lt; 5</code> before <code>&lt; 1</code> would classify everything stopped as offloaded.</li><li><strong>The cuts are a decision, not a datum.</strong> Here they are justified with the distribution and checked with a second signal. Without that they would be two numbers picked by eye.</li></ul></section>
 <section class="block is-bridge"><span class="kicker">Analogy</span><h2 class="block-title">Metallurgical bridge</h2><p>A cut-off grade is not chosen with an equals. Nobody says &quot;send me the ore that is exactly 0.5 % copper&quot;, because no sample with exactly that grade exists: 0.4987 and 0.5013 exist.</p><p>What gets said is &quot;above 0.5&quot;. A threshold, not an equality.</p><p>And that cut-off grade is not copied from another mine&#x27;s report either. It gets calculated with the metal price, the process cost and the plant&#x27;s recovery, and revised when they change. That is exactly what this module&#x27;s two amp cuts do: they get chosen by looking at your own data, and checked against something that was not used to choose them.</p></section>
 <section class="block is-live"><span class="kicker">Your turn</span><h2 class="block-title">Do it yourself</h2><p class="reto-ask">Write the rule that splits the readings into the three states and returns two columns, <code>estado</code> and <code>horas</code>, with the hours the compressor spent in each. Three rows. Each reading is 10 seconds.</p><div class="live reto" data-expected='[[&quot;parado&quot;, 2302.8], [&quot;en vacio&quot;, 1270.4], [&quot;en carga&quot;, 640.5]]'><div class="live-head"><span>challenge</span><span class="live-status">the engine downloads when you press</span></div><pre class="live-static"><code>SELECT CASE WHEN Motor_current &lt; 1 THEN &#x27;parado&#x27;
             WHEN Motor_current &lt; 5 THEN &#x27;en vacio&#x27;
@@ -1014,7 +1302,7 @@ ORDER BY horas DESC;</code></pre></details></div></section>
 
       <footer class="footer">
         <span>Bellows / Module 9</span>
-        <span>generated on 2026-09-03</span>
+        <span>generated on 2026-09-19</span>
         <span>source: MetroPT-3, from a Porto Metro train compressor (CC BY 4.0)</span>
       </footer>
     </div>
@@ -1025,5 +1313,6 @@ ORDER BY horas DESC;</code></pre></details></div></section>
      Los 8 MB llegan cuando el lector pulsa, y no antes. -->
 <script type="module" src="live.js"></script>
 <script src="perilla.js" defer></script>
+
 </body>
 </html>

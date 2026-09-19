@@ -54,7 +54,7 @@ python src/build.py && python src/check_site.py
 | Credenciales | Cuatro filas (MSc, BEng, becas y honores, idiomas) | `credentials` |
 | The work | Índice con panel de imagen: filas numeradas (nombre, tagline, mark, área, botón abrir ↗); el panel **sigue al cursor ±6 px** y toma el acento del proyecto activo en el borde (solo con `hover: hover` y sin reduced-motion) | `work_index()`, `theme.js`, `.index-*` |
 | Proyectos visibles | Froth (amber) · Sílice (iron) · Concentra (mint) · **Oro bajo el ruido** (gold, sin repo público: el enlace al código no se imprime) · **Fuelle** (air, desde el 2026-09-18, partes 1 a 6, repo público `kmortizva-data/fuelle`) | `site.json` `projects` |
-| Página de proyecto | Estado, título, tagline, captura, bloque «Measured», **figura calculada** si `inline_figure` (Geoestadística trae su variograma dibujado con las reglas `.dibujar`), prosa, stack, botón abrir | `project_page()`, `inline_figure()` |
+| Página de proyecto | Estado, título, tagline, captura, bloque «Measured», **figura calculada** si `inline_figure` (Geoestadística trae su variograma dibujado con las reglas `.dibujar`), prosa, stack, **botón del panel** si hay `panel_href` (solo Fuelle, desde el 2026-09-19), botón abrir y enlace al código | `project_page()`, `inline_figure()` |
 | Get in touch | Texto, **dirección grande con `mailto:`**, botón **Copy address** (solo con JS; si el portapapeles se niega, selecciona la dirección), LinkedIn y GitHub. **Sin formulario, por decisión de Kevin (2026-08-23)**: las tres llamadas a la acción (cabecera, héroe y páginas de proyecto) bajan a esta sección, donde están el correo y LinkedIn. El formulario Formspree se quitó entero (generador, `site.json`, JS y CSS) para no dejar código muerto | `contact_ways()`, `theme.js`, `.contact-*` |
 | Pie | © año, correo, GitHub | `shell()` |
 | Tarjeta social | `og:image` (absoluta, la exige el que la lee), `og:image:alt` y `twitter:card`. La imagen **es la portada** a 1200×630, capturada por `python src\shoot.py home` con `--force-prefers-reduced-motion` (sin eso headless caza la cortina a medias y sale negro). La URL base sigue el interruptor `publish_domain`: github.io mientras el dominio no se pague | `site_base()`, `shell()`, `shoot.py` entrada `home` |
@@ -111,6 +111,26 @@ Kevin: «no sé por qué no puedo poner mi página así de primerazo como mi ami
   muestras y las licencias en 200, y 375 px sin desbordes en la portada y en las dos páginas
   del proyecto. **La consulta viva no se puede probar en el panel** (el motor no arranca
   ahí): se prueba en Chrome sobre el sitio publicado.
+
+## El panel de Fuelle en la ficha (2026-09-19)
+
+- **Segundo botón opcional en la página de proyecto**: `panel_href` (a nivel de proyecto, con
+  `en` y `es`) y `panel_label` en cada idioma. Si existe, va **primero y sólido**, y el de abrir
+  el proyecto pasa a `cta-quiet`: la ficha es para quien no va a leer 31 módulos, y esa puerta
+  es el panel. Solo lo usa Fuelle (`fuelle/curso/panel.html` y `panel.en.html`).
+- **Fallo que estaba publicado, arreglado**: en la fila de enlaces de la página de proyecto,
+  `.assay-links a` pisaba el color de `.cta`, así que el botón sólido salía con **texto claro
+  sobre amarillo** y el borde inferior del tinte del proyecto. Afectaba a **8 páginas**: Sílice,
+  Concentra, Geoestadística y Fuelle en los dos idiomas (Froth no lleva botón sólido). Arreglado
+  con reglas más específicas en `templates/style.css`, al final del bloque del botón.
+- **La ficha de Fuelle** dice ahora «30 de 31 módulos en español y 28 en inglés, con el panel»,
+  su último párrafo ya no anuncia como pendientes la orquestación ni el panel, y la captura del
+  índice inglés enseña la puerta al panel.
+- **Probar el panel desde este servidor local no funciona bien**: `python -m http.server` tarda
+  unos 19 s o corta la conexión al servir el JSON del panel (285 KB) recién escrito, que es el
+  escáner de esta máquina. La copia de `fuelle/` es **idéntica byte a byte** a `Fuelle/out` y
+  `Fuelle/assets` (comprobado por hash), así que se prueba en Fuelle con su `serve.py`, que
+  comprime y cachea. En GitHub Pages no pasa.
 
 ## Decisiones de Kevin cerradas (2026-08-23)
 

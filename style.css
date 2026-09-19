@@ -652,6 +652,16 @@ article > .assay-links { max-width: var(--measure); }
 }
 .cta-quiet:hover { background: transparent; color: var(--hi); border-color: var(--hi); }
 
+/* A button inside the links row of a project page keeps its own colours. The row's
+   underline rule (`.assay-links a`) is more specific than `.cta`, so it painted the
+   solid button's text in the page ink, light on yellow, and swapped its bottom
+   border for the project tint: eight published pages, every project but Froth in
+   both languages. Found on 2026-09-19 while adding the panel button to Bellows. */
+.assay-links a.cta { color: #080A09; border-bottom: 1px solid var(--hi); padding-bottom: 0.55rem; }
+.assay-links a.cta:hover { color: #080A09; border-bottom-color: var(--hi-bright); }
+.assay-links a.cta-quiet { color: var(--ink); border-bottom-color: var(--rule-firm); }
+.assay-links a.cta-quiet:hover { color: var(--hi); border-bottom-color: var(--hi); }
+
 .masthead nav .cta { padding: 0.4rem 0.9rem; }
 .masthead nav .cta:hover { border-bottom-color: var(--hi-bright); }
 

@@ -289,20 +289,21 @@ def fill_counts(text: str, count: int, lang: str) -> str:
     return text.replace("{n}", word).replace("{N}", word[0].upper() + word[1:])
 
 
-def open_target(project: dict, lang: str) -> str:
+def open_target(project: dict, lang: str, key: str = "open_href") -> str:
     """The raw open destination: one string for both editions, or {en, es} twins."""
-    href = project.get("open_href", "")
+    href = project.get(key, "")
     return href.get(lang, "") if isinstance(href, dict) else href
 
 
-def open_href(project: dict, depth: int, lang: str = "en") -> str:
+def open_href(project: dict, depth: int, lang: str = "en", key: str = "open_href") -> str:
     """Resolve a project's open destination for a page `depth` folders down.
 
     External URLs pass through; site-relative ones get the same ../ prefix every other
     internal link uses, so the button works from the root and from /es/ alike. A project
-    that is itself bilingual opens its own edition in each language.
+    that is itself bilingual opens its own edition in each language. `key` picks which
+    destination: the project itself, or its panel when it has one.
     """
-    href = open_target(project, lang)
+    href = open_target(project, lang, key)
     if href.startswith(("http://", "https://")):
         return href
     return rel(depth) + href
@@ -547,12 +548,21 @@ def project_page(project: dict, data: dict, lang: str) -> str:
 
     paragraphs = "".join(f"<p>{esc(par)}</p>" for par in p["body"])
 
+    # A project can carry a panel: one page for the visitor who will not read the whole
+    # thing (Bellows has thirty one modules). That visitor is who this page is for, so
+    # the panel leads, and the full project stays one quieter click away.
+    panel_link = ""
+    if project.get("panel_href"):
+        panel_link = (f'<a class="cta" href="{esc(open_href(project, depth, lang, "panel_href"))}" '
+                      f'target="_blank" rel="noopener">{esc(p["panel_label"])}</a>')
+
     # The open action leads the links, unless it IS the repo (Froth), where one link is
     # honest and two would be the same door twice.
     open_link = ""
     repo = project.get("repo", "")
     if project.get("open_href") and open_target(project, lang) != repo:
-        open_link = (f'<a class="cta" href="{esc(open_href(project, depth, lang))}" '
+        quiet = " cta-quiet" if panel_link else ""
+        open_link = (f'<a class="cta{quiet}" href="{esc(open_href(project, depth, lang))}" '
                      f'target="_blank" rel="noopener">{esc(p["open_label"])}</a>')
 
     # A project without a public repository (the geostatistics site lives only inside
@@ -582,7 +592,7 @@ def project_page(project: dict, data: dict, lang: str) -> str:
   <p class="eyebrow stack-label">{esc(ui["stack"])}</p>
   <ul class="stack">{stack_of(project)}</ul>
 
-  <p class="assay-links">{open_link}{repo_link}</p>
+  <p class="assay-links">{panel_link}{open_link}{repo_link}</p>
 </article>"""
 
     return shell(title=f"{p['name']} - {data['author']}", desc=p["tagline"], lang=lang,

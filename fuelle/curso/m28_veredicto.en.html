@@ -861,6 +861,294 @@ figcaption { font-size: 12.5px; color: var(--ink-faint); margin-top: 7px; max-wi
   .perilla-mando { flex: 1; width: auto; min-width: 0; }
 }
 
+/* --------------------------------------------------- el panel del gemelo */
+/*
+ * Módulo 30: la página propia del panel y el bloque ```panel de la lección.
+ *
+ * El gráfico es un SVG que se estira al hueco que le dan (preserveAspectRatio
+ * none) y sus trazos no engordan al estirarse (vector-effect en el HTML). Todo
+ * lo que es texto va encima en HTML: un texto dentro de un SVG que se encoge a
+ * 375 px se queda en cuatro píxeles. Los huecos del registro y las rayas de las
+ * marcas también son HTML, porque un rayado dentro de un SVG estirado se tuerce.
+ *
+ * La regla de forma del curso sigue mandando: la máquina medida va continua, el
+ * gemelo discontinuo, y el color nunca es la única pista.
+ */
+.pg {
+  margin: 20px 0 26px;
+  max-width: var(--block);
+  border: 1px solid var(--rule);
+  background: var(--stage);
+}
+.pg-cabeza {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  padding: 13px 16px 0;
+}
+.pg-fecha {
+  font-family: var(--display);
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--ink);
+}
+.pg-clase {
+  font-family: var(--data);
+  font-size: 10px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border: 1px solid var(--rule);
+  color: var(--ink-soft);
+}
+.pg-clase[data-clase="acierto"] { border-color: var(--accent); color: var(--accent); }
+.pg-clase[data-clase="falsa"],
+.pg-clase[data-clase="marzo_alarma"] { border-color: var(--simulated); color: var(--simulated); }
+.pg-clase[data-clase="escapa"] { border-style: dashed; border-color: var(--accent); color: var(--accent); }
+
+.pg-grafico { position: relative; padding: 16px 22px 50px 70px; }
+.pg-lienzo {
+  position: relative;
+  height: clamp(230px, 32vw, 360px);
+  border-left: 1px solid var(--ink-faint);
+  border-bottom: 1px solid var(--ink-faint);
+}
+.pg-svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.pg-rejilla { fill: none; stroke: var(--rule-soft); stroke-width: 1; }
+.pg-zona {
+  fill: var(--measured);
+  fill-opacity: .1;
+  stroke: var(--measured);
+  stroke-opacity: .45;
+  stroke-width: 1;
+  stroke-dasharray: 1 3;
+}
+.pg-gemelo { fill: none; stroke: var(--simulated); stroke-width: 2; stroke-dasharray: 7 5; }
+.pg-maquina { fill: none; stroke: var(--measured); stroke-width: 2.4; stroke-linejoin: round; }
+
+.pg-huecos, .pg-marcas { position: absolute; inset: 0; pointer-events: none; }
+.pg-hueco {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: repeating-linear-gradient(135deg, var(--rule) 0 1px, transparent 1px 7px);
+}
+.pg-raya { position: absolute; top: 0; bottom: 0; border-left: 1.5px solid var(--accent); }
+.pg-raya[data-tipo="parte"] { border-left: 1px dashed var(--ink-soft); }
+.pg-raya[data-tipo="cierre"] { border-left: 1px dotted var(--ink-soft); }
+.pg-marca {
+  position: absolute;
+  top: 5px;
+  padding: 1px 5px;
+  font-family: var(--data);
+  font-size: 10.5px;
+  line-height: 1.5;
+  white-space: nowrap;
+  color: var(--accent);
+  background: var(--stage);
+  transform: translateX(3px);
+}
+.pg-marca[data-fila="1"] { top: 26px; }
+.pg-marca[data-fila="2"] { top: 47px; }
+.pg-marca[data-lado="izq"] { transform: translateX(calc(-100% - 3px)); }
+.pg-marca[data-tipo="parte"], .pg-marca[data-tipo="cierre"] { color: var(--ink-soft); }
+
+.pg-ty, .pg-tx {
+  position: absolute;
+  font-family: var(--data);
+  font-size: 10.5px;
+  color: var(--ink-faint);
+  white-space: nowrap;
+}
+.pg-ty { right: calc(100% + 8px); transform: translateY(50%); }
+.pg-tx { top: calc(100% + 7px); transform: translateX(-50%); }
+.pg-eje-y, .pg-eje-x {
+  position: absolute;
+  font-family: var(--data);
+  font-size: 10.5px;
+  letter-spacing: .05em;
+  color: var(--ink-soft);
+}
+.pg-eje-y {
+  left: 8px;
+  top: 16px;
+  bottom: 50px;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  text-align: center;
+}
+.pg-eje-x { left: 70px; right: 22px; bottom: 9px; text-align: center; }
+
+.pg-leyenda {
+  list-style: none;
+  margin: 0;
+  padding: 10px 16px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 22px;
+  border-top: 1px solid var(--rule-soft);
+  font-size: 12.5px;
+  color: var(--ink-soft);
+}
+.block .pg-leyenda li { margin: 0; max-width: none; }
+.pg-leyenda li { display: flex; align-items: center; gap: 8px; }
+.pg-leyenda i { display: inline-block; width: 24px; height: 0; border-top: 2px solid; }
+.pg-leyenda b { font-family: var(--data); font-weight: 600; color: var(--ink); }
+.pg-k-maquina i { border-color: var(--measured); border-top-width: 2.4px; }
+.pg-k-gemelo i { border-top-style: dashed; border-color: var(--simulated); }
+.pg-k-zona i {
+  height: 11px;
+  border: 1px dotted var(--measured);
+  background: color-mix(in srgb, var(--measured) 12%, transparent);
+}
+.pg-k-sin_registro i {
+  height: 11px;
+  border: 1px solid var(--rule);
+  background: repeating-linear-gradient(135deg, var(--rule) 0 1px, transparent 1px 5px);
+}
+
+.block .pg-frase, .pg-frase {
+  margin: 0;
+  max-width: none;
+  padding: 12px 16px 14px;
+  border-top: 1px solid var(--rule-soft);
+  font-size: 15.5px;
+  line-height: 1.55;
+  text-align: left;
+}
+
+.pg-mando { padding: 12px 16px 14px; border-top: 1px solid var(--rule-soft); }
+.block .pg-tira-nota, .pg-tira-nota {
+  margin: 0 0 9px;
+  max-width: none;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--ink-faint);
+  text-align: left;
+}
+.pg-tira { position: relative; height: 70px; }
+.pg-tira:focus-within { outline: 2px solid var(--accent); outline-offset: 4px; }
+.pg-tira-svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.pg-b { fill: var(--ink-faint); opacity: .55; }
+.pg-b-alta { fill: var(--ink); }
+.pg-b-sin { fill: var(--ink-faint); opacity: .35; }
+.pg-b-elegido { fill: var(--accent); opacity: 1; }
+.pg-t-parte { fill: var(--accent); }
+.pg-t-marzo { fill: none; stroke: var(--simulated); stroke-width: 2; }
+.pg-t-umbral { fill: none; stroke: var(--accent); stroke-width: 1; stroke-dasharray: 4 3; }
+.pg-t-suelo { fill: none; stroke: var(--ink-faint); stroke-width: 1; stroke-dasharray: 1 3; }
+.pg-t-cursor { fill: none; stroke: var(--accent); stroke-width: 1.5; }
+
+/* El mando es un deslizador de verdad, invisible y del tamaño de la tira: se
+ * pincha o se arrastra sobre las barras, y las flechas del teclado funcionan
+ * solas. El pulgar mide dos píxeles para que el día que marca caiga debajo del
+ * dedo: con el de fábrica, de dieciséis, en un móvil se desplazaba cinco días. */
+.pg-cursor {
+  -webkit-appearance: none;
+  appearance: none;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+  background: transparent;
+}
+.pg-cursor::-webkit-slider-runnable-track { height: 70px; background: transparent; }
+.pg-cursor::-webkit-slider-thumb { -webkit-appearance: none; width: 2px; height: 70px; }
+.pg-cursor::-moz-range-track { height: 70px; background: transparent; }
+.pg-cursor::-moz-range-thumb { width: 2px; height: 70px; border: 0; border-radius: 0; }
+.pg-cursor[disabled] { cursor: default; }
+
+.pg-meses { position: relative; height: 17px; margin-top: 3px; }
+.pg-mes {
+  position: absolute;
+  top: 0;
+  padding-left: 4px;
+  border-left: 1px solid var(--rule);
+  font-family: var(--data);
+  font-size: 10px;
+  line-height: 17px;
+  color: var(--ink-faint);
+}
+
+.pg-botones {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+.pg-atajos-titulo {
+  flex-basis: 100%;
+  margin-top: 4px;
+  font-family: var(--data);
+  font-size: 9.5px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.pg-paso, .pg-atajo {
+  font-family: var(--data);
+  font-size: 11px;
+  padding: 6px 10px;
+  border: 1px solid var(--rule);
+  background: transparent;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+.pg-paso:hover, .pg-atajo:hover { border-color: var(--accent); color: var(--accent); }
+.pg-paso:focus-visible, .pg-atajo:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.pg-atajo[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
+.pg-paso[disabled], .pg-atajo[disabled] { opacity: .45; cursor: default; }
+.pg-paso[disabled]:hover, .pg-atajo[disabled]:hover { border-color: var(--rule); color: var(--ink-soft); }
+
+.pg-sinjs { display: none; }
+.no-js .pg-sinjs { display: block; margin: 10px 0 0; font-size: 12.5px; color: var(--ink-faint); }
+.no-js .pg-botones { display: none; }
+
+@media (max-width: 620px) {
+  .pg-grafico { padding: 14px 12px 48px 52px; }
+  .pg-eje-y { left: 4px; }
+  .pg-eje-x { left: 52px; right: 12px; }
+  .pg-lienzo { height: 250px; }
+  .pg-ty, .pg-tx, .pg-marca { font-size: 9.5px; }
+  .pg-fecha { font-size: 19px; }
+  .pg-leyenda { gap: 5px 16px; font-size: 12px; }
+  .pg-frase { font-size: 15px; }
+}
+
+/* La puerta del índice hacia el panel: para quien no va a leer 31 módulos. */
+.door {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 3px 18px;
+  margin: 22px 0 4px;
+  padding: 14px 16px;
+  max-width: var(--block);
+  border: 1px solid var(--rule);
+  border-left: 2px solid var(--accent);
+  background: var(--panel);
+  color: var(--ink);
+  text-decoration: none;
+}
+.door:hover { border-color: var(--accent); }
+.door-k {
+  grid-column: 1;
+  font-family: var(--data);
+  font-size: 10px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.door-t { grid-column: 1; font-family: var(--display); font-size: 19px; font-weight: 600; line-height: 1.25; }
+.door-s { grid-column: 1; font-size: 13.5px; line-height: 1.45; color: var(--ink-soft); }
+.door-a { grid-column: 2; grid-row: 1 / span 3; font-family: var(--data); font-size: 22px; color: var(--accent); }
+
 /* ------------------------------------------------------ movimiento y papel */
 
 @media (prefers-reduced-motion: reduce) {
@@ -936,7 +1224,7 @@ figcaption { font-size: 12.5px; color: var(--ink-faint); margin-top: 7px; max-wi
         <p class="standfirst">Against the four real dates, and against the rival to beat: an ordinary threshold alarm. If the twin does not win, that is what gets published</p>
       </header>
 
-      <section class="block is-brief"><span class="kicker">Summary</span><h2 class="block-title">In 30 seconds</h2><ul><li><strong>4 of 4 against 2 of 4</strong>: the failures the twin catches, and the ones the installed alarm catches.</li><li>And it does it waking somebody <strong>1.5 times a month</strong> against the installed one&#x27;s 11.4.</li><li>As a <strong>detector</strong> it wins. As a <strong>predictor</strong> it does not: it warns beforehand on one of the four, by a day.</li><li>It also finds the twelve days of March nobody documented, and that goes in both counts.</li><li>And an uncomfortable one, checked rather than assumed: **it orders the days just like a threshold on the duty cycle**.</li></ul></section>
+      <section class="block is-brief"><span class="kicker">Summary</span><h2 class="block-title">In 30 seconds</h2><ul><li><strong>4 of 4 against 2 of 4</strong>: the failures the twin catches, and the ones the installed alarm catches.</li><li>And it does it waking somebody <strong>1.5 times a month</strong> against the installed one&#x27;s 11.4.</li><li>As a <strong>detector</strong> it wins. As a <strong>predictor</strong> it does not: it warns beforehand on one of the four, by a day.</li><li>It also finds the twelve days of March nobody documented, and that goes in both counts.</li><li>And an uncomfortable one, checked rather than assumed: <strong>it orders the days just like a threshold on the duty cycle</strong>.</li></ul></section>
 <section class="block "><span class="kicker">Context</span><h2 class="block-title">What this module solves</h2><p>This is where it pays off or it does not. Five modules building a twin, and the question left is whether it is good for anything that was not already covered.</p><p>And there are three ways of answering that question by cheating, so it is worth saying how all three are avoided before showing any number.</p><p><strong>The first is grading your own exam.</strong> Module 27 measured the residual and <strong>refused to choose a threshold</strong>. That way, whoever measures and whoever grades are not the same script. Here the threshold is swept whole, from 0.10 to 1.20, and the numbers are published for the complete sweep.</p><p><strong>The second is calling a standing alarm a warning.</strong> If the alarm fired twelve days before the report, that is twelve days of warning only if somebody would have done something. If it had been on for two months, it is worth nothing. That is why every lead time comes with <strong>how long the episode it belongs to had been sounding</strong>.</p><p><strong>And the third is competing against nobody.</strong> Two rivals: an ordinary threshold on the duty cycle, and <strong>the low pressure alarm this compressor already has fitted</strong>.</p></section>
 <section class="block is-toy"><span class="kicker">By hand</span><h2 class="block-title">Before the theory: a toy example</h2><p>A smoke detector in a kitchen. In a year there are <strong>2 fires</strong> and the detector goes off <strong>50 times</strong>.</p><div class="table-wrap"><table><thead><tr><th></th><th>Goes off</th><th>Does not</th></tr></thead><tbody><tr><td>There is a fire</td><td>2</td><td>0</td></tr><tr><td>There is no fire</td><td>48</td><td>313</td></tr></tbody></table></div><p>It catches both fires: as a detector it is perfect. And it goes off <strong>48 times for nothing</strong>, nearly one a week, so by the third somebody takes the battery out and the detector stops existing.</p><p><strong>The two figures always travel together.</strong> A detector that catches everything is easy: set the threshold at zero and there it is. A detector that never bothers anybody is just as easy. The question is where the pair lands, and against what pair it is compared.</p></section>
 <section class="block is-terms"><span class="kicker">Terms</span><h2 class="block-title">Glossary</h2><details class="fold"><summary>5 terms, in plain words</summary><ul><li><strong>Detector.</strong> Judged on whether it notices the failure while it is happening.</li><li><strong>Predictor.</strong> Judged on whether it warns <strong>beforehand</strong>. They are two different marks and this module gives both.</li><li><strong>False alarm.</strong> A day it goes off and there was nothing. Here they are counted per month, which is the unit whoever is on call suffers them in.</li><li><strong>Episode.</strong> Alarm days in a row. It is needed so as not to confuse a warning with an alarm that had already been on for half a week.</li><li><strong>Sweep.</strong> Trying every threshold and publishing the whole curve, instead of choosing one and showing only what comes out well with it.</li></ul></details></section>
@@ -980,13 +1268,13 @@ SELECT CASE WHEN dia IN (DATE &#x27;2020-04-18&#x27;, DATE &#x27;2020-05-29&#x27
        count(*)                               AS dias,
        count(*) FILTER (WHERE residual &gt; 1.15) AS saltan
 FROM d GROUP BY 1 ORDER BY 1;</code></pre></details></div><p>Of the <strong>7</strong> days with a report <strong>6</strong> go off, and of the <strong>200</strong> without one <strong>12</strong> do.</p><p>And there is a lesson hidden there: <strong>6 of 7 days is not the same as 4 of 4 failures</strong>. The missing day is one of those covered by a long report, and the report is still detected because it went off on another of its days. Counting days and counting failures give different marks, and you have to say which one you are counting.</p></section>
-<section class="block is-warning"><span class="kicker">Traps</span><h2 class="block-title">Watch out</h2><ul><li><strong>Detector and predictor are two marks.</strong> Here one is good and the other is not. Publishing only the average would be hiding the bad one behind the good one.</li><li><strong>A lead time without the episode&#x27;s length says nothing.</strong> Twelve days of warning from an alarm that had been on for forty is zero days of warning.</li><li><strong>Compare against what is already installed</strong>, not against nothing. A detector that does not beat the alarm the machine came with does not get installed.</li><li><strong>Check the trivial rival.</strong> If an ordinary threshold orders the days just like your model, your model does not win on detection and you have to say what it does win on.</li><li><strong>Four failures are not a sample.</strong> It is a study of four cases and it is presented as one: with four events, one hit more or less changes the whole result.</li><li><strong>The failure log is also data, and it has holes.</strong> Twelve days of sick machine with no report were there from the start.</li><li>**A threshold that only fires with the compressor flat out detects disasters, it does not warn of them.**</li></ul></section>
+<section class="block is-warning"><span class="kicker">Traps</span><h2 class="block-title">Watch out</h2><ul><li><strong>Detector and predictor are two marks.</strong> Here one is good and the other is not. Publishing only the average would be hiding the bad one behind the good one.</li><li><strong>A lead time without the episode&#x27;s length says nothing.</strong> Twelve days of warning from an alarm that had been on for forty is zero days of warning.</li><li><strong>Compare against what is already installed</strong>, not against nothing. A detector that does not beat the alarm the machine came with does not get installed.</li><li><strong>Check the trivial rival.</strong> If an ordinary threshold orders the days just like your model, your model does not win on detection and you have to say what it does win on.</li><li><strong>Four failures are not a sample.</strong> It is a study of four cases and it is presented as one: with four events, one hit more or less changes the whole result.</li><li><strong>The failure log is also data, and it has holes.</strong> Twelve days of sick machine with no report were there from the start.</li><li><strong>A threshold that only fires with the compressor flat out detects disasters, it does not warn of them.</strong></li></ul></section>
 <section class="block is-bridge"><span class="kicker">Analogy</span><h2 class="block-title">Metallurgical bridge</h2><p>Anyone who has set a grade alarm on tailings knows this whole table. Set the threshold tight and the control room silences it within a week; set it loose and it does not warn about the upset that mattered. And the conversation always ends the same way: not on which threshold is correct, but on how many times a shift the operator is willing to get up.</p><p>The other parallel is the downtime log. The model gets validated against the maintenance book, and that book is written by people in a hurry at three in the morning. Short stops do not get written down, causes get copied from the one before, and a whole shift can end up blank. When the model flags a day the book does not cover, the first reaction is that the model is wrong. Sometimes it is the other way round, and here it was, for twelve days of March.</p></section>
 <section class="block is-review"><span class="kicker">Review</span><h2 class="block-title">Review</h2><details><summary>What exactly this module answers</summary><p>Whether the twin detects the four documented failures, with how many false alarms, with how much lead time, and whether that is better than the alarm the machine already carries. Four questions and four separate answers, without averaging them into an overall mark.</p></details><details><summary>Why the twin wins as a detector and loses as a predictor</summary><p>Because an air leak does not grow slowly. The compressor goes from 6 % to 100 % load within hours, so when there is something to see it is already enormous and when there is not there is nothing. Detecting is easy; anticipating would need a signal that moved earlier, and in this record there is none.</p></details><details><summary>Why the lead time is measured with the episode and not with the date</summary><p>Because an alarm on for weeks necessarily includes the day of the report, and presenting that as lead time would be claiming background noise as a merit. Measuring from when the episode lit up, only one of the four warns, and it warns by a day.</p></details><details><summary>If a threshold on the duty cycle does the same, what is the twin for</summary><p>For what the threshold does not do. It gives the leak in bar per minute rather than as an index with no units, it is calibrated on a healthy month with no need for a failure history, and it allows questions about a leak that has not happened yet. On pure detection it does not win, and the module checks that rather than assuming it.</p></details><details><summary>What it would take for this twin to predict</summary><p>Changing signal. The duty cycle fires with the leak already open. Something that moves earlier would be needed: the oil temperature, the starting current, or the valves&#x27; signature within a cycle. This project does not promise it nor deliver it, and saying so is part of the deliverable.</p></details></section>
 
       <footer class="footer">
         <span>Bellows / Module 28</span>
-        <span>generated on 2026-09-03</span>
+        <span>generated on 2026-09-19</span>
         <span>source: MetroPT-3, from a Porto Metro train compressor (CC BY 4.0)</span>
       </footer>
     </div>
@@ -997,5 +1285,6 @@ FROM d GROUP BY 1 ORDER BY 1;</code></pre></details></div><p>Of the <strong>7</s
      Los 8 MB llegan cuando el lector pulsa, y no antes. -->
 <script type="module" src="live.js"></script>
 <script src="perilla.js" defer></script>
+
 </body>
 </html>

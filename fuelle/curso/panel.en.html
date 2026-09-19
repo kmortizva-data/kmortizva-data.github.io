@@ -1,0 +1,1244 @@
+<!doctype html>
+<html lang="en" class="no-js" data-assets="../assets">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The twin&#x27;s panel · Bellows</title>
+<meta name="description" content="The semester of a Porto Metro compressor, day by day: how long it worked against how long it would have worked healthy, and each day&#x27;s verdict.">
+<link rel="alternate" hreflang="es" href="panel.html">
+<style>
+/* Fuelle: la hoja de estilo del curso.
+ *
+ * REESCRITA ENTERA el 2026-08-30. La primera versión heredó la plantilla de Sílice
+ * junto con su motor, y Kevin la vio y dijo: "se parece a las otras 20 páginas de
+ * portafolio, el landing, coursera, silica, se ve y se siente igual". Tenía razón.
+ * Medido: mismo ancho de prosa (680), mismo ancho de bloques (1180), misma columna
+ * de margen (132), misma secuencia de cabecera, 36 clases compartidas de 40.
+ * Cambiar papel por grafito no toca la silueta, y la silueta es lo que se siente.
+ *
+ * Los cuatro sitios de Kevin son una columna de texto centrada, sin barra lateral,
+ * sin rejilla y sin nada pegajoso. Este es lo contrario: PANEL DE CONTROL. Una barra
+ * fija a la izquierda con los instrumentos siempre a la vista, y el contenido a su
+ * derecha. Ninguna de las tres medidas heredadas aparece aquí, y check_layout.py
+ * falla si alguna reaparece.
+ *
+ * El encargo que ordena las decisiones sigue siendo el mismo: "no muy escandaloso,
+ * que parezca ingeniero, pero que demuestres habilidades, que no seas un pdf que se
+ * lee de recorrido". La sobriedad va en la superficie, la ambición en lo que hace.
+ */
+
+/* --------------------------------------------------------------- tipografía */
+
+/* IBM Plex, autoalojada, OFL-1.1. Los cuatro sitios de Kevin usan la fuente del
+ * sistema, y eso es la otra mitad del "se siente igual". Plex tiene aire de
+ * documentación de ingeniería, que es exactamente el encargo.
+ *
+ * Cinco cortes y no tres: sin las semi-negritas el navegador falsifica la negrita
+ * engordando el trazo, y en una fuente técnica se nota enseguida. 289 KB en total,
+ * que se pueden bajar a unos 60 recortando al alfabeto latino con fonttools si
+ * llega a molestar. */
+@font-face {
+  font-family: "Plex Cond";
+  src: url("../assets/fonts/PlexSansCondensed-SemiBold.woff2") format("woff2");
+  font-weight: 600; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Plex";
+  src: url("../assets/fonts/PlexSans-Regular.woff2") format("woff2");
+  font-weight: 400; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Plex";
+  src: url("../assets/fonts/PlexSans-SemiBold.woff2") format("woff2");
+  font-weight: 600; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Plex Mono";
+  src: url("../assets/fonts/PlexMono-Regular.woff2") format("woff2");
+  font-weight: 400; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Plex Mono";
+  src: url("../assets/fonts/PlexMono-SemiBold.woff2") format("woff2");
+  font-weight: 600; font-style: normal; font-display: swap;
+}
+
+/* ------------------------------------------------------------------ tokens */
+
+:root {
+  --ground: #f4f2ee;
+  --panel: #e9e6e0;
+  --stage: #fbfaf8;
+  --ink: #191d20;
+  --ink-soft: #4c545a;
+  --ink-faint: #7c868d;
+  --rule: #d6d1c8;
+  --rule-soft: #e4e0d8;
+  --grid: rgba(25, 29, 32, .05);
+  --accent: #46787e;
+  --measured: #3d505b;
+  --simulated: #b57542;
+
+  --prose: "Plex", system-ui, "Segoe UI", Roboto, sans-serif;
+  --display: "Plex Cond", "Plex", system-ui, sans-serif;
+  --data: "Plex Mono", "Cascadia Mono", Consolas, monospace;
+
+  /* Medidas NUEVAS. Ninguna puede coincidir con las heredadas de Sílice
+   * (680 de prosa, 1180 de bloques, 132 de margen): volver a ellas es volver a
+   * la misma página, y hay un verificador que lo impide. */
+  --rail: 268px;      /* la barra fija, que ninguno de los otros sitios tiene */
+  --read: 646px;      /* la medida de la prosa, en píxeles y nunca en ch */
+  --block: 980px;     /* el borde derecho de los bloques anchos */
+
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ground: #101417;
+    --panel: #171c20;
+    --stage: #14181b;
+    --ink: #e2e7ea;
+    --ink-soft: #a6b0b6;
+    --ink-faint: #717e85;
+    --rule: #293036;
+    --rule-soft: #20272b;
+    --grid: rgba(226, 231, 234, .045);
+    --accent: #8ec2c8;
+    --measured: #cbe2ef;
+    --simulated: #c98754;
+  }
+}
+
+:root[data-theme="dark"] {
+  --ground: #101417;
+  --panel: #171c20;
+  --stage: #14181b;
+  --ink: #e2e7ea;
+  --ink-soft: #a6b0b6;
+  --ink-faint: #717e85;
+  --rule: #293036;
+  --rule-soft: #20272b;
+  --grid: rgba(226, 231, 234, .045);
+  --accent: #8ec2c8;
+  --measured: #cbe2ef;
+  --simulated: #c98754;
+}
+
+/* --------------------------------------------------------------- cimientos */
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--stage);
+  color: var(--ink);
+  font-family: var(--prose);
+  font-size: 16.5px;
+  line-height: 1.6;
+}
+
+::selection { background: var(--accent); color: var(--ground); }
+a { color: var(--accent); text-underline-offset: .18em; }
+
+/* LA REJILLA. Esto es lo que ninguno de los otros cuatro sitios tiene, y es la
+ * razón de que la página deje de sentirse igual: el texto ya no está centrado en
+ * la ventana, está al lado de un panel de instrumentos. */
+.shell {
+  display: grid;
+  grid-template-columns: var(--rail) minmax(0, 1fr);
+  min-height: 100vh;
+}
+
+/* -------------------------------------------------- la barra de instrumentos */
+
+.panel {
+  position: sticky;   /* lo primero pegajoso de todo el portafolio */
+  top: 0;
+  align-self: start;
+  height: 100vh;
+  overflow-y: auto;
+  padding: 22px 20px 22px;
+  background: var(--panel);
+  border-right: 1px solid var(--rule);
+  background-image: radial-gradient(var(--grid) 1px, transparent 1px);
+  background-size: 22px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.panel-brand {
+  font-family: var(--display);
+  font-size: 19px;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  color: var(--ink);
+  text-decoration: none;
+  display: block;
+}
+.panel-brand small {
+  display: block;
+  font-family: var(--data);
+  font-size: 10px;
+  letter-spacing: .08em;
+  color: var(--ink-faint);
+  text-transform: none;
+  margin-top: 4px;
+}
+
+.panel-label {
+  font-family: var(--data);
+  font-size: 9.5px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding-bottom: 7px;
+  border-bottom: 1px solid var(--rule);
+  margin-bottom: 10px;
+}
+
+/* El grafo del lago, EN VERTICAL. Antes iba horizontal y solo en la portada;
+ * aquí acompaña al lector todo el curso y marca en qué capa está. */
+.rail-step {
+  display: grid;
+  grid-template-columns: 15px 1fr auto;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 0;
+  font-family: var(--data);
+  font-size: 11px;
+  letter-spacing: .08em;
+  color: var(--ink-faint);
+  text-decoration: none;
+  position: relative;
+}
+.rail-step .dot {
+  width: 9px; height: 9px;
+  border: 1px solid var(--ink-faint);
+  border-radius: 50%;
+  justify-self: center;
+}
+.rail-step:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  left: 7px; top: 25px;
+  width: 1px; height: calc(100% - 17px);
+  background: var(--rule);
+}
+.rail-step.done { color: var(--ink-soft); }
+.rail-step.done .dot { background: var(--ink-faint); border-color: var(--ink-faint); }
+.rail-step.here { color: var(--accent); }
+.rail-step.here .dot { background: var(--accent); border-color: var(--accent); }
+.rail-step .range { font-size: 9.5px; opacity: .75; }
+
+/* La cifra del módulo ya no es una caja en una cabecera gigante: vive aquí y se
+ * queda a la vista mientras se lee la lección entera. */
+.panel-figure { border-top: 1px solid var(--rule); padding-top: 14px; }
+.panel-figure .v {
+  display: block;
+  font-family: var(--data);
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 1.3;
+  color: var(--accent);
+}
+.panel-figure .l {
+  display: block;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--ink-faint);
+  margin-top: 5px;
+}
+
+.panel-progress {
+  margin-top: auto;
+  border-top: 1px solid var(--rule);
+  padding-top: 13px;
+  font-family: var(--data);
+  font-size: 11px;
+  color: var(--ink-faint);
+}
+.panel-progress b { color: var(--ink); font-weight: 600; }
+.panel-bar { height: 2px; background: var(--rule); margin-top: 7px; }
+.panel-bar i { display: block; height: 2px; background: var(--accent); }
+
+.panel-nav { display: flex; gap: 7px; flex-wrap: wrap; }
+.panel-nav a {
+  font-family: var(--data);
+  font-size: 10.5px;
+  letter-spacing: .06em;
+  padding: 6px 9px;
+  border: 1px solid var(--rule);
+  text-decoration: none;
+  color: var(--ink-soft);
+}
+.panel-nav a:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ------------------------------------------------------------- el contenido */
+
+.stage { background: var(--stage); padding: 0 0 54px; min-width: 0; }
+.stage-inner { max-width: var(--block); padding: 0 40px; }
+
+/* La cabecera ya no ocupa media pantalla: una línea de identificación y el
+ * título. La cifra y la navegación se fueron a la barra. */
+.head {
+  padding: 30px 0 20px;
+  border-bottom: 1px solid var(--rule);
+  margin-bottom: 4px;
+}
+.head-id {
+  font-family: var(--data);
+  font-size: 10.5px;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  display: flex;
+  gap: 14px;
+  align-items: baseline;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.head-id b { color: var(--accent); font-weight: 600; }
+.head h1 {
+  font-family: var(--display);
+  font-size: clamp(26px, 3.3vw, 37px);
+  line-height: 1.08;
+  font-weight: 600;
+  margin: 0 0 10px;
+  max-width: 22ch;
+}
+.head .standfirst {
+  color: var(--ink-soft);
+  font-size: 16.5px;
+  line-height: 1.5;
+  max-width: var(--read);
+  margin: 0;
+}
+
+/* Las secciones ya no cuelgan de un margen de 132 px: la etiqueta va encima, en
+ * un recuadro pequeño, y el texto empieza en el borde. */
+.block { padding: 26px 0 2px; border-top: 1px solid var(--rule-soft); }
+.block:first-of-type { border-top: 0; }
+
+.kicker {
+  display: inline-block;
+  font-family: var(--data);
+  font-size: 9.5px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  border: 1px solid var(--rule);
+  padding: 2px 7px;
+  margin-bottom: 11px;
+}
+
+.block-title {
+  font-family: var(--display);
+  font-size: 22px;
+  font-weight: 600;
+  margin: 0 0 11px;
+  max-width: var(--read);
+}
+
+/* Justificado desde 33rem de columna y rasgado en móvil: la regla que Kevin
+ * fijó en el portafolio el 2026-08-22, después de medir que a 375 px salían
+ * huecos de 7,65x y ríos en cinco de cada seis líneas. Aquí la prosa mide 646 px
+ * (unos 40rem), así que le toca justificado.
+ *
+ * Y NADA de `hyphens`: sin guionado, por la regla de la casa. El precio es que
+ * hay que vigilar los ríos, y eso se mide con src/site/check_rivers.py en vez de
+ * mirarlo de reojo. */
+.block p, .block li { max-width: var(--read); }
+
+@media (min-width: 34rem) {
+  .block p,
+  .block li,
+  .standfirst,
+  .reto-ask,
+  .annot dd,
+  blockquote,
+  .is-review details p { text-align: justify; text-justify: inter-word; }
+  /* Tablas, código, pies de figura y la barra nunca se justifican: sus líneas
+   * son cortas y el hueco se vuelve un agujero. */
+  figcaption, th, td, pre, .panel, .live-status, .toc { text-align: left; }
+}
+.block p { margin: 0 0 14px; }
+.block ul, .block ol { padding-left: 21px; margin: 0 0 14px; }
+.block li { margin-bottom: 6px; }
+.block li::marker { color: var(--accent); font-family: var(--data); font-size: .82em; }
+
+h3.sub, h4.sub {
+  font-family: var(--display);
+  font-size: 17px;
+  font-weight: 600;
+  margin: 24px 0 8px;
+  max-width: var(--read);
+}
+h4.sub { font-size: 15px; color: var(--ink-soft); }
+
+blockquote {
+  margin: 0 0 14px;
+  padding-left: 15px;
+  border-left: 2px solid var(--rule);
+  color: var(--ink-soft);
+  max-width: var(--read);
+}
+strong, b { font-weight: 600; }
+
+.is-brief ul { list-style: none; padding-left: 0; }
+.is-brief li {
+  padding: 8px 0 8px 18px;
+  border-bottom: 1px solid var(--rule-soft);
+  position: relative;
+}
+.is-brief li::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 17px;
+  width: 8px; height: 1px;
+  background: var(--accent);
+}
+.is-brief li:last-child { border-bottom: 0; }
+.is-result .block-title, .is-warning .block-title { color: var(--accent); }
+
+/* ------------------------------------------------------------------ código */
+
+pre {
+  max-width: var(--block);
+  overflow-x: auto;
+  background: var(--panel);
+  border: 1px solid var(--rule-soft);
+  border-left: 2px solid var(--accent);
+  padding: 13px 15px;
+  margin: 0 0 13px;
+}
+pre code {
+  font-family: var(--data);
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ink);
+  white-space: pre;
+}
+p code, li code, dd code, td code {
+  font-family: var(--data);
+  font-size: .87em;
+  padding: 1px 4px;
+  background: var(--panel);
+  border: 1px solid var(--rule-soft);
+}
+
+/* Diagramas: esquemas conceptuales generados, no figuras de datos.
+   Nacen del bloque ```diagrama y usan los tokens de arriba, asi que el tema lo
+   resuelve el CSS y no hacen falta dos versiones como en las figuras. */
+.diagram { margin: 0 0 22px; max-width: var(--block); }
+.chain {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: 30px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: none;
+}
+.node {
+  position: relative;
+  /* 130 y no 132: 132px es la columna de margen de Sílice y check_layout la
+     prohíbe en este proyecto, con razón, aunque aquí signifique otra cosa. */
+  flex: 1 1 130px;
+  min-width: 0;
+  padding: 11px 13px 12px;
+  background: var(--panel);
+  border: 1px solid var(--rule);
+  border-top: 2px solid var(--ink-faint);
+}
+/* La flecha entre cajas. Va en el hueco del gap, asi que no roba ancho al
+   texto y desaparece sola cuando las cajas se apilan. */
+.node + .node::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: -22px;
+  width: 14px;
+  height: 1px;
+  background: var(--ink-faint);
+}
+.node + .node::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: -11px;
+  width: 5px; height: 5px;
+  border-top: 1px solid var(--ink-faint);
+  border-right: 1px solid var(--ink-faint);
+  transform: translateY(-50%) rotate(45deg);
+}
+.node.lit { border-top-color: var(--accent); background: var(--stage); }
+.node.lit .node-name { color: var(--accent); }
+.node-name {
+  display: block;
+  font-family: var(--data);
+  font-size: 10.5px;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+.node-what { display: block; margin-top: 5px; font-size: 13.5px; color: var(--ink); }
+.node-note { display: block; margin-top: 4px; font-size: 12px; color: var(--ink-faint); }
+
+@media (max-width: 640px) {
+  /* Apiladas, con la flecha girada hacia abajo. */
+  .chain { flex-direction: column; gap: 26px; }
+  .node { flex: 1 1 auto; }
+  .node + .node::before {
+    top: -19px; left: 21px;
+    width: 1px; height: 12px;
+  }
+  .node + .node::after {
+    top: -9px; left: 19px;
+    transform: rotate(135deg);
+  }
+}
+
+.output { position: relative; margin: 0 0 13px; max-width: var(--block); }
+.output pre { margin: 0; border-left: 2px solid var(--ink-faint); background: transparent; }
+.output pre code { color: var(--ink-soft); }
+.output-tag {
+  position: absolute;
+  top: -7px; left: 13px;
+  z-index: 1;
+  font-family: var(--data);
+  font-size: 9px;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  background: var(--stage);
+  padding: 0 5px;
+}
+
+details.fold, details { margin: 0 0 13px; max-width: var(--block); }
+details > summary {
+  cursor: pointer;
+  font-family: var(--data);
+  font-size: 11px;
+  letter-spacing: .05em;
+  color: var(--ink-faint);
+  padding: 5px 0;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+details > summary::-webkit-details-marker { display: none; }
+details > summary::before {
+  content: "+";
+  width: 13px; height: 13px;
+  line-height: 12px;
+  text-align: center;
+  border: 1px solid var(--rule);
+  color: var(--accent);
+}
+details[open] > summary::before { content: "\2212"; }
+details > summary:hover { color: var(--accent); }
+
+.annot {
+  margin: 2px 0 4px;
+  padding: 11px 13px;
+  border: 1px solid var(--rule-soft);
+  background: var(--panel);
+}
+.annot dt { margin-bottom: 3px; }
+.annot dt code {
+  font-family: var(--data);
+  font-size: 12px;
+  color: var(--accent);
+  background: transparent;
+  border: 0;
+  padding: 0;
+}
+.annot dd { margin: 0 0 10px; font-size: 14.5px; color: var(--ink-soft); max-width: var(--read); }
+.annot dd:last-of-type { margin-bottom: 0; }
+
+.is-review details { border-bottom: 1px solid var(--rule-soft); margin: 0; }
+.is-review details > summary {
+  font-family: var(--prose);
+  font-size: 15.5px;
+  color: var(--ink);
+  padding: 11px 0;
+}
+.is-review details > summary:hover { color: var(--accent); }
+.is-review details p { margin: 0 0 11px 21px; color: var(--ink-soft); }
+
+/* ------------------------------------------------------------------ tablas */
+
+.table-wrap { max-width: var(--block); overflow-x: auto; margin: 0 0 15px; }
+table { border-collapse: collapse; font-size: 14.5px; }
+th, td {
+  text-align: left;
+  padding: 6px 15px 6px 0;
+  border-bottom: 1px solid var(--rule-soft);
+  vertical-align: top;
+}
+th {
+  font-family: var(--data);
+  font-size: 10px;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  font-weight: 400;
+  border-bottom-color: var(--rule);
+}
+tbody tr:last-child td { border-bottom: 0; }
+
+figure { margin: 0 0 17px; max-width: var(--block); }
+figure img { max-width: 100%; height: auto; display: block; }
+figcaption { font-size: 12.5px; color: var(--ink-faint); margin-top: 7px; max-width: var(--read); }
+
+.footer {
+  border-top: 1px solid var(--rule);
+  margin-top: 32px;
+  padding: 18px 0 0;
+  font-size: 12px;
+  color: var(--ink-faint);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px 20px;
+}
+.footer a { color: var(--ink-faint); }
+.gone { color: var(--ink-faint); }
+
+/* ---------------------------------------------- la consulta viva y el reto */
+
+.live {
+  max-width: var(--block);
+  margin: 0 0 17px;
+  border: 1px solid var(--rule);
+  background: var(--panel);
+}
+.live-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 13px;
+  border-bottom: 1px solid var(--rule-soft);
+  font-family: var(--data);
+  font-size: 10px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.live-editor {
+  width: 100%;
+  border: 0;
+  resize: vertical;
+  min-height: 112px;
+  padding: 12px 14px;
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--data);
+  font-size: 13px;
+  line-height: 1.6;
+  tab-size: 2;
+}
+.live-editor:focus { outline: 2px solid var(--accent); outline-offset: -2px; }
+.live-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 13px;
+  border-top: 1px solid var(--rule-soft);
+  flex-wrap: wrap;
+}
+.live-run {
+  font-family: var(--data);
+  font-size: 11px;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  padding: 7px 14px;
+  border: 1px solid var(--accent);
+  background: transparent;
+  color: var(--accent);
+  cursor: pointer;
+}
+.live-run:hover { background: var(--accent); color: var(--ground); }
+.live-run[disabled] { opacity: .5; cursor: default; }
+.live-run[disabled]:hover { background: transparent; color: var(--accent); }
+.live-status { font-family: var(--data); font-size: 10.5px; color: var(--ink-faint); }
+.live-out { max-width: 100%; overflow-x: auto; }
+.live-out table { margin: 0; width: 100%; font-size: 12.5px; }
+.live-out td, .live-out th { padding: 5px 13px 5px 0; }
+.live-out td:first-child, .live-out th:first-child { padding-left: 13px; }
+.live-out td { font-family: var(--data); font-size: 12px; }
+.live-err {
+  padding: 10px 14px;
+  font-family: var(--data);
+  font-size: 12px;
+  color: var(--simulated);
+  border-top: 1px solid var(--rule-soft);
+}
+
+.reto { border-left: 2px solid var(--accent); }
+.reto .live-head { color: var(--accent); }
+.reto-ask { padding: 12px 14px 2px; font-size: 15.5px; max-width: var(--read); }
+.verdict {
+  padding: 10px 14px;
+  border-top: 1px solid var(--rule-soft);
+  font-family: var(--data);
+  font-size: 12px;
+}
+.verdict.ok { color: var(--accent); }
+.verdict.no { color: var(--simulated); }
+
+.no-js .live-bar, .no-js .live-editor { display: none; }
+.no-js .live-static { display: block; }
+.live-static { display: none; }
+
+/* ---------------------------------------------------------- el doble trazo */
+
+.twin { max-width: var(--block); margin: 0 0 18px; }
+.twin svg { width: 100%; height: auto; display: block; }
+.twin .axis { stroke: var(--rule); fill: none; }
+.twin .tick { fill: var(--ink-faint); font-family: var(--data); font-size: 10px; }
+.twin .measured { stroke: var(--measured); fill: none; stroke-width: 1.8; }
+.twin .simulated { stroke: var(--simulated); fill: none; stroke-width: 1.8; stroke-dasharray: 5 4; }
+.twin .gap { fill: var(--simulated); opacity: .16; }
+.twin-key { display: flex; gap: 20px; flex-wrap: wrap; font-family: var(--data);
+            font-size: 11px; color: var(--ink-faint); margin-top: 6px; }
+.twin-key i { display: inline-block; width: 20px; height: 0; vertical-align: middle;
+              border-top-width: 2px; border-top-style: solid; margin-right: 7px; }
+.twin-key .k-measured i { border-color: var(--measured); }
+.twin-key .k-simulated i { border-top-style: dashed; border-color: var(--simulated); }
+
+.knob { display: flex; align-items: center; gap: 13px; flex-wrap: wrap; margin: 0 0 13px;
+        font-family: var(--data); font-size: 11px; color: var(--ink-faint); }
+.knob input[type="range"] { accent-color: var(--accent); flex: 1 1 200px; max-width: 300px; }
+.knob output { color: var(--accent); min-width: 72px; }
+
+/* -------------------------------------------------------- índice del curso */
+
+.toc { max-width: var(--block); }
+.toc .part {
+  font-family: var(--data);
+  font-size: 10px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin: 26px 0 2px;
+  padding-top: 11px;
+  border-top: 1px solid var(--rule);
+}
+.toc a, .toc .pending {
+  display: grid;
+  grid-template-columns: 34px 1fr auto;
+  gap: 15px;
+  align-items: baseline;
+  padding: 9px 6px 9px 8px;
+  border-bottom: 1px solid var(--rule-soft);
+  border-left: 2px solid transparent;
+  text-decoration: none;
+  color: var(--ink);
+}
+.toc a:hover { border-left-color: var(--accent); background: var(--panel); color: var(--accent); }
+.toc .pending { color: var(--ink-faint); }
+.toc .num { font-family: var(--data); font-size: 12px; color: var(--ink-faint); }
+.toc a:hover .num { color: var(--accent); }
+.toc .name { font-family: var(--display); font-size: 16px; }
+.toc .name small { display: block; font-family: var(--prose); color: var(--ink-faint);
+                   font-size: 13px; font-weight: 400; margin-top: 2px; max-width: 60ch; }
+.toc .mark { font-family: var(--data); font-size: 11px; color: var(--ink-faint); text-align: right; }
+.toc .tag { font-family: var(--data); font-size: 9.5px; letter-spacing: .1em;
+            text-transform: uppercase; color: var(--ink-faint); }
+
+/* ------------------------------------------------------------------- móvil */
+
+/* La barra deja de ser barra: pasa a cabecera compacta arriba, con los tramos en
+ * horizontal. La rejilla se colapsa a una columna. */
+@media (max-width: 900px) {
+  .shell { grid-template-columns: 1fr; }
+  .panel {
+    position: static;
+    height: auto;
+    border-right: 0;
+    border-bottom: 1px solid var(--rule);
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 16px;
+    padding: 13px 18px;
+  }
+  .panel-label { display: none; }
+  .panel .rail { display: flex; gap: 0 5px; flex-wrap: wrap; }
+  .rail-step { grid-template-columns: 11px auto; padding: 3px 0; font-size: 9.5px; }
+  .rail-step .range { display: none; }
+  .rail-step:not(:last-child)::after { display: none; }
+  .panel-figure { border-top: 0; padding-top: 0; }
+  .panel-figure .v { font-size: 13.5px; }
+  .panel-figure .l { display: none; }
+  .panel-progress { margin: 0; border-top: 0; padding-top: 0; }
+  .panel-bar { display: none; }
+  .stage-inner { padding: 0 18px; }
+  body { font-size: 16px; }
+  .head { padding-top: 22px; }
+  pre code { font-size: 12.5px; }
+}
+
+/* ------------------------------------------------- la perilla del gemelo */
+/*
+ * El doble trazo con su deslizador, de los modulos 24 y 25. El SVG llega ya
+ * dibujado del servidor, asi que sin JavaScript se ve igual: dos trazos, la
+ * referencia y la posicion de partida. El mando solo cambia cual se ensena.
+ *
+ * La regla de forma del curso: el color NUNCA es la unica pista. La referencia
+ * va punteada y en tono apagado, y la posicion elegida solida y en el acento.
+ */
+.perilla {
+  margin: 22px 0;
+  max-width: var(--block);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  background: var(--stage);
+  padding: 14px 16px 12px;
+}
+.perilla figcaption {
+  font-family: var(--data);
+  font-size: 11px;
+  color: var(--ink-faint);
+  letter-spacing: .02em;
+  margin-bottom: 10px;
+}
+.perilla svg { display: block; width: 100%; height: auto; }
+.perilla-referencia {
+  fill: none;
+  stroke: var(--ink-faint);
+  stroke-width: 1.4;
+  stroke-dasharray: 4 3;
+}
+.perilla-actual {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  transition: d .12s linear;
+}
+.perilla-pie {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 18px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--rule-soft);
+}
+.perilla-leyenda { font-size: 12px; color: var(--ink-faint); }
+.perilla-mandos {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+  font-family: var(--data);
+  font-size: 11px;
+  color: var(--ink-soft);
+}
+.perilla-mando { width: 190px; accent-color: var(--accent); }
+.perilla-mando[disabled] { opacity: .45; }
+.perilla-valor {
+  font-family: var(--data);
+  font-size: 12px;
+  color: var(--ink);
+  min-width: 88px;
+}
+.perilla-nota, .perilla-referencia-nota {
+  margin: 8px 0 0;
+  font-size: 12.5px;
+  color: var(--ink-soft);
+}
+.perilla-referencia-nota { color: var(--ink-faint); font-size: 12px; }
+
+@media (max-width: 620px) {
+  .perilla-mandos { margin-left: 0; width: 100%; }
+  .perilla-mando { flex: 1; width: auto; min-width: 0; }
+}
+
+/* --------------------------------------------------- el panel del gemelo */
+/*
+ * Módulo 30: la página propia del panel y el bloque ```panel de la lección.
+ *
+ * El gráfico es un SVG que se estira al hueco que le dan (preserveAspectRatio
+ * none) y sus trazos no engordan al estirarse (vector-effect en el HTML). Todo
+ * lo que es texto va encima en HTML: un texto dentro de un SVG que se encoge a
+ * 375 px se queda en cuatro píxeles. Los huecos del registro y las rayas de las
+ * marcas también son HTML, porque un rayado dentro de un SVG estirado se tuerce.
+ *
+ * La regla de forma del curso sigue mandando: la máquina medida va continua, el
+ * gemelo discontinuo, y el color nunca es la única pista.
+ */
+.pg {
+  margin: 20px 0 26px;
+  max-width: var(--block);
+  border: 1px solid var(--rule);
+  background: var(--stage);
+}
+.pg-cabeza {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  padding: 13px 16px 0;
+}
+.pg-fecha {
+  font-family: var(--display);
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--ink);
+}
+.pg-clase {
+  font-family: var(--data);
+  font-size: 10px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border: 1px solid var(--rule);
+  color: var(--ink-soft);
+}
+.pg-clase[data-clase="acierto"] { border-color: var(--accent); color: var(--accent); }
+.pg-clase[data-clase="falsa"],
+.pg-clase[data-clase="marzo_alarma"] { border-color: var(--simulated); color: var(--simulated); }
+.pg-clase[data-clase="escapa"] { border-style: dashed; border-color: var(--accent); color: var(--accent); }
+
+.pg-grafico { position: relative; padding: 16px 22px 50px 70px; }
+.pg-lienzo {
+  position: relative;
+  height: clamp(230px, 32vw, 360px);
+  border-left: 1px solid var(--ink-faint);
+  border-bottom: 1px solid var(--ink-faint);
+}
+.pg-svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.pg-rejilla { fill: none; stroke: var(--rule-soft); stroke-width: 1; }
+.pg-zona {
+  fill: var(--measured);
+  fill-opacity: .1;
+  stroke: var(--measured);
+  stroke-opacity: .45;
+  stroke-width: 1;
+  stroke-dasharray: 1 3;
+}
+.pg-gemelo { fill: none; stroke: var(--simulated); stroke-width: 2; stroke-dasharray: 7 5; }
+.pg-maquina { fill: none; stroke: var(--measured); stroke-width: 2.4; stroke-linejoin: round; }
+
+.pg-huecos, .pg-marcas { position: absolute; inset: 0; pointer-events: none; }
+.pg-hueco {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: repeating-linear-gradient(135deg, var(--rule) 0 1px, transparent 1px 7px);
+}
+.pg-raya { position: absolute; top: 0; bottom: 0; border-left: 1.5px solid var(--accent); }
+.pg-raya[data-tipo="parte"] { border-left: 1px dashed var(--ink-soft); }
+.pg-raya[data-tipo="cierre"] { border-left: 1px dotted var(--ink-soft); }
+.pg-marca {
+  position: absolute;
+  top: 5px;
+  padding: 1px 5px;
+  font-family: var(--data);
+  font-size: 10.5px;
+  line-height: 1.5;
+  white-space: nowrap;
+  color: var(--accent);
+  background: var(--stage);
+  transform: translateX(3px);
+}
+.pg-marca[data-fila="1"] { top: 26px; }
+.pg-marca[data-fila="2"] { top: 47px; }
+.pg-marca[data-lado="izq"] { transform: translateX(calc(-100% - 3px)); }
+.pg-marca[data-tipo="parte"], .pg-marca[data-tipo="cierre"] { color: var(--ink-soft); }
+
+.pg-ty, .pg-tx {
+  position: absolute;
+  font-family: var(--data);
+  font-size: 10.5px;
+  color: var(--ink-faint);
+  white-space: nowrap;
+}
+.pg-ty { right: calc(100% + 8px); transform: translateY(50%); }
+.pg-tx { top: calc(100% + 7px); transform: translateX(-50%); }
+.pg-eje-y, .pg-eje-x {
+  position: absolute;
+  font-family: var(--data);
+  font-size: 10.5px;
+  letter-spacing: .05em;
+  color: var(--ink-soft);
+}
+.pg-eje-y {
+  left: 8px;
+  top: 16px;
+  bottom: 50px;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  text-align: center;
+}
+.pg-eje-x { left: 70px; right: 22px; bottom: 9px; text-align: center; }
+
+.pg-leyenda {
+  list-style: none;
+  margin: 0;
+  padding: 10px 16px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 22px;
+  border-top: 1px solid var(--rule-soft);
+  font-size: 12.5px;
+  color: var(--ink-soft);
+}
+.block .pg-leyenda li { margin: 0; max-width: none; }
+.pg-leyenda li { display: flex; align-items: center; gap: 8px; }
+.pg-leyenda i { display: inline-block; width: 24px; height: 0; border-top: 2px solid; }
+.pg-leyenda b { font-family: var(--data); font-weight: 600; color: var(--ink); }
+.pg-k-maquina i { border-color: var(--measured); border-top-width: 2.4px; }
+.pg-k-gemelo i { border-top-style: dashed; border-color: var(--simulated); }
+.pg-k-zona i {
+  height: 11px;
+  border: 1px dotted var(--measured);
+  background: color-mix(in srgb, var(--measured) 12%, transparent);
+}
+.pg-k-sin_registro i {
+  height: 11px;
+  border: 1px solid var(--rule);
+  background: repeating-linear-gradient(135deg, var(--rule) 0 1px, transparent 1px 5px);
+}
+
+.block .pg-frase, .pg-frase {
+  margin: 0;
+  max-width: none;
+  padding: 12px 16px 14px;
+  border-top: 1px solid var(--rule-soft);
+  font-size: 15.5px;
+  line-height: 1.55;
+  text-align: left;
+}
+
+.pg-mando { padding: 12px 16px 14px; border-top: 1px solid var(--rule-soft); }
+.block .pg-tira-nota, .pg-tira-nota {
+  margin: 0 0 9px;
+  max-width: none;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--ink-faint);
+  text-align: left;
+}
+.pg-tira { position: relative; height: 70px; }
+.pg-tira:focus-within { outline: 2px solid var(--accent); outline-offset: 4px; }
+.pg-tira-svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.pg-b { fill: var(--ink-faint); opacity: .55; }
+.pg-b-alta { fill: var(--ink); }
+.pg-b-sin { fill: var(--ink-faint); opacity: .35; }
+.pg-b-elegido { fill: var(--accent); opacity: 1; }
+.pg-t-parte { fill: var(--accent); }
+.pg-t-marzo { fill: none; stroke: var(--simulated); stroke-width: 2; }
+.pg-t-umbral { fill: none; stroke: var(--accent); stroke-width: 1; stroke-dasharray: 4 3; }
+.pg-t-suelo { fill: none; stroke: var(--ink-faint); stroke-width: 1; stroke-dasharray: 1 3; }
+.pg-t-cursor { fill: none; stroke: var(--accent); stroke-width: 1.5; }
+
+/* El mando es un deslizador de verdad, invisible y del tamaño de la tira: se
+ * pincha o se arrastra sobre las barras, y las flechas del teclado funcionan
+ * solas. El pulgar mide dos píxeles para que el día que marca caiga debajo del
+ * dedo: con el de fábrica, de dieciséis, en un móvil se desplazaba cinco días. */
+.pg-cursor {
+  -webkit-appearance: none;
+  appearance: none;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+  background: transparent;
+}
+.pg-cursor::-webkit-slider-runnable-track { height: 70px; background: transparent; }
+.pg-cursor::-webkit-slider-thumb { -webkit-appearance: none; width: 2px; height: 70px; }
+.pg-cursor::-moz-range-track { height: 70px; background: transparent; }
+.pg-cursor::-moz-range-thumb { width: 2px; height: 70px; border: 0; border-radius: 0; }
+.pg-cursor[disabled] { cursor: default; }
+
+.pg-meses { position: relative; height: 17px; margin-top: 3px; }
+.pg-mes {
+  position: absolute;
+  top: 0;
+  padding-left: 4px;
+  border-left: 1px solid var(--rule);
+  font-family: var(--data);
+  font-size: 10px;
+  line-height: 17px;
+  color: var(--ink-faint);
+}
+
+.pg-botones {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+.pg-atajos-titulo {
+  flex-basis: 100%;
+  margin-top: 4px;
+  font-family: var(--data);
+  font-size: 9.5px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.pg-paso, .pg-atajo {
+  font-family: var(--data);
+  font-size: 11px;
+  padding: 6px 10px;
+  border: 1px solid var(--rule);
+  background: transparent;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+.pg-paso:hover, .pg-atajo:hover { border-color: var(--accent); color: var(--accent); }
+.pg-paso:focus-visible, .pg-atajo:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.pg-atajo[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
+.pg-paso[disabled], .pg-atajo[disabled] { opacity: .45; cursor: default; }
+.pg-paso[disabled]:hover, .pg-atajo[disabled]:hover { border-color: var(--rule); color: var(--ink-soft); }
+
+.pg-sinjs { display: none; }
+.no-js .pg-sinjs { display: block; margin: 10px 0 0; font-size: 12.5px; color: var(--ink-faint); }
+.no-js .pg-botones { display: none; }
+
+@media (max-width: 620px) {
+  .pg-grafico { padding: 14px 12px 48px 52px; }
+  .pg-eje-y { left: 4px; }
+  .pg-eje-x { left: 52px; right: 12px; }
+  .pg-lienzo { height: 250px; }
+  .pg-ty, .pg-tx, .pg-marca { font-size: 9.5px; }
+  .pg-fecha { font-size: 19px; }
+  .pg-leyenda { gap: 5px 16px; font-size: 12px; }
+  .pg-frase { font-size: 15px; }
+}
+
+/* La puerta del índice hacia el panel: para quien no va a leer 31 módulos. */
+.door {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 3px 18px;
+  margin: 22px 0 4px;
+  padding: 14px 16px;
+  max-width: var(--block);
+  border: 1px solid var(--rule);
+  border-left: 2px solid var(--accent);
+  background: var(--panel);
+  color: var(--ink);
+  text-decoration: none;
+}
+.door:hover { border-color: var(--accent); }
+.door-k {
+  grid-column: 1;
+  font-family: var(--data);
+  font-size: 10px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.door-t { grid-column: 1; font-family: var(--display); font-size: 19px; font-weight: 600; line-height: 1.25; }
+.door-s { grid-column: 1; font-size: 13.5px; line-height: 1.45; color: var(--ink-soft); }
+.door-a { grid-column: 2; grid-row: 1 / span 3; font-family: var(--data); font-size: 22px; color: var(--accent); }
+
+/* ------------------------------------------------------ movimiento y papel */
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@media print {
+  .shell { display: block; }
+  .panel, .live-bar, .live-editor { display: none; }
+  .live-static { display: block; }
+  body { background: #fff; color: #000; }
+}
+
+/* ------------------------------------------------------ figuras, dos temas */
+
+/* Cada figura viaja dos veces, clara y oscura, y aquí se enseña la que toca.
+ * Con `<picture>` y una media query bastaría para la preferencia del sistema,
+ * pero no para el interruptor manual, y este curso respeta los dos. */
+.fig-oscuro { display: none; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .fig-claro { display: none; }
+  :root:not([data-theme="light"]) .fig-oscuro { display: block; }
+}
+:root[data-theme="dark"] .fig-claro { display: none; }
+:root[data-theme="dark"] .fig-oscuro { display: block; }
+
+/* El acento del módulo 30, el del panel, uno por tema. */
+:root { --accent: #8F6755; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --accent: #D8AC99; }
+}
+:root[data-theme="dark"] { --accent: #D8AC99; }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- La misma barra que las lecciones: quien llega aquí desde el portafolio ve
+       dónde queda el panel, al final del lago, y la cifra del veredicto. -->
+  <aside class="panel">
+    <a class="panel-brand" href="index.en.html">Bellows
+      <small>the twin&#x27;s panel</small></a>
+
+    <nav class="rail" aria-label="the lake">
+      <p class="panel-label">the lake</p>
+      <span class="rail-step done"><i class="dot"></i><span>RAW</span><span class="range">1-3</span></span><span class="rail-step done"><i class="dot"></i><span>BRONZE</span><span class="range">4-13</span></span><span class="rail-step done"><i class="dot"></i><span>SILVER</span><span class="range">14-16</span></span><span class="rail-step done"><i class="dot"></i><span>GOLD</span><span class="range">17-22</span></span><span class="rail-step here"><i class="dot"></i><span>TWIN</span><span class="range">23-31</span></span>
+    </nav>
+
+    <div class="panel-figure">
+      <span class="v">4 of 4 against 2 of 4</span>
+      <span class="l">the failures the twin catches against the alarm already installed, at half the false alarms</span>
+    </div>
+
+    <div class="panel-progress">
+      the whole semester, no server
+      <span class="panel-bar"><i style="width: 100%"></i></span>
+    </div>
+
+    <nav class="panel-nav"><a href="index.en.html">the course</a><a class="portfolio-link" href="panel.html" hreflang="es" rel="alternate">Español</a></nav>
+  </aside>
+
+  <main class="stage">
+    <div class="stage-inner">
+      <header class="head">
+        <p class="head-id"><b>panel</b> <span>214 days, from 1 February to 1 September 2020</span></p>
+        <h1>The compressor&#x27;s semester, day by day</h1>
+        <p class="standfirst">Each day, how long the compressor actually worked against how long it would have worked healthy. When the two lines part, something is drawing air it should not.</p>
+      </header>
+
+      <figure class="pg" data-panel="../assets/panel/semestre.en.json?v=34c4cbd4" data-enlazable><div class="pg-cabeza"><output class="pg-fecha">5 Jun 2020</output><span class="pg-clase" data-clase="acierto">hit</span></div><div class="pg-grafico"><span class="pg-eje-y">hours loaded, cumulative</span><div class="pg-lienzo"><div class="pg-huecos"></div><svg class="pg-svg" viewBox="0 0 1440 1440" preserveAspectRatio="none" aria-hidden="true"><path class="pg-rejilla" d="M0 1080 H1440 M360 0 V1440 M0 720 H1440 M720 0 V1440 M0 360 H1440 M1080 0 V1440" vector-effect="non-scaling-stroke"/><path class="pg-zona" d="M0 1440 L10 1439 L20 1437 L30 1436 L40 1434 L50 1433 L60 1431 L70 1430 L80 1428 L90 1427 L100 1425 L110 1424 L120 1422 L130 1421 L140 1419 L150 1418 L160 1416 L170 1415 L180 1413 L190 1412 L200 1410 L210 1409 L220 1407 L230 1406 L240 1404 L250 1403 L260 1401 L270 1400 L280 1398 L290 1397 L300 1395 L310 1394 L320 1392 L330 1391 L340 1389 L350 1388 L360 1386 L370 1385 L380 1383 L390 1382 L400 1380 L410 1379 L420 1377 L430 1376 L440 1374 L450 1373 L460 1371 L470 1370 L480 1368 L490 1367 L500 1365 L510 1364 L520 1362 L530 1361 L540 1359 L550 1358 L560 1356 L570 1355 L580 1353 L590 1352 L600 1350 L610 1349 L620 1347 L630 1346 L640 1344 L650 1343 L660 1341 L670 1340 L680 1338 L690 1337 L700 1335 L710 1334 L720 1332 L730 1331 L740 1329 L750 1328 L760 1326 L770 1325 L780 1323 L790 1322 L800 1320 L810 1319 L820 1317 L830 1316 L840 1314 L850 1313 L860 1311 L870 1310 L880 1308 L890 1307 L900 1305 L910 1304 L920 1302 L930 1301 L940 1299 L950 1298 L960 1296 L970 1295 L980 1293 L990 1292 L1000 1290 L1010 1289 L1020 1287 L1030 1286 L1040 1284 L1050 1283 L1060 1281 L1070 1280 L1080 1278 L1090 1277 L1100 1275 L1110 1274 L1120 1272 L1130 1271 L1140 1269 L1150 1268 L1160 1266 L1170 1265 L1180 1263 L1190 1262 L1200 1260 L1210 1259 L1220 1257 L1230 1256 L1240 1254 L1250 1253 L1260 1251 L1270 1250 L1280 1248 L1290 1247 L1300 1245 L1310 1244 L1320 1242 L1330 1241 L1340 1239 L1350 1238 L1360 1236 L1370 1235 L1380 1233 L1390 1232 L1400 1230 L1410 1229 L1420 1227 L1430 1226 L1440 1224 L1440 1440 Z" vector-effect="non-scaling-stroke"/><path class="pg-gemelo" d="M0 1440 L10 1440 L20 1440 L30 1439 L40 1438 L50 1438 L60 1438 L70 1436 L80 1436 L90 1436 L100 1435 L110 1435 L120 1435 L130 1433 L140 1433 L150 1433 L160 1431 L170 1431 L180 1431 L190 1429 L200 1429 L210 1429 L220 1428 L230 1428 L240 1428 L250 1426 L260 1426 L270 1426 L280 1424 L290 1424 L300 1424 L310 1422 L320 1422 L330 1422 L340 1421 L350 1421 L360 1421 L370 1419 L380 1419 L390 1419 L400 1417 L410 1417 L420 1417 L430 1416 L440 1416 L450 1416 L460 1415 L470 1414 L480 1414 L490 1414 L500 1412 L510 1412 L520 1412 L530 1410 L540 1410 L550 1410 L560 1409 L570 1409 L580 1409 L590 1407 L600 1407 L610 1407 L620 1405 L630 1405 L640 1405 L650 1403 L660 1403 L670 1403 L680 1402 L690 1402 L700 1402 L710 1400 L720 1400 L730 1400 L740 1398 L750 1398 L760 1398 L770 1396 L780 1396 L790 1396 L800 1395 L810 1394 L820 1394 L830 1394 L840 1393 L850 1393 L860 1393 L870 1391 L880 1391 L890 1391 L900 1389 L910 1389 L920 1389 L930 1387 L940 1387 L950 1387 L960 1386 L970 1386 L980 1386 L990 1384 L1000 1384 L1010 1384 L1020 1382 L1030 1382 L1040 1382 L1050 1380 L1060 1380 L1070 1380 L1080 1379 L1090 1379 L1100 1379 L1110 1377 L1120 1377 L1130 1377 L1140 1375 L1150 1375 L1160 1375 L1170 1373 L1180 1373 L1190 1373 L1200 1372 L1210 1372 L1220 1372 L1230 1371 L1240 1370 L1250 1370 L1260 1370 L1270 1368 L1280 1368 L1290 1368 L1300 1366 L1310 1366 L1320 1366 L1330 1365 L1340 1365 L1350 1365 L1360 1363 L1370 1363 L1380 1363 L1390 1361 L1400 1361 L1410 1361 L1420 1360 L1430 1360 L1440 1360" vector-effect="non-scaling-stroke"/><path class="pg-maquina" d="M0 1440 L10 1440 L20 1438 L30 1438 L40 1436 L50 1436 L60 1436 L70 1431 L80 1431 L90 1431 L100 1428 L110 1428 L120 1428 L130 1425 L140 1425 L150 1423 L160 1423 L170 1423 L180 1421 L190 1421 L200 1419 L210 1418 L220 1418 L230 1416 L240 1416 L250 1414 L260 1414 L270 1414 L280 1411 L290 1411 L300 1408 L310 1408 L320 1407 L330 1405 L340 1403 L350 1403 L360 1402 L370 1400 L380 1400 L390 1397 L400 1395 L410 1395 L420 1394 L430 1393 L440 1391 L450 1389 L460 1388 L470 1387 L480 1387 L490 1384 L500 1384 L510 1382 L520 1382 L530 1380 L540 1380 L550 1377 L560 1377 L570 1377 L580 1375 L590 1374 L600 1364 L610 1354 L620 1344 L630 1334 L640 1324 L650 1314 L660 1304 L670 1294 L680 1284 L690 1274 L700 1264 L710 1254 L720 1244 L730 1234 L740 1224 L750 1214 L760 1204 L770 1194 L780 1184 L790 1174 L800 1164 L810 1154 L820 1144 L830 1134 L840 1124 L850 1114 L860 1104 L870 1094 L880 1084 L890 1074 L900 1064 L910 1054 L920 1044 L930 1034 L940 1024 L950 1014 L960 1004 L970 994 L980 984 L990 974 L1000 964 L1010 954 L1020 944 L1030 934 L1040 924 L1050 914 L1060 904 L1070 894 L1080 884 L1090 874 L1100 864 L1110 854 L1120 844 L1130 834 L1140 824 L1150 814 L1160 804 L1170 794 L1180 784 L1190 774 L1200 764 L1210 754 L1220 744 L1230 734 L1240 724 L1250 714 L1260 704 L1270 694 L1280 684 L1290 674 L1300 664 L1310 654 L1320 644 L1330 634 L1340 624 L1350 614 L1360 604 L1370 594 L1380 584 L1390 574 L1400 564 L1410 554 L1420 544 L1430 534 L1440 524" vector-effect="non-scaling-stroke"/></svg><div class="pg-marcas"><span class="pg-raya" data-tipo="alarma" style="left:41.667%"></span><span class="pg-raya" data-tipo="parte" style="left:41.667%"></span><span class="pg-marca" data-tipo="alarma" data-fila="0" data-lado="der" style="left:41.667%">alarm 10:00</span><span class="pg-marca" data-tipo="parte" data-fila="1" data-lado="der" style="left:41.667%">report #3 10:00</span></div><span class="pg-ty" style="bottom:0.000%">0 h</span><span class="pg-ty" style="bottom:25.000%">6 h</span><span class="pg-ty" style="bottom:50.000%">12 h</span><span class="pg-ty" style="bottom:75.000%">18 h</span><span class="pg-ty" style="bottom:100.000%">24 h</span><span class="pg-tx" style="left:0.000%">00:00</span><span class="pg-tx" style="left:25.000%">06:00</span><span class="pg-tx" style="left:50.000%">12:00</span><span class="pg-tx" style="left:75.000%">18:00</span><span class="pg-tx" style="left:100.000%">24:00</span></div><span class="pg-eje-x">time of day</span></div><ul class="pg-leyenda"><li class="pg-k-maquina"><i></i>the compressor, measured <b data-k="maquina">15.27 h</b></li><li class="pg-k-gemelo"><i></i>the twin, machine healthy <b data-k="gemelo">1.34 h</b></li><li class="pg-k-zona"><i></i>healthy zone, up to the noise floor <b data-k="zona">3.60 h</b></li><li class="pg-k-sin_registro"><i></i>no record <b data-k="sin_registro">0 h</b></li></ul><p class="pg-frase" aria-live="polite">On 5 June the compressor was loaded for 15.27 h of the 24 h on record. With the machine healthy, the twin says 1.34 h. At 10:00 the residual crosses the threshold and the alarm fires, the same hour report #3 begins: a hit.</p><div class="pg-mando"><p class="pg-tira-nota">The whole semester. Each bar is a day and its height the day&#x27;s highest residual; the dashed line is the alarm threshold, and the squares underneath mark the days with a failure report.</p><div class="pg-tira"><svg class="pg-tira-svg" viewBox="0 0 214 110" preserveAspectRatio="none" aria-hidden="true"><path class="pg-t-suelo" d="M0 86.91 H214" vector-effect="non-scaling-stroke"/><g class="pg-barras"><rect class="pg-b" x="0.18" y="92.06" width="0.64" height="3.94"/><rect class="pg-b" x="1.18" y="92.06" width="0.64" height="3.94"/><rect class="pg-b" x="2.18" y="95.20" width="0.64" height="0.80"/><rect class="pg-b" x="3.18" y="91.52" width="0.64" height="4.48"/><rect class="pg-b" x="4.18" y="91.79" width="0.64" height="4.21"/><rect class="pg-b" x="5.18" y="92.61" width="0.64" height="3.39"/><rect class="pg-b" x="6.18" y="88.27" width="0.64" height="7.73"/><rect class="pg-b" x="7.18" y="87.72" width="0.64" height="8.28"/><rect class="pg-b" x="8.18" y="86.91" width="0.64" height="9.09"/><rect class="pg-b" x="9.18" y="89.08" width="0.64" height="6.92"/><rect class="pg-b" x="10.18" y="91.79" width="0.64" height="4.21"/><rect class="pg-b" x="11.18" y="92.06" width="0.64" height="3.94"/><rect class="pg-b" x="12.18" y="91.79" width="0.64" height="4.21"/><rect class="pg-b" x="13.18" y="90.98" width="0.64" height="5.02"/><rect class="pg-b" x="14.18" y="93.96" width="0.64" height="2.04"/><rect class="pg-b" x="15.18" y="95.20" width="0.64" height="0.80"/><rect class="pg-b" x="16.18" y="93.68" width="0.64" height="2.32"/><rect class="pg-b" x="17.18" y="92.06" width="0.64" height="3.94"/><rect class="pg-b" x="18.18" y="95.20" width="0.64" height="0.80"/><rect class="pg-b" x="19.18" y="92.61" width="0.64" height="3.39"/><rect class="pg-b" x="20.18" y="91.52" width="0.64" height="4.48"/><rect class="pg-b" x="21.18" y="91.79" width="0.64" height="4.21"/><rect class="pg-b" x="22.18" y="92.06" width="0.64" height="3.94"/><rect class="pg-b" x="23.18" y="93.15" width="0.64" height="2.85"/><rect class="pg-b" x="24.18" y="90.98" width="0.64" height="5.02"/><rect class="pg-b" x="25.18" y="92.06" width="0.64" height="3.94"/><rect class="pg-b" x="26.18" y="90.44" width="0.64" height="5.56"/><rect class="pg-b" x="27.18" y="91.25" width="0.64" height="4.75"/><rect class="pg-b-sin" x="28.30" y="93" width="0.4" height="3"/><rect class="pg-b" x="29.18" y="88.81" width="0.64" height="7.19"/><rect class="pg-b" x="30.18" y="77.43" width="0.64" height="18.57"/><rect class="pg-b" x="31.18" y="77.43" width="0.64" height="18.57"/><rect class="pg-b" x="32.18" y="73.09" width="0.64" height="22.91"/><rect class="pg-b" x="33.18" y="66.59" width="0.64" height="29.41"/><rect class="pg-b-alta" x="34.18" y="4.00" width="0.64" height="92.00"/><rect class="pg-b" x="35.18" y="77.24" width="0.64" height="18.76"/><rect class="pg-b" x="36.18" y="86.37" width="0.64" height="9.63"/><rect class="pg-b" x="37.18" y="54.13" width="0.64" height="41.87"/><rect class="pg-b" x="38.18" y="67.95" width="0.64" height="28.05"/><rect class="pg-b" x="39.18" y="28.93" width="0.64" height="67.07"/><rect class="pg-b-alta" x="40.18" y="4.00" width="0.64" height="92.00"/><rect class="pg-b" x="41.18" y="89.08" width="0.64" height="6.92"/><rect class="pg-b" x="42.18" y="89.08" width="0.64" height="6.92"/><rect class="pg-b" x="43.18" y="88.00" width="0.64" height="8.00"/><rect class="pg-b" x="44.18" y="91.79" width="0.64" height="4.21"/><rect class="pg-b" x="45.18" y="89.62" width="0.64" height="6.38"/><rect class="pg-b" x="46.18" y="91.79" width="0.64" height="4.21"/><rect class="pg-b" x="47.18" y="93.15" width="0.64" height="2.85"/><rect class="pg-b" x="48.18" y="90.98" width="0.64" height="5.02"/><rect class="pg-b" x="49.18" y="88.00" width="0.64" height="8.00"/><rect class="pg-b" x="50.18" y="79.33" width="0.64" height="16.67"/><rect class="pg-b" x="51.18" y="88.00" width="0.64" height="8.00"/><rect class="pg-b" x="52.18" y="88.00" width="0.64" height="8.00"/><rect class="pg-b" x="53.18" y="80.41" width="0.64" height="15.59"/><rect class="pg-b" x="54.18" y="16.19" width="0.64" height="79.81"/><rect class="pg-b-alta" x="55.18" y="4.00" width="0.64" height="92.00"/><rect class="pg-b-alta" x="56.18" y="4.00" width="0.64" height="92.00"/><rect class="pg-b-alta" x="57.18" y="4.00" width="0.64" height="92.00"/><rect class="pg-b" x="58.18" y="83.93" width="0.64" height="12.07"/><rect class="pg-b" x="59.18" y="73.09" width="0.64" height="22.91"/><rect class="pg-b" x="60.18" y="85.56" width="0.64" height="10.44"/><rect class="pg-b" x="61.18" y="88.81" width="0.64" height="7.19"/><rect class="pg-b" x="62.18" y="87.72" width="0.64" height="8.28"/><rect class="pg-b" x="63.18" y="88.81" width="0.64" height="7.19"/><rect class="pg-b" x="64.18" y="87.45" width="0.64" height="8.55"/><rect class="pg-b" x="65.18" y="56.88" width="0.64" height="39.12"/><rect class="pg-b" x="66.18" y="81.49" width="0.64" height="14.51"/><rect class="pg-b" x="67.18" y="86.64" width="0.64" height="9.36"/><rect class="pg-b" x="68.18" y="90.70" width="0.64" height="5.30"/><rect class="pg-b" x="69.18" y="85.83" width="0.64" height="10.17"/><rect class="pg-b" x="70.18" y="85.29" width="0.64" height="10.71"/><rect class="pg-b-alta" x="71.18" y="4.00" width="0.64" height="92.00"/><rect class="pg-b" x="72.18" y="90.44" width="0.64" height="5.56"/><rect class="pg-b" x="73.18" y="91.25" width="0.64" height="4.75"/><rect class="pg-b" x="74.18" y="87.19" width="0.64" height="8.81"/><rect class="pg-b" x="75.18" y="86.10" width="0.64" height="9.90"/><rect class="pg-b" x="76.18" y="94.23" width="0.64" height="1.77"/><rect class="pg-b-alta" x="77.18" y="4.00" width="0.64" height="92.00"/><rect class="pg-b-alta" x="78.18" y="4.00" width="0.64" height="92.00"/><rect class="pg-b" x="79.18" y="83.26" width="0.64" height="12.74"/><rect class="pg-b" x="80.18" y="91.52" width="0.64" height="4.48"/><rect class="pg-b" x="81.18" y="91.52" width="0.64" height="4.48"/><rect class="pg-b" x="82.18" y="90.98" width="0.64" height="5.02"/><rect class="pg-b" x="83.18" y="89.08" width="0.64" height="6.92"/><rect class="pg-b" x="84.18" y="54.94" width="0.64" height="41.06"/><rect class="pg-b-sin" x="85.30" y="93" width="0.4" height="3"/><rect class="pg-b" x="86.18" y="74.18" width="0.64" height="21.82"/><rect class="pg-b" x="87.18" y="88.09" width="0.64" height="7.91"/><rect class="pg-b" x="88.18" y="45.19" width="0.64" height="50.81"/><rect class="pg-b" x="89.18" y="92.61" width="0.64" height="3.39"/><rect class="pg-b" x="90.18" y="92.06" width="0.64" height="3.94"/><rect class="pg-b" x="91.18" y="85.02" width="0.64" height="10.98"/><rect class="pg-b" x="92.18" y="89.08" width="0.64" height="6.92"/><rect class="pg-b" x="93.18" y="86.91" width="0.64" height="9.09"/><rect class="pg-b" x="94.18" y="91.25" width="0.64" height="4.75"/><rect class="pg-b" x="95.18" y="90.98" width="0.64" height="5.02"/><rect class="pg-b" x="96.18" y="88.81" width="0.64" height="7.19"/><rect class="pg-b" x="97.18" y="86.37" width="0.64" height="9.63"/><rect class="pg-b" x="98.18" y="88.81" width="0.64" height="7.19"/><rect class="pg-b-sin" x="99.30" y="93" width="0.4" height="3"/><rect class="pg-b" x="100.18" y="87.72" width="0.64" height="8.28"/><rect class="pg-b" x="101.18" y="93.15" width="0.64" height="2.85"/><rect class="pg-b-alta" x="102.18" y="4.00" width="0.64" height="92.00"/><rect class="pg-b-alta" x="103.18" y="4.00" width="0.64" height="92.00"/><rect class="pg-b" x="104.18" y="91.19" width="0.64" height="4.81"/><rect class="pg-b" x="105.18" y="89.62" width="0.64" height="6.38"/><rect class="pg-b" x="106.18" y="67.67" width="0.64" height="28.33"/><rect class="pg-b" x="107.18" y="56.57" width="0.64" height="39.43"/><rect class="pg-b-alta" x="108.18" y="4.00" width="0.64" height="92.00"/><rect class="pg-b-alta" x="109.18" y="4.00" width="0.64" height="92.00"/><rect class="pg-b" x="110.18" y="72.28" width="0.64" height="23.72"/><rect class="pg-b" x="111.18" y="80.96" width="0.64" height="15.04"/><rect class="pg-b" x="112.18" y="63.34" width="0.64" height="32.66"/><rect class="pg-b-sin" x="113.30" y="93" width="0.4" height="3"/><rect class="pg-b" x="114.18" y="77.70" width="0.64" height="18.30"/><rect class="pg-b" x="115.18" y="74.54" width="0.64" height="21.46"/><rect class="pg-b-sin" x="116.30" y="93" width="0.4" height="3"/><rect class="pg-b" x="117.18" y="81.49" width="0.64" height="14.51"/><rect class="pg-b" x="118.18" y="28.12" width="0.64" height="67.88"/><rect class="pg-b-alta" x="119.18" y="4.00" width="0.64" height="92.00"/><rect class="pg-b" x="120.18" y="85.02" width="0.64" height="10.98"/><rect class="pg-b" x="121.18" y="37.87" width="0.64" height="58.13"/><rect class="pg-b" x="122.18" y="12.92" width="0.64" height="83.08"/><rect class="pg-b" x="123.18" y="13.76" width="0.64" height="82.24"/><rect class="pg-b" x="124.18" y="88.54" width="0.64" height="7.46"/><rect class="pg-b-alta pg-b-elegido" x="125.18" y="4.00" width="0.64" height="92.00"/><rect class="pg-b-alta" x="126.18" y="4.00" width="0.64" height="92.00"/><rect class="pg-b-alta" x="127.18" y="4.00" width="0.64" height="92.00"/><rect class="pg-b-alta" x="128.18" y="4.00" width="0.64" height="92.00"/><rect class="pg-b" x="129.18" y="85.29" width="0.64" height="10.71"/><rect class="pg-b" x="130.18" y="82.99" width="0.64" height="13.01"/><rect class="pg-b" x="131.18" y="86.10" width="0.64" height="9.90"/><rect class="pg-b" x="132.18" y="85.56" width="0.64" height="10.44"/><rect class="pg-b" x="133.18" y="84.21" width="0.64" height="11.79"/><rect class="pg-b" x="134.18" y="81.49" width="0.64" height="14.51"/><rect class="pg-b" x="135.18" y="85.56" width="0.64" height="10.44"/><rect class="pg-b" x="136.18" y="80.30" width="0.64" height="15.70"/><rect class="pg-b" x="137.18" y="85.56" width="0.64" height="10.44"/><rect class="pg-b" x="138.18" y="71.20" width="0.64" height="24.80"/><rect class="pg-b" x="139.18" y="77.70" width="0.64" height="18.30"/><rect class="pg-b" x="140.18" y="80.41" width="0.64" height="15.59"/><rect class="pg-b" x="141.18" y="86.37" width="0.64" height="9.63"/><rect class="pg-b" x="142.18" y="29.97" width="0.64" height="66.03"/><rect class="pg-b-sin" x="143.30" y="93" width="0.4" height="3"/><rect class="pg-b-sin" x="144.30" y="93" width="0.4" height="3"/><rect class="pg-b" x="145.18" y="83.18" width="0.64" height="12.82"/><rect class="pg-b" x="146.18" y="87.45" width="0.64" height="8.55"/><rect class="pg-b" x="147.18" y="89.36" width="0.64" height="6.64"/><rect class="pg-b" x="148.18" y="73.58" width="0.64" height="22.42"/><rect class="pg-b" x="149.18" y="84.75" width="0.64" height="11.25"/><rect class="pg-b" x="150.18" y="86.37" width="0.64" height="9.63"/><rect class="pg-b" x="151.18" y="89.36" width="0.64" height="6.64"/><rect class="pg-b" x="152.18" y="83.12" width="0.64" height="12.88"/><rect class="pg-b" x="153.18" y="83.51" width="0.64" height="12.49"/><rect class="pg-b" x="154.18" y="88.27" width="0.64" height="7.73"/><rect class="pg-b" x="155.18" y="87.72" width="0.64" height="8.28"/><rect class="pg-b" x="156.18" y="79.87" width="0.64" height="16.13"/><rect class="pg-b" x="157.18" y="84.75" width="0.64" height="11.25"/><rect class="pg-b" x="158.18" y="19.72" width="0.64" height="76.28"/><rect class="pg-b" x="159.18" y="83.66" width="0.64" height="12.34"/><rect class="pg-b" x="160.18" y="80.41" width="0.64" height="15.59"/><rect class="pg-b" x="161.18" y="84.75" width="0.64" height="11.25"/><rect class="pg-b" x="162.18" y="81.22" width="0.64" height="14.78"/><rect class="pg-b" x="163.18" y="75.53" width="0.64" height="20.47"/><rect class="pg-b" x="164.18" y="12.40" width="0.64" height="83.60"/><rect class="pg-b-alta" x="165.18" y="4.00" width="0.64" height="92.00"/><rect class="pg-b" x="166.18" y="74.45" width="0.64" height="21.55"/><rect class="pg-b" x="167.18" y="43.42" width="0.64" height="52.58"/><rect class="pg-b" x="168.18" y="80.68" width="0.64" height="15.32"/><rect class="pg-b" x="169.18" y="85.02" width="0.64" height="10.98"/><rect class="pg-b" x="170.18" y="87.41" width="0.64" height="8.59"/><rect class="pg-b" x="171.18" y="86.64" width="0.64" height="9.36"/><rect class="pg-b" x="172.18" y="72.51" width="0.64" height="23.49"/><rect class="pg-b" x="173.18" y="86.64" width="0.64" height="9.36"/><rect class="pg-b" x="174.18" y="81.88" width="0.64" height="14.12"/><rect class="pg-b" x="175.18" y="87.19" width="0.64" height="8.81"/><rect class="pg-b" x="176.18" y="85.29" width="0.64" height="10.71"/><rect class="pg-b" x="177.18" y="85.56" width="0.64" height="10.44"/><rect class="pg-b" x="178.18" y="85.56" width="0.64" height="10.44"/><rect class="pg-b" x="179.18" y="80.96" width="0.64" height="15.04"/><rect class="pg-b" x="180.18" y="85.83" width="0.64" height="10.17"/><rect class="pg-b" x="181.18" y="35.16" width="0.64" height="60.84"/><rect class="pg-b" x="182.18" y="75.74" width="0.64" height="20.26"/><rect class="pg-b" x="183.18" y="85.83" width="0.64" height="10.17"/><rect class="pg-b" x="184.18" y="66.73" width="0.64" height="29.27"/><rect class="pg-b" x="185.18" y="90.17" width="0.64" height="5.83"/><rect class="pg-b" x="186.18" y="90.17" width="0.64" height="5.83"/><rect class="pg-b" x="187.18" y="89.62" width="0.64" height="6.38"/><rect class="pg-b" x="188.18" y="90.40" width="0.64" height="5.60"/><rect class="pg-b" x="189.18" y="88.81" width="0.64" height="7.19"/><rect class="pg-b" x="190.18" y="84.75" width="0.64" height="11.25"/><rect class="pg-b" x="191.18" y="82.30" width="0.64" height="13.70"/><rect class="pg-b" x="192.18" y="85.56" width="0.64" height="10.44"/><rect class="pg-b" x="193.18" y="84.47" width="0.64" height="11.53"/><rect class="pg-b" x="194.18" y="85.56" width="0.64" height="10.44"/><rect class="pg-b" x="195.18" y="84.75" width="0.64" height="11.25"/><rect class="pg-b" x="196.18" y="86.37" width="0.64" height="9.63"/><rect class="pg-b" x="197.18" y="87.19" width="0.64" height="8.81"/><rect class="pg-b" x="198.18" y="85.56" width="0.64" height="10.44"/><rect class="pg-b" x="199.18" y="88.00" width="0.64" height="8.00"/><rect class="pg-b" x="200.18" y="74.72" width="0.64" height="21.28"/><rect class="pg-b" x="201.18" y="81.22" width="0.64" height="14.78"/><rect class="pg-b" x="202.18" y="81.77" width="0.64" height="14.23"/><rect class="pg-b" x="203.18" y="74.72" width="0.64" height="21.28"/><rect class="pg-b" x="204.18" y="73.90" width="0.64" height="22.10"/><rect class="pg-b" x="205.18" y="79.60" width="0.64" height="16.40"/><rect class="pg-b" x="206.18" y="85.56" width="0.64" height="10.44"/><rect class="pg-b" x="207.18" y="86.10" width="0.64" height="9.90"/><rect class="pg-b" x="208.18" y="86.10" width="0.64" height="9.90"/><rect class="pg-b" x="209.18" y="80.41" width="0.64" height="15.59"/><rect class="pg-b" x="210.18" y="81.77" width="0.64" height="14.23"/><rect class="pg-b" x="211.18" y="83.12" width="0.64" height="12.88"/><rect class="pg-b" x="212.18" y="85.29" width="0.64" height="10.71"/><rect class="pg-b" x="213.18" y="95.04" width="0.64" height="0.96"/></g><g><rect class="pg-t-parte" x="77.10" y="100" width="0.8" height="8"/><rect class="pg-t-parte" x="118.10" y="100" width="0.8" height="8"/><rect class="pg-t-parte" x="119.10" y="100" width="0.8" height="8"/><rect class="pg-t-parte" x="125.10" y="100" width="0.8" height="8"/><rect class="pg-t-parte" x="126.10" y="100" width="0.8" height="8"/><rect class="pg-t-parte" x="127.10" y="100" width="0.8" height="8"/><rect class="pg-t-parte" x="165.10" y="100" width="0.8" height="8"/></g><path class="pg-t-marzo" d="M29.1 104 H40.9" vector-effect="non-scaling-stroke"/><path class="pg-t-umbral" d="M0 6.31 H214" vector-effect="non-scaling-stroke"/><path class="pg-t-cursor" d="M125.5 0 V110" vector-effect="non-scaling-stroke"/></svg><input class="pg-cursor" type="range" min="0" max="213" value="125" step="1" aria-label="choose the day" aria-valuetext="5 Jun 2020, hit" disabled></div><div class="pg-meses"><span class="pg-mes" style="left:0.000%">Feb</span><span class="pg-mes" style="left:13.551%">Mar</span><span class="pg-mes" style="left:28.037%">Apr</span><span class="pg-mes" style="left:42.056%">May</span><span class="pg-mes" style="left:56.542%">Jun</span><span class="pg-mes" style="left:70.561%">Jul</span><span class="pg-mes" style="left:85.047%">Aug</span></div><p class="pg-sinjs">Without JavaScript you see the starting day; with it, any of the 214 days.</p><div class="pg-botones"><button type="button" class="pg-paso" data-paso="-1" disabled>‹ previous</button><button type="button" class="pg-paso" data-paso="1" disabled>next ›</button><span class="pg-atajos-titulo">days that tell the story</span><button type="button" class="pg-atajo" data-i="17" aria-pressed="false" disabled>18 Feb, healthy</button><button type="button" class="pg-atajo" data-i="40" aria-pressed="false" disabled>12 Mar, no report</button><button type="button" class="pg-atajo" data-i="77" aria-pressed="false" disabled>18 Apr, report #1</button><button type="button" class="pg-atajo" data-i="119" aria-pressed="false" disabled>30 May, report #1</button><button type="button" class="pg-atajo" data-i="125" aria-pressed="true" disabled>5 Jun, report #3</button><button type="button" class="pg-atajo" data-i="165" aria-pressed="false" disabled>15 Jul, report #4</button></div></div></figure>
+
+      <section class="block is-method"><span class="kicker">Reading</span><h2 class="block-title">How to read it</h2><p>The solid line is the real compressor: the hours it has spent loading air, added up through the day. A healthy compressor loads little and in short bursts, so its line barely lifts off the floor.</p><p>The dashed line is the twin, a model of the same machine built from four numbers measured in February. It says how long the healthy machine would have loaded with the plant&#x27;s normal demand, over the same hours the record holds.</p><p>The band is the healthy zone. That is as far as a machine would get if it spent the whole day like its busiest hour in February. A solid line leaving the band is a compressor working to feed something that is not the plant: a leak.</p><p>The vertical lines mark when the alarm fires and when a failure report opens or closes. The hatched stretches are hours with no record, and there both lines stay flat because there is nothing to measure.</p><p>The alarm is the verdict&#x27;s. It fires when, in some hour, the plant draws 1.15 bar per minute more than it drew when healthy. That is the highest threshold at which the twin still catches all four documented failures.</p></section>
+<section class="block is-terms"><span class="kicker">Source</span><h2 class="block-title">Where it comes from</h2><p>Every day on this panel was worked out beforehand, in Python, and the page only chooses which one to show. That is why it answers instantly and needs no server: all 214 days travel together in a single file.</p><p>The full verdict, with its two counts and the rival the machine already carried, is in <a href="m28_veredicto.en.html">module 28</a>. All the code is on <a href="https://github.com/kmortizva-data/fuelle">GitHub</a>.</p><p>The data is MetroPT-3, from the UCI repository, under a CC BY 4.0 licence. Davari, Veloso, Ribeiro and Gama (2021), <a href="https://doi.org/10.24432/C5VW3R">doi.org/10.24432/C5VW3R</a>.</p></section>
+
+      <footer class="footer">
+        <span>Bellows / the twin&#x27;s panel</span>
+        <span>generated on 2026-09-19</span>
+        <span>source: MetroPT-3, from a Porto Metro train compressor (CC BY 4.0)</span>
+      </footer>
+    </div>
+  </main>
+
+</div>
+<!-- Sin motor ni librerías: el script suma minutos y cambia de frase. -->
+<script src="panel.js" defer></script>
+</body>
+</html>

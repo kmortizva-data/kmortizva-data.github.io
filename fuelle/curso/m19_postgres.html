@@ -861,6 +861,294 @@ figcaption { font-size: 12.5px; color: var(--ink-faint); margin-top: 7px; max-wi
   .perilla-mando { flex: 1; width: auto; min-width: 0; }
 }
 
+/* --------------------------------------------------- el panel del gemelo */
+/*
+ * Módulo 30: la página propia del panel y el bloque ```panel de la lección.
+ *
+ * El gráfico es un SVG que se estira al hueco que le dan (preserveAspectRatio
+ * none) y sus trazos no engordan al estirarse (vector-effect en el HTML). Todo
+ * lo que es texto va encima en HTML: un texto dentro de un SVG que se encoge a
+ * 375 px se queda en cuatro píxeles. Los huecos del registro y las rayas de las
+ * marcas también son HTML, porque un rayado dentro de un SVG estirado se tuerce.
+ *
+ * La regla de forma del curso sigue mandando: la máquina medida va continua, el
+ * gemelo discontinuo, y el color nunca es la única pista.
+ */
+.pg {
+  margin: 20px 0 26px;
+  max-width: var(--block);
+  border: 1px solid var(--rule);
+  background: var(--stage);
+}
+.pg-cabeza {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  padding: 13px 16px 0;
+}
+.pg-fecha {
+  font-family: var(--display);
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--ink);
+}
+.pg-clase {
+  font-family: var(--data);
+  font-size: 10px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border: 1px solid var(--rule);
+  color: var(--ink-soft);
+}
+.pg-clase[data-clase="acierto"] { border-color: var(--accent); color: var(--accent); }
+.pg-clase[data-clase="falsa"],
+.pg-clase[data-clase="marzo_alarma"] { border-color: var(--simulated); color: var(--simulated); }
+.pg-clase[data-clase="escapa"] { border-style: dashed; border-color: var(--accent); color: var(--accent); }
+
+.pg-grafico { position: relative; padding: 16px 22px 50px 70px; }
+.pg-lienzo {
+  position: relative;
+  height: clamp(230px, 32vw, 360px);
+  border-left: 1px solid var(--ink-faint);
+  border-bottom: 1px solid var(--ink-faint);
+}
+.pg-svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.pg-rejilla { fill: none; stroke: var(--rule-soft); stroke-width: 1; }
+.pg-zona {
+  fill: var(--measured);
+  fill-opacity: .1;
+  stroke: var(--measured);
+  stroke-opacity: .45;
+  stroke-width: 1;
+  stroke-dasharray: 1 3;
+}
+.pg-gemelo { fill: none; stroke: var(--simulated); stroke-width: 2; stroke-dasharray: 7 5; }
+.pg-maquina { fill: none; stroke: var(--measured); stroke-width: 2.4; stroke-linejoin: round; }
+
+.pg-huecos, .pg-marcas { position: absolute; inset: 0; pointer-events: none; }
+.pg-hueco {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: repeating-linear-gradient(135deg, var(--rule) 0 1px, transparent 1px 7px);
+}
+.pg-raya { position: absolute; top: 0; bottom: 0; border-left: 1.5px solid var(--accent); }
+.pg-raya[data-tipo="parte"] { border-left: 1px dashed var(--ink-soft); }
+.pg-raya[data-tipo="cierre"] { border-left: 1px dotted var(--ink-soft); }
+.pg-marca {
+  position: absolute;
+  top: 5px;
+  padding: 1px 5px;
+  font-family: var(--data);
+  font-size: 10.5px;
+  line-height: 1.5;
+  white-space: nowrap;
+  color: var(--accent);
+  background: var(--stage);
+  transform: translateX(3px);
+}
+.pg-marca[data-fila="1"] { top: 26px; }
+.pg-marca[data-fila="2"] { top: 47px; }
+.pg-marca[data-lado="izq"] { transform: translateX(calc(-100% - 3px)); }
+.pg-marca[data-tipo="parte"], .pg-marca[data-tipo="cierre"] { color: var(--ink-soft); }
+
+.pg-ty, .pg-tx {
+  position: absolute;
+  font-family: var(--data);
+  font-size: 10.5px;
+  color: var(--ink-faint);
+  white-space: nowrap;
+}
+.pg-ty { right: calc(100% + 8px); transform: translateY(50%); }
+.pg-tx { top: calc(100% + 7px); transform: translateX(-50%); }
+.pg-eje-y, .pg-eje-x {
+  position: absolute;
+  font-family: var(--data);
+  font-size: 10.5px;
+  letter-spacing: .05em;
+  color: var(--ink-soft);
+}
+.pg-eje-y {
+  left: 8px;
+  top: 16px;
+  bottom: 50px;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  text-align: center;
+}
+.pg-eje-x { left: 70px; right: 22px; bottom: 9px; text-align: center; }
+
+.pg-leyenda {
+  list-style: none;
+  margin: 0;
+  padding: 10px 16px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 22px;
+  border-top: 1px solid var(--rule-soft);
+  font-size: 12.5px;
+  color: var(--ink-soft);
+}
+.block .pg-leyenda li { margin: 0; max-width: none; }
+.pg-leyenda li { display: flex; align-items: center; gap: 8px; }
+.pg-leyenda i { display: inline-block; width: 24px; height: 0; border-top: 2px solid; }
+.pg-leyenda b { font-family: var(--data); font-weight: 600; color: var(--ink); }
+.pg-k-maquina i { border-color: var(--measured); border-top-width: 2.4px; }
+.pg-k-gemelo i { border-top-style: dashed; border-color: var(--simulated); }
+.pg-k-zona i {
+  height: 11px;
+  border: 1px dotted var(--measured);
+  background: color-mix(in srgb, var(--measured) 12%, transparent);
+}
+.pg-k-sin_registro i {
+  height: 11px;
+  border: 1px solid var(--rule);
+  background: repeating-linear-gradient(135deg, var(--rule) 0 1px, transparent 1px 5px);
+}
+
+.block .pg-frase, .pg-frase {
+  margin: 0;
+  max-width: none;
+  padding: 12px 16px 14px;
+  border-top: 1px solid var(--rule-soft);
+  font-size: 15.5px;
+  line-height: 1.55;
+  text-align: left;
+}
+
+.pg-mando { padding: 12px 16px 14px; border-top: 1px solid var(--rule-soft); }
+.block .pg-tira-nota, .pg-tira-nota {
+  margin: 0 0 9px;
+  max-width: none;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--ink-faint);
+  text-align: left;
+}
+.pg-tira { position: relative; height: 70px; }
+.pg-tira:focus-within { outline: 2px solid var(--accent); outline-offset: 4px; }
+.pg-tira-svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.pg-b { fill: var(--ink-faint); opacity: .55; }
+.pg-b-alta { fill: var(--ink); }
+.pg-b-sin { fill: var(--ink-faint); opacity: .35; }
+.pg-b-elegido { fill: var(--accent); opacity: 1; }
+.pg-t-parte { fill: var(--accent); }
+.pg-t-marzo { fill: none; stroke: var(--simulated); stroke-width: 2; }
+.pg-t-umbral { fill: none; stroke: var(--accent); stroke-width: 1; stroke-dasharray: 4 3; }
+.pg-t-suelo { fill: none; stroke: var(--ink-faint); stroke-width: 1; stroke-dasharray: 1 3; }
+.pg-t-cursor { fill: none; stroke: var(--accent); stroke-width: 1.5; }
+
+/* El mando es un deslizador de verdad, invisible y del tamaño de la tira: se
+ * pincha o se arrastra sobre las barras, y las flechas del teclado funcionan
+ * solas. El pulgar mide dos píxeles para que el día que marca caiga debajo del
+ * dedo: con el de fábrica, de dieciséis, en un móvil se desplazaba cinco días. */
+.pg-cursor {
+  -webkit-appearance: none;
+  appearance: none;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+  background: transparent;
+}
+.pg-cursor::-webkit-slider-runnable-track { height: 70px; background: transparent; }
+.pg-cursor::-webkit-slider-thumb { -webkit-appearance: none; width: 2px; height: 70px; }
+.pg-cursor::-moz-range-track { height: 70px; background: transparent; }
+.pg-cursor::-moz-range-thumb { width: 2px; height: 70px; border: 0; border-radius: 0; }
+.pg-cursor[disabled] { cursor: default; }
+
+.pg-meses { position: relative; height: 17px; margin-top: 3px; }
+.pg-mes {
+  position: absolute;
+  top: 0;
+  padding-left: 4px;
+  border-left: 1px solid var(--rule);
+  font-family: var(--data);
+  font-size: 10px;
+  line-height: 17px;
+  color: var(--ink-faint);
+}
+
+.pg-botones {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+.pg-atajos-titulo {
+  flex-basis: 100%;
+  margin-top: 4px;
+  font-family: var(--data);
+  font-size: 9.5px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.pg-paso, .pg-atajo {
+  font-family: var(--data);
+  font-size: 11px;
+  padding: 6px 10px;
+  border: 1px solid var(--rule);
+  background: transparent;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+.pg-paso:hover, .pg-atajo:hover { border-color: var(--accent); color: var(--accent); }
+.pg-paso:focus-visible, .pg-atajo:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.pg-atajo[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
+.pg-paso[disabled], .pg-atajo[disabled] { opacity: .45; cursor: default; }
+.pg-paso[disabled]:hover, .pg-atajo[disabled]:hover { border-color: var(--rule); color: var(--ink-soft); }
+
+.pg-sinjs { display: none; }
+.no-js .pg-sinjs { display: block; margin: 10px 0 0; font-size: 12.5px; color: var(--ink-faint); }
+.no-js .pg-botones { display: none; }
+
+@media (max-width: 620px) {
+  .pg-grafico { padding: 14px 12px 48px 52px; }
+  .pg-eje-y { left: 4px; }
+  .pg-eje-x { left: 52px; right: 12px; }
+  .pg-lienzo { height: 250px; }
+  .pg-ty, .pg-tx, .pg-marca { font-size: 9.5px; }
+  .pg-fecha { font-size: 19px; }
+  .pg-leyenda { gap: 5px 16px; font-size: 12px; }
+  .pg-frase { font-size: 15px; }
+}
+
+/* La puerta del índice hacia el panel: para quien no va a leer 31 módulos. */
+.door {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 3px 18px;
+  margin: 22px 0 4px;
+  padding: 14px 16px;
+  max-width: var(--block);
+  border: 1px solid var(--rule);
+  border-left: 2px solid var(--accent);
+  background: var(--panel);
+  color: var(--ink);
+  text-decoration: none;
+}
+.door:hover { border-color: var(--accent); }
+.door-k {
+  grid-column: 1;
+  font-family: var(--data);
+  font-size: 10px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.door-t { grid-column: 1; font-family: var(--display); font-size: 19px; font-weight: 600; line-height: 1.25; }
+.door-s { grid-column: 1; font-size: 13.5px; line-height: 1.45; color: var(--ink-soft); }
+.door-a { grid-column: 2; grid-row: 1 / span 3; font-family: var(--data); font-size: 22px; color: var(--accent); }
+
 /* ------------------------------------------------------ movimiento y papel */
 
 @media (prefers-reduced-motion: reduce) {
@@ -936,11 +1224,11 @@ figcaption { font-size: 12.5px; color: var(--ink-faint); margin-top: 7px; max-wi
         <p class="standfirst">Hasta aquí la base de datos era un fichero. Ahora es un servicio que atiende a varios a la vez, y eso cambia todas las reglas</p>
       </header>
 
-      <section class="block is-brief"><span class="kicker">Resumen</span><h2 class="block-title">En 30 segundos</h2><ul><li>Hasta aquí la base de datos era <strong>un fichero</strong>. Ahora es <strong>un servicio</strong> que hay que arrancar.</li><li>Pasarle las <strong>1.841.760</strong> lecturas cuesta <strong>unos 20 s</strong>. Al fichero ya las tenía.</li><li>Y la sorpresa: responder <strong>no va más rápido</strong>. Los rangos se pisan, así que no se distinguen.</li><li>Lo que sí cambia es el disco: <strong>23,8 MB</strong> en Parquet contra <strong>267,8</strong> en el servidor.</li><li>La tabla que acabamos de crear acepta cualquier disparate. Eso es el módulo 20.</li></ul></section>
+      <section class="block is-brief"><span class="kicker">Resumen</span><h2 class="block-title">En 30 segundos</h2><ul><li>Hasta aquí la base de datos era <strong>un fichero</strong>. Ahora es <strong>un servicio</strong> que hay que arrancar.</li><li>Pasarle las <strong>1.841.760</strong> lecturas cuesta <strong>unos 20 s</strong>. Al fichero ya las tenía.</li><li>Y la sorpresa: responder <strong>no va más rápido</strong>. Los rangos se pisan, así que no se distinguen.</li><li>Lo que sí cambia es el disco: <strong>21,9 MB</strong> en Parquet contra <strong>267,8</strong> en el servidor.</li><li>La tabla que acabamos de crear acepta cualquier disparate. Eso es el módulo 20.</li></ul></section>
 <section class="block "><span class="kicker">Contexto</span><h2 class="block-title">Qué resuelve este módulo</h2><p>Todo lo que ha hecho este curso cabía en un proceso. DuckDB abre el fichero, contesta y se cierra, y mientras tanto nadie más puede tocarlo.</p><p>Eso se acaba en cuanto hay dos personas. O un panel que consulta mientras la ingesta escribe. O alguien que necesita permiso de lectura y nada más.</p><p>Un servidor de base de datos existe para eso: es un proceso que está siempre levantado, atiende a varios a la vez y decide quién puede hacer qué. <strong>PostgreSQL</strong> es el que se pide en las ofertas y el que lleva treinta años de ventaja en esa tarea.</p><p>Lo que este módulo mide es qué cuesta ese cambio, porque no es gratis.</p></section>
 <section class="block is-toy"><span class="kicker">A mano</span><h2 class="block-title">Antes de la teoría: un ejemplo de juguete</h2><p>Tienes el cuaderno de laboratorio en tu mesa. Apuntas la ley de cada lote y la consultas cuando quieres. Es rápido, es tuyo, y no hay que pedirle permiso a nadie.</p><p>Ahora llegan tres personas más:</p><div class="table-wrap"><table><thead><tr><th>Quién</th><th>Qué necesita</th></tr></thead><tbody><tr><td>el jefe de turno</td><td>leer la ley del último lote</td></tr><tr><td>el laboratorio</td><td>escribir la del siguiente</td></tr><tr><td>el cliente</td><td>leer, y nada más que leer</td></tr></tbody></table></div><p>Con el cuaderno en tu mesa hay tres problemas y ninguno es de velocidad. <strong>No pueden mirarlo a la vez</strong>, porque el cuaderno está donde estás tú. <strong>No hay forma de dejar que el cliente lea sin poder escribir</strong>, porque un cuaderno no distingue. Y si dos escriben a la vez, <strong>gana el que cierre el último</strong> y el otro no se entera.</p><p>La respuesta no es un cuaderno más rápido. Es poner el cuaderno en un mostrador, con alguien detrás que atiende por turnos y sabe quién es cada cual.</p><p>Eso es un servidor de base de datos. Y fíjate en lo que <strong>no</strong> ha mejorado: buscar una ley sigue costando lo mismo. Lo que se ha comprado es el mostrador, no la velocidad.</p></section>
 <section class="block is-terms"><span class="kicker">Términos</span><h2 class="block-title">Glosario</h2><details class="fold"><summary>7 términos, en palabras simples</summary><ul><li><strong>Servidor.</strong> Un proceso que está levantado esperando peticiones. Si no está arrancado, no hay base de datos que valga.</li><li><strong>Cliente.</strong> Cualquiera que le pregunta: <code>psql</code>, un script de Python, un panel.</li><li><strong>Puerto.</strong> El número por el que se le habla. El estándar de PostgreSQL es el 5432; este curso usa el <strong>5433</strong> para no chocar con ninguno instalado de verdad.</li><li><strong>Clúster.</strong> La carpeta con todos los ficheros del servidor, que aquí es <code>lake/pg</code>. Confuso: no tiene nada que ver con varias máquinas.</li><li><strong><code>initdb</code>.</strong> El programa que crea esa carpeta la primera vez.</li><li><strong><code>COPY</code>.</strong> La orden de carga masiva de PostgreSQL. Mete millones de filas sin pasar por <code>INSERT</code> una a una.</li><li><strong>OLTP y OLAP.</strong> Dos maneras de usar una base: muchas operaciones pequeñas (OLTP) o pocas preguntas que barren todo (OLAP). PostgreSQL nació para la primera y DuckDB para la segunda.</li></ul></details></section>
-<section class="block is-method"><span class="kicker">Método</span><h2 class="block-title">Paso a paso</h2><h3 class="sub">Paso 1. Conseguir PostgreSQL sin ser administrador</h3><p>El instalador oficial pide permisos de administrador y deja un servicio de Windows arrancado. Los mismos binarios se publican también en un zip, y ese <strong>se descomprime donde quieras y se ejecuta tal cual</strong>.</p><p>Es lo que este proyecto ya hace con Tectonic y con ffmpeg. La parte 5 deja de depender de que alguien tenga permisos de nada.</p><h3 class="sub">Paso 2. Crear el clúster</h3><p><code>initdb</code> prepara la carpeta de datos: la base de sistema, la configuración y los ficheros de registro. Se hace una vez y no se vuelve a tocar.</p><p>Va dentro de <code>lake/</code>, que este proyecto ya deja fuera de git. La base se reconstruye como el resto del lago, y no sube ni un byte suyo al repositorio.</p><h3 class="sub">Paso 3. Arrancarlo en un puerto que no sea el de todos</h3><p>Dos decisiones que se ven en <code>postgresql.conf</code> y que conviene explicar:</p><ul><li><strong>Puerto 5433</strong>, no el 5432, para que un PostgreSQL de verdad instalado mañana en esta máquina pueda convivir con este sin que ninguno de los dos se entere.</li><li><strong><code>listen_addresses = &#x27;localhost&#x27;</code></strong>, para que la instancia no sea alcanzable desde la red. La autenticación es <code>trust</code>, o sea que no pide contraseña, y **eso solo es defendible por culpa de esa línea**: nada de fuera de esta máquina puede abrir una conexión. El módulo 22 lo cambia por usuarios que significan algo.</li></ul><h3 class="sub">Paso 4. Pasarle las filas</h3><p>Aquí está la diferencia que un fichero nunca cobra. El Parquet ya estaba en el disco: DuckDB lo lee donde está. El servidor <strong>no tiene los datos hasta que se los das</strong>, fila por fila, por una conexión.</p><h3 class="sub">Paso 5. Hacerle la misma pregunta a los dos</h3><p>Y compararlos midiendo, no opinando. La pregunta es la del proyecto: cuántas horas al día carga el compresor.</p></section>
+<section class="block is-method"><span class="kicker">Método</span><h2 class="block-title">Paso a paso</h2><h3 class="sub">Paso 1. Conseguir PostgreSQL sin ser administrador</h3><p>El instalador oficial pide permisos de administrador y deja un servicio de Windows arrancado. Los mismos binarios se publican también en un zip, y ese <strong>se descomprime donde quieras y se ejecuta tal cual</strong>.</p><p>Es lo que este proyecto ya hace con Tectonic y con ffmpeg. La parte 5 deja de depender de que alguien tenga permisos de nada.</p><h3 class="sub">Paso 2. Crear el clúster</h3><p><code>initdb</code> prepara la carpeta de datos: la base de sistema, la configuración y los ficheros de registro. Se hace una vez y no se vuelve a tocar.</p><p>Va dentro de <code>lake/</code>, que este proyecto ya deja fuera de git. La base se reconstruye como el resto del lago, y no sube ni un byte suyo al repositorio.</p><h3 class="sub">Paso 3. Arrancarlo en un puerto que no sea el de todos</h3><p>Dos decisiones que se ven en <code>postgresql.conf</code> y que conviene explicar:</p><ul><li><strong>Puerto 5433</strong>, no el 5432, para que un PostgreSQL de verdad instalado mañana en esta máquina pueda convivir con este sin que ninguno de los dos se entere.</li><li><strong><code>listen_addresses = &#x27;localhost&#x27;</code></strong>, para que la instancia no sea alcanzable desde la red. La autenticación es <code>trust</code>, o sea que no pide contraseña, y <strong>eso solo es defendible por culpa de esa línea</strong>: nada de fuera de esta máquina puede abrir una conexión. El módulo 22 lo cambia por usuarios que significan algo.</li></ul><h3 class="sub">Paso 4. Pasarle las filas</h3><p>Aquí está la diferencia que un fichero nunca cobra. El Parquet ya estaba en el disco: DuckDB lo lee donde está. El servidor <strong>no tiene los datos hasta que se los das</strong>, fila por fila, por una conexión.</p><h3 class="sub">Paso 5. Hacerle la misma pregunta a los dos</h3><p>Y compararlos midiendo, no opinando. La pregunta es la del proyecto: cuántas horas al día carga el compresor.</p></section>
 <section class="block is-code"><span class="kicker">Código</span><h2 class="block-title">El código, por partes</h2><h3 class="sub">Paso 6. Las tres órdenes que montan el servidor</h3><pre><code class="language-consola">initdb  -D lake/pg -U fuelle --encoding=UTF8 --locale=C --auth=trust
 pg_ctl  -D lake/pg -l lake/pg/servidor.log start
 psql    -h localhost -p 5433 -U fuelle -d fuelle</code></pre><details class="fold"><summary>línea por línea, 4 entradas</summary><dl class="annot"><dt><code>initdb</code></dt><dd>crea la carpeta del clúster. Solo la primera vez</dd><dt><code>--locale=C</code></dt><dd>ordenación y mensajes independientes del idioma del sistema, para que el resultado no cambie de una máquina a otra</dd><dt><code>pg_ctl start</code></dt><dd>levanta el servidor. Sin esto, todo lo demás da «connection refused»</dd><dt><code>psql</code></dt><dd>el cliente de línea de órdenes que trae PostgreSQL</dd></dl></details><p>Ninguna de las tres pide administrador, y al terminar no queda ningún servicio instalado: se para con <code>pg_ctl stop</code> y desaparece.</p><h3 class="sub">Paso 7. La tabla, deliberadamente ingenua</h3><pre><code class="language-postgres">SELECT count(*) AS filas, min(day) AS desde, max(day) AS hasta
@@ -952,7 +1240,7 @@ FROM lecturas;</code></pre><details class="fold"><summary>línea por línea, 1 e
     with io.open(CSV, &quot;rb&quot;) as fh:
         while bloque := fh.read(1 &lt;&lt; 20):
             copia.write(bloque)</code></pre><details class="fold"><summary>línea por línea, 3 entradas</summary><dl class="annot"><dt><code>COPY ... FROM STDIN</code></dt><dd>carga masiva por la conexión. Un INSERT por fila tardaría horas</dd><dt><code>STDIN y no una ruta</code></dt><dd>leer un fichero del disco del servidor exige que el fichero esté en su máquina y permiso para leerla. Por la conexión funciona siempre, también con el servidor en otro sitio</dd><dt><code>fh.read(1 &lt;&lt; 20)</code></dt><dd>se manda de mega en mega, para no cargar 190 MB en memoria</dd></dl></details><div class="output"><span class="output-tag">sale</span><pre><code>  1,841,760 filas, 190.0 MB de CSV
-  1,841,760 filas en el servidor</code></pre></div><p>El CSV intermedio pesa <strong>190,0 MB</strong> para unos datos que en Parquet ocupan 23,8. Es el módulo 7 otra vez: el texto no comprime nada y aquí se paga por partida doble, en disco y en lo que hay que empujar por la conexión.</p><h3 class="sub">Paso 9. La pregunta del proyecto, contra el servidor</h3><pre><code class="language-postgres">SELECT day,
+  1,841,760 filas en el servidor</code></pre></div><p>El CSV intermedio pesa <strong>190,0 MB</strong> para unos datos que en Parquet ocupan 21,9. Es el módulo 7 otra vez: el texto no comprime nada y aquí se paga por partida doble, en disco y en lo que hay que empujar por la conexión.</p><h3 class="sub">Paso 9. La pregunta del proyecto, contra el servidor</h3><pre><code class="language-postgres">SELECT day,
        count(*) AS lecturas,
        round((sum(CASE WHEN dv_eletric = 1 THEN 1 ELSE 0 END) * 10 / 3600.0)::numeric, 2) AS horas
 FROM lecturas
@@ -967,14 +1255,14 @@ LIMIT 5;</code></pre><details class="fold"><summary>línea por línea, 2 entrada
  2020-03-29 |     7136 | 19.82
  2020-06-24 |     7162 | 15.91
 (5 rows)</code></pre></div><p>Los mismos días y las mismas horas que salían en el módulo 18. <strong>El SQL que aprendiste vale aquí</strong>, que es medio módulo resuelto: cambiar de motor no cambia el idioma.</p></section>
-<section class="block is-result"><span class="kicker">Resultado</span><h2 class="block-title">El resultado, medido</h2><figure class="fig"><img class="fig-claro" src="../figuras/fig_m19_fichero_vs_servicio.claro.png?v=e1739447" alt="fig m19 fichero vs servicio" loading="lazy"><img class="fig-oscuro" src="../figuras/fig_m19_fichero_vs_servicio.oscuro.png?v=641afc49" alt="fig m19 fichero vs servicio" loading="lazy"></figure><p><strong>Qué esperábamos.</strong> Que un motor columnar como DuckDB ganara de calle a uno de filas en una pregunta analítica. Es lo que dice la teoría del módulo 7 y es lo que yo daba por hecho.</p><p><strong>Qué salió.</strong> Que <strong>no se distinguen</strong>. Sus rangos de siete corridas se pisan, así que por la regla del módulo 6 no hay diferencia que contar. A 1,8 millones de filas los dos barren la tabla y ninguno suda.</p><p>Las medianas exactas están en la figura y no aquí a propósito: <strong>se mueven de una corrida a otra</strong>, como todo lo que se mide en décimas de segundo. Lo que no se mueve es que los rangos se pisen.</p><p>Lo que sí se separa, y por mucho, es todo lo demás:</p><div class="table-wrap"><table><thead><tr><th>Qué</th><th>Un fichero</th><th>Un servicio</th></tr></thead><tbody><tr><td>Tenerlo listo</td><td>ya lo estaba</td><td><strong>unos 20 s</strong> de carga</td></tr><tr><td>En disco</td><td>23,8 MB</td><td><strong>267,8 MB</strong></td></tr><tr><td>Arrancarlo</td><td>nada</td><td>un proceso levantado</td></tr><tr><td>Varios a la vez</td><td>no</td><td>sí</td></tr><tr><td>Permisos por usuario</td><td>no</td><td>sí</td></tr></tbody></table></div><p><strong>Once veces más disco.</strong> Concretamente <strong>11,2</strong>, para exactamente las mismas lecturas. Y la carpeta entera del clúster pasa del gigabyte, porque además de la tabla guarda el registro de transacciones que le permite no perder nada si se va la luz.</p><p><strong>Qué significa.</strong> Que la pregunta «cuál es más rápido» estaba mal planteada. <strong>Con un servidor no se compra velocidad: se compran concurrencia, permisos y garantías.</strong> Y se pagan en disco, en carga y en tener un proceso levantado.</p><p>Para el trabajo de este curso hasta aquí, un fichero era la elección correcta y sigue siéndolo. Lo que un fichero no sabe hacer es dejar entrar a tres personas con permisos distintos. Y eso hará falta cuando el panel del módulo 30 consulte mientras la ingesta escribe.</p></section>
+<section class="block is-result"><span class="kicker">Resultado</span><h2 class="block-title">El resultado, medido</h2><figure class="fig"><img class="fig-claro" src="../figuras/fig_m19_fichero_vs_servicio.claro.png?v=e722b249" alt="fig m19 fichero vs servicio" loading="lazy"><img class="fig-oscuro" src="../figuras/fig_m19_fichero_vs_servicio.oscuro.png?v=6976f0f3" alt="fig m19 fichero vs servicio" loading="lazy"></figure><p><strong>Qué esperábamos.</strong> Que un motor columnar como DuckDB ganara de calle a uno de filas en una pregunta analítica. Es lo que dice la teoría del módulo 7 y es lo que yo daba por hecho.</p><p><strong>Qué salió.</strong> Que <strong>no se distinguen</strong>. Sus rangos de siete corridas se pisan, así que por la regla del módulo 6 no hay diferencia que contar. A 1,8 millones de filas los dos barren la tabla y ninguno suda.</p><p>Las medianas exactas están en la figura y no aquí a propósito: <strong>se mueven de una corrida a otra</strong>, como todo lo que se mide en décimas de segundo. Lo que no se mueve es que los rangos se pisen.</p><p>Lo que sí se separa, y por mucho, es todo lo demás:</p><div class="table-wrap"><table><thead><tr><th>Qué</th><th>Un fichero</th><th>Un servicio</th></tr></thead><tbody><tr><td>Tenerlo listo</td><td>ya lo estaba</td><td><strong>unos 20 s</strong> de carga</td></tr><tr><td>En disco</td><td>21,9 MB</td><td><strong>267,8 MB</strong></td></tr><tr><td>Arrancarlo</td><td>nada</td><td>un proceso levantado</td></tr><tr><td>Varios a la vez</td><td>no</td><td>sí</td></tr><tr><td>Permisos por usuario</td><td>no</td><td>sí</td></tr></tbody></table></div><p><strong>Doce veces más disco.</strong> Concretamente <strong>12,2</strong>, para exactamente las mismas lecturas. Esta lección decía once, con la plata que DuckDB escribía entonces con varios hilos y sin orden, y que salía inflada: el módulo 29 lo destapó. Y la carpeta entera del clúster pasa del gigabyte, porque además de la tabla guarda el registro de transacciones que le permite no perder nada si se va la luz.</p><p><strong>Qué significa.</strong> Que la pregunta «cuál es más rápido» estaba mal planteada. <strong>Con un servidor no se compra velocidad: se compran concurrencia, permisos y garantías.</strong> Y se pagan en disco, en carga y en tener un proceso levantado.</p><p>Para el trabajo de este curso hasta aquí, un fichero era la elección correcta y sigue siéndolo. Lo que un fichero no sabe hacer es dejar entrar a tres personas con permisos distintos. Y eso hará falta cuando el panel del módulo 30 consulte mientras la ingesta escribe.</p></section>
 <section class="block is-warning"><span class="kicker">Trampas</span><h2 class="block-title">Ojo</h2><ul><li><strong>Un servidor parado no es una base de datos.</strong> Es el error número uno con PostgreSQL: todo da «connection refused» y no es la red, es que nadie lo arrancó. Por eso en este proyecto lo arranca y lo para un solo fichero.</li><li><strong><code>trust</code> solo vale porque escucha en localhost.</strong> Sin contraseña y abierto a la red sería regalar la base. Las dos decisiones van juntas o no van.</li><li><strong>El puerto 5432 se deja libre a propósito.</strong> Ocupar el estándar con una instancia de juguete es la forma más rápida de romperle a alguien la de verdad.</li><li><strong>La carga por <code>COPY</code>, nunca por <code>INSERT</code> fila a fila.</strong> La diferencia entre veinte segundos y una tarde.</li><li><strong>El CSV intermedio se borra.</strong> Son 190 MB que no aportan nada una vez cargados, y dejarlos ahí es la clase de basura que llena un disco sin que nadie sepa por qué.</li><li><strong>Esta tabla todavía no promete nada.</strong> Aceptaría un duplicado o una presión imposible sin pestañear. Eso se arregla en el módulo 20, y hasta entonces el servidor no es más seguro que el fichero.</li></ul></section>
 <section class="block is-bridge"><span class="kicker">Analogía</span><h2 class="block-title">Puente metalúrgico</h2><p>Un laboratorio pequeño lleva sus resultados en una hoja de cálculo. Funciona mientras haya una persona.</p><p>En cuanto la planta crece llega un LIMS, o sea una base de datos con su servidor detrás. Y lo primero que nota todo el mundo: <strong>no analiza más rápido</strong>. El ensayo tarda lo que tarde.</p><p>Lo que cambia es otra cosa. El de turno de noche consulta sin llamar a nadie. El cliente ve sus certificados y no los de otro. Dos técnicos cargan resultados a la vez sin pisarse. Y cuando alguien pregunta quién cambió una ley, hay respuesta.</p><p>Nadie compra un LIMS por velocidad. Se compra por las mismas razones de un servidor de base de datos, y cuesta lo mismo: más disco, más mantenimiento, y algo encendido a todas horas.</p></section>
-<section class="block is-review"><span class="kicker">Repaso</span><h2 class="block-title">Repaso</h2><details><summary>Qué gana un servidor de base de datos frente a un fichero</summary><p>Atender a varios a la vez, distinguir quién es cada cual y qué puede hacer, y garantizar que dos escrituras simultáneas no se pisen. No gana velocidad: aquí la misma pregunta tarda lo mismo en los dos, con los rangos solapados.</p></details><details><summary>Por qué la carga cuesta veinte segundos si los datos ya estaban en el disco</summary><p>Porque estaban en el disco pero no dentro del servidor. Un fichero se lee donde está. A un servidor hay que entregarle cada fila por una conexión, y él la vuelve a escribir en su propio formato y en su registro de transacciones. Esos veinte segundos son el precio de la entrega.</p></details><details><summary>Qué significa que las dos medidas tengan los rangos solapados</summary><p>Que la diferencia entre sus medianas no se puede defender. Es la regla del módulo 6: si en siete corridas el peor caso de uno cae dentro del rango del otro, lo que se está midiendo es el ruido de la máquina. Publicar un ganador ahí sería inventarse un resultado.</p></details><details><summary>Por qué la tabla se crea sin clave primaria ni restricciones</summary><p>Porque el módulo empieza donde estaba el lector: con un Parquet que aceptaba cualquier cosa. Crear la tabla ya blindada escondería la lección del módulo 20: una base de datos no protege de nada hasta que le dices qué es imposible. Es el mismo criterio del módulo 4, que particiona por día a sabiendas de que es la peor opción.</p></details><details><summary>El servidor ocupa once veces más para los mismos datos. A cambio de qué</summary><p>De poder recuperarse. Buena parte de ese peso es el registro de transacciones, que apunta cada cambio antes de aplicarlo para que un corte de luz no deje la tabla a medias. Un Parquet no ofrece eso: si se corta la escritura, el fichero queda roto y hay que rehacerlo.</p></details></section>
+<section class="block is-review"><span class="kicker">Repaso</span><h2 class="block-title">Repaso</h2><details><summary>Qué gana un servidor de base de datos frente a un fichero</summary><p>Atender a varios a la vez, distinguir quién es cada cual y qué puede hacer, y garantizar que dos escrituras simultáneas no se pisen. No gana velocidad: aquí la misma pregunta tarda lo mismo en los dos, con los rangos solapados.</p></details><details><summary>Por qué la carga cuesta veinte segundos si los datos ya estaban en el disco</summary><p>Porque estaban en el disco pero no dentro del servidor. Un fichero se lee donde está. A un servidor hay que entregarle cada fila por una conexión, y él la vuelve a escribir en su propio formato y en su registro de transacciones. Esos veinte segundos son el precio de la entrega.</p></details><details><summary>Qué significa que las dos medidas tengan los rangos solapados</summary><p>Que la diferencia entre sus medianas no se puede defender. Es la regla del módulo 6: si en siete corridas el peor caso de uno cae dentro del rango del otro, lo que se está midiendo es el ruido de la máquina. Publicar un ganador ahí sería inventarse un resultado.</p></details><details><summary>Por qué la tabla se crea sin clave primaria ni restricciones</summary><p>Porque el módulo empieza donde estaba el lector: con un Parquet que aceptaba cualquier cosa. Crear la tabla ya blindada escondería la lección del módulo 20: una base de datos no protege de nada hasta que le dices qué es imposible. Es el mismo criterio del módulo 4, que particiona por día a sabiendas de que es la peor opción.</p></details><details><summary>El servidor ocupa doce veces más para los mismos datos. A cambio de qué</summary><p>De poder recuperarse. Buena parte de ese peso es el registro de transacciones, que apunta cada cambio antes de aplicarlo para que un corte de luz no deje la tabla a medias. Un Parquet no ofrece eso: si se corta la escritura, el fichero queda roto y hay que rehacerlo.</p></details></section>
 
       <footer class="footer">
         <span>Fuelle / Módulo 19</span>
-        <span>generado el 2026-09-03</span>
+        <span>generado el 2026-09-19</span>
         <span>fuente: MetroPT-3, del compresor de un tren del Metro de Oporto (CC BY 4.0)</span>
       </footer>
     </div>
@@ -985,5 +1273,6 @@ LIMIT 5;</code></pre><details class="fold"><summary>línea por línea, 2 entrada
      Los 8 MB llegan cuando el lector pulsa, y no antes. -->
 <script type="module" src="live.js"></script>
 <script src="perilla.js" defer></script>
+
 </body>
 </html>

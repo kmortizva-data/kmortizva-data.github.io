@@ -13,7 +13,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <link rel="alternate" hreflang="es" href="../es/proyectos/fuelle.html">
 <script>document.documentElement.className="js"</script>
-<link rel="stylesheet" href="../style.css?v=325400c1">
+<link rel="stylesheet" href="../style.css?v=f7082b9e">
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
@@ -29,11 +29,11 @@
 <main id="main">
 <article class="wrap section">
   <a class="back" href="../index.html#work">All work</a>
-  <p class="eyebrow">28 of 31 modules, Spanish and English, live.</p>
+  <p class="eyebrow">30 of 31 modules in Spanish and 28 in English, with the panel, live.</p>
   <h1 class="project-title">Bellows</h1>
   <p class="project-tagline">A data lake and a digital twin built from zero in bilingual modules, on 1,516,948 readings from the air compressor of a Porto Metro train.</p>
 
-  <figure class="figure"><img src="../assets/shots/fuelle-index.png" alt="The index of Bellows in its dark theme: the lake drawn down the side from raw to twin, and 28 of 31 lessons written" width="1440" height="900" decoding="async"><figcaption>The index of Bellows in its dark theme: the lake drawn down the side from raw to twin, and 28 of 31 lessons written</figcaption></figure>
+  <figure class="figure"><img src="../assets/shots/fuelle-index.png" alt="The index of Bellows in its dark theme: the lake drawn down the side from raw to twin, a door to the one page panel, and 28 of 31 lessons written in English" width="1440" height="900" decoding="async"><figcaption>The index of Bellows in its dark theme: the lake drawn down the side from raw to twin, a door to the one page panel, and 28 of 31 lessons written in English</figcaption></figure>
 
   <div class="assay assay-solo" data-accent="air">
     <div class="assay-body">
@@ -48,12 +48,12 @@
 
   
 
-  <div class="prose"><p>Every other project on this page starts from a CSV somebody had already cleaned. This one is about where that file comes from: a lake built layer by layer from 208 MB of raw compressor data, and a digital twin on top that says plainly what it can and cannot see. I wrote it for someone starting from zero, which is where I started.</p><p>Every number in the course comes out of a script run, and ten checks stand between a lesson and a commit: every published query runs against the lake and has to print what the lesson says, every number in the prose has to exist in a results file, and the Spanish and English editions have to agree on every figure. They have caught real errors, including one in my own measurements that a later module exposed.</p><p>The SQL lessons run in the reader&#x27;s browser. The page downloads a database engine only when asked, 8.12 MB, runs the reader&#x27;s query against real compressor data and checks the result rather than the text. The twin&#x27;s lessons carry knobs whose physics runs in Python beforehand, so the figure and the knob can never disagree.</p><p>What is left is orchestration, deleting the whole lake and watching it rebuild itself; a one page panel for someone who will not read thirty one modules; and a one page verdict with the part I care about most, what of all this would survive a real plant and what would not.</p></div>
+  <div class="prose"><p>Every other project on this page starts from a CSV somebody had already cleaned. This one is about where that file comes from: a lake built layer by layer from 208 MB of raw compressor data, and a digital twin on top that says plainly what it can and cannot see. I wrote it for someone starting from zero, which is where I started.</p><p>Every number in the course comes out of a script run, and ten checks stand between a lesson and a commit: every published query runs against the lake and has to print what the lesson says, every number in the prose has to exist in a results file, and the Spanish and English editions have to agree on every figure. They have caught real errors, including one in my own measurements that a later module exposed.</p><p>The SQL lessons run in the reader&#x27;s browser. The page downloads a database engine only when asked, 8.12 MB, runs the reader&#x27;s query against real compressor data and checks the result rather than the text. The twin&#x27;s lessons carry knobs whose physics runs in Python beforehand, so the figure and the knob can never disagree.</p><p>The lake now rebuilds itself: delete it whole, ask the orchestrator for it, and all fourteen tables come back identical to the byte. For anyone who will not read thirty one modules there is a panel, the whole semester on one page, where each day shows how long the compressor worked against how long it would have worked healthy. What is left is a one page verdict with the part I care about most, what of all this would survive a real plant and what would not.</p></div>
 
   <p class="eyebrow stack-label">Built with</p>
   <ul class="stack"><li>Python</li><li>DuckDB</li><li>Parquet</li><li>dbt</li><li>Delta Lake</li><li>Apache Iceberg</li><li>PostgreSQL</li><li>WebAssembly</li><li>matplotlib</li><li>HTML</li><li>CSS</li></ul>
 
-  <p class="assay-links"><a class="cta" href="../fuelle/curso/index.en.html" target="_blank" rel="noopener">Open the course</a><a href="https://github.com/kmortizva-data/fuelle" target="_blank" rel="noopener">Read the code</a></p>
+  <p class="assay-links"><a class="cta" href="../fuelle/curso/panel.en.html" target="_blank" rel="noopener">Open the panel</a><a class="cta cta-quiet" href="../fuelle/curso/index.en.html" target="_blank" rel="noopener">Open the course</a><a href="https://github.com/kmortizva-data/fuelle" target="_blank" rel="noopener">Read the code</a></p>
 </article>
 </main>
 <footer class="wrap foot">
