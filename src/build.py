@@ -653,6 +653,17 @@ def main() -> int:
         ("Fuelle/figuras", "fuelle/figuras"),
         ("Fuelle/assets",  "fuelle/assets"),
     ]
+    def sin_carpetas_de_trabajo(directorio, nombres):
+        """Las carpetas que empiezan por guion bajo no son parte del sitio.
+
+        Son carpetas de trabajo de quien construye el curso. Un perfil temporal
+        de Chromium, creado al imprimir el folio de Bellows, vivía dentro de su
+        out/ y se copió entero: 337 ficheros de caché que llegaron hasta el
+        commit del portafolio. Los ficheros no se tocan, solo las carpetas.
+        """
+        base = Path(directorio)
+        return {n for n in nombres if n.startswith("_") and (base / n).is_dir()}
+
     neutralised = 0
     for source_rel, target_rel in EMBEDDED:
         source = ROOT.parent / source_rel
@@ -662,7 +673,8 @@ def main() -> int:
         # Every file travels, .md included: the Silice course index links its own
         # cerebro, and the Concentra case pages link report .md files as material.
         # Excluding them broke a link the gate caught. The cerebros are up to date now.
-        shutil.copytree(source, ROOT / target_rel, dirs_exist_ok=True)
+        shutil.copytree(source, ROOT / target_rel, dirs_exist_ok=True,
+                        ignore=sin_carpetas_de_trabajo)
         # Engine test pages never ship: the geostatistics build writes an unlinked one,
         # and so does the Bellows one for its visual system.
         for pattern in ("prueba_scrolly.html", "prueba_visual.html"):
