@@ -126,6 +126,8 @@ Kevin: «no sé por qué no puedo poner mi página así de primerazo como mi ami
 - **La ficha de Fuelle** dice ahora «30 de 31 módulos en español y 28 en inglés, con el panel»,
   su último párrafo ya no anuncia como pendientes la orquestación ni el panel, y la captura del
   índice inglés enseña la puerta al panel.
+- **Publicado el 2026-09-20** (commit 9f4e253). Comprobado en vivo: la ficha enseña sus tres
+  enlaces, el índice del curso su puerta al panel, y el JSON del panel llega comprimido a 26,5 KB.
 - **Probar el panel desde este servidor local no funciona bien**: `python -m http.server` tarda
   unos 19 s o corta la conexión al servir el JSON del panel (285 KB) recién escrito, que es el
   escáner de esta máquina. La copia de `fuelle/` es **idéntica byte a byte** a `Fuelle/out` y

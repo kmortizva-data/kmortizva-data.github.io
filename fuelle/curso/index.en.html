@@ -1137,6 +1137,11 @@ figcaption { font-size: 12.5px; color: var(--ink-faint); margin-top: 7px; max-wi
   text-decoration: none;
 }
 .door:hover { border-color: var(--accent); }
+/* La segunda puerta, la del folio, pesa menos que la del panel: mirar primero,
+   decidir después. */
+.door-quiet { margin-top: 10px; border-left-color: var(--rule); background: transparent; }
+.door-quiet .door-t { font-size: 16px; }
+.door-quiet:hover { border-left-color: var(--accent); }
 .door-k {
   grid-column: 1;
   font-family: var(--data);
@@ -1220,7 +1225,7 @@ figcaption { font-size: 12.5px; color: var(--ink-faint); margin-top: 7px; max-wi
         <p class="standfirst">Building the data lake and the digital twin of a real compressor, from not knowing what a table is to measuring whether the twin sees failures coming before the alarms do</p>
       </header>
 
-      <a class="door" href="panel.en.html"><span class="door-k">the panel</span><span class="door-t">The whole semester, day by day, on one page</span><span class="door-s">For anyone who will not read thirty one modules: one knob, two curves and each day&#x27;s verdict.</span><span class="door-a" aria-hidden="true">→</span></a>
+      <a class="door" href="panel.en.html"><span class="door-k">the panel</span><span class="door-t">The whole semester, day by day, on one page</span><span class="door-s">For anyone who will not read thirty one modules: one knob, two curves and each day&#x27;s verdict.</span><span class="door-a" aria-hidden="true">→</span></a><a class="door door-quiet" href="folio.en.html"><span class="door-k">the one page verdict</span><span class="door-t">The verdict on one side of A4</span><span class="door-s">The question, the method, the table, and what would break in a real plant. As a PDF too.</span><span class="door-a" aria-hidden="true">→</span></a>
 
       <section class="block is-brief"><span class="kicker">The brief</span><h2 class="block-title">What this is</h2><p>An air compressor on a Porto Metro train logged fifteen signals every ten seconds for seven months. Inside that record there are <strong>four real failures</strong>, each with its date and its maintenance report, and every one of them was an air leak.</p><p>This course builds two things around that archive. First the <strong>data lake</strong>: how a 208 MB file is brought in without breaking it, how it is stored so it answers quickly, and how it is questioned in SQL. Then the <strong>digital twin</strong>: a model of the compressor&#x27;s physics running alongside the original, whose disagreement with reality gives the leak away.</p><p>It starts without knowing what a table is.</p></section>
 <section class="block is-bridge"><span class="kicker">Why</span><h2 class="block-title">Why a compressor</h2><p>Because compressed air is what feeds the flotation columns of a plant, and because a leak in the air line is lost recovery without any alarm noticing.</p><p>And for something this project will repeat to the end: <strong>pressure does not drop when there is a leak</strong>, because the control loop holds it. What rises is how hard the compressor has to work to hold it. Watching the wrong variable is seeing nothing.</p></section>
@@ -1235,7 +1240,7 @@ figcaption { font-size: 12.5px; color: var(--ink-faint); margin-top: 7px; max-wi
 
       <footer class="footer">
         <span>Bellows</span>
-        <span>generated on 2026-09-19</span>
+        <span>generated on 2026-09-20</span>
         <span>source: MetroPT-3, from a Porto Metro train compressor (CC BY 4.0)</span>
       </footer>
     </div>

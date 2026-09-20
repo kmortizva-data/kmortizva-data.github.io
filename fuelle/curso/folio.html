@@ -1,10 +1,11 @@
 <!doctype html>
-<html lang="en" class="no-js" data-assets="../assets" data-tablas="telemetria=sin_timestamp_ligera.parquet">
+<html lang="es" data-theme="light">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Data quality: tests and contracts · Bellows, module 16</title>
-<link rel="alternate" hreflang="es" href="m16_calidad.html">
+<title>El veredicto en un folio · Fuelle</title>
+<meta name="description" content="El veredicto del gemelo digital de un compresor de aire, en una cara: qué detecta, con cuántas falsas alarmas, y qué se rompería en una planta de verdad.">
+<link rel="alternate" hreflang="en" href="folio.en.html">
 <style>
 /* Fuelle: la hoja de estilo del curso.
  *
@@ -1185,96 +1186,185 @@ figcaption { font-size: 12.5px; color: var(--ink-faint); margin-top: 7px; max-wi
 :root[data-theme="dark"] .fig-claro { display: none; }
 :root[data-theme="dark"] .fig-oscuro { display: block; }
 
-/* El acento de este módulo, uno por tema. Los dos salen de src/site/palette.py
-   y los dos pasaron el contraste antes de llegar aquí. */
-:root { --accent: #66773C; }
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) { --accent: #ADC183; }
+/* El folio del veredicto: una cara de A4 con la tipografía del curso.
+ *
+ * Vive aparte de `_base.css` porque es la única página del proyecto pensada para
+ * el papel: tamaños en puntos, una caja del ancho de un A4 y un bloque de
+ * impresión que quita todo lo que no se imprime. Los tokens y las fuentes salen
+ * de `_base.css`, así que el folio no inventa una segunda identidad visual.
+ */
+
+@page { size: A4; margin: 14mm 15mm; }
+
+.folio-body { background: var(--panel); }
+
+.folio {
+  max-width: 196mm;
+  margin: 20px auto;
+  padding: 15mm 16mm 11mm;
+  background: var(--stage);
+  border: 1px solid var(--rule);
+  font-size: 10.2pt;
+  line-height: 1.42;
 }
-:root[data-theme="dark"] { --accent: #ADC183; }
+
+.folio-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 18px;
+  border-bottom: 1.5px solid var(--ink);
+  padding-bottom: 6px;
+}
+.folio-brand {
+  margin: 0;
+  font-family: var(--display);
+  font-size: 15pt;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+}
+.folio-brand span {
+  display: block;
+  margin-top: 3px;
+  font-family: var(--data);
+  font-size: 7.6pt;
+  letter-spacing: .05em;
+  text-transform: none;
+  color: var(--ink-faint);
+}
+.folio-meta {
+  margin: 0;
+  text-align: right;
+  font-family: var(--data);
+  font-size: 7.6pt;
+  line-height: 1.5;
+  color: var(--ink-faint);
+}
+
+.folio h1 {
+  margin: 11px 0 3px;
+  font-family: var(--display);
+  font-size: 19pt;
+  font-weight: 600;
+  line-height: 1.08;
+}
+.folio h2 {
+  margin: 11px 0 4px;
+  padding-top: 7px;
+  border-top: 1px solid var(--rule-soft);
+  font-family: var(--data);
+  font-size: 8pt;
+  font-weight: 600;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.folio p, .folio li { max-width: none; text-align: justify; }
+.folio p { margin: 0 0 5px; }
+.folio ol, .folio ul { margin: 0 0 6px; padding-left: 17px; }
+.folio li { margin-bottom: 3px; }
+.folio li::marker { color: var(--accent); font-family: var(--data); font-size: .82em; }
+
+.folio .table-wrap { margin: 5px 0 8px; max-width: none; }
+.folio table { width: 100%; border-collapse: collapse; font-size: 9.6pt; }
+.folio th, .folio td { padding: 3px 7px 3px 0; border-bottom: 1px solid var(--rule-soft); }
+.folio th {
+  font-family: var(--data);
+  font-size: 7.4pt;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  border-bottom-color: var(--rule);
+}
+.folio th + th, .folio td + td { width: 21%; text-align: right; font-family: var(--data); }
+
+.folio-pie {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  margin-top: 11px;
+  padding-top: 6px;
+  border-top: 1.5px solid var(--ink);
+  font-family: var(--data);
+  font-size: 7.4pt;
+  line-height: 1.5;
+  color: var(--ink-faint);
+}
+
+/* Lo que solo tiene sentido en pantalla: el PDF ya es el papel. */
+.folio-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 10px;
+  justify-content: center;
+  margin: 0 auto 28px;
+  max-width: 196mm;
+  font-family: var(--data);
+  font-size: 11px;
+}
+.folio-acciones a {
+  padding: 6px 11px;
+  border: 1px solid var(--rule);
+  color: var(--ink-soft);
+  text-decoration: none;
+}
+.folio-acciones a:hover { border-color: var(--accent); color: var(--accent); }
+
+@media print {
+  .folio-body { background: #fff; }
+  .folio {
+    max-width: none;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    font-size: 9.7pt;
+    line-height: 1.38;
+  }
+  .folio-acciones { display: none; }
+  /* El aire entre secciones se aprieta en el papel, que es donde cuesta: el
+     tamaño de la letra no se toca, porque encogerla para que quepa es la trampa
+     que este folio no se permite. Medido: cinco secciones y trece viñetas dan
+     unos 45 px, que es casi todo lo que sobraba. */
+  .folio h1 { font-size: 18pt; margin: 8px 0 2px; }
+  .folio h2 { margin: 8px 0 3px; padding-top: 5px; }
+  .folio p { margin-bottom: 4px; }
+  .folio ol, .folio ul { margin-bottom: 5px; }
+  .folio li { margin-bottom: 2px; }
+  .folio .table-wrap { margin: 4px 0 6px; }
+  .folio-pie { margin-top: 8px; }
+  .folio h2, .folio table, .folio li, .folio-pie { break-inside: avoid; }
+}
+
+@media (max-width: 640px) {
+  .folio { padding: 22px 18px 18px; font-size: 15px; }
+  .folio h1 { font-size: 26px; }
+  .folio-head { flex-wrap: wrap; gap: 8px; }
+  .folio-meta { text-align: left; }
+  .folio table { font-size: 13.5px; }
+}
+
+/* El acento del módulo 31, el de la entrega. En claro siempre: esto es papel. */
+:root { --accent: #8E6759; }
 </style>
 </head>
-<body>
-<div class="shell">
+<body class="folio-body">
 
-  <!-- La barra de instrumentos. No se mueve al bajar: el tramo del lago, la cifra
-       del módulo y el avance se quedan a la vista mientras se lee. -->
-  <aside class="panel">
-    <a class="panel-brand" href="index.en.html">Bellows
-      <small>Module 16 of 31</small></a>
+<main class="folio">
+  <header class="folio-head">
+    <p class="folio-brand">Fuelle<span>gemelo digital del compresor de aire de un tren</span></p>
+    <p class="folio-meta">Kevin Ortiz<br>kmortizva-data.github.io</p>
+  </header>
 
-    <nav class="rail" aria-label="The arc of the project">
-      <p class="panel-label">the lake</p>
-      <span class="rail-step done"><i class="dot"></i><span>RAW</span><span class="range">1-3</span></span><span class="rail-step done"><i class="dot"></i><span>BRONZE</span><span class="range">4-13</span></span><span class="rail-step here"><i class="dot"></i><span>SILVER</span><span class="range">14-16</span></span><span class="rail-step"><i class="dot"></i><span>GOLD</span><span class="range">17-22</span></span><span class="rail-step"><i class="dot"></i><span>TWIN</span><span class="range">23-31</span></span>
-    </nav>
+  <h1>El veredicto, en un folio</h1><h2>La pregunta</h2><p>¿Un modelo de la física de un compresor, calibrado con un mes sano y sin ver ninguna avería, avisa de las fugas de aire mejor que la alarma que la máquina ya lleva?</p><h2>El método, en cinco líneas</h2><ol><li><strong>1.516.948 lecturas</strong> de 15 señales, una cada diez segundos, siete meses del compresor de aire de un tren del Metro de Oporto: 208,2 MB de CSV, de la UCI, con licencia CC BY 4.0.</li><li>Un <strong>lago de datos por capas</strong>, con las lecturas en una rejilla regular de diez segundos, y las mismas servidas desde PostgreSQL.</li><li><strong>Cuatro números medidos de febrero</strong> describen la máquina: arranca a 8,05 bar, para a 10,10, llena a 1,1796 bar por minuto y la planta gasta 0,0711. El aire que entra y el que sale cuadran al 0,7 %.</li><li>El <strong>gemelo</strong> corre en paralelo con esos cuatro números congelados. Lo único que se mira es su discrepancia con la máquina, el <strong>residual</strong>, en bar por minuto.</li><li>El umbral no se elige: se <strong>barre entero</strong>. El más alto que todavía pilla las cuatro averías documentadas es 1,15 bar por minuto.</li></ol><h2>El veredicto</h2><div class="table-wrap"><table><thead><tr><th>Sobre los 207 días que el gemelo puede juzgar</th><th>El gemelo</th><th>La alarma instalada</th></tr></thead><tbody><tr><td>Averías detectadas</td><td><strong>4 de 4</strong></td><td>2 de 4</td></tr><tr><td>Días con alarma</td><td>18</td><td>94</td></tr><tr><td>Falsas alarmas al mes</td><td><strong>1,5</strong></td><td>11,4</td></tr></tbody></table></div><p><strong>Lo que no hace: predecir.</strong> Solo una de las cuatro avisa antes, y con un día. Una fuga de aire no crece despacio: se abre, y el compresor pasa de trabajar una vigésima parte del tiempo a no parar en unas horas.</p><p><strong>Lo que encontró sin que nadie lo pidiera.</strong> Doce días de marzo con la máquina averiada y sin parte de mantenimiento, y cuatro señales independientes lo dicen a la vez. Contando marzo como avería, el resultado es 5 de 5 con 1,2 falsas al mes.</p><h2>Qué se rompería en una planta de verdad</h2><ul><li><strong>Una sola máquina.</strong> Los cuatro números son de este compresor; otro exige medirlos de nuevo, y basta un mes sano.</li><li><strong>Cuatro averías no son una muestra.</strong> Es un estudio de cuatro casos, y un acierto de más o de menos mueve el resultado.</li><li><strong>Sin el volumen del depósito no hay litros.</strong> El residual va en bar por minuto, y pasarlo a caudal exige un dato que la ficha no da.</li><li><strong>Ninguna fuga de referencia.</strong> Nadie abrió una válvula de tamaño conocido, así que la escala de gravedad no está calibrada.</li><li><strong>La máquina se degrada.</strong> El consumo sano dobla entre febrero y agosto, y el umbral congelado marca 24 días de agosto de 31: hay que recalibrar, o leer cada día contra los catorce anteriores.</li><li><strong>El libro de averías es un dato con huecos</strong>, y el modelo se juzga contra él.</li><li><strong>Detectar no es avisar</strong>: el umbral del 4 de 4 salta con el compresor casi a tope, así que constata un desastre en curso.</li><li><strong>Un PostgreSQL portátil no es una base de producción</strong>: sin copias automáticas, sin usuarios y sin nada que lo sostenga si se cae.</li></ul><h2>Cómo comprobarlo</h2><p>Cada cifra de este folio sale de correr un script, y diez comprobaciones se ponen entre una lección y un commit. El curso son 31 módulos, el panel enseña los 214 días, y el código está en <strong>github.com/kmortizva-data/fuelle</strong>.</p>
 
-    <div class="panel-figure">
-      <span class="v">5 of 5</span>
-      <span class="l">breakages caught; with 7 promises it caught only 4</span>
-    </div>
+  <footer class="folio-pie">
+    <span>fuente: MetroPT-3, del compresor de un tren del Metro de Oporto (CC BY 4.0)</span>
+    <span>generado el 2026-09-20</span>
+  </footer>
+</main>
 
-    <div class="panel-progress">
-      <b>16</b> of 31
-      <span class="panel-bar"><i style="width: 52%"></i></span>
-    </div>
-
-    <nav class="panel-nav"><a href="m15_otras_fuentes.en.html" title="15. The other sources: weather, and reports with errata">← 15</a><a href="m17_oro_dbt.en.html" title="17. Gold with dbt: model in SQL and let lineage draw itself">17 →</a><a class="portfolio-link" href="m16_calidad.html" hreflang="es" rel="alternate">Español</a></nav>
-  </aside>
-
-  <main class="stage">
-    <div class="stage-inner">
-      <header class="head">
-        <p class="head-id"><b>16</b> <span>part: From raw to answer</span></p>
-        <h1>Data quality: tests and contracts</h1>
-        <p class="standfirst">What happens on Monday when a new column arrives or pressure comes in different units. A contract is a promise a machine checks by itself</p>
-      </header>
-
-      <section class="block is-brief"><span class="kicker">Summary</span><h2 class="block-title">In 30 seconds</h2><ul><li>A data contract is a list of promises <strong>written as code that runs</strong>.</li><li>You test it by breaking it: five failures of the kind that arrive on any Monday.</li><li>The first version, with <strong>7 promises</strong>, caught <strong>4 of 5</strong>. One got past it entirely.</li><li>With the missing promise there are <strong>8</strong>, and it catches <strong>5 of 5</strong>.</li><li>The missing one: it checked whether the agreed columns were there, not whether one was extra.</li></ul></section>
-<section class="block "><span class="kicker">Context</span><h2 class="block-title">What this module solves</h2><p>The lake already has three sources and two layers. From here the problem stops being building it and becomes keeping it working on Monday.</p><p>A contract is what turns &quot;this should arrive like so&quot; into something that notices when it stops arriving like so. And like every gate on this course, <strong>it is worth nothing until you have seen it fail</strong>.</p></section>
-<section class="block is-toy"><span class="kicker">By hand</span><h2 class="block-title">Before the theory: a toy example</h2><p>A laboratory sends you a file every day with the copper grade of each batch:</p><div class="table-wrap"><table><thead><tr><th>batch</th><th>grade</th></tr></thead><tbody><tr><td>L1</td><td>0.8</td></tr><tr><td>L2</td><td>1.2</td></tr><tr><td>L3</td><td>1.0</td></tr></tbody></table></div><p>You work out the day&#x27;s copper by multiplying by the tonnes. <strong>Mean of 1.0 %.</strong></p><p>One Monday this arrives:</p><div class="table-wrap"><table><thead><tr><th>batch</th><th>grade</th></tr></thead><tbody><tr><td>L1</td><td>800</td></tr><tr><td>L2</td><td>1200</td></tr><tr><td>L3</td><td>1000</td></tr></tbody></table></div><p>The laboratory changed instrument and now delivers <strong>parts per million</strong> instead of per cent. The file is perfectly valid: three rows, two columns, correct numbers. Nothing throws an error.</p><p>And your report says the ore has a mean grade of <strong>1,000 %</strong>.</p><p>Now imagine three promises written before that happened:</p><ol><li><strong>The file brings the columns <code>batch</code> and <code>grade</code>, and no others.</strong></li><li><strong><code>grade</code> is between 0 and 5.</strong></li><li><strong><code>batch</code> does not repeat.</strong></li></ol><p>The second would have broken that Monday and the file would not have come in. That is a contract: not documentation, but <strong>a condition that blocks the way</strong>.</p><p>Look closely at the first promise, because it has a catch and this module tripped over it. It says two things: that the columns are there, and that there are no others. Checking only half is easy, and it lets through the day a new column shows up.</p></section>
-<section class="block is-terms"><span class="kicker">Terms</span><h2 class="block-title">Glossary</h2><details class="fold"><summary>6 terms, in plain words</summary><ul><li><strong>Data contract.</strong> The set of promises a table keeps, written as code and executed on every run.</li><li><strong>Promise.</strong> A concrete, checkable condition. &quot;Pressure is in bar&quot; is not one; &quot;TP2 is between -2 and 15&quot; is.</li><li><strong>Data test.</strong> Each individual check in the contract.</li><li><strong>Schema.</strong> A table&#x27;s list of columns, with their names and their types.</li><li><strong>Schema drift.</strong> A schema change with no warning: a column that leaves, another that arrives, another renamed.</li><li><strong>False green.</strong> A check that always passes, even when it should fail. It is worse than having none, because it gives confidence.</li></ul></details></section>
-<section class="block is-method"><span class="kicker">Method</span><h2 class="block-title">Step by step</h2><h3 class="sub">Step 1. Write the promises as queries that return zero rows</h3><p>The trick of shape that makes a contract useful: every promise is a query looking for <strong>the offenders</strong>. If it returns zero rows, the promise holds.</p><p>That way the error message already carries the guilty data inside, instead of a &quot;something is wrong&quot; that forces you to investigate from scratch.</p><h3 class="sub">Step 2. Run it against the layer of record</h3><p>Over module 14&#x27;s silver, the contract has to pass in full. If it does not, the problem is not the contract&#x27;s: it is the layer&#x27;s, and that has to be fixed before going on.</p><h3 class="sub">Step 3. Break it on purpose, five times</h3><p>And here is what separates this module from a list of good intentions. You take the layer, spoil it in five different ways, and see how many the contract catches.</p><p>All five are real failures of the kind that arrive on a Monday: a renamed column, a changed unit, a new column, an ingestion that ran twice, and an impossible value.</p><h3 class="sub">Step 4. Look at the one that gets away</h3><p>Because one did, and that is the lesson of the module.</p></section>
-<section class="block is-code"><span class="kicker">Code</span><h2 class="block-title">The code, in parts</h2><h3 class="sub">Step 5. One promise, written</h3><pre><code class="language-sql">SELECT timestamp, count(*) AS veces
-FROM plata
-GROUP BY timestamp
-HAVING count(*) &gt; 1;</code></pre><details class="fold"><summary>line by line, 1 entry</summary><dl class="annot"><dt><code>HAVING count(*) &gt; 1</code></dt><dd>keeps the groups with more than one row, meaning the repeated timestamps</dd></dl></details><div class="output"><span class="output-tag">prints</span><pre><code>┌───────────┬───────┐
-│ timestamp │ veces │
-├───────────┴───────┤
-│      0 filas      │
-└───────────────────┘</code></pre></div><p>Zero rows means the promise holds. And if one day it returns something, what it returns is exactly the list of duplicated timestamps, ready to investigate.</p><h3 class="sub">Step 6. The whole contract, and the five breakages</h3><pre><code class="language-python">for rotura, sql in ROTURAS.items():
-    roto = duckdb.connect()
-    roto.execute(f&quot;CREATE VIEW datos AS {sql}&quot;)
-    cazada = revisa(roto, completo)</code></pre><details class="fold"><summary>line by line, 3 entries</summary><dl class="annot"><dt><code>ROTURAS</code></dt><dd>a dictionary of failure name and the query that causes it over a copy</dd><dt><code>CREATE VIEW datos AS ...</code></dt><dd>the spoiled copy takes the same name as the good one, so the contract does not change</dd><dt><code>revisa(roto, completo)</code></dt><dd>runs the eight promises against that copy and returns the ones that break</dd></dl></details><div class="output"><span class="output-tag">prints</span><pre><code>  el contrato tiene 8 promesas
-  sobre la plata de verdad se incumplen: 0
-
-  y ahora, rompiéndolo a propósito:
-    la caza    una columna llega con otro nombre
-    la caza    la presion llega en milibares
-    la caza    aparece una columna que nadie anuncio   (la primera versión la dejaba pasar)
-    la caza    la ingesta corrio dos veces
-    la caza    un recuento de lecturas negativo</code></pre></div><h3 class="sub">Step 7. What the incomplete promise said</h3><pre><code class="language-sql">SELECT column_name
-FROM (DESCRIBE SELECT * FROM plata)
-WHERE column_name IN (&#x27;timestamp&#x27;, &#x27;day&#x27;, &#x27;lecturas&#x27;, &#x27;medido&#x27;, &#x27;dudoso&#x27;);</code></pre><details class="fold"><summary>line by line, 2 entries</summary><dl class="annot"><dt><code>DESCRIBE SELECT * FROM plata</code></dt><dd>returns one row per column, with its name and its type</dd><dt><code>column_name IN (...)</code></dt><dd>keeps the ones on the agreed list</dd></dl></details><p>That query counts how many of the agreed columns are present. And there is the hole: <strong>if one extra column arrives, there are still twenty agreed ones and the count comes out right.</strong></p><h3 class="sub">Step 8. The missing promise</h3><pre><code class="language-sql">SELECT column_name
-FROM (DESCRIBE SELECT * FROM plata)
-WHERE column_name NOT IN (&#x27;timestamp&#x27;, &#x27;day&#x27;, &#x27;lecturas&#x27;, &#x27;medido&#x27;, &#x27;dudoso&#x27;);</code></pre><details class="fold"><summary>line by line, 1 entry</summary><dl class="annot"><dt><code>NOT IN (...)</code></dt><dd>the other way round: it keeps the ones NOT on the list, meaning the extra ones</dd></dl></details><p>It is the same query with the condition flipped, and it is what was missing. One looks at what should be there and the other at what should not.</p></section>
-<section class="block is-result"><span class="kicker">Result</span><h2 class="block-title">The result, measured</h2><figure class="fig"><img class="fig-claro" src="../figuras/fig_m16_contrato_roto.claro.en.png?v=295698bb" alt="fig m16 contrato roto" loading="lazy"><img class="fig-oscuro" src="../figuras/fig_m16_contrato_roto.oscuro.en.png?v=48fdc0d4" alt="fig m16 contrato roto" loading="lazy"></figure><p><strong>What we expected.</strong> That the contract would catch the five breakages. They were chosen by me, knowing what the contract checked.</p><p><strong>What came out.</strong> It caught <strong>4 of 5</strong> with its initial <strong>7 promises</strong>. The new column got away.</p><p>And the reason is exactly the one the toy example saw coming. The promise said the twenty agreed columns had to be present, and with one extra column <strong>the twenty are still there</strong>. The check passes, and the schema has changed.</p><p>With the missing promise, &quot;no extra columns arrive&quot;, the contract has <strong>8 promises</strong> and catches <strong>5 of 5</strong>.</p><p>The figure shows it at a glance. The column for the &quot;new column&quot; breakage has a single cell lit, and it is the bottom promise, the one that was not there.</p><p><strong>What it means.</strong> An incomplete contract is not half a contract: it is a <strong>false green</strong>. It gives the all clear daily and therefore builds confidence, and the day schema drift comes in through the gap it does not cover, nobody looks.</p><p>Hence the rule this project already applies to its own verifiers, now applied to the data: <strong>a promise nobody has seen fail protects against nothing.</strong> The only way to know whether a contract is any use is to break the data on purpose and check that it notices.</p><p>Look also at the top row of the figure. The renamed column breakage lights four promises, not one: two because they detect the change and <strong>two because they cannot even run any more</strong>. A query asking for <code>TP2</code> when <code>TP2</code> no longer exists does not give a bad result: it gives an error. That error is contract information too, and that is why it counts as a broken promise rather than knocking over the whole check.</p></section>
-<section class="block is-warning"><span class="kicker">Traps</span><h2 class="block-title">Watch out</h2><ul><li><strong>Checking that the columns are there is not checking the schema.</strong> Both halves are needed: what is required and what is forbidden.</li><li><strong>A vague promise is not a promise.</strong> &quot;Pressure is reasonable&quot; cannot be executed. &quot;TP2 is between -2 and 15&quot; can, and the range is chosen by looking at the data, like module 9&#x27;s cuts.</li><li><strong>The contract is tested by breaking the data, not by rereading it.</strong> It is the same rule as this course&#x27;s verifiers, and it arrived by the same road: one of them had an empty loop and gave a green without comparing anything.</li><li><strong>A promise that cannot run counts as broken.</strong> When a column disappears, the query asking for it fails, and that is precisely the news.</li><li><strong>A contract that is too strict is also a problem.</strong> If it fires every week over things that do not matter, somebody will switch it off, and we are back to module 8: an alarm that always sounds is not an alarm.</li><li><strong>The contract lives in the repository, with the code.</strong> A schema document in a shared folder goes stale in the first month and nobody notices.</li></ul></section>
-<section class="block is-bridge"><span class="kicker">Analogy</span><h2 class="block-title">Metallurgical bridge</h2><p>A serious laboratory does not deliver a result without its controls. In every batch it puts a reference sample of known grade, a duplicate of a real sample, and a blank.</p><p>If the reference does not land where it should, the whole batch is repeated. The result is not delivered with a note saying the control came out odd: <strong>it is not delivered</strong>.</p><p>That is a data contract, and it has been mandatory in a laboratory for decades while in data people still argue about whether it is needed. And look at the blank, the sample with nothing in it: it is there to detect contamination, meaning to catch <strong>what should not appear</strong>. It is exactly the promise the first version of this contract was missing.</p></section>
-<section class="block is-review"><span class="kicker">Review</span><h2 class="block-title">Review</h2><details><summary>What a data contract is and how it differs from documentation</summary><p>It is a set of checkable conditions that run on every pass and can stop the data getting through. Documentation describes what should happen and never notices when it stops happening; the contract fails and halts the process. The practical difference is that one has an exit code and the other does not.</p></details><details><summary>Why every promise is written as a query that returns zero rows</summary><p>Because that way the error carries the evidence inside. A promise returning true or false forces you to investigate from scratch when it fails; one returning the guilty rows has already told you which they are. And the shape is always the same, so adding a promise means writing one more query.</p></details><details><summary>Your contract has passed every day for a year. Good sign</summary><p>Not necessarily. The data may be fine, or the contract may check nothing capable of failing. The only way to tell them apart is to break the data on purpose and see whether it notices. Here, the first version calmly passed one breakage out of five.</p></details><details><summary>The missing promise looked trivial. Why did it get away</summary><p>Because it checked half a condition. It verified the presence of the twenty agreed columns, and an extra column removes none of the twenty. It is a failure by omission, the kind you do not see by rereading: what is written is correct, and what is missing is written nowhere.</p></details><details><summary>What do you do if the contract fails at three in the morning</summary><p>Nothing automatic. The contract halts the process and leaves the previous data intact, which is what matters: better a stale dashboard than a dashboard with bad data. Afterwards somebody looks at which promise broke and which rows were guilty, both of which the contract itself wrote down.</p></details></section>
-
-      <footer class="footer">
-        <span>Bellows / Module 16</span>
-        <span>generated on 2026-09-20</span>
-        <span>source: MetroPT-3, from a Porto Metro train compressor (CC BY 4.0)</span>
-      </footer>
-    </div>
-  </main>
-
-</div>
-<!-- El motor SQL no se descarga aquí: este fichero solo conecta los botones.
-     Los 8 MB llegan cuando el lector pulsa, y no antes. -->
-<script type="module" src="live.js"></script>
-<script src="perilla.js" defer></script>
+<!-- Enlaces para quien lo lee en pantalla. No se imprimen: en papel sobran. -->
+<p class="folio-acciones"><a href="index.html">el curso</a><a href="panel.html">el panel</a><a href="veredicto.pdf">descargar el PDF</a><a href="folio.en.html">English</a></p>
 
 </body>
 </html>

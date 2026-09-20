@@ -570,6 +570,12 @@ def project_page(project: dict, data: dict, lang: str) -> str:
     repo_link = (f'<a href="{esc(repo)}" target="_blank" rel="noopener">'
                  f'{esc(ui["view_repo"])}</a>' if repo else "")
 
+    # And a project can hand over a document: Bellows prints its verdict on one page.
+    folio_link = ""
+    if project.get("folio_href"):
+        folio_link = (f'<a href="{esc(open_href(project, depth, lang, "folio_href"))}" '
+                      f'target="_blank" rel="noopener">{esc(p["folio_label"])}</a>')
+
     body = f"""<article class="wrap section">
   <a class="back" href="{home_href(lang, depth)}#work">{esc(ui["back"])}</a>
   <p class="eyebrow">{esc(p["status"])}</p>
@@ -592,7 +598,7 @@ def project_page(project: dict, data: dict, lang: str) -> str:
   <p class="eyebrow stack-label">{esc(ui["stack"])}</p>
   <ul class="stack">{stack_of(project)}</ul>
 
-  <p class="assay-links">{panel_link}{open_link}{repo_link}</p>
+  <p class="assay-links">{panel_link}{open_link}{folio_link}{repo_link}</p>
 </article>"""
 
     return shell(title=f"{p['name']} - {data['author']}", desc=p["tagline"], lang=lang,

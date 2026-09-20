@@ -1137,6 +1137,11 @@ figcaption { font-size: 12.5px; color: var(--ink-faint); margin-top: 7px; max-wi
   text-decoration: none;
 }
 .door:hover { border-color: var(--accent); }
+/* La segunda puerta, la del folio, pesa menos que la del panel: mirar primero,
+   decidir después. */
+.door-quiet { margin-top: 10px; border-left-color: var(--rule); background: transparent; }
+.door-quiet .door-t { font-size: 16px; }
+.door-quiet:hover { border-left-color: var(--accent); }
 .door-k {
   grid-column: 1;
   font-family: var(--data);
@@ -1288,7 +1293,7 @@ LIMIT 5;</code></pre></details></div><p>One day takes nearly a third of all the 
 
       <footer class="footer">
         <span>Bellows / Module 20</span>
-        <span>generated on 2026-09-19</span>
+        <span>generated on 2026-09-20</span>
         <span>source: MetroPT-3, from a Porto Metro train compressor (CC BY 4.0)</span>
       </footer>
     </div>

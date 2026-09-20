@@ -1137,6 +1137,11 @@ figcaption { font-size: 12.5px; color: var(--ink-faint); margin-top: 7px; max-wi
   text-decoration: none;
 }
 .door:hover { border-color: var(--accent); }
+/* La segunda puerta, la del folio, pesa menos que la del panel: mirar primero,
+   decidir después. */
+.door-quiet { margin-top: 10px; border-left-color: var(--rule); background: transparent; }
+.door-quiet .door-t { font-size: 16px; }
+.door-quiet:hover { border-left-color: var(--accent); }
 .door-k {
   grid-column: 1;
   font-family: var(--data);
@@ -1274,7 +1279,7 @@ ORDER BY timestamp;</code></pre><details class="fold"><summary>línea por línea
 
       <footer class="footer">
         <span>Fuelle / Módulo 14</span>
-        <span>generado el 2026-09-19</span>
+        <span>generado el 2026-09-20</span>
         <span>fuente: MetroPT-3, del compresor de un tren del Metro de Oporto (CC BY 4.0)</span>
       </footer>
     </div>
