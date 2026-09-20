@@ -134,6 +134,27 @@ Kevin: «no sé por qué no puedo poner mi página así de primerazo como mi ami
   `Fuelle/assets` (comprobado por hash), así que se prueba en Fuelle con su `serve.py`, que
   comprime y cachea. En GitHub Pages no pasa.
 
+## Fuelle entero, y una fuga que llevaba tiempo publicada (2026-09-20)
+
+- **La ficha dice ahora 31 de 31 en los dos idiomas**, con el panel y el folio. Entran las tres
+  páginas inglesas que faltaban (29, 30 y 31) y cambian las de su alrededor, porque su enlace de
+  idioma ya encuentra una gemela que existe. La captura de la ficha se rehizo: contaba 28 de 31.
+- **Nueve informes de Concentra publicaban la ruta de esta máquina.** En
+  `concentra/projects/curso{2,4,5}/*/04_reports/model_results.json`, la clave `source_csv` llevaba
+  la ruta absoluta del CSV de origen, carpeta de usuario incluida. Vivía en `origin/master` desde
+  el commit ff3ec74, o sea servida.
+  - **El arreglo va en el origen**, `Portafolio/Concentra`: `projects/common.py` guarda ahora solo
+    el nombre del fichero, y los nueve informes ya escritos quedaron reescritos. Tocar solo las
+    copias del sitio no habría servido, y además **el copiador bajo demanda salta un fichero que
+    ya existe**, así que las copias viejas se borraron para que volviera a traerlas limpias.
+  - **Pendiente, y es un bloque propio:** el historial del portafolio sigue llevando la ruta.
+    Reescribirlo obliga a un empuje forzado sobre un sitio ya publicado. Y `sitio` **no tiene
+    guarda de historial**: `check_site.py` mira enlaces, contraste e imágenes, no lo que viaja
+    dentro de los ficheros. Fuelle sí la tiene (`src/site/check_history.py`) y es la que hay que
+    copiar aquí.
+- **El espejo se comprobó por huella**: los 73 ficheros de `Fuelle/out` son idénticos byte a byte
+  en `fuelle/curso`. El único que no viaja es `prueba_visual.html`, que el build borra a propósito.
+
 ## Decisiones de Kevin cerradas (2026-08-23)
 
 - **Contacto sin formulario**: «solo mándalos al final, que está mi email y LinkedIn».
