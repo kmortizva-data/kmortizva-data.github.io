@@ -147,11 +147,25 @@ Kevin: «no sé por qué no puedo poner mi página así de primerazo como mi ami
     el nombre del fichero, y los nueve informes ya escritos quedaron reescritos. Tocar solo las
     copias del sitio no habría servido, y además **el copiador bajo demanda salta un fichero que
     ya existe**, así que las copias viejas se borraron para que volviera a traerlas limpias.
-  - **Pendiente, y es un bloque propio:** el historial del portafolio sigue llevando la ruta.
-    Reescribirlo obliga a un empuje forzado sobre un sitio ya publicado. Y `sitio` **no tiene
-    guarda de historial**: `check_site.py` mira enlaces, contraste e imágenes, no lo que viaja
-    dentro de los ficheros. Fuelle sí la tiene (`src/site/check_history.py`) y es la que hay que
-    copiar aquí.
+  - **El historial se reescribió el 2026-09-20**, con el sí de Kevin. La ruta vivía en 9 blobs
+    que entraron en un solo commit (`ff3ec74`) y no se tocaron hasta ese día, así que el arreglo
+    fue quirúrgico: `git filter-branch --index-filter` cambiando esos nueve por su versión limpia
+    sobre `ff3ec74~1..HEAD`, **38 commits rehechos y 8 intactos**. `--prune-empty` se llevó el
+    commit que los arreglaba, que en el historial nuevo ya no arregla nada.
+    - **La prueba de que solo se tocó el pasado:** el árbol de HEAD antes y después es el mismo
+      objeto, `966ef416`, y `git diff` contra el respaldo no da una sola línea. La web se
+      reconstruye byte a byte igual.
+    - **Lo que no se puede prometer:** GitHub guarda un tiempo los objetos que dejan de ser
+      alcanzables. Quien tenga el identificador exacto de un commit viejo puede alcanzarlo hasta
+      que GitHub recoja la basura. Para cerrarlo del todo hay que abrir un ticket a su soporte, y
+      eso es cosa de Kevin.
+  - **`src/check_history.py`, la guarda que no existía.** Es la de Fuelle traída y ajustada a lo
+    que este repositorio guarda de verdad: **50 MB** en vez de 10, porque el motor SQL es un wasm
+    de 34,25 MB que tiene que estar; las carpetas que empiezan por guión bajo rechazadas por
+    nombre (la segunda red tras el perfil de Chromium); y **dieciséis correos con nombre y
+    apellido** en la lista de permitidos: el de contacto, el de la atribución, y los catorce de
+    autores de librerías ajenas que viajan dentro de las licencias de DuckDB wasm y de Plotly.
+    Uno nuevo hace fallar la puerta y se mira a mano, que es lo que se quiere.
 - **El espejo se comprobó por huella**: los 73 ficheros de `Fuelle/out` son idénticos byte a byte
   en `fuelle/curso`. El único que no viaja es `prueba_visual.html`, que el build borra a propósito.
 
