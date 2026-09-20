@@ -16,6 +16,27 @@ the note PDFs, and writes `CNAME`. To read it before publishing:
 python -m http.server 8790
 ```
 
+## Before publishing
+
+Two gates, and both exit non-zero when they find something.
+
+```
+python src/check_site.py
+python src/check_history.py
+```
+
+`check_site.py` reads what the build just wrote: every colour pair against the AA contrast
+ratio, every `src` and `href` resolving on disk, every screenshot a valid PNG, the motion
+rules, the index against `content/site.json`, one shared measure across the prose blocks, no
+em dashes, and a CSS with no undeclared variables.
+
+`check_history.py` reads the repository instead of the site, and it reads all of it: every
+blob any commit has ever pointed to, not the working tree, because a public repository
+publishes its whole history. It refuses files over 50 MB, working folders, API keys, phone
+numbers, e-mail addresses that are not on a named list, and any path from the machine this
+was built on. That last one is why it exists: nine generated reports carried the absolute
+path of their source CSV, and were served for months with nothing looking.
+
 ## What to edit
 
 | Path | What it is |
