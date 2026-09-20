@@ -339,8 +339,8 @@
       "accent": "air",
       "shot": "fuelle-index.png",
       "shot_alt": {
-        "en": "The index of Bellows in its dark theme: the lake drawn down the side from raw to twin, a door to the one page panel, and 28 of 31 lessons written in English",
-        "es": "El índice inglés de Fuelle en su tema oscuro: el lago dibujado en el lateral, de crudo a gemelo, una puerta al panel de una página, y 28 de 31 lecciones escritas en inglés"
+        "en": "The index of Bellows in its dark theme: the lake drawn down the side from raw to twin, a door to the one page panel, and 31 of 31 lessons written in English",
+        "es": "El índice inglés de Fuelle en su tema oscuro: el lago dibujado en el lateral, de crudo a gemelo, una puerta al panel de una página, y 31 de 31 lecciones escritas en inglés"
       },
       "stack": [
         "Python",
@@ -363,7 +363,7 @@
         "concentrate": "A detector that catches 4 of the 4 documented leaks at 1.5 false alarms a month, where the alarm already fitted to the machine catches 2 at 11.4. As a predictor it does not work, one warning in four and a single day ahead, and the course publishes both marks side by side.",
         "assay": "The healthy window was not healthy",
         "assay_detail": "Searching for the twin's parameters disagreed with measuring them. Chasing why turned up gaps in the record counted as compressor time, and then twelve days of March where the duty cycle climbs from 0.06 to 0.58, the oil runs ten degrees hotter and the low pressure alarm fires for the first time in the record: a failure nobody wrote down, inside the window the twin was calibrated on. It was recalibrated on February alone, and three published modules were rewritten.",
-        "status": "31 of 31 modules in Spanish and 28 in English, with the panel and the one page verdict, live.",
+        "status": "31 of 31 modules in both languages, with the panel and the one page verdict, live.",
         "body": [
           "Every other project on this page starts from a CSV somebody had already cleaned. This one is about where that file comes from: a lake built layer by layer from 208 MB of raw compressor data, and a digital twin on top that says plainly what it can and cannot see. I wrote it for someone starting from zero, which is where I started.",
           "Every number in the course comes out of a script run, and ten checks stand between a lesson and a commit: every published query runs against the lake and has to print what the lesson says, every number in the prose has to exist in a results file, and the Spanish and English editions have to agree on every figure. They have caught real errors, including one in my own measurements that a later module exposed.",
@@ -384,7 +384,7 @@
         "concentrate": "Un detector que pilla 4 de las 4 fugas documentadas con 1,5 falsas alarmas al mes, donde la alarma que la máquina ya lleva pilla 2 con 11,4. Como predictor no funciona, un aviso de cuatro y con un solo día, y el curso publica las dos notas una al lado de la otra.",
         "assay": "La ventana sana no estaba sana",
         "assay_detail": "Buscar los parámetros del gemelo no coincidía con medirlos. Persiguiendo por qué aparecieron huecos del registro contados como tiempo de compresor, y después doce días de marzo en los que el ciclo de trabajo sube de 0,06 a 0,58, el aceite se calienta diez grados y la alarma de baja presión salta por primera vez en todo el registro: una avería que nadie apuntó, dentro de la ventana con la que se calibraba el gemelo. Se recalibró con febrero solo y se reescribieron tres módulos ya publicados.",
-        "status": "31 de 31 módulos en español y 28 en inglés, con el panel y el folio, publicados.",
+        "status": "31 de 31 módulos en los dos idiomas, con el panel y el folio, publicados.",
         "body": [
           "Todos los demás proyectos de esta página parten de un CSV que alguien ya había limpiado. Este va de dónde sale ese archivo: un lago construido capa a capa desde 208 MB de datos crudos de un compresor, y encima un gemelo digital que dice claro lo que ve y lo que no. Lo escribí para alguien que empieza de cero, que es de donde empecé yo.",
           "Cada número del curso sale de la corrida de un script, y diez comprobaciones se ponen entre una lección y un commit: toda consulta publicada se ejecuta contra el lago y tiene que imprimir lo que dice la lección, todo número de la prosa tiene que existir en un fichero de resultados, y las ediciones en español y en inglés tienen que coincidir en cada cifra. Han cazado errores de verdad, uno de ellos en mis propias mediciones, que destapó un módulo posterior.",
