@@ -1,0 +1,152 @@
+[
+  {
+    "n": 1,
+    "id": "enchambered",
+    "name": "Alone Together",
+    "site": "Enchambered",
+    "url": "https://www.enchambered.com/puzzles/alone-together/",
+    "category": "Misterio",
+    "blurb": "Un escape room virtual hecho para dos: cada una ve pistas distintas y solo salen si se cuentan todo. Corto, gratis, en el navegador.",
+    "howto": [
+      "Abran el link cada una en su propio celular o computador.",
+      "Una elige Player 1 y la otra Player 2 (los links son distintos).",
+      "Llámense por videollamada: lo que ve una, la otra no lo ve.",
+      "Ganan cuando las dos pantallas dicen You escaped."
+    ]
+  },
+  {
+    "n": 2,
+    "id": "escapelab",
+    "name": "Escape Lab",
+    "site": "escapelab.run",
+    "url": "https://www.escapelab.run/",
+    "category": "Misterio",
+    "blurb": "Escapar del laboratorio del Dr. Holmes. Para dos, sin compartir pantalla, una o dos horas de hablar sin parar. Gratis en el navegador.",
+    "howto": [
+      "Cada una abre escapelab.run en su propio dispositivo (o instala la app, también gratis).",
+      "Elijan el modo de dos jugadoras y entren a la misma partida.",
+      "No se muestren la pantalla: la gracia es describirse lo que ven.",
+      "Reserven una tarde: el tiempo promedio es de una a dos horas."
+    ]
+  },
+  {
+    "n": 3,
+    "id": "unsolvedcase",
+    "name": "Unsolved Case",
+    "site": "Eleven Puzzles",
+    "url": "https://elevenpuzzles.com/unsolved-case/",
+    "category": "Misterio",
+    "blurb": "Un asesino críptico, dos detectives y cada una ve solo la mitad del puzle. Gratis, sin anuncios, en el celular o el computador.",
+    "howto": [
+      "Cada una instala la app gratis (Android, iPhone o Steam en el computador).",
+      "Una crea la partida y le manda el código a la otra.",
+      "Una es Old Dog y la otra es Ally: se cuentan lo que ven por llamada.",
+      "Dura entre 30 y 60 minutos; si les gusta, la saga sigue con Cryptic Killer (esa sí es de pago)."
+    ]
+  },
+  {
+    "n": 4,
+    "id": "codenames",
+    "name": "Codenames Duet",
+    "site": "codenames.game",
+    "url": "https://codenames.game/",
+    "category": "Palabras",
+    "blurb": "El juego de espías de palabras, en su modo cooperativo para dos. Está en español.",
+    "howto": [
+      "Una entra a codenames.game y pulsa Create Room.",
+      "En la configuración elige el modo Duet y el idioma español.",
+      "Copia el link de la sala y se lo manda a la otra.",
+      "Las dos son jefas de espías: se dan pistas de una palabra por turno."
+    ]
+  },
+  {
+    "n": 5,
+    "id": "skribbl",
+    "name": "skribbl.io",
+    "site": "skribbl.io",
+    "url": "https://skribbl.io/",
+    "category": "Dibujo",
+    "blurb": "Pictionary online: una dibuja fatal, la otra adivina peor. Risas aseguradas.",
+    "howto": [
+      "Una pulsa Create Private Room.",
+      "Pone el idioma en español y la cantidad de rondas.",
+      "Copia el link de invitación y lo manda.",
+      "Cuando estén las dos, Start Game."
+    ]
+  },
+  {
+    "n": 6,
+    "id": "jklm",
+    "name": "BombParty",
+    "site": "JKLM.fun",
+    "url": "https://jklm.fun/",
+    "category": "Palabras",
+    "blurb": "Una bomba con cuenta regresiva: escribe una palabra que contenga las sílabas antes de que explote.",
+    "howto": [
+      "Una entra a jklm.fun, escribe su nombre y pulsa Start a game.",
+      "Elige BombParty (o PopSauce para trivia rápida).",
+      "Manda el código de la sala o el link.",
+      "En las reglas cambien el diccionario a español."
+    ]
+  },
+  {
+    "n": 7,
+    "id": "bga",
+    "name": "Board Game Arena",
+    "site": "boardgamearena.com",
+    "url": "https://boardgamearena.com/",
+    "category": "Mesa",
+    "blurb": "Cientos de juegos de mesa reales en el navegador: 7 Wonders Duel, Splendor Duel, Patchwork, Azul Duel.",
+    "howto": [
+      "Las dos crean una cuenta gratis (un minuto).",
+      "Agréguense como amigas por nombre de usuario.",
+      "Una crea una mesa del juego que quieran y la pone en modo amigos.",
+      "La otra entra desde la invitación."
+    ]
+  },
+  {
+    "n": 8,
+    "id": "jigsaw",
+    "name": "Jigsaw Puzzles",
+    "site": "jigsawpuzzles.io",
+    "url": "https://jigsawpuzzles.io/",
+    "category": "Tranqui",
+    "blurb": "Un rompecabezas que arman juntas en tiempo real mientras hablan de la vida.",
+    "howto": [
+      "Una elige una imagen del catálogo y el número de piezas.",
+      "Pulsa Invite y copia el link.",
+      "La otra entra y ve las mismas piezas moverse en vivo.",
+      "Ideal con una llamada de fondo."
+    ]
+  },
+  {
+    "n": 9,
+    "id": "cards",
+    "name": "PlayingCards.io",
+    "site": "playingcards.io",
+    "url": "https://playingcards.io/",
+    "category": "Mesa",
+    "blurb": "Una mesa de cartas virtual: Crazy Eights (el Uno de toda la vida), Go Fish, damas y más.",
+    "howto": [
+      "Una pulsa Start a Room y elige el juego.",
+      "Comparte el código de la sala.",
+      "La otra entra con el código.",
+      "Las reglas las ponen ustedes: la mesa solo mueve las cartas."
+    ]
+  },
+  {
+    "n": 10,
+    "id": "teleparty",
+    "name": "Teleparty",
+    "site": "teleparty.com",
+    "url": "https://www.teleparty.com/",
+    "category": "Cine",
+    "blurb": "Ver Netflix, Disney+ o Prime al mismo tiempo, con chat al lado. La noche de serie sigue en pie.",
+    "howto": [
+      "Las dos instalan la extensión de Teleparty en Chrome o Edge.",
+      "Una abre el capítulo y pulsa el icono de Teleparty.",
+      "Copia el link de la fiesta y lo manda.",
+      "La otra lo abre: play y pausa quedan sincronizados."
+    ]
+  }
+]

@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow, noarchive">
+  <meta name="description" content="Una página para una sola persona.">
+  <meta name="theme-color" content="#16130F">
+  <title>Para Natalia</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..700&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- Gate: one word before anything else -->
+  <div id="gate" class="gate" aria-modal="true" role="dialog" aria-labelledby="gate-title">
+    <form class="gate__card" id="gate-form" autocomplete="off">
+      <div class="gate__mark" aria-hidden="true">N</div>
+      <h1 id="gate-title" class="gate__title">Esta página es para una sola persona.</h1>
+      <p class="gate__hint">Si eres tú, lo sabes.</p>
+      <label class="gate__label" for="gate-word">Dime un número de 3 dígitos que traiga buena suerte</label>
+      <div class="gate__row">
+        <input id="gate-word" class="gate__input" type="text" inputmode="numeric" spellcheck="false" autocapitalize="off" autocomplete="off" required>
+        <button class="btn btn--primary" type="submit">Entrar</button>
+      </div>
+      <p class="gate__error" id="gate-error" aria-live="polite"></p>
+    </form>
+  </div>
+
+  <div id="app" class="app" hidden>
+
+    <header class="top">
+      <a class="top__brand" href="#inicio">Para Natalia</a>
+    </header>
+
+    <!-- Side dock: quick jumps, can be tucked away -->
+    <nav class="dock" id="dock" aria-label="Atajos">
+      <button class="dock__toggle" id="dock-toggle" type="button" aria-label="Ocultar atajos" aria-expanded="true">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+      </button>
+      <div class="dock__links">
+        <a class="dock__link" href="#inicio" data-target="inicio" aria-label="Inicio">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11l8-7 8 7v9h-5v-6H9v6H4z"/></svg><span>Inicio</span>
+        </a>
+        <a class="dock__link" href="#mensaje" data-target="mensaje" aria-label="Mensaje">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v10H8l-4 4z"/></svg><span>Mensaje</span>
+        </a>
+        <a class="dock__link" href="#fotos" data-target="fotos" aria-label="Fotos">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="2"/><circle cx="12" cy="12.5" r="3.5"/><path d="M8 6l1.5-2h5L16 6"/></svg><span>Fotos</span>
+        </a>
+        <a class="dock__link" href="#juegos" data-target="juegos" aria-label="Juegos">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="7" width="18" height="11" rx="4"/><path d="M8 11v3M6.5 12.5h3"/><circle cx="16" cy="11.5" r="1" fill="currentColor"/><circle cx="18" cy="13.5" r="1" fill="currentColor"/></svg><span>Juegos</span>
+        </a>
+      </div>
+    </nav>
+
+    <main>
+      <section class="hero" id="inicio">
+        <p class="eyebrow reveal">A la distancia que sea</p>
+        <h1 class="hero__title reveal">Te extraño,</h1>
+        <div class="bubbles reveal" id="bubbles" aria-label="Natalia y sus apodos flotando">
+          <div class="bubble bubble--main" data-r="1.0"><span>Natalia</span></div>
+          <div class="bubble" data-r="0.52"><span>gold nugget</span></div>
+          <div class="bubble" data-r="0.6"><span>la esmeralda que más brilla</span></div>
+          <div class="bubble" data-r="0.48"><span>mi parcera</span></div>
+          <div class="bubble" data-r="0.42"><span>china mk</span></div>
+          <div class="bubble" data-r="0.5"><span>ojitos lindos</span></div>
+        </div>
+        <p class="hero__sub reveal">Un mensaje, unas fotos y diez planes para seguir jugando aunque el mapa diga otra cosa.</p>
+        <a class="hero__cue reveal" href="#mensaje" aria-label="Bajar">
+          <span>Baja</span>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v16m0 0l-6-6m6 6l6-6"/></svg>
+        </a>
+      </section>
+
+      <section class="section section--message" id="mensaje">
+        <div class="section__head reveal">
+          <span class="section__num">01</span>
+          <h2 class="section__title">Lo que no te dije en persona</h2>
+        </div>
+        <article class="letter reveal" id="letter" aria-live="polite">
+          <p class="letter__loading">Cargando…</p>
+        </article>
+      </section>
+
+      <section class="section section--photos" id="fotos">
+        <div class="section__head reveal">
+          <span class="section__num">02</span>
+          <h2 class="section__title">Debí Tirar Más Fotos</h2>
+          <!-- Pega aquí los versos que quieras, uno por línea, entre las etiquetas <p> -->
+          <blockquote class="section__quote">
+            <p>"Debi darte más besos y
+abrazos las veces que pude
+Ey, Ojala que los mios nunca se muden
+Y si hoy me emborracho, pues, que me ayuden"</p>
+            <cite>DtMF · Bad Bunny</cite>
+          </blockquote>
+        </div>
+        <div class="gallery reveal" id="gallery"></div>
+        <div class="gallery__more" id="gallery-more" hidden>
+          <button class="btn gallery__more-btn" id="gallery-more-btn" type="button" aria-expanded="false" aria-controls="gallery">
+            <span id="gallery-more-label">Ver más</span>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+        </div>
+      </section>
+
+      <section class="section section--games" id="juegos">
+        <div class="section__head reveal">
+          <span class="section__num">03</span>
+          <h2 class="section__title">Diez planes a distancia</h2>
+          <p class="section__lead">Todos gratis, todos pensados para dos, y casi todos en el navegador (uno es app, también gratis). Elige uno, yo creo la sala y te mando el link. También hay una <a href="qr_natalia.pdf" download>hoja con los códigos QR</a> para pegar en la nevera.</p>
+        </div>
+        <div class="games reveal" id="games"></div>
+      </section>
+    </main>
+
+    <footer class="foot">
+      <p>Hecho con cariño por Kevin, 2026.</p>
+      <p class="foot__small">Esta página no aparece en buscadores. Si la encontraste sin ser Nati, sé buena onda y ciérrala.</p>
+    </footer>
+
+    <!-- Full-screen carousel -->
+    <dialog class="lightbox" id="lightbox" aria-label="Fotos a pantalla completa">
+      <div class="lightbox__top">
+        <span class="lightbox__count" id="lightbox-count">1 / 1</span>
+        <button class="lightbox__close" id="lightbox-close" type="button" aria-label="Cerrar">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </button>
+      </div>
+      <div class="lightbox__stage" id="lightbox-stage">
+        <div class="lightbox__track" id="lightbox-track">
+          <img class="lightbox__img" id="lightbox-prev-img" alt="" draggable="false">
+          <div class="lightbox__slot">
+            <img class="lightbox__img" id="lightbox-img" alt="" draggable="false">
+            <video class="lightbox__video" id="lightbox-video" controls playsinline preload="metadata" hidden></video>
+          </div>
+          <img class="lightbox__img" id="lightbox-next-img" alt="" draggable="false">
+        </div>
+      </div>
+      <button class="lightbox__nav lightbox__nav--prev" id="lightbox-prev" type="button" aria-label="Anterior">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
+      </button>
+      <button class="lightbox__nav lightbox__nav--next" id="lightbox-next" type="button" aria-label="Siguiente">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
+      </button>
+      <p class="lightbox__hint">Desliza para pasar · arrastra hacia abajo para cerrar</p>
+    </dialog>
+  </div>
+
+  <!-- Music: official YouTube visualizer, shown as a small card once the gate opens -->
+  <aside class="player" id="player" aria-label="Música">
+    <div class="player__head">
+      <span class="player__dot" aria-hidden="true"></span>
+      <span class="player__label">Sonando · DtMF, Bad Bunny</span>
+      <button class="player__icon-btn" id="player-fold" type="button" aria-label="Plegar controles" title="Plegar">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 12h12"/></svg>
+      </button>
+      <button class="player__icon-btn" id="player-close" type="button" aria-label="Parar la música y cerrar" title="Cerrar">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+    <div class="player__body">
+      <div class="player__frame"><div id="yt"></div></div>
+      <div class="player__side">
+        <div class="player__controls">
+          <button class="player__btn" id="vol-down" type="button" aria-label="Bajar volumen" title="Bajar">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16 12h4"/></svg>
+          </button>
+          <button class="player__btn player__btn--mute" id="vol-mute" type="button" aria-label="Silenciar" title="Silenciar">
+            <svg class="ico-sound" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11"/></svg>
+            <svg class="ico-muted" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16 9l5 6M21 9l-5 6"/></svg>
+          </button>
+          <button class="player__btn" id="vol-up" type="button" aria-label="Subir volumen" title="Subir">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16 12h4M18 10v4"/></svg>
+          </button>
+        </div>
+        <div class="player__level" id="vol-level" aria-hidden="true">
+          <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+        </div>
+        <p class="player__hint" id="player-hint" hidden>Toca la pantalla para que suene</p>
+      </div>
+    </div>
+  </aside>
+
+  <script src="https://www.youtube.com/iframe_api" async></script>
+  <script src="script.js" defer></script>
+</body>
+</html>
