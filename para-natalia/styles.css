@@ -233,6 +233,7 @@ svg { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round
 /* Adventure book. Sizes inside a page are in cqw (each face is a container), so the
    whole book scales as one piece from a phone to a desktop. */
 .book-wrap {
+  --page-ratio: 1.55;   /* page height / width; script.js reads it to lay out the photos */
   --paper: #EEE3CB;
   --paper-ink: #4A3B2C;
   --leather: #6E3F25;
@@ -242,7 +243,8 @@ svg { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round
   padding: 10px 0 4px;
 }
 .book {
-  width: min(100%, max(300px, calc((100svh - 190px) * 1.47)));
+  /* as tall as the screen allows, leaving room for the bar and the turning buttons */
+  width: min(100%, max(300px, calc((100svh - 150px) * 2 / var(--page-ratio))));
   margin: 0 auto;
   outline: none;
   -webkit-user-select: none; user-select: none;
@@ -254,7 +256,7 @@ svg { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round
 @media (max-width: 599px) { .book-wrap { margin-inline: calc(-1 * var(--gutter)); } }
 .book__stage {
   position: relative;
-  aspect-ratio: 2 / 1.36;
+  aspect-ratio: 2 / var(--page-ratio);
   perspective: 1800px;
   transform: translateX(var(--shift, 0%));
   transition: transform .7s cubic-bezier(.3, .1, .2, 1);
@@ -311,13 +313,52 @@ svg { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round
   border-radius: 2.5cqw;
 }
 .pg--cover { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
-.cover__title {
-  margin: 0;
-  font: 700 14cqw/.92 var(--font-hand);
-  transform: rotate(-4deg);
-  text-shadow: 0 .4cqw 0 rgba(0, 0, 0, .35);
-}
 .route { display: block; width: 60cqw; height: auto; margin-top: 7cqw; }
+.pg--cover .route { width: 38cqw; margin-top: 7cqw; transform: rotate(-6deg); }
+
+/* brass corner protectors on the outer edge (the spine side has none) */
+.cover__corner {
+  position: absolute; right: 0; width: 15cqw; height: 15cqw;
+  background: linear-gradient(135deg, #F6E2A6, #C69C48 45%, #7E5C22);
+}
+.cover__corner--top { top: 0; clip-path: polygon(0 0, 100% 0, 100% 100%); border-top-right-radius: inherit; }
+.cover__corner--bottom { bottom: 0; clip-path: polygon(100% 0, 100% 100%, 0 100%); border-bottom-right-radius: inherit; }
+.pg--back .cover__corner { right: auto; left: 0; }
+.pg--back .cover__corner--top { clip-path: polygon(0 0, 100% 0, 0 100%); }
+.pg--back .cover__corner--bottom { clip-path: polygon(0 0, 100% 100%, 0 100%); }
+
+/* the title on a paper label, taped to the leather */
+.cover__label {
+  --iw: 62;
+  position: relative;
+  padding: 4cqw 8cqw 5cqw;
+  background-color: #F5EBD3;
+  background-image: var(--grain);
+  color: var(--paper-ink);
+  transform: rotate(-3deg);
+  box-shadow: 0 1cqw 2.6cqw rgba(0, 0, 0, .4);
+}
+.cover__title { margin: 0; font: 700 17cqw/.88 var(--font-hand); }
+.cover__title small { display: block; margin-bottom: 1cqw; font-size: .5em; font-weight: 500; color: #7A5F43; }
+
+/* the first photo, pasted under the label */
+.cover__photo {
+  --iw: 48;
+  position: relative;
+  margin: 8cqw 0 0;
+  padding: 2.2cqw 2.2cqw 6.5cqw;
+  background: #FBF8F1;
+  transform: rotate(5deg);
+  box-shadow: 0 1cqw 2.6cqw rgba(0, 0, 0, .45);
+}
+.cover__photo img { width: 48cqw; height: auto; max-width: none; background: #D9CDB4; -webkit-user-drag: none; }
+.cover__photo .tape { left: 50%; margin-left: -9.6cqw; transform: rotate(-4deg); }
+
+.sticker { position: absolute; fill: var(--thread); stroke: none; filter: drop-shadow(0 .3cqw 0 rgba(0, 0, 0, .35)); }
+.sticker--s1 { width: 9cqw; top: 13cqw; left: 13cqw; }
+.sticker--s2 { width: 5.5cqw; top: 66cqw; right: 11cqw; opacity: .85; }
+.sticker--s3 { width: 7cqw; bottom: 22cqw; right: 15cqw; }
+.sticker--heart { width: 8cqw; bottom: 30cqw; left: 13cqw; fill: #E0724F; transform: rotate(-12deg); }
 
 /* inside covers: patterned paper */
 .pg--endpaper, .pg--play {
@@ -335,11 +376,14 @@ svg { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round
   transform: rotate(-2deg);
 }
 
-/* a photo pasted on the page: white border, two strips of tape, a slight tilt */
+/* a photo pasted on the page: white border, two strips of tape, a slight tilt. script.js
+   places it (--x, --y: centre of the frame) and sizes it (--iw, --ih) in % of the page. */
 .snap {
-  position: absolute; left: 50%; top: 47%;
+  position: absolute;
+  left: calc(var(--x) * 1cqw); top: calc(var(--y) * 1cqw);
+  width: max-content;   /* an absolute box would otherwise shrink to the space left of --x */
   transform: translate(-50%, -50%) rotate(var(--rot, 0deg));
-  padding: 2.6cqw 2.6cqw 8cqw;
+  padding: 2.4cqw 2.4cqw 7cqw;
   border: 0; border-radius: .6cqw;
   background: #FBF8F1;
   box-shadow: 0 .8cqw 2.2cqw rgba(60, 40, 20, .35);
@@ -351,13 +395,14 @@ svg { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round
 .snap img {
   display: block;
   width: calc(var(--iw) * 1cqw); height: calc(var(--ih) * 1cqw);
+  max-width: none;   /* the site-wide img max-width squeezed the photo and cover cut its sides */
   object-fit: cover;
   background: #D9CDB4;
   -webkit-user-drag: none;
 }
 .tape {
   position: absolute; z-index: 1; top: -2.4cqw;
-  width: 21cqw; height: 6.4cqw;
+  width: min(21cqw, calc(var(--iw) * .4cqw)); height: 6.4cqw;   /* shorter strips on smaller photos */
   background: rgba(236, 224, 190, .78);
   box-shadow: 0 .2cqw .6cqw rgba(0, 0, 0, .12);
   clip-path: polygon(2% 0, 98% 0, 100% 22%, 97% 48%, 100% 74%, 98% 100%, 2% 100%, 0 76%, 3% 50%, 0 24%);

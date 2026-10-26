@@ -367,6 +367,15 @@
     '<circle cx="22" cy="88" r="6" fill="currentColor"/>' +
     '<circle cx="176" cy="30" r="6" fill="none" stroke="currentColor" stroke-width="2.6"/>' +
     '<path d="M74 52l34 9-34 9 7-9z" fill="currentColor"/></svg>';
+  // brass protectors on the outer corners of each cover
+  const CORNERS = '<span class="cover__corner cover__corner--top"></span><span class="cover__corner cover__corner--bottom"></span>';
+  // stickers on the front cover: sparkles and a small heart, drawn here (no artwork from elsewhere)
+  const SPARKLE = '<path d="M12 0C13 8 16 11 24 12 16 13 13 16 12 24 11 16 8 13 0 12 8 11 11 8 12 0z"/>';
+  const STICKERS =
+    `<svg class="sticker sticker--s1" viewBox="0 0 24 24" aria-hidden="true">${SPARKLE}</svg>` +
+    `<svg class="sticker sticker--s2" viewBox="0 0 24 24" aria-hidden="true">${SPARKLE}</svg>` +
+    `<svg class="sticker sticker--s3" viewBox="0 0 24 24" aria-hidden="true">${SPARKLE}</svg>` +
+    '<svg class="sticker sticker--heart" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21C5 15 2 11.5 2 8a5 5 0 0 1 10-1 5 5 0 0 1 10 1c0 3.5-3 7-10 13z"/></svg>';
 
   function initBook(list) {
     const wrap = $("#book-wrap");
@@ -376,24 +385,57 @@
     const next = $("#book-next");
     const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-    // cover, inside cover, one page per photo, then the pages still to be filled, back cover
+    // Page geometry, in % of the page width (the unit of cqw inside a page). Up to two
+    // pictures share a page, one above the other; a very tall one (9:16) fills a page alone.
+    const R = parseFloat(getComputedStyle(wrap).getPropertyValue("--page-ratio")) || 1.55;  // height / width
+    const TOP = 7, AREA_W = 88, AREA_H = R * 100 - 17;   // the bottom 10 keep the page number clear
+    const PAD = 2.4, PAD_B = 7, GAP = 5;                  // polaroid border (wider below), space between two
+    const ratio = (p) => (p.w && p.h ? p.w / p.h : 0.75);
+    const isTall = (p) => ratio(p) < 0.66;
+    const groups = [];
+    for (let i = 0; i < list.length; i++) {
+      if (!isTall(list[i]) && list[i + 1] && !isTall(list[i + 1])) { groups.push([i, i + 1]); i++; }
+      else groups.push([i]);
+    }
+
+    // cover, inside cover, the pictures, then the pages still to be filled, back cover
     const pages = [{ kind: "cover" }, { kind: "endpaper" }];
-    list.forEach((p, i) => pages.push({ kind: "photo", p, i }));
+    const pageOf = [];                 // picture index -> page index
+    groups.forEach((g) => { g.forEach((i) => { pageOf[i] = pages.length; }); pages.push({ kind: "photo", g }); });
     pages.push({ kind: "title" }, { kind: "blank" }, { kind: "blank" }, { kind: "blank" });
     if (pages.length % 2) pages.push({ kind: "blank" });   // "play" must land on a right-hand page
     pages.push({ kind: "play" }, { kind: "back" });
     const N = pages.length / 2;        // leaves
     const LAST = pages.length - 2;     // inner pages are numbered 1..LAST
 
-    function snap(p, i) {
-      const a = p.w && p.h ? p.w / p.h : 0.75;
-      const iw = Math.min(76, 96 * a);  // in % of the page width; 96 keeps tall ones off the edges
+    // Where each picture of a page goes: its width and the centre of its frame. Two share
+    // one width, as large as fits, and sit a little apart sideways, like pasted by hand.
+    function layout(g, n) {
+      const a = g.map((i) => ratio(list[i]));
+      if (a.length === 1) {
+        const w = Math.min(AREA_W - 2 * PAD, (AREA_H - PAD - PAD_B) * a[0]);
+        return [{ i: g[0], w, x: 50, y: TOP + AREA_H / 2 }];
+      }
+      const w = Math.min(AREA_W - 2 * PAD, (AREA_H - 2 * (PAD + PAD_B) - GAP) / (1 / a[0] + 1 / a[1]));
+      const f0 = w / a[0] + PAD + PAD_B, f1 = w / a[1] + PAD + PAD_B;
+      const top = TOP + (AREA_H - f0 - f1 - GAP) / 2;
+      const nudge = (AREA_W - w - 2 * PAD) * 0.35 * (n % 2 ? 1 : -1);
+      return [
+        { i: g[0], w, x: 50 + nudge, y: top + f0 / 2 },
+        { i: g[1], w, x: 50 - nudge, y: top + f0 + GAP + f1 / 2 },
+      ];
+    }
+
+    function snap({ i, w, x, y }) {
+      const p = list[i];
       const btn = document.createElement("button");
       btn.type = "button";
       btn.className = "snap" + (isVideo(p) ? " is-video" : "");
       btn.setAttribute("aria-label", `${isVideo(p) ? "Ver video" : "Ver foto"} ${i + 1}`);
-      btn.style.setProperty("--iw", iw.toFixed(2));
-      btn.style.setProperty("--ih", (iw / a).toFixed(2));
+      btn.style.setProperty("--iw", w.toFixed(2));
+      btn.style.setProperty("--ih", (w / ratio(p)).toFixed(2));
+      btn.style.setProperty("--x", x.toFixed(2));
+      btn.style.setProperty("--y", y.toFixed(2));
       btn.style.setProperty("--rot", `${((i * 7) % 5 - 2) * 1.1}deg`);
       btn.innerHTML =
         '<span class="tape tape--a"></span><span class="tape tape--b"></span>' +
@@ -412,11 +454,21 @@
       const inner = document.createElement("div");
       inner.className = `pg pg--${pg.kind}`;
       if (pg.kind === "cover") {
-        inner.innerHTML = `<div class="pg__stitch"></div><p class="cover__title">Nuestro libro<br>de aventuras</p>${ROUTE_ART}`;
+        // a paper label taped on the leather, the first photo pasted under it, a few stickers
+        const first = list[0];
+        inner.innerHTML =
+          `<div class="pg__stitch"></div>${CORNERS}${STICKERS}` +
+          '<div class="cover__label"><span class="tape tape--a"></span><span class="tape tape--b"></span>' +
+          '<p class="cover__title"><small>Fotos con</small>mi pana</p></div>' +
+          '<figure class="cover__photo"><span class="tape tape--a"></span><img alt="" decoding="async" draggable="false"></figure>' +
+          ROUTE_ART;
+        const img = inner.querySelector(".cover__photo img");
+        img.dataset.src = still(first);
+        if (first.w && first.h) { img.width = first.w; img.height = first.h; }
       } else if (pg.kind === "back") {
-        inner.innerHTML = '<div class="pg__stitch"></div>';
+        inner.innerHTML = `<div class="pg__stitch"></div>${CORNERS}`;
       } else if (pg.kind === "photo") {
-        inner.appendChild(snap(pg.p, pg.i));
+        layout(pg.g, n).forEach((slot) => inner.appendChild(snap(slot)));
       } else if (pg.kind === "title") {
         inner.innerHTML = '<p class="pg__heading">Lo que todavía nos falta por vivir</p>';
       } else if (pg.kind === "play") {
@@ -449,8 +501,10 @@
         const near = k >= around - 3 && k <= around + 2;
         const far = k < around - 7 || k > around + 6;
         leaf.querySelectorAll("img").forEach((img) => {
-          if (near && !img.getAttribute("src")) img.src = img.dataset.src;
-          else if (far) img.removeAttribute("src");
+          if (near && !img.getAttribute("src")) {
+            img.src = img.dataset.src;
+            img.decode().catch(() => {});   // ready before its page turns into view
+          } else if (far) img.removeAttribute("src");
         });
       });
     }
@@ -494,7 +548,7 @@
     }
     // jump without animating, e.g. back from the full-screen viewer
     function show(i) {
-      const to = Math.ceil((i + 2) / 2);   // photo i sits on page i + 2
+      const to = Math.ceil(pageOf[i] / 2);
       if (busy || to === f) return;
       f = to;
       stage.classList.add("is-instant");
