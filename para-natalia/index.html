@@ -10,7 +10,7 @@
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..700&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..700&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -99,12 +99,32 @@ Y si hoy me emborracho, pues, que me ayuden"</p>
             <cite>DtMF · Bad Bunny</cite>
           </blockquote>
         </div>
-        <div class="gallery reveal" id="gallery"></div>
-        <div class="gallery__more" id="gallery-more" hidden>
-          <button class="btn gallery__more-btn" id="gallery-more-btn" type="button" aria-expanded="false" aria-controls="gallery">
-            <span id="gallery-more-label">Ver más</span>
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
-          </button>
+        <!-- The photos as a scrapbook: two pages per spread, one photo or video per page -->
+        <div class="book-wrap reveal" id="book-wrap" hidden>
+          <div class="book" id="book" tabindex="0" role="region" aria-label="Nuestro libro de aventuras">
+            <div class="book__stage" id="book-stage"></div>
+          </div>
+          <div class="book__bar">
+            <button class="book__nav" id="book-prev" type="button" aria-label="Página anterior">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>
+            </button>
+            <span class="book__count" id="book-count" aria-live="polite"></span>
+            <button class="book__nav" id="book-next" type="button" aria-label="Página siguiente">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+            </button>
+          </div>
+          <p class="book__grid">
+            <button class="book__grid-btn" id="grid-toggle" type="button" aria-expanded="false" aria-controls="grid-wrap">Ver todas en cuadrícula</button>
+          </p>
+        </div>
+        <div class="grid-wrap" id="grid-wrap" hidden>
+          <div class="gallery" id="gallery"></div>
+          <div class="gallery__more" id="gallery-more" hidden>
+            <button class="btn gallery__more-btn" id="gallery-more-btn" type="button" aria-expanded="false" aria-controls="gallery">
+              <span id="gallery-more-label">Ver más</span>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+            </button>
+          </div>
         </div>
       </section>
 

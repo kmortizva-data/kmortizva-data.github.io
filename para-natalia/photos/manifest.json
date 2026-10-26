@@ -1,6 +1,34 @@
 [
   {
     "type": "image",
+    "src": "photos/69.jpg",
+    "w": 2000,
+    "h": 1500
+  },
+  {
+    "type": "image",
+    "src": "photos/70.jpg",
+    "w": 960,
+    "h": 1280
+  },
+  {
+    "type": "video",
+    "src": "videos/14.mp4",
+    "poster": "videos/14.jpg",
+    "w": 478,
+    "h": 850,
+    "dur": 42.3
+  },
+  {
+    "type": "video",
+    "src": "videos/15.mp4",
+    "poster": "videos/15.jpg",
+    "w": 720,
+    "h": 1280,
+    "dur": 10.1
+  },
+  {
+    "type": "image",
     "src": "photos/01.jpg",
     "w": 1080,
     "h": 1406

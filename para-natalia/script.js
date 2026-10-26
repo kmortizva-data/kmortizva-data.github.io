@@ -195,6 +195,7 @@
     if (!photos.length) {
       grid.innerHTML =
         "<div class='gallery__empty'><strong>Aquí van las fotos.</strong>Todavía las estoy eligiendo (hay demasiadas buenas).</div>";
+      $("#grid-wrap").hidden = false;
       return;
     }
     const FIRST = 24;
@@ -235,9 +236,10 @@
       btn.addEventListener("click", () => {
         open = !open;
         paint();
-        if (!open) $("#fotos").scrollIntoView({ behavior: "smooth", block: "start" });
+        if (!open) $("#grid-wrap").scrollIntoView({ behavior: "smooth", block: "start" });
       });
     }
+    book = initBook(photos);
     initLightbox();
   }
 
@@ -279,6 +281,8 @@
     stopVideo();
     $("#lightbox").close();
     document.body.classList.remove("locked");
+    if (book && lightboxFromBook) book.show(current);   // the book waits on the page you were looking at
+    lightboxFromBook = false;
   }
   let sliding = false;
   function step(delta) {
@@ -350,6 +354,200 @@
     };
     stage.addEventListener("pointerup", end);
     stage.addEventListener("pointercancel", end);
+  }
+
+  /* ---------- adventure book: the photos pasted two pages per spread ---------- */
+  // Each leaf is one sheet of paper: its front is a right-hand page, its back the left-hand
+  // page of the next spread. Turning a page rotates one leaf -180° around the spine.
+  let book = null;
+  let lightboxFromBook = false;
+  const ROUTE_ART =
+    '<svg class="route" viewBox="0 0 200 110" aria-hidden="true">' +
+    '<path d="M22 88C62 18 112 108 176 30" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-dasharray="0.1 8"/>' +
+    '<circle cx="22" cy="88" r="6" fill="currentColor"/>' +
+    '<circle cx="176" cy="30" r="6" fill="none" stroke="currentColor" stroke-width="2.6"/>' +
+    '<path d="M74 52l34 9-34 9 7-9z" fill="currentColor"/></svg>';
+
+  function initBook(list) {
+    const wrap = $("#book-wrap");
+    const stage = $("#book-stage");
+    const count = $("#book-count");
+    const prev = $("#book-prev");
+    const next = $("#book-next");
+    const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    // cover, inside cover, one page per photo, then the pages still to be filled, back cover
+    const pages = [{ kind: "cover" }, { kind: "endpaper" }];
+    list.forEach((p, i) => pages.push({ kind: "photo", p, i }));
+    pages.push({ kind: "title" }, { kind: "blank" }, { kind: "blank" }, { kind: "blank" });
+    if (pages.length % 2) pages.push({ kind: "blank" });   // "play" must land on a right-hand page
+    pages.push({ kind: "play" }, { kind: "back" });
+    const N = pages.length / 2;        // leaves
+    const LAST = pages.length - 2;     // inner pages are numbered 1..LAST
+
+    function snap(p, i) {
+      const a = p.w && p.h ? p.w / p.h : 0.75;
+      const iw = Math.min(76, 96 * a);  // in % of the page width; 96 keeps tall ones off the edges
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "snap" + (isVideo(p) ? " is-video" : "");
+      btn.setAttribute("aria-label", `${isVideo(p) ? "Ver video" : "Ver foto"} ${i + 1}`);
+      btn.style.setProperty("--iw", iw.toFixed(2));
+      btn.style.setProperty("--ih", (iw / a).toFixed(2));
+      btn.style.setProperty("--rot", `${((i * 7) % 5 - 2) * 1.1}deg`);
+      btn.innerHTML =
+        '<span class="tape tape--a"></span><span class="tape tape--b"></span>' +
+        '<span class="snap__pic"><img alt="" decoding="async" draggable="false"></span>';
+      btn.querySelector("img").dataset.src = still(p);
+      if (isVideo(p)) {
+        btn.querySelector(".snap__pic").insertAdjacentHTML("beforeend", `<span class="snap__dur">${fmtDur(p.dur)}</span>`);
+      }
+      btn.addEventListener("click", () => { lightboxFromBook = true; openLightbox(i); });
+      return btn;
+    }
+
+    function face(pg, n) {
+      const el = document.createElement("div");
+      el.className = `leaf__face leaf__face--${n % 2 ? "back" : "front"}`;
+      const inner = document.createElement("div");
+      inner.className = `pg pg--${pg.kind}`;
+      if (pg.kind === "cover") {
+        inner.innerHTML = `<div class="pg__stitch"></div><p class="cover__title">Nuestro libro<br>de aventuras</p>${ROUTE_ART}`;
+      } else if (pg.kind === "back") {
+        inner.innerHTML = '<div class="pg__stitch"></div>';
+      } else if (pg.kind === "photo") {
+        inner.appendChild(snap(pg.p, pg.i));
+      } else if (pg.kind === "title") {
+        inner.innerHTML = '<p class="pg__heading">Lo que todavía nos falta por vivir</p>';
+      } else if (pg.kind === "play") {
+        inner.innerHTML = `${ROUTE_ART}<button class="btn btn--primary pg__play" type="button">Vamos a jugar</button>`;
+        inner.querySelector("button").addEventListener("click", () => $("#juegos").scrollIntoView({ block: "start" }));
+      }
+      if (pg.kind === "photo" || pg.kind === "title" || pg.kind === "blank") {
+        inner.insertAdjacentHTML("beforeend", `<span class="pg__num">${n}</span>`);
+      }
+      el.appendChild(inner);
+      return el;
+    }
+
+    stage.innerHTML = "";
+    const leaves = [];
+    for (let k = 0; k < N; k++) {
+      const leaf = document.createElement("div");
+      leaf.className = "leaf";
+      leaf.append(face(pages[2 * k], 2 * k), face(pages[2 * k + 1], 2 * k + 1));
+      stage.appendChild(leaf);
+      leaves.push(leaf);
+    }
+
+    let f = 0;          // leaves turned; 0 = closed on the cover, N = closed on the back
+    let busy = false;
+    // Pictures load two spreads ahead and are let go far behind, so a phone never holds
+    // all 85 decoded at once.
+    function load(around) {
+      leaves.forEach((leaf, k) => {
+        const near = k >= around - 3 && k <= around + 2;
+        const far = k < around - 7 || k > around + 6;
+        leaf.querySelectorAll("img").forEach((img) => {
+          if (near && !img.getAttribute("src")) img.src = img.dataset.src;
+          else if (far) img.removeAttribute("src");
+        });
+      });
+    }
+    // Stack the leaves for spread f. The leaf in the air (if any) goes over everything, and
+    // both the spread it leaves and the one it reaches stay painted until it lands.
+    function paint(flying = null, from = f) {
+      const lo = Math.min(from, f) - 2, hi = Math.max(from, f) + 1;
+      leaves.forEach((leaf, k) => {
+        leaf.classList.toggle("is-turned", k < f);
+        leaf.style.zIndex = leaf === flying ? N + 10 : k < f ? k + 1 : N - k;
+        leaf.style.visibility = k >= lo && k <= hi ? "" : "hidden";
+        leaf.firstChild.inert = k !== f;       // right-hand page on show
+        leaf.lastChild.inert = k !== f - 1;    // left-hand page on show
+      });
+      load(f);
+      stage.style.setProperty("--shift", f === 0 ? "-25%" : f === N ? "25%" : "0%");
+      count.textContent = f === 0 ? "Toca la tapa para abrirlo"
+        : f === N ? "Contratapa"
+        : `Páginas ${2 * f - 1} y ${2 * f} de ${LAST}`;
+      prev.disabled = f === 0;
+      next.disabled = f === N;
+    }
+    function turn(d) {
+      const from = f, to = f + d;
+      if (busy || to < 0 || to > N) return;
+      const leaf = leaves[d > 0 ? from : from - 1];
+      f = to;
+      if (reduced) { paint(); return; }
+      busy = true;
+      paint(leaf, from);
+      let timer = 0;
+      const done = (e) => {
+        if (e && (e.target !== leaf || e.propertyName !== "transform")) return;
+        leaf.removeEventListener("transitionend", done);
+        clearTimeout(timer);
+        busy = false;
+        paint();
+      };
+      leaf.addEventListener("transitionend", done);
+      timer = setTimeout(done, 1300);   // safety if transitionend never fires
+    }
+    // jump without animating, e.g. back from the full-screen viewer
+    function show(i) {
+      const to = Math.ceil((i + 2) / 2);   // photo i sits on page i + 2
+      if (busy || to === f) return;
+      f = to;
+      stage.classList.add("is-instant");
+      paint();
+      void stage.offsetWidth;
+      stage.classList.remove("is-instant");
+      $("#book").focus({ preventScroll: true });   // the photo that had focus may now be out of sight
+    }
+
+    prev.addEventListener("click", () => turn(-1));
+    next.addEventListener("click", () => turn(1));
+    $("#book").addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight") { e.preventDefault(); turn(1); }
+      if (e.key === "ArrowLeft") { e.preventDefault(); turn(-1); }
+    });
+
+    // swipe turns the page; a tap on a photo opens it, a tap elsewhere on a page turns that way
+    let down = null, swiped = false;
+    stage.addEventListener("pointerdown", (e) => {
+      if (e.button > 0) return;
+      down = { x: e.clientX, y: e.clientY, t: performance.now() };
+    });
+    addEventListener("pointerup", (e) => {
+      if (!down) return;
+      const dx = e.clientX - down.x, dy = e.clientY - down.y;
+      const fast = performance.now() - down.t < 250 && Math.abs(dx) > 20;
+      down = null;
+      if (Math.abs(dx) > Math.abs(dy) && (Math.abs(dx) > 40 || fast)) {
+        swiped = true;
+        setTimeout(() => { swiped = false; }, 0);   // only swallow the click this swipe makes
+        turn(dx < 0 ? 1 : -1);
+      }
+    });
+    addEventListener("pointercancel", () => { down = null; });
+    stage.addEventListener("click", (e) => {
+      if (swiped) { e.preventDefault(); e.stopPropagation(); swiped = false; return; }
+      if (e.target.closest(".snap, button, a")) return;
+      const side = e.target.closest(".leaf__face");
+      if (side) turn(side.classList.contains("leaf__face--back") ? -1 : 1);
+    }, true);
+
+    const gridBtn = $("#grid-toggle");
+    const gridWrap = $("#grid-wrap");
+    gridBtn.addEventListener("click", () => {
+      const open = gridWrap.hidden;
+      gridWrap.hidden = !open;
+      gridBtn.setAttribute("aria-expanded", String(open));
+      gridBtn.textContent = open ? "Ocultar la cuadrícula" : "Ver todas en cuadrícula";
+    });
+
+    paint();
+    wrap.hidden = false;
+    return { show };
   }
 
   /* ---------- games ---------- */
