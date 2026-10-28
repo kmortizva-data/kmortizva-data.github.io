@@ -13,7 +13,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <link rel="alternate" hreflang="en" href="../../work/silica.html">
 <script>document.documentElement.className="js"</script>
-<link rel="stylesheet" href="../../style.css?v=f7082b9e">
+<link rel="stylesheet" href="../../style.css?v=d62e0f8a">
 </head>
 <body>
 <a class="skip" href="#main">Ir al contenido</a>
@@ -27,17 +27,17 @@
   </nav>
 </header>
 <main id="main">
-<article class="wrap section">
+<article class="wrap section arrival" data-accent="iron">
   <a class="back" href="../../es/index.html#work">Todos los proyectos</a>
   <p class="eyebrow">Terminado. 14 módulos, 56 figuras, cada cifra recalculada, y el curso entero se lee en español o en inglés.</p>
-  <h1 class="project-title">Sílice en una planta de flotación de hierro</h1>
+  <h1 class="project-title split"><span class="w" style="--w:0"><span>Sílice</span></span> <span class="w" style="--w:1"><span>en</span></span> <span class="w" style="--w:2"><span>una</span></span> <span class="w" style="--w:3"><span>planta</span></span> <span class="w" style="--w:4"><span>de</span></span> <span class="w" style="--w:5"><span>flotación</span></span> <span class="w" style="--w:6"><span>de</span></span> <span class="w" style="--w:7"><span>hierro</span></span></h1>
   <p class="project-tagline">¿Puede un modelo cantar la ley del concentrado antes que el laboratorio? Catorce módulos para averiguar que no, y por qué.</p>
 
-  <figure class="figure"><img src="../../assets/shots/silica-horizons.png" alt="Habilidad del modelo frente al horizonte de predicción, comparada con el baseline de persistencia" width="1440" height="900" decoding="async"><figcaption>Habilidad del modelo frente al horizonte de predicción, comparada con el baseline de persistencia</figcaption></figure>
+  <figure class="figure"><div class="figure-shot"><img src="../../assets/shots/silica-horizons.png" alt="Habilidad del modelo frente al horizonte de predicción, comparada con el baseline de persistencia" width="1440" height="900" decoding="async"></div><figcaption>Habilidad del modelo frente al horizonte de predicción, comparada con el baseline de persistencia</figcaption></figure>
 
-  <div class="assay assay-solo" data-accent="iron">
+  <div class="assay assay-solo reveal" data-accent="iron">
     <div class="assay-body">
-      <dl class="streams"><div><dt>El problema</dt><dd>Una planta de flotación se entera de la ley de su concentrado horas tarde, por el laboratorio. Si un modelo la cantara en tiempo real, el operador podría corregir cuando corregir todavía sirve.</dd></div><div><dt>Cómo lo resolví</dt><dd>Árboles, bosques, gradient boosting, una red neuronal y variables con memoria. Y después, lo decisivo: un baseline de persistencia contra el cual compararlos.</dd></div><div><dt>El resultado</dt><dd>Un no, medido. El machine learning aporta nueve milésimas de R² sobre repetir el último análisis, así que el entregable es una recomendación de no desplegar y la lista de qué tendría que cambiar.</dd></div></dl>
+      <dl class="streams"><div style="--i:0"><dt>El problema</dt><dd>Una planta de flotación se entera de la ley de su concentrado horas tarde, por el laboratorio. Si un modelo la cantara en tiempo real, el operador podría corregir cuando corregir todavía sirve.</dd></div><div style="--i:1"><dt>Cómo lo resolví</dt><dd>Árboles, bosques, gradient boosting, una red neuronal y variables con memoria. Y después, lo decisivo: un baseline de persistencia contra el cual compararlos.</dd></div><div style="--i:2"><dt>El resultado</dt><dd>Un no, medido. El machine learning aporta nueve milésimas de R² sobre repetir el último análisis, así que el entregable es una recomendación de no desplegar y la lista de qué tendría que cambiar.</dd></div></dl>
       <div class="assay-figure">
         <p class="eyebrow">Medido</p>
         <q>el modelo aporta +0,009 de R² sobre no hacer nada</q>
@@ -48,12 +48,12 @@
 
   
 
-  <div class="prose"><p>A mitad de camino esto parecía un éxito. Añadir memoria horaria y gradient boosting subió el R² de 0,04 a 0,64, que es el salto que uno pone en una diapositiva.</p><p>Después medí lo que el proceso te regala. La sílice no se mueve mucho en una hora, así que predecir simplemente que el siguiente valor es igual al último ya da 0,632. Casi todo el salto era la inercia de la planta, no la habilidad del modelo. Esa corrección se quedó escrita en los apuntes, porque pillarla vale más que el número que tumbó.</p><p>Lo que sí me llevaría a una reunión de operaciones no salió de predecir, salió de agrupar. K-medias encontró tres estados de operación, y uno de ellos manda en marzo y abril y luego desaparece. La planta cambió su forma de operar, y eso explica una deriva que llevaba degradando todos los modelos desde el módulo dos. El error mensual sube: 0,44 en junio, 0,65 en agosto, 0,76 en septiembre. Los datos no te dicen la ley de mañana, pero sí te dicen que la planta ya no es la que era.</p></div>
+  <div class="prose"><p class="reveal" style="--i:0">A mitad de camino esto parecía un éxito. Añadir memoria horaria y gradient boosting subió el R² de 0,04 a 0,64, que es el salto que uno pone en una diapositiva.</p><p class="reveal" style="--i:1">Después medí lo que el proceso te regala. La sílice no se mueve mucho en una hora, así que predecir simplemente que el siguiente valor es igual al último ya da 0,632. Casi todo el salto era la inercia de la planta, no la habilidad del modelo. Esa corrección se quedó escrita en los apuntes, porque pillarla vale más que el número que tumbó.</p><p class="reveal" style="--i:2">Lo que sí me llevaría a una reunión de operaciones no salió de predecir, salió de agrupar. K-medias encontró tres estados de operación, y uno de ellos manda en marzo y abril y luego desaparece. La planta cambió su forma de operar, y eso explica una deriva que llevaba degradando todos los modelos desde el módulo dos. El error mensual sube: 0,44 en junio, 0,65 en agosto, 0,76 en septiembre. Los datos no te dicen la ley de mañana, pero sí te dicen que la planta ya no es la que era.</p></div>
 
-  <p class="eyebrow stack-label">Hecho con</p>
-  <ul class="stack"><li>Python</li><li>pandas</li><li>scikit-learn</li><li>gradient boosting</li><li>SHAP</li><li>LaTeX</li></ul>
+  <p class="eyebrow stack-label reveal">Hecho con</p>
+  <ul class="stack reveal"><li style="--i:0">Python</li><li style="--i:1">pandas</li><li style="--i:2">scikit-learn</li><li style="--i:3">gradient boosting</li><li style="--i:4">SHAP</li><li style="--i:5">LaTeX</li></ul>
 
-  <p class="assay-links"><a class="cta" href="../../silice/curso/index.html" target="_blank" rel="noopener">Abrir el curso</a><a href="https://github.com/kmortizva-data/ml-silica-flotation" target="_blank" rel="noopener">Ver el código</a></p>
+  <p class="assay-links reveal"><a class="cta" href="../../silice/curso/index.html" target="_blank" rel="noopener">Abrir el curso</a><a href="https://github.com/kmortizva-data/ml-silica-flotation" target="_blank" rel="noopener">Ver el código</a></p>
 </article>
 </main>
 <footer class="wrap foot">
@@ -63,6 +63,6 @@
 </footer>
 <div class="curtain" aria-hidden="true"></div>
 <script src="../../assets/lenis.min.js" defer></script>
-<script src="../../theme.js?v=3afb8790" defer></script>
+<script src="../../theme.js?v=c3f1c178" defer></script>
 </body>
 </html>

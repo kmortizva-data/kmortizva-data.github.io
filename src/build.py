@@ -129,9 +129,11 @@ def hero_art() -> str:
         y = sy(j / 4)
         parts.append(f'<line class="hero-grid" x1="{left}" y1="{y:.1f}" x2="{right}" y2="{y:.1f}"/>')
     parts.append(f'<line class="hero-axis" x1="{left}" y1="{bottom}" x2="{right}" y2="{bottom}"/>')
+    # Each point carries its index (--d) so the stylesheet can pop them in one at a time,
+    # left to right, before the curve is fitted through them: measure first, model after.
     for i in range(16):
         t = (i + 0.5) / 16
-        parts.append(f'<circle class="hero-dot" cx="{sx(t):.1f}" '
+        parts.append(f'<circle class="hero-dot" style="--d:{i}" cx="{sx(t):.1f}" '
                      f'cy="{sy(curve(t)) + noise() * 30:.1f}" r="3.2"/>')
     samples = [(sx(i / 80), sy(curve(i / 80))) for i in range(81)]
     length = sum(math.hypot(x2 - x1, y2 - y1)
@@ -326,8 +328,11 @@ def work_index(data: dict, lang: str, ui: dict, depth: int) -> str:
     for number, project in enumerate(live, start=1):
         p = project[lang]
         href = f"{rel(depth)}{LANGS[lang]['work']}/{project['slug']}.html"
+        # --i staggers the rows when several enter the viewport together; on a tall
+        # screen all five do, and without it they used to land in one thud.
         rows.append(
-            f'<li class="index-row reveal" data-slug="{esc(project["slug"])}" '
+            f'<li class="index-row reveal" style="--i:{number - 1}" '
+            f'data-slug="{esc(project["slug"])}" '
             f'data-accent="{esc(project["accent"])}">'
             f'<a href="{href}">'
             f'<span class="index-num">{number:02d}</span>'
@@ -339,7 +344,8 @@ def work_index(data: dict, lang: str, ui: dict, depth: int) -> str:
             f'</a>'
             + (f'<a class="index-open" href="{esc(open_href(project, depth, lang))}" '
                f'target="_blank" rel="noopener">'
-               f'{esc(p["open_label"])} ↗</a>' if project.get("open_href") else "")
+               f'{esc(p["open_label"])} <span class="index-arrow">↗</span></a>'
+               if project.get("open_href") else "")
             + '</li>')
 
     # The panel holds every screenshot stacked. The first is marked visible at build time,
@@ -377,7 +383,7 @@ def archive_section(data: dict, lang: str, ui: dict, depth: int) -> str:
 
     return f'''<section id="archive" class="wrap section">
   <div class="section-head reveal">
-    <h2>{esc(ui["archive_title"])}</h2>
+    <h2 class="split">{split_words(ui["archive_title"])}</h2>
     <p>{esc(ui["archive_note"])}</p>
   </div>
   <ul class="archive">{rows}</ul>
@@ -405,13 +411,15 @@ def about_section(data: dict, lang: str) -> str:
     count = len([p for p in shown_projects(data) if not p.get("archive")])
     paragraphs = "".join(f"<p>{esc(fill_counts(par, count, lang))}</p>"
                          for par in about["body"])
+    # The value sits in its own span so it can rise out of a clipped box, the way the
+    # headline's words do; --i staggers the three cells.
     marks = "".join(
-        f'<div><span class="mark-value">{esc(m["value"])}</span>'
+        f'<div style="--i:{index}"><span class="mark-value"><span>{esc(m["value"])}</span></span>'
         f'<span class="mark-label">{esc(m["label"])}</span></div>'
-        for m in about["marks"])
+        for index, m in enumerate(about["marks"]))
     return f'''<section id="about" class="wrap section band">
   <div class="about reveal">
-    <h2>{esc(about["title"])}</h2>
+    <h2 class="split">{split_words(about["title"])}</h2>
     <div class="about-body">{paragraphs}</div>
   </div>
   <div class="marks reveal">{marks}</div>
@@ -419,12 +427,16 @@ def about_section(data: dict, lang: str) -> str:
 
 
 def split_words(text: str) -> str:
-    """Wrap each word so the headline can rise into place one word at a time.
+    """Wrap each word so a heading can rise into place one word at a time.
 
     The reference site does this with GSAP's SplitText, which splits in the browser on
     every load. Doing it here costs nothing at runtime and the markup ships ready. The
     outer span clips, the inner one is what moves, and a plain space between them keeps
     the words selectable and readable to a screen reader.
+
+    Used by the hero headline, every section heading and the project title, so the whole
+    site has one grammar for headings: the hero and the project title release on load,
+    the section headings when they scroll into view.
     """
     words = esc(text).split(" ")
     return " ".join(
@@ -452,7 +464,7 @@ def credentials_section(data: dict, lang: str) -> str:
     note = f'<p>{esc(block["note"])}</p>' if block.get("note") else ""
     return f'''<section id="credentials" class="wrap section">
   <div class="section-head reveal">
-    <h2>{esc(block["title"])}</h2>
+    <h2 class="split">{split_words(block["title"])}</h2>
     {note}
   </div>
   <ul class="creds">{rows}</ul>
@@ -515,7 +527,7 @@ def home_page(data: dict, lang: str) -> str:
 
 <section id="work" class="wrap section">
   <div class="section-head reveal">
-    <h2>{esc(work["title"])}</h2>
+    <h2 class="split">{split_words(work["title"])}</h2>
     <p>{esc(fill_counts(work["text"], live_count, lang))}</p>
   </div>
   {work_index(data, lang, ui, depth)}
@@ -525,7 +537,7 @@ def home_page(data: dict, lang: str) -> str:
 
 <section id="contact" class="wrap section">
   <div class="section-head reveal">
-    <h2>{esc(contact["title"])}</h2>
+    <h2 class="split">{split_words(contact["title"])}</h2>
     <p>{esc(contact["text"])}</p>
   </div>
   {contact_ways(data, ui)}
@@ -543,10 +555,22 @@ def project_page(project: dict, data: dict, lang: str) -> str:
     shot = shot_block(project, lang, depth)
     figure = ""
     if "placeholder" not in shot:
-        figure = (f'<figure class="figure">{shot}'
+        # The image gets a clipping box of its own: it is what the arrival wipe reveals
+        # and what the scroll parallax moves, and neither may spill over the caption.
+        figure = (f'<figure class="figure"><div class="figure-shot">{shot}</div>'
                   f'<figcaption>{esc(project["shot_alt"][lang])}</figcaption></figure>')
 
-    paragraphs = "".join(f"<p>{esc(par)}</p>" for par in p["body"])
+    # Every paragraph reveals on its own as it scrolls in. The stagger index is capped at
+    # five: it only matters when several enter together, and a long text must not feel
+    # slow because its tenth paragraph waited for the nine before it.
+    paragraphs = "".join(
+        f'<p class="reveal" style="--i:{min(index, 5)}">{esc(par)}</p>'
+        for index, par in enumerate(p["body"]))
+    streams = "".join(
+        f'<div style="--i:{index}"><dt>{esc(ui[key])}</dt><dd>{esc(project[lang][key])}</dd></div>'
+        for index, key in enumerate(("feed", "process", "concentrate")))
+    chips = "".join(f'<li style="--i:{index}">{esc(s)}</li>'
+                    for index, s in enumerate(project["stack"]))
 
     # A project can carry a panel: one page for the visitor who will not read the whole
     # thing (Bellows has thirty one modules). That visitor is who this page is for, so
@@ -576,17 +600,21 @@ def project_page(project: dict, data: dict, lang: str) -> str:
         folio_link = (f'<a href="{esc(open_href(project, depth, lang, "folio_href"))}" '
                       f'target="_blank" rel="noopener">{esc(p["folio_label"])}</a>')
 
-    body = f"""<article class="wrap section">
+    # "arrival" is the project page's answer to the hero: the first screen plays once on
+    # load (back link, status, title word by word, tagline, then the screenshot wipes in),
+    # and everything under it reveals as it scrolls into view. The accent sits on the
+    # article so the chips and the rules below can take the project's tint.
+    body = f"""<article class="wrap section arrival" data-accent="{esc(project["accent"])}">
   <a class="back" href="{home_href(lang, depth)}#work">{esc(ui["back"])}</a>
   <p class="eyebrow">{esc(p["status"])}</p>
-  <h1 class="project-title">{esc(p["name"])}</h1>
+  <h1 class="project-title split">{split_words(p["name"])}</h1>
   <p class="project-tagline">{esc(p["tagline"])}</p>
 
   {figure}
 
-  <div class="assay assay-solo" data-accent="{esc(project["accent"])}">
+  <div class="assay assay-solo reveal" data-accent="{esc(project["accent"])}">
     <div class="assay-body">
-      <dl class="streams">{streams_of(project, lang, ui)}</dl>
+      <dl class="streams">{streams}</dl>
       {assay_figure(project, lang, ui)}
     </div>
   </div>
@@ -595,10 +623,10 @@ def project_page(project: dict, data: dict, lang: str) -> str:
 
   <div class="prose">{paragraphs}</div>
 
-  <p class="eyebrow stack-label">{esc(ui["stack"])}</p>
-  <ul class="stack">{stack_of(project)}</ul>
+  <p class="eyebrow stack-label reveal">{esc(ui["stack"])}</p>
+  <ul class="stack reveal">{chips}</ul>
 
-  <p class="assay-links">{panel_link}{open_link}{folio_link}{repo_link}</p>
+  <p class="assay-links reveal">{panel_link}{open_link}{folio_link}{repo_link}</p>
 </article>"""
 
     return shell(title=f"{p['name']} - {data['author']}", desc=p["tagline"], lang=lang,

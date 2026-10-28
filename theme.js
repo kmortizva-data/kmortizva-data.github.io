@@ -224,11 +224,15 @@
 
   /* ---------------------------------------------------------------- parallax */
 
-  /* A restrained parallax on the screenshots: the image drifts a few pixels against the
-     scroll, which makes a static grid feel alive without anyone noticing why. The work is
-     done in a rAF so scrolling stays smooth, and it is capped so nothing can slide out of
-     its frame. */
-  var shots = Array.prototype.slice.call(document.querySelectorAll(".assay-shot img"));
+  /* A restrained parallax on the project page screenshot: the image drifts a few pixels
+     against the scroll, which makes a still picture feel alive without anyone noticing
+     why. The work is done in a rAF so scrolling stays smooth, and it is capped so nothing
+     can slide out of its frame (.figure-shot clips it).
+
+     This used to target .assay-shot img, the cards the home page no longer has, so for
+     two months it found nothing and did nothing. The project page figure is the only
+     screenshot left that is not inside the index panel. */
+  var shots = Array.prototype.slice.call(document.querySelectorAll(".figure-shot img"));
   if (!shots.length) return;
 
   var ticking = false;

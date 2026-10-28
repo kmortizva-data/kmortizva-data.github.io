@@ -13,7 +13,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <link rel="alternate" hreflang="es" href="../es/proyectos/silica.html">
 <script>document.documentElement.className="js"</script>
-<link rel="stylesheet" href="../style.css?v=f7082b9e">
+<link rel="stylesheet" href="../style.css?v=d62e0f8a">
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
@@ -27,17 +27,17 @@
   </nav>
 </header>
 <main id="main">
-<article class="wrap section">
+<article class="wrap section arrival" data-accent="iron">
   <a class="back" href="../index.html#work">All work</a>
   <p class="eyebrow">Complete. 14 modules, 56 figures, every number recomputed, and the whole course reads in English or Spanish.</p>
-  <h1 class="project-title">Silica in an iron flotation plant</h1>
+  <h1 class="project-title split"><span class="w" style="--w:0"><span>Silica</span></span> <span class="w" style="--w:1"><span>in</span></span> <span class="w" style="--w:2"><span>an</span></span> <span class="w" style="--w:3"><span>iron</span></span> <span class="w" style="--w:4"><span>flotation</span></span> <span class="w" style="--w:5"><span>plant</span></span></h1>
   <p class="project-tagline">Can a model call the concentrate grade before the lab does? Fourteen modules finding out that it cannot, and why.</p>
 
-  <figure class="figure"><img src="../assets/shots/silica-horizons.png" alt="Model skill against prediction horizon, compared with a persistence baseline" width="1440" height="900" decoding="async"><figcaption>Model skill against prediction horizon, compared with a persistence baseline</figcaption></figure>
+  <figure class="figure"><div class="figure-shot"><img src="../assets/shots/silica-horizons.png" alt="Model skill against prediction horizon, compared with a persistence baseline" width="1440" height="900" decoding="async"></div><figcaption>Model skill against prediction horizon, compared with a persistence baseline</figcaption></figure>
 
-  <div class="assay assay-solo" data-accent="iron">
+  <div class="assay assay-solo reveal" data-accent="iron">
     <div class="assay-body">
-      <dl class="streams"><div><dt>The problem</dt><dd>A flotation plant learns its concentrate grade hours late, from the lab. If a model could call it in real time, the operator could correct while correcting still matters.</dd></div><div><dt>How I solved it</dt><dd>Trees, forests, gradient boosting, a neural network, and lag features. Then, crucially, a persistence baseline to compare them against.</dd></div><div><dt>The result</dt><dd>A measured no. Machine learning adds nine thousandths of R² over repeating the last lab value, so the deliverable is a recommendation not to deploy, and the list of what would have to change.</dd></div></dl>
+      <dl class="streams"><div style="--i:0"><dt>The problem</dt><dd>A flotation plant learns its concentrate grade hours late, from the lab. If a model could call it in real time, the operator could correct while correcting still matters.</dd></div><div style="--i:1"><dt>How I solved it</dt><dd>Trees, forests, gradient boosting, a neural network, and lag features. Then, crucially, a persistence baseline to compare them against.</dd></div><div style="--i:2"><dt>The result</dt><dd>A measured no. Machine learning adds nine thousandths of R² over repeating the last lab value, so the deliverable is a recommendation not to deploy, and the list of what would have to change.</dd></div></dl>
       <div class="assay-figure">
         <p class="eyebrow">Measured</p>
         <q>the model adds +0.009 R² over doing nothing</q>
@@ -48,12 +48,12 @@
 
   
 
-  <div class="prose"><p>Halfway through, this project looked like a success. Adding hourly memory and gradient boosting took R² from 0.04 to 0.64, which is the kind of jump you put on a slide.</p><p>Then I measured what the process gives you for free. Silica does not move much in an hour, so simply predicting that the next value equals the last one already scores 0.632. Almost the entire jump was the inertia of the plant, not the skill of the model. That correction stayed in the notes, because catching it is worth more than the number was.</p><p>The part I would actually take to an operations meeting came from clustering, not prediction. K means found three operating states, and one of them dominates March and April and then vanishes. The plant changed how it was run, which explains a drift that had been quietly degrading every model since module two. Monthly error climbs 0.44 in June, 0.65 in August, 0.76 in September. The data cannot tell you tomorrow&#x27;s grade, but it can tell you the plant is not the plant it was.</p></div>
+  <div class="prose"><p class="reveal" style="--i:0">Halfway through, this project looked like a success. Adding hourly memory and gradient boosting took R² from 0.04 to 0.64, which is the kind of jump you put on a slide.</p><p class="reveal" style="--i:1">Then I measured what the process gives you for free. Silica does not move much in an hour, so simply predicting that the next value equals the last one already scores 0.632. Almost the entire jump was the inertia of the plant, not the skill of the model. That correction stayed in the notes, because catching it is worth more than the number was.</p><p class="reveal" style="--i:2">The part I would actually take to an operations meeting came from clustering, not prediction. K means found three operating states, and one of them dominates March and April and then vanishes. The plant changed how it was run, which explains a drift that had been quietly degrading every model since module two. Monthly error climbs 0.44 in June, 0.65 in August, 0.76 in September. The data cannot tell you tomorrow&#x27;s grade, but it can tell you the plant is not the plant it was.</p></div>
 
-  <p class="eyebrow stack-label">Built with</p>
-  <ul class="stack"><li>Python</li><li>pandas</li><li>scikit-learn</li><li>gradient boosting</li><li>SHAP</li><li>LaTeX</li></ul>
+  <p class="eyebrow stack-label reveal">Built with</p>
+  <ul class="stack reveal"><li style="--i:0">Python</li><li style="--i:1">pandas</li><li style="--i:2">scikit-learn</li><li style="--i:3">gradient boosting</li><li style="--i:4">SHAP</li><li style="--i:5">LaTeX</li></ul>
 
-  <p class="assay-links"><a class="cta" href="../silice/curso/index.en.html" target="_blank" rel="noopener">Open the course</a><a href="https://github.com/kmortizva-data/ml-silica-flotation" target="_blank" rel="noopener">Read the code</a></p>
+  <p class="assay-links reveal"><a class="cta" href="../silice/curso/index.en.html" target="_blank" rel="noopener">Open the course</a><a href="https://github.com/kmortizva-data/ml-silica-flotation" target="_blank" rel="noopener">Read the code</a></p>
 </article>
 </main>
 <footer class="wrap foot">
@@ -63,6 +63,6 @@
 </footer>
 <div class="curtain" aria-hidden="true"></div>
 <script src="../assets/lenis.min.js" defer></script>
-<script src="../theme.js?v=3afb8790" defer></script>
+<script src="../theme.js?v=c3f1c178" defer></script>
 </body>
 </html>

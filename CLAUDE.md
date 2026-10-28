@@ -169,6 +169,81 @@ Kevin: «no sé por qué no puedo poner mi página así de primerazo como mi ami
 - **El espejo se comprobó por huella**: los 73 ficheros de `Fuelle/out` son idénticos byte a byte
   en `fuelle/curso`. El único que no viaja es `prueba_visual.html`, que el build borra a propósito.
 
+## Pase de movimiento: una gramática, un gesto por proyecto (2026-10-28)
+
+Kevin: «se le puede meter más a la animación para que se vean más pulidos» y, a mitad,
+«analiza cada proyecto por aparte… variar un poco para mostrar creatividad, sin que quede
+raro, que es ingeniería». Lo que se midió antes de tocar nada: la portada tenía su
+gramática de scroll y **las diez fichas de proyecto no tenían ni un `.reveal`** (llegaban
+planas tras el telón), y el parallax de `theme.js` buscaba `.assay-shot img`, una clase
+que desapareció con las tarjetas: dos meses de código muerto.
+
+**Reglas que siguen mandando:** todo estado oculto va bajo `html.js` y dentro de
+`prefers-reduced-motion: no-preference`; sin JS la página se lee entera y con movimiento
+reducido nada se mueve. Solo `transform`, `opacity`, `clip-path` y `filter`: cero
+desplazamiento de maqueta. Misma curva (easeOutCubic), mismas distancias (16/24/36 px).
+Sin librerías nuevas. Los índices de escalonado los escribe `build.py` en el marcado
+(`--i` en filas, párrafos, chips, cifras y streams; `--d` en los puntos del hero; `--w`
+en las palabras) y el CSS declara su valor por defecto.
+
+### Inventario de movimiento
+
+| Pieza | Gesto | Dónde |
+|---|---|---|
+| Telón | Sube al llegar (0,5 s), baja al salir (0,3 s), **filo de 2 px en amarillo** en el borde que se mueve | `.curtain::after` |
+| Cabecera | Logo gira 90°; el subrayado de los enlaces **se dibuja desde la izquierda** (0,3 s) | `.masthead nav a::after` |
+| Hero | Eyebrow entra primero; titular palabra a palabra (45 ms); **los 16 puntos caen uno a uno** (40 ms, desde 0,5 s, con leve rebote) y **la curva espera 1,2 s** para ajustarse sobre ellos (medir primero, modelar después); lede, meta y botones detrás | `.hero > .eyebrow`, `.hero-dot`, `.hero-curve` con `animation-delay` + `backwards` |
+| Marquee | 42 s lineal, **se pausa con el cursor encima** | `.marquee:hover` |
+| h2 de sección | **Palabra a palabra**, con el mismo `split_words()` del hero, disparado por su `.reveal` | `html.js .reveal .split` |
+| Cifras | Las tres celdas escalonadas (80 ms) y **el valor sube dentro de un recorte**; sin contadores («1st» y «EMJM» no son números) | `.marks > div`, `.mark-value > span` |
+| Credenciales | Escalonadas 80 ms (ya estaba) | `.creds li` |
+| Índice | Filas escalonadas 60 ms; nombre, frase, cifra y área entran 0,1 s después del número; **la flecha ↗ se mueve** en hover | `.index-row`, `.index-arrow` |
+| Panel | La captura entrante **asienta desde 1,05** además del fundido; sigue al cursor ±6 px | `.index-pane` |
+| Contacto | **La dirección se subraya sola** de izquierda a derecha al entrar; «Copied» da un pulso | `.contact-address::after`, `confirm-pulse` |
+| Botones | `.cta:active` escala 0,98; flechas de `.assay-links` se desplazan 3 px | final de `style.css` |
+| **Ficha: llegada** | Una vez al cargar: volver (0,05 s) → estado (0,15 s) → **título palabra a palabra** (0,25 s + 45 ms) → tagline (0,55 s) → **captura** (0,5 s, 0,8 s). Termina hacia 1,3 s, como el hero | `article.arrival`, `.arrival .figure` |
+| **Ficha: al hacer scroll** | Bloque «Measured»: las tres filas escalonadas, **la regla tintada se dibuja** (`::before`, 0,8 s) y la cita sube después; cada párrafo de la prosa es `.reveal` (escalonado hasta el 5.º); chips 30 ms; fila de enlaces | `.assay-solo.reveal`, `.prose > p.reveal`, `.stack.reveal` |
+| Ficha: captura | **Parallax** ±14 px al hacer scroll (el código muerto, retargeteado a `.figure-shot img`); la imagen vive en `.figure-shot` con borde y recorte propios | `theme.js`, `.figure-shot` |
+
+### El gesto de cada proyecto (sale de su tema, no de un menú de efectos)
+
+| Proyecto | Gesto | Por qué |
+|---|---|---|
+| Froth (`amber`) | La captura **sube desde abajo**; los chips **flotan desigual** (los impares más tarde y desde más abajo) y en hover suben 2 px | Burbujas de flotación: nunca llegan a la superficie en fila |
+| Sílice (`iron`) | La captura **se dibuja de izquierda a derecha**; la regla del «Measured» se traza **a ritmo constante** | Una serie de tiempo: la traza del gráfico |
+| Concentra (`mint`) | La captura **se desenrolla desde arriba** (el barrido por defecto); los chips **se reparten como fichas**, desde la izquierda con 3° de giro que se endereza | Apuntes: hojas y fichas |
+| Oro bajo el ruido (`gold`) | La captura **enfoca**: de borrosa (14 px) y opaca a nítida; el variograma ya se dibujaba solo | La señal saliendo del ruido |
+| Fuelle (`air`) | La captura **se infla** (de 0,96 a 1); el estado lleva **un punto vivo que respira** cada 2,4 s | Fuelle de aire y sala de control con señal en vivo |
+
+Cada gesto vive en su propio bloque al final de `templates/style.css`, bajo «One gesture per
+project»: se quita uno sin tocar el resto.
+
+### Guardas y lecciones
+
+- `check_site.py` → `check_motion()` exige ahora **al menos 10 `.reveal` y 1 `.split` en
+  cada portada y 4 + 1 en cada ficha**: una ficha no vuelve a quedarse plana sin que la
+  puerta lo diga.
+- **Fallo cazado antes de publicar:** los barridos por proyecto tenían la misma
+  especificidad que la liberación genérica (`html.js.ready .arrival .figure`) y, por ir
+  después, ganaban con la página ya lista: Froth y Sílice habrían quedado con la captura
+  recortada. Se restableció la liberación después del bloque por proyecto. Y el hover de
+  los chips de Froth necesitaba `html.js … .reveal.in li:hover` para ganar al estado
+  posado. Regla: cada vez que un gesto se escribe con `[data-accent]`, comprobar quién
+  gana en el estado final.
+- **El panel de esta herramienta congela también las transiciones** (ni `ready` ni los
+  reveals llegan). Se verifica forzando el estado final por JS con un `<style>` que anula
+  `transition` y `animation`, añadiendo `ready` e `in`, y leyendo `opacity`, `transform`,
+  `clip-path` y `filter` de todo `main *`. El estado inicial (oculto) sí se lee tal cual.
+- **El `http.server` resetea conexiones**: una recarga puede llegar sin hoja de estilos
+  (`ERR_CONNECTION_RESET`, h2 a 24 px). Comprobar `document.styleSheets.length` antes de
+  medir nada.
+- Píxeles de estado final: `shots_final.py` (scratch) con `--force-prefers-reduced-motion`
+  sobre `file://` a 1440×2200; la portada, Froth, Sílice, Geoestadística, Fuelle y
+  Concentra (es) salen completas y con la misma maqueta. 375 px: `scrollWidth` 375 en
+  portada y ficha, nada oculto.
+- **Pendiente de Kevin:** ver el movimiento en su navegador (`Portafolio.bat`) y dar el
+  veredicto gesto a gesto; el push a `master` publica.
+
 ## Decisiones de Kevin cerradas (2026-08-23)
 
 - **Contacto sin formulario**: «solo mándalos al final, que está mi email y LinkedIn».

@@ -13,7 +13,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <link rel="alternate" hreflang="es" href="../es/proyectos/froth.html">
 <script>document.documentElement.className="js"</script>
-<link rel="stylesheet" href="../style.css?v=f7082b9e">
+<link rel="stylesheet" href="../style.css?v=d62e0f8a">
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
@@ -27,17 +27,17 @@
   </nav>
 </header>
 <main id="main">
-<article class="wrap section">
+<article class="wrap section arrival" data-accent="amber">
   <a class="back" href="../index.html#work">All work</a>
   <p class="eyebrow">v1 frozen and approved. A scale edition is in development.</p>
-  <h1 class="project-title">Froth</h1>
+  <h1 class="project-title split"><span class="w" style="--w:0"><span>Froth</span></span></h1>
   <p class="project-tagline">Maps a scientific field by meaning, so a literature review stops being five cherry picked papers.</p>
 
-  <figure class="figure"><img src="../assets/shots/froth-network.png" alt="Froth&#x27;s network view: papers as nodes clustered into subtopics, with bridge papers ringed in amber" width="1440" height="900" decoding="async"><figcaption>Froth&#x27;s network view: papers as nodes clustered into subtopics, with bridge papers ringed in amber</figcaption></figure>
+  <figure class="figure"><div class="figure-shot"><img src="../assets/shots/froth-network.png" alt="Froth&#x27;s network view: papers as nodes clustered into subtopics, with bridge papers ringed in amber" width="1440" height="900" decoding="async"></div><figcaption>Froth&#x27;s network view: papers as nodes clustered into subtopics, with bridge papers ringed in amber</figcaption></figure>
 
-  <div class="assay assay-solo" data-accent="amber">
+  <div class="assay assay-solo reveal" data-accent="amber">
     <div class="assay-body">
-      <dl class="streams"><div><dt>The problem</dt><dd>A literature review is meant to cover a field. In practice you read the twenty papers a keyword search happened to surface, and never find out what you missed.</dd></div><div><dt>How I solved it</dt><dd>Each paper becomes a vector by meaning, not by keyword (SPECTER). Density clustering finds the subtopics. Three views draw them: bubbles, a force directed network, and a reading guide.</dd></div><div><dt>The result</dt><dd>A field you can see the shape of: 44 named subtopics, the papers that bridge between them, and an honest count of what the map still leaves unconnected.</dd></div></dl>
+      <dl class="streams"><div style="--i:0"><dt>The problem</dt><dd>A literature review is meant to cover a field. In practice you read the twenty papers a keyword search happened to surface, and never find out what you missed.</dd></div><div style="--i:1"><dt>How I solved it</dt><dd>Each paper becomes a vector by meaning, not by keyword (SPECTER). Density clustering finds the subtopics. Three views draw them: bubbles, a force directed network, and a reading guide.</dd></div><div style="--i:2"><dt>The result</dt><dd>A field you can see the shape of: 44 named subtopics, the papers that bridge between them, and an honest count of what the map still leaves unconnected.</dd></div></dl>
       <div class="assay-figure">
         <p class="eyebrow">Measured</p>
         <q>44 subtopics from one reading of the whole corpus</q>
@@ -48,12 +48,12 @@
 
   
 
-  <div class="prose"><p>Starting a literature review means reading the five papers someone recommended and hoping they were the right five. Froth reads the whole field first and shows you its shape: which subtopics exist, which papers sit between two of them, and where the corpus is thin.</p><p>Every threshold inside is recalculated for each corpus rather than shipped as a default, so the same tool behaves the same on a field it has never seen.</p></div>
+  <div class="prose"><p class="reveal" style="--i:0">Starting a literature review means reading the five papers someone recommended and hoping they were the right five. Froth reads the whole field first and shows you its shape: which subtopics exist, which papers sit between two of them, and where the corpus is thin.</p><p class="reveal" style="--i:1">Every threshold inside is recalculated for each corpus rather than shipped as a default, so the same tool behaves the same on a field it has never seen.</p></div>
 
-  <p class="eyebrow stack-label">Built with</p>
-  <ul class="stack"><li>Python</li><li>SPECTER</li><li>HDBSCAN</li><li>UMAP</li><li>Streamlit</li><li>OpenAlex</li></ul>
+  <p class="eyebrow stack-label reveal">Built with</p>
+  <ul class="stack reveal"><li style="--i:0">Python</li><li style="--i:1">SPECTER</li><li style="--i:2">HDBSCAN</li><li style="--i:3">UMAP</li><li style="--i:4">Streamlit</li><li style="--i:5">OpenAlex</li></ul>
 
-  <p class="assay-links"><a href="https://github.com/kmortizva-data/froth-public" target="_blank" rel="noopener">Read the code</a></p>
+  <p class="assay-links reveal"><a href="https://github.com/kmortizva-data/froth-public" target="_blank" rel="noopener">Read the code</a></p>
 </article>
 </main>
 <footer class="wrap foot">
@@ -63,6 +63,6 @@
 </footer>
 <div class="curtain" aria-hidden="true"></div>
 <script src="../assets/lenis.min.js" defer></script>
-<script src="../theme.js?v=3afb8790" defer></script>
+<script src="../theme.js?v=c3f1c178" defer></script>
 </body>
 </html>

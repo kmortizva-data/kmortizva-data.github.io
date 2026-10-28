@@ -13,7 +13,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <link rel="alternate" hreflang="en" href="../../work/fuelle.html">
 <script>document.documentElement.className="js"</script>
-<link rel="stylesheet" href="../../style.css?v=f7082b9e">
+<link rel="stylesheet" href="../../style.css?v=d62e0f8a">
 </head>
 <body>
 <a class="skip" href="#main">Ir al contenido</a>
@@ -27,17 +27,17 @@
   </nav>
 </header>
 <main id="main">
-<article class="wrap section">
+<article class="wrap section arrival" data-accent="air">
   <a class="back" href="../../es/index.html#work">Todos los proyectos</a>
   <p class="eyebrow">31 de 31 módulos en los dos idiomas, con el panel y el folio, publicados.</p>
-  <h1 class="project-title">Fuelle</h1>
+  <h1 class="project-title split"><span class="w" style="--w:0"><span>Fuelle</span></span></h1>
   <p class="project-tagline">Un lago de datos y un gemelo digital construidos desde cero en módulos bilingües, sobre 1.516.948 lecturas del compresor de aire de un tren del Metro de Oporto.</p>
 
-  <figure class="figure"><img src="../../assets/shots/fuelle-index.png" alt="El índice inglés de Fuelle en su tema oscuro: el lago dibujado en el lateral, de crudo a gemelo, una puerta al panel de una página, y 31 de 31 lecciones escritas en inglés" width="1440" height="900" decoding="async"><figcaption>El índice inglés de Fuelle en su tema oscuro: el lago dibujado en el lateral, de crudo a gemelo, una puerta al panel de una página, y 31 de 31 lecciones escritas en inglés</figcaption></figure>
+  <figure class="figure"><div class="figure-shot"><img src="../../assets/shots/fuelle-index.png" alt="El índice inglés de Fuelle en su tema oscuro: el lago dibujado en el lateral, de crudo a gemelo, una puerta al panel de una página, y 31 de 31 lecciones escritas en inglés" width="1440" height="900" decoding="async"></div><figcaption>El índice inglés de Fuelle en su tema oscuro: el lago dibujado en el lateral, de crudo a gemelo, una puerta al panel de una página, y 31 de 31 lecciones escritas en inglés</figcaption></figure>
 
-  <div class="assay assay-solo" data-accent="air">
+  <div class="assay assay-solo reveal" data-accent="air">
     <div class="assay-body">
-      <dl class="streams"><div><dt>El problema</dt><dd>Un archivo público de la UCI: 1.516.948 lecturas, una cada diez segundos, quince señales, siete meses de 2020, 208 MB de CSV. Cuatro fugas de aire documentadas con fecha, y una ficha que dice que el compresor arranca a 8,2 bar cuando el archivo dice 8,05.</dd></div><div><dt>Cómo lo resolví</dt><dd>Bronce, plata y oro en Parquet con DuckDB, una capa de oro modelada en dbt, el viaje en el tiempo comparado en Delta e Iceberg, los mismos datos servidos desde PostgreSQL con restricciones, índices y una copia restaurada, y un gemelo de primeros principios: cuatro números medidos del lago y sostenidos por un balance de aire que cierra al 0,7 %.</dd></div><div><dt>El resultado</dt><dd>Un detector que pilla 4 de las 4 fugas documentadas con 1,5 falsas alarmas al mes, donde la alarma que la máquina ya lleva pilla 2 con 11,4. Como predictor no funciona, un aviso de cuatro y con un solo día, y el curso publica las dos notas una al lado de la otra.</dd></div></dl>
+      <dl class="streams"><div style="--i:0"><dt>El problema</dt><dd>Un archivo público de la UCI: 1.516.948 lecturas, una cada diez segundos, quince señales, siete meses de 2020, 208 MB de CSV. Cuatro fugas de aire documentadas con fecha, y una ficha que dice que el compresor arranca a 8,2 bar cuando el archivo dice 8,05.</dd></div><div style="--i:1"><dt>Cómo lo resolví</dt><dd>Bronce, plata y oro en Parquet con DuckDB, una capa de oro modelada en dbt, el viaje en el tiempo comparado en Delta e Iceberg, los mismos datos servidos desde PostgreSQL con restricciones, índices y una copia restaurada, y un gemelo de primeros principios: cuatro números medidos del lago y sostenidos por un balance de aire que cierra al 0,7 %.</dd></div><div style="--i:2"><dt>El resultado</dt><dd>Un detector que pilla 4 de las 4 fugas documentadas con 1,5 falsas alarmas al mes, donde la alarma que la máquina ya lleva pilla 2 con 11,4. Como predictor no funciona, un aviso de cuatro y con un solo día, y el curso publica las dos notas una al lado de la otra.</dd></div></dl>
       <div class="assay-figure">
         <p class="eyebrow">Medido</p>
         <q>La ventana sana no estaba sana</q>
@@ -48,12 +48,12 @@
 
   
 
-  <div class="prose"><p>Todos los demás proyectos de esta página parten de un CSV que alguien ya había limpiado. Este va de dónde sale ese archivo: un lago construido capa a capa desde 208 MB de datos crudos de un compresor, y encima un gemelo digital que dice claro lo que ve y lo que no. Lo escribí para alguien que empieza de cero, que es de donde empecé yo.</p><p>Cada número del curso sale de la corrida de un script, y diez comprobaciones se ponen entre una lección y un commit: toda consulta publicada se ejecuta contra el lago y tiene que imprimir lo que dice la lección, todo número de la prosa tiene que existir en un fichero de resultados, y las ediciones en español y en inglés tienen que coincidir en cada cifra. Han cazado errores de verdad, uno de ellos en mis propias mediciones, que destapó un módulo posterior.</p><p>Las lecciones de SQL corren en el navegador del lector. La página descarga un motor de base de datos solo cuando se lo piden, 8,12 MB, ejecuta la consulta del lector contra datos reales del compresor y comprueba el resultado, no el texto. Las lecciones del gemelo llevan perillas cuya física corre antes en Python, así que la figura y la perilla no pueden llevarse la contraria.</p><p>El lago ya se reconstruye solo: se borra entero, se le pide al orquestador, y las catorce tablas vuelven idénticas byte a byte. Para quien no va a leer treinta y un módulos hay un panel, el semestre entero en una página, donde cada día enseña lo que trabajó el compresor contra lo que habría trabajado sano. Y hay un folio con el veredicto y la parte que más me importa: qué de todo esto aguantaría una planta de verdad y qué no.</p></div>
+  <div class="prose"><p class="reveal" style="--i:0">Todos los demás proyectos de esta página parten de un CSV que alguien ya había limpiado. Este va de dónde sale ese archivo: un lago construido capa a capa desde 208 MB de datos crudos de un compresor, y encima un gemelo digital que dice claro lo que ve y lo que no. Lo escribí para alguien que empieza de cero, que es de donde empecé yo.</p><p class="reveal" style="--i:1">Cada número del curso sale de la corrida de un script, y diez comprobaciones se ponen entre una lección y un commit: toda consulta publicada se ejecuta contra el lago y tiene que imprimir lo que dice la lección, todo número de la prosa tiene que existir en un fichero de resultados, y las ediciones en español y en inglés tienen que coincidir en cada cifra. Han cazado errores de verdad, uno de ellos en mis propias mediciones, que destapó un módulo posterior.</p><p class="reveal" style="--i:2">Las lecciones de SQL corren en el navegador del lector. La página descarga un motor de base de datos solo cuando se lo piden, 8,12 MB, ejecuta la consulta del lector contra datos reales del compresor y comprueba el resultado, no el texto. Las lecciones del gemelo llevan perillas cuya física corre antes en Python, así que la figura y la perilla no pueden llevarse la contraria.</p><p class="reveal" style="--i:3">El lago ya se reconstruye solo: se borra entero, se le pide al orquestador, y las catorce tablas vuelven idénticas byte a byte. Para quien no va a leer treinta y un módulos hay un panel, el semestre entero en una página, donde cada día enseña lo que trabajó el compresor contra lo que habría trabajado sano. Y hay un folio con el veredicto y la parte que más me importa: qué de todo esto aguantaría una planta de verdad y qué no.</p></div>
 
-  <p class="eyebrow stack-label">Hecho con</p>
-  <ul class="stack"><li>Python</li><li>DuckDB</li><li>Parquet</li><li>dbt</li><li>Delta Lake</li><li>Apache Iceberg</li><li>PostgreSQL</li><li>WebAssembly</li><li>matplotlib</li><li>HTML</li><li>CSS</li></ul>
+  <p class="eyebrow stack-label reveal">Hecho con</p>
+  <ul class="stack reveal"><li style="--i:0">Python</li><li style="--i:1">DuckDB</li><li style="--i:2">Parquet</li><li style="--i:3">dbt</li><li style="--i:4">Delta Lake</li><li style="--i:5">Apache Iceberg</li><li style="--i:6">PostgreSQL</li><li style="--i:7">WebAssembly</li><li style="--i:8">matplotlib</li><li style="--i:9">HTML</li><li style="--i:10">CSS</li></ul>
 
-  <p class="assay-links"><a class="cta" href="../../fuelle/curso/panel.html" target="_blank" rel="noopener">Abrir el panel</a><a class="cta cta-quiet" href="../../fuelle/curso/index.html" target="_blank" rel="noopener">Abrir el curso</a><a href="../../fuelle/curso/veredicto.pdf" target="_blank" rel="noopener">El veredicto en un folio</a><a href="https://github.com/kmortizva-data/fuelle" target="_blank" rel="noopener">Ver el código</a></p>
+  <p class="assay-links reveal"><a class="cta" href="../../fuelle/curso/panel.html" target="_blank" rel="noopener">Abrir el panel</a><a class="cta cta-quiet" href="../../fuelle/curso/index.html" target="_blank" rel="noopener">Abrir el curso</a><a href="../../fuelle/curso/veredicto.pdf" target="_blank" rel="noopener">El veredicto en un folio</a><a href="https://github.com/kmortizva-data/fuelle" target="_blank" rel="noopener">Ver el código</a></p>
 </article>
 </main>
 <footer class="wrap foot">
@@ -63,6 +63,6 @@
 </footer>
 <div class="curtain" aria-hidden="true"></div>
 <script src="../../assets/lenis.min.js" defer></script>
-<script src="../../theme.js?v=3afb8790" defer></script>
+<script src="../../theme.js?v=c3f1c178" defer></script>
 </body>
 </html>

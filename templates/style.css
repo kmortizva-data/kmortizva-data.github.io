@@ -177,7 +177,24 @@ a { color: inherit; }
   padding-bottom: 2px;
   border-bottom: 1px solid transparent;
 }
-.masthead nav a:hover { color: var(--ink); border-bottom-color: var(--hi); }
+.masthead nav a:hover { color: var(--ink); }
+/* The underline draws from the left instead of switching on. The transparent border
+   above keeps the vertical rhythm; the line itself is this pseudo-element. */
+.masthead nav a:not(.cta) { position: relative; }
+.masthead nav a:not(.cta)::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 1px;
+  background: var(--hi);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.3s cubic-bezier(0.215, 0.61, 0.355, 1);
+}
+.masthead nav a:not(.cta):hover::after,
+.masthead nav a:not(.cta):focus-visible::after { transform: scaleX(1); }
 
 
 /* --- hero ---------------------------------------------------------------- */
@@ -516,7 +533,11 @@ a { color: inherit; }
 .prose p:last-child { margin-bottom: 0; }
 
 .figure { margin: clamp(2rem, 5vw, 3.5rem) 0; }
-.figure img { border: 1px solid var(--rule); width: 100%; }
+/* The border and the clipping live on the box, not the image: the image is scaled a
+   little for the scroll parallax, and a scaled image with its own border would show the
+   border drifting. */
+.figure-shot { border: 1px solid var(--rule); overflow: hidden; }
+.figure img { width: 100%; }
 .figure figcaption {
   font-family: var(--mono);
   font-size: 0.75rem;
@@ -993,7 +1014,10 @@ p, .assay-tagline, .cred-detail, .streams dd { text-wrap: pretty; }
     /* 45 ms between words: fast enough that the line reads as one gesture. */
     transition-delay: calc(var(--w) * 0.045s + 0.12s);
   }
-  html.js.ready .split .w > span { transform: none; }
+  /* Only the headings on the first screen release on load: the hero's, and the project
+     title (its article is .arrival). Section headings are .split too, and they wait for
+     their .reveal to scroll in; that rule lives in the motion pass at the end. */
+  html.js.ready :is(.hero, .arrival) .split .w > span { transform: none; }
 
   /* The lines under the headline follow it rather than racing it. */
   html.js .hero .lede, html.js .hero .meta, html.js .hero .hero-actions {
@@ -1022,6 +1046,18 @@ p, .assay-tagline, .cred-detail, .streams dd { text-wrap: pretty; }
   background: var(--bg);
   pointer-events: none;
   clip-path: inset(0 0 100% 0);       /* parked: fully clipped, invisible */
+}
+/* A signage yellow edge on the side that moves, so the transition reads as a wipe with
+   a leading edge rather than as the screen going dark. Parked, it is clipped away with
+   the rest. */
+.curtain::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  background: var(--hi);
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -1084,7 +1120,12 @@ p, .assay-tagline, .cred-detail, .streams dd { text-wrap: pretty; }
   stroke-dashoffset: 0;
 }
 @media (prefers-reduced-motion: no-preference) {
-  html.js .hero-curve { animation: hero-draw 12s cubic-bezier(0.4, 0, 0.2, 1) infinite; }
+  /* The curve waits 1.2 s for the points to land first (see the motion pass at the end):
+     measure first, fit after. "backwards" holds the first keyframe, the undrawn curve,
+     during that wait; without it the curve would sit complete and then vanish to start. */
+  html.js .hero-curve {
+    animation: hero-draw 12s cubic-bezier(0.4, 0, 0.2, 1) 1.2s infinite backwards;
+  }
 }
 @keyframes hero-draw {
   0%   { stroke-dashoffset: var(--hero-len, 700); }
@@ -1246,9 +1287,12 @@ p, .assay-tagline, .cred-detail, .streams dd { text-wrap: pretty; }
   position: absolute;
   inset: 0;
   opacity: 0;
-  transition: opacity 0.4s ease;
+  /* The incoming picture settles from slightly larger as it fades in, so a swap reads as
+     a cut to a new shot and not as a crossfade of two. The outgoing one just fades. */
+  transform: scale(1.05);
+  transition: opacity 0.4s ease, transform 0.6s cubic-bezier(0.215, 0.61, 0.355, 1);
 }
-.index-pane.on { opacity: 1; }
+.index-pane.on { opacity: 1; transform: none; }
 .index-pane img {
   width: 100%;
   height: 100%;
@@ -1267,6 +1311,7 @@ p, .assay-tagline, .cred-detail, .streams dd { text-wrap: pretty; }
 .index-panel[data-accent="air"]   { border-color: var(--air); }
 @media (prefers-reduced-motion: reduce) {
   .index-pane img { transition: none; transform: none; }
+  .index-pane { transition: none; transform: none; }
   .index-panel { transition: none; }
 }
 
@@ -1549,4 +1594,357 @@ html.js .copy-email { display: inline-block; }
   .contact-address { font-size: 1.1rem; }
   .hero .eyebrow { font-size: 11px; letter-spacing: 0.12em; }
   .hero-art { margin-top: 0.5rem; }
+}
+
+/* ===========================================================================
+   Motion pass (2026-10-28): one grammar everywhere, one gesture per project.
+
+   What was measured before writing this: the home page had a worked out scroll grammar
+   and the ten project pages had none at all (zero .reveal in work/froth.html), so the
+   front page moved and the page a visitor actually lands on from LinkedIn sat still.
+   Several pieces on the home page were also half done: the hero eyebrow appeared in
+   place, the sixteen measured points sat there while the curve "fitted" them, the index
+   rows all landed at once, and the marquee could not be paused to be read.
+
+   The rules of the house hold for all of it: every hidden state is scoped to html.js and
+   to prefers-reduced-motion: no-preference, so with scripting off the page is simply
+   there and with reduced motion nothing moves. Only transform, opacity, clip-path and
+   filter animate; nothing shifts layout. Same easing (easeOutCubic), same distances
+   (16 / 24 / 36 px), same stagger (45 to 80 ms).
+
+   The stagger indices (--i on list items and rows, --d on the hero points, --w on words)
+   are written by build.py into the markup; the defaults here keep the variables declared
+   when a block arrives without one.
+   =========================================================================== */
+
+.stack li, .prose > p, .index-row, .marks > div, .streams > div { --i: 0; }
+.hero-dot { --d: 0; }
+
+/* --- section headings, word by word, when they scroll in ------------------- */
+
+/* Same split markup as the hero. The hidden state is the generic .split rule above;
+   this is the release, keyed on the block's own reveal instead of on page load. */
+@media (prefers-reduced-motion: no-preference) {
+  html.js .reveal .split .w > span {
+    transition-delay: calc(var(--w, 0) * 0.045s + 0.08s);
+  }
+  html.js .reveal.in .split .w > span { transform: none; }
+}
+
+/* --- the hero: eyebrow first, points before the curve ------------------------ */
+
+@media (prefers-reduced-motion: no-preference) {
+  html.js .hero > .eyebrow {
+    opacity: 0;
+    transform: translateY(16px);
+    transition: opacity 0.6s cubic-bezier(0.215, 0.61, 0.355, 1),
+                transform 0.6s cubic-bezier(0.215, 0.61, 0.355, 1);
+  }
+  html.js.ready .hero > .eyebrow { opacity: 1; transform: none; }
+
+  /* The points land one by one, left to right, 40 ms apart from half a second in; the
+     last one lands at about 1.1 s and the curve starts drawing at 1.2 s. A small
+     overshoot in the easing makes each landing read as a point being placed, not faded. */
+  .hero-dot { transform-box: fill-box; transform-origin: center; }
+  html.js .hero-dot {
+    transform: scale(0);
+    transition: transform 0.45s cubic-bezier(0.34, 1.4, 0.64, 1);
+    transition-delay: calc(var(--d, 0) * 0.04s + 0.5s);
+  }
+  html.js.ready .hero-dot { transform: none; }
+}
+
+/* --- the marquee can be read ------------------------------------------------- */
+
+.marquee:hover .marquee-track { animation-play-state: paused; }
+
+/* --- the three figures ------------------------------------------------------- */
+
+/* Each cell follows the one before it, and the value rises out of a clipped box the way
+   the headline's words do. Not counters: "1st" and "EMJM" are not numbers. */
+.mark-value { overflow: hidden; padding-bottom: 0.08em; margin-bottom: -0.08em; }
+.mark-value > span { display: inline-block; }
+
+@media (prefers-reduced-motion: no-preference) {
+  html.js .marks.reveal > div {
+    opacity: 0;
+    transform: translateY(16px);
+    transition: opacity 0.6s cubic-bezier(0.215, 0.61, 0.355, 1),
+                transform 0.6s cubic-bezier(0.215, 0.61, 0.355, 1);
+    transition-delay: calc(var(--i, 0) * 0.08s);
+  }
+  html.js .marks.reveal .mark-value > span {
+    transform: translateY(110%);
+    transition: transform 0.75s cubic-bezier(0.215, 0.61, 0.355, 1);
+    transition-delay: calc(var(--i, 0) * 0.08s + 0.15s);
+  }
+  html.js .marks.reveal.in > div { opacity: 1; transform: none; }
+  html.js .marks.reveal.in .mark-value > span { transform: none; }
+}
+
+/* --- the index: rows in sequence, the number a beat ahead ------------------- */
+
+@media (prefers-reduced-motion: no-preference) {
+  html.js .index-row.reveal { transition-delay: calc(var(--i, 0) * 0.06s); }
+  html.js .index-row.reveal .index-name,
+  html.js .index-row.reveal .index-say,
+  html.js .index-row.reveal .index-assay,
+  html.js .index-row.reveal .index-area {
+    opacity: 0;
+    transform: translateY(12px);
+    transition: opacity 0.6s cubic-bezier(0.215, 0.61, 0.355, 1),
+                transform 0.6s cubic-bezier(0.215, 0.61, 0.355, 1);
+    transition-delay: calc(var(--i, 0) * 0.06s + 0.1s);
+  }
+  html.js .index-row.reveal.in .index-name,
+  html.js .index-row.reveal.in .index-say,
+  html.js .index-row.reveal.in .index-assay,
+  html.js .index-row.reveal.in .index-area { opacity: 1; transform: none; }
+}
+
+/* The arrow on the open button points where the link goes, and nudges that way. */
+.index-arrow { display: inline-block; transition: transform 0.25s cubic-bezier(0.215, 0.61, 0.355, 1); }
+.index-open:hover .index-arrow,
+.index-open:focus-visible .index-arrow { transform: translate(2px, -2px); }
+
+/* --- get in touch: the address underlines itself ------------------------------ */
+
+@media (prefers-reduced-motion: no-preference) {
+  html.js .contact-ways.reveal .contact-address {
+    position: relative;
+    border-bottom-color: transparent;
+  }
+  html.js .contact-ways.reveal .contact-address::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -1px;
+    height: 1px;
+    background: var(--hi);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.8s cubic-bezier(0.215, 0.61, 0.355, 1) 0.3s, background 0.2s ease;
+  }
+  html.js .contact-ways.reveal.in .contact-address::after { transform: scaleX(1); }
+  html.js .contact-ways.reveal .contact-address:hover::after { background: var(--hi-bright); }
+
+  /* "Copied" confirms with a small pulse as well as with the word. */
+  .copy-email.done { animation: confirm-pulse 0.3s cubic-bezier(0.215, 0.61, 0.355, 1); }
+}
+@keyframes confirm-pulse {
+  50% { transform: scale(1.05); }
+}
+
+/* --- buttons and links, everywhere ------------------------------------------- */
+
+.cta:active { transform: scale(0.98); }
+
+/* The arrow after a project page link moves with the hover, like the index arrow. */
+.assay-links a::after { display: inline-block; transition: transform 0.25s cubic-bezier(0.215, 0.61, 0.355, 1); }
+.assay-links a:hover::after { transform: translateX(3px); }
+
+/* --- the project page, arriving ---------------------------------------------- */
+
+/* The first screen plays once on load, in reading order: back link, status, the title
+   word by word (its words are released by the .ready rule in the headline block), the
+   tagline, then the screenshot. Everything below the screenshot is .reveal and comes in
+   as it scrolls. The whole arrival is over by about 1.3 s, same as the hero's. */
+@media (prefers-reduced-motion: no-preference) {
+  html.js .arrival .back,
+  html.js .arrival > .eyebrow,
+  html.js .arrival .project-tagline {
+    opacity: 0;
+    transform: translateY(16px);
+    transition: opacity 0.7s cubic-bezier(0.215, 0.61, 0.355, 1),
+                transform 0.7s cubic-bezier(0.215, 0.61, 0.355, 1);
+  }
+  html.js .arrival .back { transition-delay: 0.05s; }
+  html.js .arrival > .eyebrow { transition-delay: 0.15s; }
+  html.js .arrival .split .w > span { transition-delay: calc(var(--w, 0) * 0.045s + 0.25s); }
+  html.js .arrival .project-tagline { transition-delay: 0.55s; }
+  html.js.ready .arrival .back,
+  html.js.ready .arrival > .eyebrow,
+  html.js.ready .arrival .project-tagline { opacity: 1; transform: none; }
+
+  /* The screenshot's entrance is the one thing that differs per project (below). The
+     default is a wipe from the top, like a sheet being unrolled. */
+  html.js .arrival .figure {
+    clip-path: inset(0 0 100% 0);
+    transition: clip-path 0.8s cubic-bezier(0.76, 0, 0.24, 1) 0.5s,
+                opacity 0.8s cubic-bezier(0.215, 0.61, 0.355, 1) 0.5s,
+                transform 0.8s cubic-bezier(0.215, 0.61, 0.355, 1) 0.5s,
+                filter 0.9s cubic-bezier(0.215, 0.61, 0.355, 1) 0.5s;
+  }
+  html.js.ready .arrival .figure { clip-path: inset(0 0 0 0); }
+}
+
+/* --- the measured block: rows in order, the rule draws, the number follows ----- */
+
+@media (prefers-reduced-motion: no-preference) {
+  html.js .assay-solo.reveal .streams > div {
+    opacity: 0;
+    transform: translateY(16px);
+    transition: opacity 0.6s cubic-bezier(0.215, 0.61, 0.355, 1),
+                transform 0.6s cubic-bezier(0.215, 0.61, 0.355, 1);
+    transition-delay: calc(var(--i, 0) * 0.08s);
+  }
+  html.js .assay-solo.reveal.in .streams > div { opacity: 1; transform: none; }
+
+  /* The tinted rule is the site's signature mark, so it is drawn rather than switched
+     on: the real border goes transparent under JavaScript and a pseudo-element draws
+     the same 2 px from the left. Without JavaScript the border is just there. */
+  html.js .assay-solo.reveal .assay-figure { position: relative; border-top-color: transparent; }
+  html.js .assay-solo.reveal .assay-figure::before {
+    content: "";
+    position: absolute;
+    top: -2px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--tint);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.8s cubic-bezier(0.215, 0.61, 0.355, 1) 0.2s;
+  }
+  html.js .assay-solo.reveal.in .assay-figure::before { transform: scaleX(1); }
+
+  html.js .assay-solo.reveal .assay-figure q,
+  html.js .assay-solo.reveal .assay-figure p {
+    opacity: 0;
+    transform: translateY(16px);
+    transition: opacity 0.6s cubic-bezier(0.215, 0.61, 0.355, 1),
+                transform 0.6s cubic-bezier(0.215, 0.61, 0.355, 1);
+  }
+  html.js .assay-solo.reveal .assay-figure q { transition-delay: 0.35s; }
+  html.js .assay-solo.reveal .assay-figure p { transition-delay: 0.45s; }
+  html.js .assay-solo.reveal.in .assay-figure q,
+  html.js .assay-solo.reveal.in .assay-figure p { opacity: 1; transform: none; }
+}
+
+/* --- prose, chips and links ---------------------------------------------------- */
+
+/* The accent on the article lets the chips take the project's tint on hover, the same
+   indirection the cards and the index rows use. */
+article[data-accent="amber"] { --tint: var(--froth); }
+article[data-accent="iron"]  { --tint: var(--iron); }
+article[data-accent="mint"]  { --tint: var(--mint); }
+article[data-accent="slate"] { --tint: var(--slate); }
+article[data-accent="gold"]  { --tint: var(--gold); }
+article[data-accent="air"]   { --tint: var(--air); }
+
+.stack li { transition: border-color 0.25s ease, color 0.25s ease, transform 0.5s cubic-bezier(0.215, 0.61, 0.355, 1); }
+.stack li:hover { border-color: var(--tint, var(--hi)); color: var(--ink); }
+
+@media (prefers-reduced-motion: no-preference) {
+  html.js .prose > p.reveal { transition-delay: calc(var(--i, 0) * 0.07s); }
+
+  html.js .stack.reveal li {
+    opacity: 0;
+    transform: translateY(12px);
+    transition: opacity 0.5s cubic-bezier(0.215, 0.61, 0.355, 1),
+                transform 0.5s cubic-bezier(0.215, 0.61, 0.355, 1);
+    transition-delay: calc(var(--i, 0) * 0.03s);
+  }
+  html.js .stack.reveal.in li { opacity: 1; transform: none; }
+}
+
+/* ===========================================================================
+   One gesture per project.
+
+   Kevin's question (2026-10-28): an engineering portfolio should stay sober, but five
+   pages that move identically show no judgement either. The compromise: the grammar
+   above is shared by all of them, and each project owns exactly one gesture, taken
+   from its own subject rather than from a menu of effects. Each lives in its own block
+   so any one of them can be removed on sight without touching the rest.
+   =========================================================================== */
+
+@media (prefers-reduced-motion: no-preference) {
+  /* Froth, the flotation map: bubbles rise. The screenshot wipes in from the bottom and
+     the stack chips float up unevenly, the odd ones a touch later and a touch further,
+     the way bubbles never reach the surface in step. */
+  html.js .arrival[data-accent="amber"] .figure { clip-path: inset(100% 0 0 0); }
+  html.js .arrival[data-accent="amber"] .stack.reveal li { transform: translateY(18px); }
+  html.js .arrival[data-accent="amber"] .stack.reveal li:nth-child(odd) {
+    transform: translateY(26px);
+    transition-delay: calc(var(--i, 0) * 0.03s + 0.06s);
+  }
+  html.js .arrival[data-accent="amber"] .stack.reveal.in li { transform: none; }
+  /* Specific enough to beat the landed state above, or the hover would never show. */
+  html.js .arrival[data-accent="amber"] .stack.reveal.in li:hover { transform: translateY(-2px); }
+
+  /* Silica, the time series: the screenshot is drawn left to right like a trace on a
+     chart, and the measured rule, the trace of the result, draws at a constant rate
+     rather than easing out. */
+  html.js .arrival[data-accent="iron"] .figure { clip-path: inset(0 100% 0 0); }
+  html.js .arrival[data-accent="iron"] .figure { transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); }
+  html.js .arrival[data-accent="iron"] .assay-figure::before { transition-timing-function: linear; }
+
+  /* Concentra, the notes: the sheet unrolls from the top (the default wipe) and the
+     chips are dealt like cards, each sliding in from the left with a slight tilt that
+     straightens as it lands. */
+  html.js .arrival[data-accent="mint"] .stack.reveal li {
+    transform: translate(-10px, 6px) rotate(-3deg);
+    transition-delay: calc(var(--i, 0) * 0.045s);
+  }
+  html.js .arrival[data-accent="mint"] .stack.reveal.in li { transform: none; }
+
+  /* Gold under the noise: the screenshot comes into focus instead of wiping in, the
+     signal resolving out of noise. Its variogram already draws itself on scroll; that
+     stays as it is. */
+  html.js .arrival[data-accent="gold"] .figure {
+    clip-path: inset(0 0 0 0);
+    opacity: 0;
+    filter: blur(14px);
+    transform: scale(1.02);
+  }
+  html.js.ready .arrival[data-accent="gold"] .figure { opacity: 1; filter: blur(0); transform: none; }
+
+  /* Bellows, the compressed air twin: the screenshot inflates into place, and the status
+     line carries a live dot that breathes, the way a control room shows a feed that is
+     on. The dot is drawn only here; the other pages' status lines stay plain. */
+  html.js .arrival[data-accent="air"] .figure {
+    clip-path: inset(0 0 0 0);
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  html.js.ready .arrival[data-accent="air"] .figure { opacity: 1; transform: none; }
+
+  /* The release, restated after the per-project wipes. Each wipe above has the same
+     specificity as the generic release in the arrival block, so being later it won even
+     once the page was ready and the Froth and Silica screenshots stayed clipped: found
+     by forcing the end state in the browser before anyone saw it. */
+  html.js.ready .arrival .figure { clip-path: inset(0 0 0 0); }
+}
+
+.arrival[data-accent="air"] > .eyebrow::before {
+  content: "";
+  display: inline-block;
+  width: 0.5em;
+  height: 0.5em;
+  border-radius: 50%;
+  background: var(--air);
+  margin-right: 0.6em;
+  vertical-align: 0.05em;
+  box-shadow: 0 0 0 0 rgb(131 160 224 / 0.6);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .arrival[data-accent="air"] > .eyebrow::before { animation: breathe 2.4s ease-in-out infinite; }
+}
+@keyframes breathe {
+  0%   { box-shadow: 0 0 0 0 rgb(131 160 224 / 0.55); }
+  70%  { box-shadow: 0 0 0 0.45em rgb(131 160 224 / 0); }
+  100% { box-shadow: 0 0 0 0 rgb(131 160 224 / 0); }
+}
+
+/* --- reduced motion: the additions above, switched off in one place -------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .masthead nav a:not(.cta)::after,
+  .index-arrow,
+  .assay-links a::after,
+  .stack li,
+  .cta { transition: none; }
+  .cta:active { transform: none; }
+  .marquee:hover .marquee-track { animation: none; }
 }

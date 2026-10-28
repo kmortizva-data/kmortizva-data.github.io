@@ -221,6 +221,30 @@ def check_motion() -> list[str]:
     else:
         print("  el telón se retira solo, sin depender del script")
 
+    # Every generated page has to carry its motion markup. For two months the project
+    # pages shipped with no .reveal at all while the home page had its whole scroll
+    # grammar, and nothing noticed: the generator simply never wrote the classes there.
+    # The home page needs at least ten reveals (sections, rows, figures) and a project
+    # page at least four (the measured block, a paragraph, the chips, the links), plus
+    # one split heading each, so a refactor cannot quietly flatten a page again.
+    least = {"index.html": (10, 1), "es/index.html": (10, 1)}
+    for folder in ("work", "es/proyectos"):
+        for page in sorted((ROOT / folder).glob("*.html")):
+            least[page.relative_to(ROOT).as_posix()] = (4, 1)
+    flat = 0
+    for relative, (reveals_needed, splits_needed) in least.items():
+        page = ROOT / relative
+        if not page.exists():
+            continue
+        html = page.read_text(encoding="utf-8")
+        reveals = len(re.findall(r'class="[^"]*\breveal\b[^"]*"', html))
+        splits = len(re.findall(r'class="[^"]*\bsplit\b[^"]*"', html))
+        if reveals < reveals_needed or splits < splits_needed:
+            flat += 1
+            problems.append(f"{relative}: {reveals} reveal y {splits} split, "
+                            f"se esperaban al menos {reveals_needed} y {splits_needed}")
+    print(f"  {len(least)} páginas con marcado de movimiento, {flat} planas")
+
     return problems
 
 

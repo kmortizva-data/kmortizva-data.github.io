@@ -13,7 +13,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <link rel="alternate" hreflang="en" href="../../work/froth.html">
 <script>document.documentElement.className="js"</script>
-<link rel="stylesheet" href="../../style.css?v=f7082b9e">
+<link rel="stylesheet" href="../../style.css?v=d62e0f8a">
 </head>
 <body>
 <a class="skip" href="#main">Ir al contenido</a>
@@ -27,17 +27,17 @@
   </nav>
 </header>
 <main id="main">
-<article class="wrap section">
+<article class="wrap section arrival" data-accent="amber">
   <a class="back" href="../../es/index.html#work">Todos los proyectos</a>
   <p class="eyebrow">v1 congelada y aprobada. La edición de escala sigue en desarrollo.</p>
-  <h1 class="project-title">Froth</h1>
+  <h1 class="project-title split"><span class="w" style="--w:0"><span>Froth</span></span></h1>
   <p class="project-tagline">Mapea un campo científico por significado, para que una revisión de literatura deje de ser cinco papers escogidos a dedo.</p>
 
-  <figure class="figure"><img src="../../assets/shots/froth-network.png" alt="Vista de red de Froth: los papers como nodos agrupados en subtemas, con los papers puente marcados con un anillo ámbar" width="1440" height="900" decoding="async"><figcaption>Vista de red de Froth: los papers como nodos agrupados en subtemas, con los papers puente marcados con un anillo ámbar</figcaption></figure>
+  <figure class="figure"><div class="figure-shot"><img src="../../assets/shots/froth-network.png" alt="Vista de red de Froth: los papers como nodos agrupados en subtemas, con los papers puente marcados con un anillo ámbar" width="1440" height="900" decoding="async"></div><figcaption>Vista de red de Froth: los papers como nodos agrupados en subtemas, con los papers puente marcados con un anillo ámbar</figcaption></figure>
 
-  <div class="assay assay-solo" data-accent="amber">
+  <div class="assay assay-solo reveal" data-accent="amber">
     <div class="assay-body">
-      <dl class="streams"><div><dt>El problema</dt><dd>Una revisión de literatura debería cubrir un campo. En la práctica lees los veinte papers que la búsqueda por palabra clave sacó a flote, y nunca te enteras de lo que te perdiste.</dd></div><div><dt>Cómo lo resolví</dt><dd>Cada paper se convierte en un vector por significado, no por palabra clave (SPECTER). Un agrupamiento por densidad encuentra los subtemas. Tres vistas los dibujan: burbujas, red con física y guía de lectura.</dd></div><div><dt>El resultado</dt><dd>Un campo cuya forma se ve: 44 subtemas con nombre, los papers que hacen de puente entre ellos, y una cuenta honesta de lo que el mapa todavía deja suelto.</dd></div></dl>
+      <dl class="streams"><div style="--i:0"><dt>El problema</dt><dd>Una revisión de literatura debería cubrir un campo. En la práctica lees los veinte papers que la búsqueda por palabra clave sacó a flote, y nunca te enteras de lo que te perdiste.</dd></div><div style="--i:1"><dt>Cómo lo resolví</dt><dd>Cada paper se convierte en un vector por significado, no por palabra clave (SPECTER). Un agrupamiento por densidad encuentra los subtemas. Tres vistas los dibujan: burbujas, red con física y guía de lectura.</dd></div><div style="--i:2"><dt>El resultado</dt><dd>Un campo cuya forma se ve: 44 subtemas con nombre, los papers que hacen de puente entre ellos, y una cuenta honesta de lo que el mapa todavía deja suelto.</dd></div></dl>
       <div class="assay-figure">
         <p class="eyebrow">Medido</p>
         <q>44 subtemas de una sola lectura del corpus entero</q>
@@ -48,12 +48,12 @@
 
   
 
-  <div class="prose"><p>Empezar una revisión de literatura es leer los cinco papers que alguien te recomendó y esperar que fueran los cinco correctos. Froth lee primero el campo entero y te enseña su forma: qué subtemas existen, qué papers quedan entre dos de ellos, y dónde el corpus es flaco.</p><p>Cada umbral de adentro se recalcula para cada corpus en vez de venir fijado, así que la misma herramienta se comporta igual en un campo que nunca ha visto.</p></div>
+  <div class="prose"><p class="reveal" style="--i:0">Empezar una revisión de literatura es leer los cinco papers que alguien te recomendó y esperar que fueran los cinco correctos. Froth lee primero el campo entero y te enseña su forma: qué subtemas existen, qué papers quedan entre dos de ellos, y dónde el corpus es flaco.</p><p class="reveal" style="--i:1">Cada umbral de adentro se recalcula para cada corpus en vez de venir fijado, así que la misma herramienta se comporta igual en un campo que nunca ha visto.</p></div>
 
-  <p class="eyebrow stack-label">Hecho con</p>
-  <ul class="stack"><li>Python</li><li>SPECTER</li><li>HDBSCAN</li><li>UMAP</li><li>Streamlit</li><li>OpenAlex</li></ul>
+  <p class="eyebrow stack-label reveal">Hecho con</p>
+  <ul class="stack reveal"><li style="--i:0">Python</li><li style="--i:1">SPECTER</li><li style="--i:2">HDBSCAN</li><li style="--i:3">UMAP</li><li style="--i:4">Streamlit</li><li style="--i:5">OpenAlex</li></ul>
 
-  <p class="assay-links"><a href="https://github.com/kmortizva-data/froth-public" target="_blank" rel="noopener">Ver el código</a></p>
+  <p class="assay-links reveal"><a href="https://github.com/kmortizva-data/froth-public" target="_blank" rel="noopener">Ver el código</a></p>
 </article>
 </main>
 <footer class="wrap foot">
@@ -63,6 +63,6 @@
 </footer>
 <div class="curtain" aria-hidden="true"></div>
 <script src="../../assets/lenis.min.js" defer></script>
-<script src="../../theme.js?v=3afb8790" defer></script>
+<script src="../../theme.js?v=c3f1c178" defer></script>
 </body>
 </html>

@@ -13,7 +13,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <link rel="alternate" hreflang="es" href="../es/proyectos/fuelle.html">
 <script>document.documentElement.className="js"</script>
-<link rel="stylesheet" href="../style.css?v=f7082b9e">
+<link rel="stylesheet" href="../style.css?v=d62e0f8a">
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
@@ -27,17 +27,17 @@
   </nav>
 </header>
 <main id="main">
-<article class="wrap section">
+<article class="wrap section arrival" data-accent="air">
   <a class="back" href="../index.html#work">All work</a>
   <p class="eyebrow">31 of 31 modules in both languages, with the panel and the one page verdict, live.</p>
-  <h1 class="project-title">Bellows</h1>
+  <h1 class="project-title split"><span class="w" style="--w:0"><span>Bellows</span></span></h1>
   <p class="project-tagline">A data lake and a digital twin built from zero in bilingual modules, on 1,516,948 readings from the air compressor of a Porto Metro train.</p>
 
-  <figure class="figure"><img src="../assets/shots/fuelle-index.png" alt="The index of Bellows in its dark theme: the lake drawn down the side from raw to twin, a door to the one page panel, and 31 of 31 lessons written in English" width="1440" height="900" decoding="async"><figcaption>The index of Bellows in its dark theme: the lake drawn down the side from raw to twin, a door to the one page panel, and 31 of 31 lessons written in English</figcaption></figure>
+  <figure class="figure"><div class="figure-shot"><img src="../assets/shots/fuelle-index.png" alt="The index of Bellows in its dark theme: the lake drawn down the side from raw to twin, a door to the one page panel, and 31 of 31 lessons written in English" width="1440" height="900" decoding="async"></div><figcaption>The index of Bellows in its dark theme: the lake drawn down the side from raw to twin, a door to the one page panel, and 31 of 31 lessons written in English</figcaption></figure>
 
-  <div class="assay assay-solo" data-accent="air">
+  <div class="assay assay-solo reveal" data-accent="air">
     <div class="assay-body">
-      <dl class="streams"><div><dt>The problem</dt><dd>A public UCI file: 1,516,948 readings, one every ten seconds, fifteen signals, seven months of 2020, 208 MB of CSV. Four air leaks documented with a date, and a datasheet that says the compressor starts at 8.2 bar when the file says 8.05.</dd></div><div><dt>How I solved it</dt><dd>Bronze, silver and gold in Parquet with DuckDB, a gold layer modelled in dbt, time travel compared in Delta and Iceberg, the same data served from PostgreSQL with constraints, indexes and a restored backup, and a first principles twin: four numbers measured from the lake and held together by an air balance that closes to 0.7 %.</dd></div><div><dt>The result</dt><dd>A detector that catches 4 of the 4 documented leaks at 1.5 false alarms a month, where the alarm already fitted to the machine catches 2 at 11.4. As a predictor it does not work, one warning in four and a single day ahead, and the course publishes both marks side by side.</dd></div></dl>
+      <dl class="streams"><div style="--i:0"><dt>The problem</dt><dd>A public UCI file: 1,516,948 readings, one every ten seconds, fifteen signals, seven months of 2020, 208 MB of CSV. Four air leaks documented with a date, and a datasheet that says the compressor starts at 8.2 bar when the file says 8.05.</dd></div><div style="--i:1"><dt>How I solved it</dt><dd>Bronze, silver and gold in Parquet with DuckDB, a gold layer modelled in dbt, time travel compared in Delta and Iceberg, the same data served from PostgreSQL with constraints, indexes and a restored backup, and a first principles twin: four numbers measured from the lake and held together by an air balance that closes to 0.7 %.</dd></div><div style="--i:2"><dt>The result</dt><dd>A detector that catches 4 of the 4 documented leaks at 1.5 false alarms a month, where the alarm already fitted to the machine catches 2 at 11.4. As a predictor it does not work, one warning in four and a single day ahead, and the course publishes both marks side by side.</dd></div></dl>
       <div class="assay-figure">
         <p class="eyebrow">Measured</p>
         <q>The healthy window was not healthy</q>
@@ -48,12 +48,12 @@
 
   
 
-  <div class="prose"><p>Every other project on this page starts from a CSV somebody had already cleaned. This one is about where that file comes from: a lake built layer by layer from 208 MB of raw compressor data, and a digital twin on top that says plainly what it can and cannot see. I wrote it for someone starting from zero, which is where I started.</p><p>Every number in the course comes out of a script run, and ten checks stand between a lesson and a commit: every published query runs against the lake and has to print what the lesson says, every number in the prose has to exist in a results file, and the Spanish and English editions have to agree on every figure. They have caught real errors, including one in my own measurements that a later module exposed.</p><p>The SQL lessons run in the reader&#x27;s browser. The page downloads a database engine only when asked, 8.12 MB, runs the reader&#x27;s query against real compressor data and checks the result rather than the text. The twin&#x27;s lessons carry knobs whose physics runs in Python beforehand, so the figure and the knob can never disagree.</p><p>The lake now rebuilds itself: delete it whole, ask the orchestrator for it, and all fourteen tables come back identical to the byte. For anyone who will not read thirty one modules there is a panel, the whole semester on one page, where each day shows how long the compressor worked against how long it would have worked healthy. And there is a one page verdict with the part I care about most: what of all this would survive a real plant and what would not.</p></div>
+  <div class="prose"><p class="reveal" style="--i:0">Every other project on this page starts from a CSV somebody had already cleaned. This one is about where that file comes from: a lake built layer by layer from 208 MB of raw compressor data, and a digital twin on top that says plainly what it can and cannot see. I wrote it for someone starting from zero, which is where I started.</p><p class="reveal" style="--i:1">Every number in the course comes out of a script run, and ten checks stand between a lesson and a commit: every published query runs against the lake and has to print what the lesson says, every number in the prose has to exist in a results file, and the Spanish and English editions have to agree on every figure. They have caught real errors, including one in my own measurements that a later module exposed.</p><p class="reveal" style="--i:2">The SQL lessons run in the reader&#x27;s browser. The page downloads a database engine only when asked, 8.12 MB, runs the reader&#x27;s query against real compressor data and checks the result rather than the text. The twin&#x27;s lessons carry knobs whose physics runs in Python beforehand, so the figure and the knob can never disagree.</p><p class="reveal" style="--i:3">The lake now rebuilds itself: delete it whole, ask the orchestrator for it, and all fourteen tables come back identical to the byte. For anyone who will not read thirty one modules there is a panel, the whole semester on one page, where each day shows how long the compressor worked against how long it would have worked healthy. And there is a one page verdict with the part I care about most: what of all this would survive a real plant and what would not.</p></div>
 
-  <p class="eyebrow stack-label">Built with</p>
-  <ul class="stack"><li>Python</li><li>DuckDB</li><li>Parquet</li><li>dbt</li><li>Delta Lake</li><li>Apache Iceberg</li><li>PostgreSQL</li><li>WebAssembly</li><li>matplotlib</li><li>HTML</li><li>CSS</li></ul>
+  <p class="eyebrow stack-label reveal">Built with</p>
+  <ul class="stack reveal"><li style="--i:0">Python</li><li style="--i:1">DuckDB</li><li style="--i:2">Parquet</li><li style="--i:3">dbt</li><li style="--i:4">Delta Lake</li><li style="--i:5">Apache Iceberg</li><li style="--i:6">PostgreSQL</li><li style="--i:7">WebAssembly</li><li style="--i:8">matplotlib</li><li style="--i:9">HTML</li><li style="--i:10">CSS</li></ul>
 
-  <p class="assay-links"><a class="cta" href="../fuelle/curso/panel.en.html" target="_blank" rel="noopener">Open the panel</a><a class="cta cta-quiet" href="../fuelle/curso/index.en.html" target="_blank" rel="noopener">Open the course</a><a href="../fuelle/curso/verdict.pdf" target="_blank" rel="noopener">The verdict on one page</a><a href="https://github.com/kmortizva-data/fuelle" target="_blank" rel="noopener">Read the code</a></p>
+  <p class="assay-links reveal"><a class="cta" href="../fuelle/curso/panel.en.html" target="_blank" rel="noopener">Open the panel</a><a class="cta cta-quiet" href="../fuelle/curso/index.en.html" target="_blank" rel="noopener">Open the course</a><a href="../fuelle/curso/verdict.pdf" target="_blank" rel="noopener">The verdict on one page</a><a href="https://github.com/kmortizva-data/fuelle" target="_blank" rel="noopener">Read the code</a></p>
 </article>
 </main>
 <footer class="wrap foot">
@@ -63,6 +63,6 @@
 </footer>
 <div class="curtain" aria-hidden="true"></div>
 <script src="../assets/lenis.min.js" defer></script>
-<script src="../theme.js?v=3afb8790" defer></script>
+<script src="../theme.js?v=c3f1c178" defer></script>
 </body>
 </html>
