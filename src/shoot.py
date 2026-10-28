@@ -44,14 +44,14 @@ SETTLE_BY_PROJECT = {"froth": 40000, "bg-remover": 2500}
 # previews expect, and it needs reduced motion or headless catches the curtain
 # mid-animation and writes a black rectangle.
 WINDOW_BY_PROJECT = {"home": (1200, 630)}
+# The course's dial sweeps to its figure on arrival; reduced motion paints the final
+# state, which is what the card should show. And dark, because the course follows the
+# system theme and headless asks for light: the light edition is paper, the look Silica
+# and the geostatistics course already show on this page, and the control room dark is
+# what tells this one apart.
+DARK_FINAL = ["--force-prefers-reduced-motion", "--force-dark-mode"]
 FLAGS_BY_PROJECT = {"home": ["--force-prefers-reduced-motion"],
-                    # The course's dial sweeps to its figure on arrival; reduced motion
-                    # paints the final state, which is what the card should show. And
-                    # dark, because the course follows the system theme and headless asks
-                    # for light: the light edition is paper, the look Silica and the
-                    # geostatistics course already show on this page, and the control
-                    # room dark is what tells this one apart.
-                    "fuelle": ["--force-prefers-reduced-motion", "--force-dark-mode"]}
+                    "fuelle-en": DARK_FINAL, "fuelle-es": DARK_FINAL}
 
 # Where each browser lives on Windows, most preferred first.
 BROWSERS = [
@@ -62,28 +62,43 @@ BROWSERS = [
 
 # The file name of each shot is already declared in content/site.json, so these have to
 # match it or shot_block() will not find them.
+def mirrored(path: str) -> str:
+    """A page of one of the static projects, read from its mirror inside this site.
+
+    build.py copies each static project into the site (silice/, concentra/, geostat/,
+    fuelle/), byte for byte. Shooting the mirror rather than the source folder means the
+    shot shows exactly what is published, needs no server, and only asks that build.py
+    has run. Bilingual projects are shot once per edition, so each language's page shows
+    the course in its own language.
+    """
+    return (ROOT / path).as_uri()
+
+
 PROJECTS = {
     "froth": ("http://localhost:8501/", "froth-network.png",
               "Froth: el mapa semantico. Arranca con la config 'froth-web'."),
-    "silica": ("http://localhost:8792/out/index.html", "silica-horizons.png",
-               "El curso Silice. Arranca con la config 'silice'."),
-    "concentra": ("http://localhost:8791/out/index.html", "concentra-site.png",
-                  "Concentra. Arranca con la config 'concentra'."),
     "bg-remover": ("http://127.0.0.1:8000/", "bg-remover.png",
                    "bg-remover. Arranca con .\\run.ps1 en su carpeta."),
-    # Read straight from disk: the geostatistics site is static and its pages use
-    # relative links, so no server is needed, only its own build_site.py having run.
-    # The site's own front page, read from disk like the geostatistics one.
+    # The site's own front page, read from disk.
     "home": ((ROOT / "index.html").as_uri(), "og-card.png",
              "La tarjeta social. Corre antes python src/build.py."),
-    "geostat": ((ROOT.parent / "Geoestadistica" / "out" / "en" / "index.html").as_uri(),
-                "geostat-index.png",
-                "Oro bajo el ruido. Corre python src/build_site.py en Geoestadistica."),
-    # Static too, and read from disk: the index needs no server, only the SQL engine
-    # does, and the index never loads it.
-    "fuelle": ((ROOT.parent / "Fuelle" / "out" / "index.en.html").as_uri(),
-               "fuelle-index.png",
-               r"Fuelle. Corre .venv\Scripts\python.exe src\site\build_site.py en Fuelle."),
+    "silica-en": (mirrored("silice/curso/index.en.html"), "silica-horizons.en.png",
+                  "El curso Silice en ingles. Corre antes python src/build.py."),
+    "silica-es": (mirrored("silice/curso/index.html"), "silica-horizons.es.png",
+                  "El curso Silice en espanol. Corre antes python src/build.py."),
+    "concentra-en": (mirrored("concentra/cursos/index.en.html"), "concentra-site.en.png",
+                     "Concentra en ingles. Corre antes python src/build.py."),
+    "concentra-es": (mirrored("concentra/cursos/index.html"), "concentra-site.es.png",
+                     "Concentra en espanol. Corre antes python src/build.py."),
+    "geostat-en": (mirrored("geostat/curso/en/index.html"), "geostat-index.en.png",
+                   "Oro bajo el ruido en ingles. Corre antes python src/build.py."),
+    "geostat-es": (mirrored("geostat/curso/es/index.html"), "geostat-index.es.png",
+                   "Oro bajo el ruido en espanol. Corre antes python src/build.py."),
+    # The index needs no server, only the SQL engine does, and the index never loads it.
+    "fuelle-en": (mirrored("fuelle/curso/index.en.html"), "fuelle-index.en.png",
+                  "Fuelle en ingles. Corre antes python src/build.py."),
+    "fuelle-es": (mirrored("fuelle/curso/index.html"), "fuelle-index.es.png",
+                  "Fuelle en espanol. Corre antes python src/build.py."),
 }
 
 

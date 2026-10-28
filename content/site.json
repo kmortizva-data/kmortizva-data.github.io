@@ -155,7 +155,7 @@
       "slug": "silica",
       "repo": "https://github.com/kmortizva-data/ml-silica-flotation",
       "accent": "iron",
-      "shot": "silica-horizons.png",
+      "shot": {"en": "silica-horizons.en.png", "es": "silica-horizons.es.png"},
       "shot_alt": {
         "en": "Model skill against prediction horizon, compared with a persistence baseline",
         "es": "Habilidad del modelo frente al horizonte de predicción, comparada con el baseline de persistencia"
@@ -215,7 +215,7 @@
       "slug": "concentra",
       "repo": "https://github.com/kmortizva-data/concentra",
       "accent": "mint",
-      "shot": "concentra-site.png",
+      "shot": {"en": "concentra-site.en.png", "es": "concentra-site.es.png"},
       "shot_alt": {
         "en": "A Concentra cheatsheet: glossary, recipe, pitfalls and collapsible review questions",
         "es": "Un cheatsheet de Concentra: glosario, receta, tropiezos y preguntas de repaso plegables"
@@ -272,7 +272,7 @@
     {
       "slug": "geostat",
       "accent": "gold",
-      "shot": "geostat-index.png",
+      "shot": {"en": "geostat-index.en.png", "es": "geostat-index.es.png"},
       "shot_alt": {
         "en": "The index of Gold under the noise: nine chapters, each with its headline figure",
         "es": "El índice de Oro bajo el ruido: nueve capítulos, cada uno con su cifra de cabecera"
@@ -337,7 +337,7 @@
       "slug": "fuelle",
       "repo": "https://github.com/kmortizva-data/fuelle",
       "accent": "air",
-      "shot": "fuelle-index.png",
+      "shot": {"en": "fuelle-index.en.png", "es": "fuelle-index.es.png"},
       "shot_alt": {
         "en": "The index of Bellows in its dark theme: the lake drawn down the side from raw to twin, a door to the one page panel, and 31 of 31 lessons written in English",
         "es": "El índice inglés de Fuelle en su tema oscuro: el lago dibujado en el lateral, de crudo a gemelo, una puerta al panel de una página, y 31 de 31 lecciones escritas en inglés"

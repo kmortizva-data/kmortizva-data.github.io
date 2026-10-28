@@ -229,13 +229,30 @@ def shell(*, title: str, desc: str, lang: str, depth: int, switch_href: str,
 """
 
 
+def shot_name(project: dict, lang: str) -> str:
+    """The screenshot file for one edition: one name for both, or {en, es} twins.
+
+    A bilingual project is shown in the reader's language. One shot for both editions
+    put the Spanish course on the English page (Kevin spotted it on Silica, 2026-10-28)
+    and the English index on the Spanish one for the two projects shot the other way.
+    """
+    name = project.get("shot") or ""
+    return name.get(lang, "") if isinstance(name, dict) else name
+
+
+def shot_names(project: dict) -> list[str]:
+    """Every screenshot file a project declares, whichever form it uses."""
+    name = project.get("shot") or ""
+    return [n for n in (name.values() if isinstance(name, dict) else [name]) if n]
+
+
 def shot_block(project: dict, lang: str, depth: int) -> str:
     """The screenshot, or a labelled gap where one is still missing.
 
     A missing screenshot renders as an obvious placeholder rather than a broken
     image icon, so an unfinished page reads as unfinished instead of as broken.
     """
-    name = project.get("shot") or ""
+    name = shot_name(project, lang)
     if name and (ASSETS / "shots" / name).exists():
         # No lazy loading. There are four images on the whole site, they are the point
         # of the page, and deferring them means a fast scroll (or a screenshot) lands on
@@ -796,7 +813,8 @@ def main() -> int:
         cname.unlink()
 
     missing = [p["slug"] for p in data["projects"]
-               if not (ASSETS / "shots" / (p.get("shot") or "_")).exists()]
+               if not shot_names(p)
+               or any(not (ASSETS / "shots" / n).exists() for n in shot_names(p))]
     where = data["domain"] if data.get("publish_domain") else "github.io (CNAME off)"
     print(f"  {pages} pages written, domain -> {where}")
     if missing:
