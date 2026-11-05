@@ -689,7 +689,8 @@ def main() -> int:
         ("Exc-1-Learn Machine Learning/2_Curso/figuras", "silice/figuras"),
         ("Concentra/out",     "concentra/cursos"),
         ("Concentra/figures", "concentra/figures"),
-        ("Geoestadistica/out", "geostat/curso"),
+        # Geoestadistica/out was mirrored here until 2026-11-05, when the project was
+        # pulled (hidden in site.json): its data and notebook are lost.
         # Bellows keeps three folders side by side: its pages link ../figuras/ for the
         # figures and ../assets/ for the knobs, the samples, the fonts and the SQL engine
         # that runs in the reader's browser. Mirrored as siblings, the relative paths
@@ -812,9 +813,11 @@ def main() -> int:
     elif cname.exists():
         cname.unlink()
 
+    # A hidden project ships no page, so it needs no screenshot either.
     missing = [p["slug"] for p in data["projects"]
-               if not shot_names(p)
-               or any(not (ASSETS / "shots" / n).exists() for n in shot_names(p))]
+               if not p.get("hidden")
+               and (not shot_names(p)
+               or any(not (ASSETS / "shots" / n).exists() for n in shot_names(p)))]
     where = data["domain"] if data.get("publish_domain") else "github.io (CNAME off)"
     print(f"  {pages} pages written, domain -> {where}")
     if missing:

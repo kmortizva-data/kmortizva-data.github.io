@@ -271,6 +271,8 @@
     },
     {
       "slug": "geostat",
+      "hidden": true,
+      "hidden_reason": "Pulled 2026-11-05: the CSV and the kriging notebook are lost, so the course could only ever show screenshots of the old figures, and the visual audit found the kriging variances incompatible with the declared variogram. Everything written about it stays here; the course source lives in Geoestadistica/.",
       "accent": "gold",
       "shot": {"en": "geostat-index.en.png", "es": "geostat-index.es.png"},
       "shot_alt": {

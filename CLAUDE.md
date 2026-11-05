@@ -53,7 +53,7 @@ python src/build.py && python src/check_site.py
 | Who I am | Tres párrafos (identidad / crisis de los metales críticos / postura y autoformación); el de «quality control» se quitó | `site.json` `about` |
 | Credenciales | Cuatro filas (MSc, BEng, becas y honores, idiomas) | `credentials` |
 | The work | Índice con panel de imagen: filas numeradas (nombre, tagline, mark, área, botón abrir ↗); el panel **sigue al cursor ±6 px** y toma el acento del proyecto activo en el borde (solo con `hover: hover` y sin reduced-motion) | `work_index()`, `theme.js`, `.index-*` |
-| Proyectos visibles | Froth (amber) · Sílice (iron) · Concentra (mint) · **Oro bajo el ruido** (gold, sin repo público: el enlace al código no se imprime) · **Fuelle** (air, desde el 2026-09-18, partes 1 a 6, repo público `kmortizva-data/fuelle`) | `site.json` `projects` |
+| Proyectos visibles | Froth (amber) · Sílice (iron) · Concentra (mint) · **Fuelle** (air, desde el 2026-09-18, partes 1 a 6, repo público `kmortizva-data/fuelle`) | `site.json` `projects` |
 | Página de proyecto | Estado, título, tagline, captura, bloque «Measured», **figura calculada** si `inline_figure` (Geoestadística trae su variograma dibujado con las reglas `.dibujar`), prosa, stack, **botón del panel** si hay `panel_href` (solo Fuelle, desde el 2026-09-19), botón abrir y enlace al código | `project_page()`, `inline_figure()` |
 | Get in touch | Texto, **dirección grande con `mailto:`**, botón **Copy address** (solo con JS; si el portapapeles se niega, selecciona la dirección), LinkedIn y GitHub. **Sin formulario, por decisión de Kevin (2026-08-23)**: las tres llamadas a la acción (cabecera, héroe y páginas de proyecto) bajan a esta sección, donde están el correo y LinkedIn. El formulario Formspree se quitó entero (generador, `site.json`, JS y CSS) para no dejar código muerto | `contact_ways()`, `theme.js`, `.contact-*` |
 | Pie | © año, correo, GitHub | `shell()` |
@@ -281,3 +281,17 @@ project»: se quita uno sin tocar el resto.
   `target="_top"` porque las páginas viven en un iframe). El botón de la portada abre la
   edición del idioma del lector. **Los tres cursos publicados son ahora bilingües.**
 - Retomar la captura de bg-remover cuando Kevin lo arregle y decida mostrarlo.
+
+## Oro bajo el ruido, retirado (2026-11-05)
+
+- Kevin lo quitó del portafolio: el CSV y el cuaderno del kriging se perdieron, solo
+  quedaban capturas de las figuras del informe, y la auditoría visual encontró las
+  varianzas del kriging incompatibles con el variograma declarado. «No vale la pena».
+- Cómo: `"hidden": true` con `hidden_reason` en `site.json` (el texto se conserva, mismo
+  patrón que el proyecto retirado el 2026-08-21); fuera de `EMBEDDED` en `build.py` y de
+  `shoot.py`; borrados `geostat/`, `work/geostat.html`, `es/proyectos/geostat.html` y las
+  dos capturas. La portada se renumera sola (cuatro proyectos). El aviso de capturas
+  ausentes ya ignora los proyectos ocultos.
+- Lo que queda sin uso: el acento `gold` en el CSS y su par de contraste en
+  `check_site.py`, y la regla del variograma levantado (`inline_figure`). Inofensivo.
+- La carpeta `Geoestadistica/` sigue en disco con su git local, sin tocar.

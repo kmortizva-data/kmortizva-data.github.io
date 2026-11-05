@@ -90,10 +90,6 @@ PROJECTS = {
                      "Concentra en ingles. Corre antes python src/build.py."),
     "concentra-es": (mirrored("concentra/cursos/index.html"), "concentra-site.es.png",
                      "Concentra en espanol. Corre antes python src/build.py."),
-    "geostat-en": (mirrored("geostat/curso/en/index.html"), "geostat-index.en.png",
-                   "Oro bajo el ruido en ingles. Corre antes python src/build.py."),
-    "geostat-es": (mirrored("geostat/curso/es/index.html"), "geostat-index.es.png",
-                   "Oro bajo el ruido en espanol. Corre antes python src/build.py."),
     # The index needs no server, only the SQL engine does, and the index never loads it.
     "fuelle-en": (mirrored("fuelle/curso/index.en.html"), "fuelle-index.en.png",
                   "Fuelle en ingles. Corre antes python src/build.py."),
