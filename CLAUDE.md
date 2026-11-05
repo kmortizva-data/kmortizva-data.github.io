@@ -295,3 +295,8 @@ project»: se quita uno sin tocar el resto.
 - Lo que queda sin uso: el acento `gold` en el CSS y su par de contraste en
   `check_site.py`, y la regla del variograma levantado (`inline_figure`). Inofensivo.
 - La carpeta `Geoestadistica/` sigue en disco con su git local, sin tocar.
+- **Deploy colgado (2026-11-05)**: el deploy de `cd61c65` se quedó «in progress» en GitHub
+  («Timeout reached») y rechazó todos los siguientes («Please cancel … first»). Ni los
+  commits vacíos ni re-run lo soltaron. Lo que funcionó: Settings → Pages → rama `None` →
+  Save, y de vuelta a `master` / `(root)` → Save. El sitio cae un minuto; HTTPS se conserva.
+  Ojo: sondear la API anónima de Actions cada 15 s agota el límite (60/h); vigilar la web.
