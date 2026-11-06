@@ -244,6 +244,19 @@ project»: se quita uno sin tocar el resto.
 - **Pendiente de Kevin:** ver el movimiento en su navegador (`Portafolio.bat`) y dar el
   veredicto gesto a gesto; el push a `master` publica.
 
+## Republicación de los tres cursos (2026-11-06)
+
+Kevin: «Sí, publica», tras las fases 1 a 5 de Sílice y la fase 1 de Concentra y de Fuelle
+(lo publicado y falso). Commit `1f39d09`.
+
+**El espejo no era espejo, y se arregló en `build.py`:**
+- `copytree` copiaba encima del espejo viejo, así que toda figura con huella cambiada se
+  quedaba publicada para siempre: **104 huérfanas** (98 de Sílice, 6 de Concentra).
+- El copiador bajo demanda de Concentra salta lo que ya existe, así que **22 informes
+  corregidos en el origen nunca llegaban**, entre ellos los resúmenes ejecutivos con el 233.
+- Ahora cada destino de `EMBEDDED` y `concentra/projects` se vacían antes de copiar.
+  Verificado: los 83 ficheros de material vuelven, idénticos a su origen.
+
 ## Decisiones de Kevin cerradas (2026-08-23)
 
 - **Contacto sin formulario**: «solo mándalos al final, que está mi email y LinkedIn».
