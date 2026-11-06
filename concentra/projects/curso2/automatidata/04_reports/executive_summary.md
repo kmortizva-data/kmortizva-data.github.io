@@ -11,7 +11,7 @@ Es la pregunta que este archivo nunca había respondido, y la contesta solo:
 | | |
 |---|---|
 | Hora punta | Las **19**, con 1.454 viajes |
-| Hora más floja | Las **4**, con 233 |
+| Hora más floja | Las **4**, con 235 |
 | Diferencia | **6,2 veces** |
 | De 17 a 21 h | **6.695 viajes, el 29,5 %** del día |
 

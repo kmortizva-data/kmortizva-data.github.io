@@ -30,8 +30,8 @@ Ajustar los árboles en serio, porque un árbol sin acotar pierde por goleada y 
 aquí. Y se quedó a **0,0019** de la logística, que no lleva ninguna perilla que ajustar.
 
 Ese es el resultado del proyecto: **afinar el modelo complicado casi cierra la distancia, y
-no la cierra.** La búsqueda probó 40 combinaciones para el bosque en 61 segundos y 48 para
-el refuerzo en 14.
+no la cierra.** La búsqueda probó 40 combinaciones para el bosque en 78 segundos y 48 para
+el refuerzo en 16.
 
 ## Lo que no funcionó, con el mismo detalle
 

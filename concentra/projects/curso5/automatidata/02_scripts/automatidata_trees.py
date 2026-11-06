@@ -66,6 +66,10 @@ SEED = 42
 STAMP = "%m/%d/%Y %I:%M:%S %p"
 CARD = 1                      # payment_type 1 is the only one that records a tip
 DEFAULT_BUTTON = 0.20         # read off the distribution, not chosen
+BUTTONS = [0.20, 0.25, 0.30]  # the three presets the card machine offers
+# The three-way split: the test share first, then the validation share of what is left.
+TEST_SHARE = 0.20
+VALIDATION_OF_REST = 0.25
 
 FEATURES = ["trip_distance", "duration", "passenger_count", "fare_amount", "extra",
             "tolls_amount", "base", "hour", "weekend", "rush_hour", "airport_flat",
@@ -131,7 +135,9 @@ def build_target(card: pd.DataFrame, results: Results) -> pd.DataFrame:
                 "viajes que dejan exactamente el 20,00 %, que es el botón por defecto")
     results.put("target.exactly_20pct_share", round(100 * exact / len(card), 1),
                 "  en porcentaje")
-    buttons = int(card.rate.round(4).isin([0.20, 0.25, 0.30]).sum())
+    results.put("declared.buttons_pct", [round(100 * b) for b in BUTTONS],
+                "los tres botones de la máquina, en porcentaje")
+    buttons = int(card.rate.round(4).isin(BUTTONS).sum())
     results.put("target.on_a_button", buttons,
                 "viajes en uno de los tres botones de la máquina")
     results.put("target.on_a_button_share", round(100 * buttons / len(card), 1),
@@ -158,9 +164,13 @@ def build_target(card: pd.DataFrame, results: Results) -> pd.DataFrame:
 
 def split(card: pd.DataFrame, results: Results) -> tuple[pd.DataFrame, ...]:
     banner("4. Partición en tres")
-    rest, test = train_test_split(card, test_size=0.20, random_state=SEED,
+    shares = [round(100 * (1 - TEST_SHARE) * (1 - VALIDATION_OF_REST)),
+              round(100 * (1 - TEST_SHARE) * VALIDATION_OF_REST), round(100 * TEST_SHARE)]
+    results.put("declared.split_pct", shares,
+                "entrenamiento, validación y prueba, en porcentaje")
+    rest, test = train_test_split(card, test_size=TEST_SHARE, random_state=SEED,
                                   stratify=card.generous)
-    train, validation = train_test_split(rest, test_size=0.25, random_state=SEED,
+    train, validation = train_test_split(rest, test_size=VALIDATION_OF_REST, random_state=SEED,
                                          stratify=rest.generous)
     for name, part in [("train", train), ("validation", validation), ("test", test)]:
         results.put(f"split.{name}_rows", len(part))
@@ -301,7 +311,7 @@ def figure_buttons(card: pd.DataFrame, results: Results) -> None:
                 xy=(100 * DEFAULT_BUTTON, 0.93), xycoords=("data", "axes fraction"),
                 xytext=(10, 0), textcoords="offset points", va="top", fontsize=ANNOTATION,
                 weight="bold", color=GRAPHITE)
-    for button in (25, 30):
+    for button in [round(100 * b) for b in BUTTONS if b != DEFAULT_BUTTON]:
         ax.axvline(button, color=HAIRLINE, linewidth=1.2, linestyle=(0, (4, 3)), zorder=3)
         ax.annotate(f"{button} %", xy=(button, 0.55), xycoords=("data", "axes fraction"),
                     xytext=(5, 0), textcoords="offset points", fontsize=CAPTION,
@@ -344,8 +354,10 @@ def figure_nothing_works(results: Results) -> None:
     fig, axes = plt.subplots(1, 2, figsize=WIDE)
     positions = np.arange(len(rows))[::-1]
 
-    for ax, index, title, limits in [(axes[0], 1, "Aciertan todos lo mismo", (0.74, 0.79)),
-                                     (axes[1], 2, "Y ordenan distinto", (0.48, 0.65))]:
+    # Rows are (name, auc, accuracy, colour): accuracy is index 2 and AUC index 1. They
+    # were crossed, and every bar sat outside the limits of its own panel.
+    for ax, index, title, limits in [(axes[0], 2, "Aciertan casi lo mismo", (0.74, 0.79)),
+                                     (axes[1], 1, "Y ordenan distinto", (0.48, 0.65))]:
         values = [row[index] for row in rows]
         bars = ax.barh(positions, values, color=[row[3] for row in rows], height=0.6,
                        edgecolor=SURFACE, linewidth=1.2, zorder=2)
@@ -357,19 +369,31 @@ def figure_nothing_works(results: Results) -> None:
         ax.set_yticks(positions, [row[0] for row in rows] if ax is axes[0] else [])
         ax.set_title(title, loc="left", fontsize=PANEL_TITLE, weight="bold", pad=12)
         ax.grid(axis="y", visible=False)
+        # Decimal comma on the axis too, like every number in the bars.
+        ax.xaxis.set_major_locator(plt.MultipleLocator(0.01 if index == 2 else 0.05))
+        ax.xaxis.set_major_formatter(plt.FuncFormatter(lambda v, _: decimal(v, 2)))
     axes[0].set_xlabel("Exactitud en prueba")
     axes[1].set_xlabel("AUC en prueba")
 
+    # Read off the verdict, not written by hand: the hand-written version said all four
+    # models decide alike, and the boosted one does not.
     lazy = results.data["test"]["lazy"]["accuracy"]
-    fig.text(0.005, -0.05,
-             f"Qué mirar: en el panel izquierdo las cuatro barras miden lo mismo, "
-             f"{decimal(lazy)}, porque **los cuatro modelos toman exactamente las mismas "
-             f"decisiones** que contestar siempre que no.",
-             fontsize=CAPTION, color=GRAPHITE, style="italic")
+    names = {"logistica": "la regresión logística", "bosque": "el bosque",
+             "xgboost": "el refuerzo"}
+    same = results.data["verdict"]["models_deciding_like_the_lazy_one"]
+    others = [n for n in names if n not in same]
+    reading = (f"Qué mirar: a la izquierda, {' y '.join(names[n] for n in same)} "
+               f"miden {decimal(lazy)}, lo mismo que contestar siempre que no, porque "
+               f"toman exactamente sus mismas decisiones.")
+    for name in others:
+        test = results.data["test"][name]
+        reading += (f" {names[name].capitalize()} señala a unos pocos, con una "
+                    f"sensibilidad de {decimal(test['recall'])}.")
+    fig.text(0.005, -0.05, reading, fontsize=CAPTION, color=GRAPHITE, style="italic")
     fig.text(0.005, -0.13,
              "En el derecho sí hay diferencias, y aquí los árboles por fin le ganan a la "
-             "logística. Ordenan mejor los casos, y aun así ninguno señala a nadie con el "
-             "umbral por defecto: es ganar una carrera que pierden todos.",
+             "logística. Ordenan mejor los casos, y aun así con el umbral por defecto casi "
+             "no señalan a nadie: es ganar una carrera que pierden todos.",
              fontsize=CAPTION, color=MUTED)
     save_figure(fig, FIGURES, "03_no_hay_senal.png")
     plt.close(fig)
@@ -453,6 +477,11 @@ def main() -> None:
                 "modelos que no señalan a nadie, o sea que deciden igual que contestar «no»")
     results.put("verdict.best_auc",
                 round(max(results.data["test"][n]["auc"] for n in finalists), 4))
+    results.put("verdict.best_tree_minus_logistic",
+                round(max(results.data["test"]["bosque"]["auc"],
+                          results.data["test"]["xgboost"]["auc"])
+                      - results.data["test"]["logistica"]["auc"], 4),
+                "AUC de prueba del mejor árbol menos la de la logística")
     results.put("verdict.signal_found", False,
                 "¿hay señal utilizable en los datos del viaje?")
     print(f"  toman las mismas decisiones que el control: {', '.join(same)}")

@@ -54,6 +54,11 @@ if hasattr(sys.stdout, "reconfigure"):
 SLUG = "waze"
 FIGURES = figures_dir("curso4", SLUG)
 SEED = 42
+# Waze's own definition of a professional driver: a lot of drives on few days.
+PRO_MIN_DRIVES = 60
+PRO_MIN_DAYS = 15
+# The cuts the sheet compares in its threshold table.
+TABLE_CUTS = [0.50, 0.30, 0.20]
 
 
 def load_and_check_missing(results: Results) -> pd.DataFrame:
@@ -93,6 +98,8 @@ def load_and_check_missing(results: Results) -> pd.DataFrame:
     churn = df.label.eq("churned")
     results.put("balance.churned", int(churn.sum()), "usuarios que abandonan")
     results.put("balance.churn_rate", round(100 * churn.mean(), 2), "tasa de abandono (%)")
+    results.put("balance.majority_baseline", round(100 * (1 - churn.mean()), 2),
+                "acierto de contestar siempre 'se queda' (%)")
     return df
 
 
@@ -114,8 +121,11 @@ def add_features(df: pd.DataFrame, results: Results) -> pd.DataFrame:
                 round(float(df.km_per_driving_day.median()), 1),
                 "kilómetros por día conducido, mediana")
 
-    # Waze's own definition in the course material: a lot of drives on few days.
-    df["professional_driver"] = ((df.drives >= 60) & (df.driving_days >= 15)).astype(int)
+    results.put("declared.pro_min_drives", PRO_MIN_DRIVES,
+                "trayectos mínimos de un conductor profesional")
+    results.put("declared.pro_min_days", PRO_MIN_DAYS, "  en al menos estos días")
+    df["professional_driver"] = ((df.drives >= PRO_MIN_DRIVES)
+                                 & (df.driving_days >= PRO_MIN_DAYS)).astype(int)
     results.put("features.professional_drivers", int(df.professional_driver.sum()),
                 "usuarios marcados como conductores profesionales")
     results.put("features.professional_churn",
@@ -297,6 +307,9 @@ def figure_correlations(df: pd.DataFrame, columns: list[str], results: Results) 
     results.put("correlations.below_10", int((np.abs(pairs) < 0.1).sum()),
                 "  pares que no llegan a 0,10: no se parecen en nada")
     results.put("correlations.strongest", round(float(pairs.max()), 4), "  el par más alto")
+    results.put("correlations.activity_vs_driving_days",
+                round(float(df.activity_days.corr(df.driving_days)), 4),
+                "días activo contra días conduciendo")
 
     fig, ax = plt.subplots(figsize=SQUARE)
     palette = correlation_map()
@@ -547,6 +560,15 @@ def main() -> None:
     print("\n  bajando el umbral a 0,20:")
     metrics(test.churned, (probability >= 0.20).astype(int), probability,
             results, "metrics_020")
+    results.put("threshold.cuts_compared", TABLE_CUTS, "cortes que compara la tabla")
+    for cut in TABLE_CUTS:
+        predicted = probability >= cut
+        caught = int((predicted & test.churned.eq(1)).sum())
+        key = f"threshold.at_{round(100 * cut):03d}"
+        results.put(f"{key}.flagged", int(predicted.sum()), f"avisos con corte {cut}")
+        results.put(f"{key}.caught", caught, "  de ellos, abandonos de verdad")
+        results.put(f"{key}.precision_pct", round(100 * caught / int(predicted.sum()), 1),
+                    "  en porcentaje de los avisos")
 
     banner("6. Figuras")
     figure_missing(raw, results)
@@ -567,6 +589,7 @@ def main() -> None:
     for name, (label, scale) in units.items():
         ratio = float(np.exp(model.params[name] * scale))
         results.put(f"scaled_odds.{name}.unit", label)
+        results.put(f"scaled_odds.{name}.scale", scale)
         results.put(f"scaled_odds.{name}.odds_ratio", round(ratio, 4))
     figure_odds(model, units)
     figure_threshold(test.churned, probability, results)

@@ -61,6 +61,8 @@ STAMP = "%m/%d/%Y %I:%M:%S %p"
 # Everything above this percentile is pulled down to it instead of deleted. Deleting the
 # tail would quietly change the population the model claims to describe.
 WINSOR = 0.995
+# The airport flat rate, a price set by contract rather than by the meter.
+JFK_FARE = 52.0
 
 
 # ----------------------------------------------------------------- load and clean
@@ -72,6 +74,8 @@ def load_and_clean(results: Results) -> pd.DataFrame:
     results.put("data.columns", df.shape[1], "columnas")
     results.put("data.duplicates", int(df.duplicated().sum()), "filas duplicadas")
     results.put("data.missing", int(df.isna().sum().sum()), "celdas vacías")
+    results.put("declared.winsor_percentile", round(100 * WINSOR, 1),
+                "percentil por encima del cual se recorta")
 
     df["pickup"] = pd.to_datetime(df.tpep_pickup_datetime, format=STAMP)
     df["dropoff"] = pd.to_datetime(df.tpep_dropoff_datetime, format=STAMP)
@@ -79,7 +83,8 @@ def load_and_clean(results: Results) -> pd.DataFrame:
 
     # The JFK flat fare, found in Course 3 and confirmed here: it is a rate code, not a
     # coincidence, and it is the single biggest reason distance alone cannot explain fares.
-    flat = df.fare_amount.eq(52.0)
+    flat = df.fare_amount.eq(JFK_FARE)
+    results.put("jfk.fare", JFK_FARE, "la tarifa plana del aeropuerto, en dólares")
     results.put("jfk.trips_at_52", int(flat.sum()), "viajes a 52,00 dólares exactos")
     results.put("jfk.of_those_ratecode_2", int((flat & df.RatecodeID.eq(2)).sum()),
                 "de esos, con tarifa plana de aeropuerto")
@@ -219,9 +224,11 @@ def figure_fares(df: pd.DataFrame, results: Results) -> None:
 
     # Counted on the cleaned data, so the figure and model_results.json agree: six of the
     # original 514 were dropped for having no distance.
-    spike = int(df.fare_amount.eq(52.0).sum())
+    spike = int(df.fare_amount.eq(JFK_FARE).sum())
     results.put("jfk.trips_at_52_clean", spike, "viajes a 52 dólares tras la limpieza")
-    ax.annotate(f"tarifa plana del aeropuerto\n{thousands(spike)} viajes a 52 dólares",
+    raw_count = results.data["jfk"]["trips_at_52"]
+    ax.annotate(f"tarifa plana del aeropuerto\n{thousands(spike)} viajes a 52 dólares "
+                f"tras la limpieza\n({thousands(raw_count)} en el archivo crudo)",
                 xy=(52, spike), xytext=(-14, 34), textcoords="offset points",
                 ha="right", fontsize=CAPTION, weight="bold", color=AZURITE,
                 arrowprops=dict(arrowstyle="-", color=AZURITE, linewidth=1.2))
@@ -267,8 +274,10 @@ def figure_distance(df: pd.DataFrame) -> None:
 
     for ax, (name, part, colour) in zip(axes, groups):
         sample = part.sample(min(len(part), 3000), random_state=SEED)
+        # Over the line, not under it: the airport trips all sit on the same price, and
+        # drawn below the fitted line they vanished into it.
         ax.scatter(sample.trip_distance, sample.fare_amount, s=7, color=colour,
-                   alpha=0.28, edgecolors="none", zorder=2)
+                   alpha=0.28, edgecolors="none", zorder=4)
         if len(part) > 2:
             line = stats.linregress(part.trip_distance, part.fare_amount)
             span = np.array([part.trip_distance.min(), part.trip_distance.max()])
@@ -277,8 +286,9 @@ def figure_distance(df: pd.DataFrame) -> None:
             ax.annotate(f"{line.slope:.2f} $ por milla".replace(".", ","),
                         xy=(0.04, 0.93), xycoords="axes fraction", fontsize=ANNOTATION,
                         weight="bold", color=GRAPHITE)
-        ax.set_title(f"{name}\n{thousands(len(part))} viajes", loc="left",
-                     fontsize=PANEL_TITLE, weight="bold", pad=12)
+        # No count here: the trips left after cleaning are not a number the JSON
+        # carries, and this figure is about the slope, not about how many.
+        ax.set_title(name, loc="left", fontsize=PANEL_TITLE, weight="bold", pad=12)
         ax.set_xlabel("Distancia (millas)")
         ax.grid(axis="x", visible=False)
     axes[0].set_ylabel("Tarifa (dólares)")
@@ -561,6 +571,8 @@ def main() -> None:
     results.put("routes.seen_trips", int(seen.sum()), "viajes por una ruta conocida")
     results.put("routes.seen_mae", round(float(error[seen].mean()), 2), "  su error medio ($)")
     results.put("routes.new_trips", int((~seen).sum()), "viajes por una ruta nueva")
+    results.put("routes.seen_pct", round(100 * float(seen.mean()), 1),
+                "  en porcentaje de los viajes de prueba")
     results.put("routes.new_mae", round(float(error[~seen].mean()), 2), "  su error medio ($)")
     results.put("routes.ratio", round(float(error[~seen].mean() / error[seen].mean()), 1),
                 "  cuántas veces peor")

@@ -2,7 +2,7 @@
   "project": "automatidata",
   "course": "curso4",
   "title": "Automatidata: estimar la tarifa antes del viaje",
-  "generated": "2026-08-19",
+  "generated": "2026-11-06",
   "source_csv": "C2_2017_Yellow_Taxi_Trip_Data.csv",
   "data": {
     "rows_raw": 22699,
@@ -14,7 +14,11 @@
     "distance_median": 1.63,
     "duration_median": 11.23
   },
+  "declared": {
+    "winsor_percentile": 99.5
+  },
   "jfk": {
+    "fare": 52.0,
     "trips_at_52": 514,
     "of_those_ratecode_2": 513,
     "ratecode_2_total": 513,
@@ -146,6 +150,7 @@
     "seen_trips": 5122,
     "seen_mae": 2.42,
     "new_trips": 512,
+    "seen_pct": 90.9,
     "new_mae": 11.11,
     "ratio": 4.6,
     "errors_piled": 74

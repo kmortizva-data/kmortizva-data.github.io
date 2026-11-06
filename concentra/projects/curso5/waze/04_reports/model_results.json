@@ -2,7 +2,7 @@
   "project": "waze",
   "course": "curso5",
   "title": "Waze: ¿le gana un modelo de árbol a la regresión?",
-  "generated": "2026-08-19",
+  "generated": "2026-11-06",
   "source_csv": "waze_dataset.csv",
   "data": {
     "rows_raw": 14999,
@@ -58,6 +58,9 @@
     },
     "churn_spread": 1.75
   },
+  "declared": {
+    "silhouette_separated": 0.35
+  },
   "candidates": {
     "logistica_auc": 0.7424,
     "arbol_auc": 0.5717,
@@ -67,18 +70,19 @@
   "tuning": {
     "bosque": {
       "combinations": 40,
-      "seconds": 73.4,
+      "seconds": 77.9,
       "best_params": {
         "max_depth": "6",
         "max_features": "0.5",
         "min_samples_leaf": "50"
       },
       "cv_auc": 0.7529,
-      "validation_auc": 0.7405
+      "validation_auc": 0.7405,
+      "gain": 0.0276
     },
     "xgboost": {
       "combinations": 48,
-      "seconds": 13.8,
+      "seconds": 15.8,
       "best_params": {
         "learning_rate": "0.02",
         "max_depth": "2",
@@ -86,13 +90,16 @@
         "subsample": "0.8"
       },
       "cv_auc": 0.7554,
-      "validation_auc": 0.7401
-    }
+      "validation_auc": 0.7401,
+      "gain": 0.0128
+    },
+    "total_combinations": 88
   },
   "finalists": {
     "logistica_validation_auc": 0.7424,
     "bosque_validation_auc": 0.7405,
-    "xgboost_validation_auc": 0.7401
+    "xgboost_validation_auc": 0.7401,
+    "bosque_gap_to_logistic": 0.0019
   },
   "champion": "logistica",
   "test": {
@@ -127,7 +134,8 @@
     "test_rows": 3575
   },
   "verdict": {
-    "trees_win": false
+    "trees_win": false,
+    "best_tree_minus_logistic": -0.0031
   },
   "importance": {
     "segment": 0.0026,

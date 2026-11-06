@@ -29,6 +29,7 @@ generator, not the platform.
 from __future__ import annotations
 
 import sys
+import math
 import time
 import warnings
 from pathlib import Path
@@ -62,6 +63,10 @@ SLUG = "tiktok"
 COURSE = "curso5"
 FIGURES = figures_dir(COURSE, SLUG)
 SEED = 42
+# The three-way split: the test share first, then the validation share of what is left.
+TEST_SHARE = 0.20
+VALIDATION_OF_REST = 0.25
+N_TREES = 300
 
 COUNTERS = ["video_view_count", "video_like_count", "video_share_count",
             "video_download_count", "video_comment_count"]
@@ -91,6 +96,8 @@ def load(results: Results) -> pd.DataFrame:
     df["under_review"] = df.author_ban_status.eq("under review").astype(int)
 
     results.put("data.rows_clean", len(df), "filas completas")
+    results.put("data.opinion_pct", round(100 * float(1 - df.is_claim.mean()), 1),
+                "porcentaje de vídeos de opinión")
     results.put("data.claim_pct", round(100 * float(df.is_claim.mean()), 1),
                 "porcentaje de reclamaciones")
     # The Course 4 target was verified_status, at 93.6 % against 6.4 %, so that project had
@@ -113,9 +120,14 @@ def load(results: Results) -> pd.DataFrame:
 
 def split(df: pd.DataFrame, results: Results) -> tuple[pd.DataFrame, ...]:
     banner("2. Partición en tres, con la prueba apartada desde el principio")
-    rest, test = train_test_split(df, test_size=0.20, random_state=SEED,
+    shares = [round(100 * (1 - TEST_SHARE) * (1 - VALIDATION_OF_REST)),
+              round(100 * (1 - TEST_SHARE) * VALIDATION_OF_REST), round(100 * TEST_SHARE)]
+    results.put("declared.n_trees", N_TREES, "árboles de cada bosque")
+    results.put("declared.split_pct", shares,
+                "entrenamiento, validación y prueba, en porcentaje")
+    rest, test = train_test_split(df, test_size=TEST_SHARE, random_state=SEED,
                                   stratify=df.is_claim)
-    train, validation = train_test_split(rest, test_size=0.25, random_state=SEED,
+    train, validation = train_test_split(rest, test_size=VALIDATION_OF_REST, random_state=SEED,
                                          stratify=rest.is_claim)
     for name, part in [("train", train), ("validation", validation), ("test", test)]:
         results.put(f"split.{name}_rows", len(part))
@@ -160,8 +172,8 @@ def candidates(train, validation, results: Results) -> dict:
     models = {
         "logistica": LogisticRegression(max_iter=3000),
         "arbol": DecisionTreeClassifier(random_state=SEED),
-        "bosque": RandomForestClassifier(n_estimators=300, random_state=SEED, n_jobs=-1),
-        "xgboost": XGBClassifier(n_estimators=300, max_depth=4, learning_rate=0.1,
+        "bosque": RandomForestClassifier(n_estimators=N_TREES, random_state=SEED, n_jobs=-1),
+        "xgboost": XGBClassifier(n_estimators=N_TREES, max_depth=4, learning_rate=0.1,
                                  eval_metric="logloss", random_state=SEED, n_jobs=1),
     }
     for name, model in models.items():
@@ -180,7 +192,7 @@ def tune(train, validation, results: Results) -> dict:
     Xv, yv = validation[FEATURES], validation.is_claim
     tuned = {}
     grids = {
-        "bosque": (RandomForestClassifier(n_estimators=300, random_state=SEED, n_jobs=-1),
+        "bosque": (RandomForestClassifier(n_estimators=N_TREES, random_state=SEED, n_jobs=-1),
                    {"max_depth": [3, 5, 8, None], "min_samples_leaf": [1, 5, 20],
                     "max_features": ["sqrt", 0.5]}),
         "xgboost": (XGBClassifier(eval_metric="logloss", random_state=SEED, n_jobs=1),
@@ -225,6 +237,9 @@ def figure_the_cut(df: pd.DataFrame, results: Results) -> None:
     """Where the threshold sits, and why anything finds it."""
     style()
     cut = results.data["lone"]["threshold"]
+    # Floored, never rounded: the cut sits between two whole view counts, and the rule
+    # is "more than 10.031". Rounding half to even and half up both printed 10.032.
+    shown = thousands(math.floor(cut))
     fig, ax = plt.subplots(figsize=WIDE)
     edges = np.logspace(np.log10(20), np.log10(1_100_000), 60)
     for key, name, colour in [("opinion", "De opinión", AZURITE),
@@ -233,7 +248,7 @@ def figure_the_cut(df: pd.DataFrame, results: Results) -> None:
                 color=colour, alpha=0.9, edgecolor=SURFACE, linewidth=0.5, label=name,
                 zorder=2)
     ax.axvline(cut, color=GRAPHITE, linewidth=1.8, zorder=5)
-    ax.annotate(f"el corte del modelo\n{thousands(round(cut))}",
+    ax.annotate(f"el corte del modelo\n{shown}",
                 xy=(cut, 0.95), xycoords=("data", "axes fraction"), xytext=(10, 0),
                 textcoords="offset points", va="top", fontsize=ANNOTATION, weight="bold",
                 color=GRAPHITE)
@@ -244,7 +259,9 @@ def figure_the_cut(df: pd.DataFrame, results: Results) -> None:
     ax.xaxis.set_major_formatter(plt.FuncFormatter(
         lambda v, _: thousands(v) if v < 1000 else
         (f"{v / 1000:g} mil" if v < 1_000_000 else f"{v / 1_000_000:g} M")))
-    ax.legend(loc="upper center", frameon=False, fontsize=ANNOTATION, ncols=2)
+    # Upper left: the only empty corner. Centred, it sat on the cut and its label.
+    ax.legend(loc="upper left", frameon=False, fontsize=ANNOTATION)
+    ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda v, _: thousands(v)))
     ax.set_title("Las dos clases están separadas por una línea, y el modelo la encuentra",
                  loc="left", fontsize=TITLE, weight="bold", pad=16)
     ax.grid(axis="x", visible=False)
@@ -253,7 +270,7 @@ def figure_the_cut(df: pd.DataFrame, results: Results) -> None:
     fig.text(0.005, -0.05,
              f"Qué mirar: la opinión más vista de todo el archivo tiene "
              f"{thousands(top)} visualizaciones, y el corte cae en "
-             f"{thousands(round(cut))}. Prácticamente no hay solape.",
+             f"{shown}. Prácticamente no hay solape.",
              fontsize=CAPTION, color=GRAPHITE, style="italic")
     fig.text(0.005, -0.12,
              "Un hueco así no aparece en datos de una plataforma real. Aparece cuando "
@@ -360,13 +377,17 @@ def figure_exceptions(train: pd.DataFrame, results: Results) -> None:
     ax.hist(exceptions[LONE], bins=25, color=GOLD, alpha=0.95, edgecolor=SURFACE,
             linewidth=1.0, zorder=2)
     ax.axvline(cut, color=GRAPHITE, linewidth=1.6, zorder=4)
-    ax.annotate(f"el corte, en {thousands(round(cut))}", xy=(cut, 0.9),
+    ax.annotate(f"el corte, en {thousands(math.floor(cut))}", xy=(cut, 0.9),
                 xycoords=("data", "axes fraction"), xytext=(-10, 0),
                 textcoords="offset points", ha="right", va="top", fontsize=ANNOTATION,
                 weight="bold", color=GRAPHITE)
     ax.set_xlabel("Visualizaciones del vídeo")
     ax.set_ylabel("Número de vídeos")
-    ax.set_title("Los únicos vídeos difíciles del archivo, y son 96 de 19.084", loc="left",
+    ax.xaxis.set_major_formatter(plt.FuncFormatter(lambda v, _: thousands(v)))
+    count = results.data["lone"]["exceptions_train"]
+    rows = results.data["split"]["train_rows"]
+    ax.set_title(f"Los únicos vídeos difíciles del entrenamiento, y son {thousands(count)} "
+                 f"de {thousands(rows)}", loc="left",
                  fontsize=TITLE, weight="bold", pad=16)
     ax.grid(axis="x", visible=False)
 
@@ -420,6 +441,10 @@ def main() -> None:
     best = max(results.data["test"][name]["accuracy"] for name in finalists)
     results.put("verdict.lone_accuracy", lone_accuracy)
     results.put("verdict.best_model_accuracy", round(float(best), 4))
+    best_auc = max(results.data["test"][name]["auc"] for name in finalists)
+    results.put("verdict.auc_gain_over_one_question",
+                round(best_auc - results.data["test"]["lone"]["auc"], 4),
+                "AUC de prueba del mejor modelo menos la de una pregunta")
     results.put("verdict.gain_over_one_question", round(float(best - lone_accuracy), 4),
                 "lo que aportan nueve variables y trescientos árboles sobre una pregunta")
     print(f"  una pregunta:      {lone_accuracy:.4f}")

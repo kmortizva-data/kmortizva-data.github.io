@@ -1229,7 +1229,7 @@ figcaption { font-size: 12.5px; color: var(--ink-faint); margin-top: 7px; max-wi
         <p class="standfirst">Por qué el formato en que guardas cambia el tiempo de una pregunta en un factor grande, con el cronómetro puesto en tu máquina</p>
       </header>
 
-      <section class="block is-brief"><span class="kicker">Resumen</span><h2 class="block-title">En 30 segundos</h2><ul><li>CSV guarda fila tras fila. Parquet guarda cada columna por separado, y eso lo cambia todo.</li><li>Preguntar por una columna sale <strong>54 veces</strong> más rápido en Parquet que en el CSV.</li><li>La ventaja <strong>se encoge</strong> cuando la pregunta usa más columnas: de 54 veces a <strong>25</strong>.</li><li>El peso de un Parquet no está en las filas: la columna <code>timestamp</code> es el <strong>30,4 %</strong> del fichero.</li><li>Las mismas 1.516.948 filas ocupan <strong>16,84 MB con 17 columnas y 0,03 MB con 2</strong>.</li></ul></section>
+      <section class="block is-brief"><span class="kicker">Resumen</span><h2 class="block-title">En 30 segundos</h2><ul><li>CSV guarda fila tras fila. Parquet guarda cada columna por separado, y eso lo cambia todo.</li><li>Preguntar por una columna sale <strong>54 veces</strong> más rápido en Parquet que en el CSV.</li><li>La ventaja <strong>se encoge</strong> cuando la pregunta usa más columnas: de 54 veces a <strong>22</strong>.</li><li>El peso de un Parquet no está en las filas: la columna <code>timestamp</code> es el <strong>30,4 %</strong> del fichero.</li><li>Las mismas 1.516.948 filas ocupan <strong>16,84 MB con 17 columnas y 0,03 MB con 2</strong>.</li></ul></section>
 <section class="block "><span class="kicker">Contexto</span><h2 class="block-title">Qué resuelve este módulo</h2><p>Los módulos anteriores usaron Parquet sin explicarlo. Toca justificar por qué, y hacerlo con el cronómetro en vez de con una lista de ventajas.</p><p>De paso aparece la regla que decide cuánto ocupa un fichero de datos, y no es la que casi todo el mundo supone.</p></section>
 <section class="block is-toy"><span class="kicker">A mano</span><h2 class="block-title">Antes de la teoría: un ejemplo de juguete</h2><p>Cuatro turnos, con tres datos cada uno:</p><div class="table-wrap"><table><thead><tr><th>Turno</th><th>Toneladas</th><th>Ley</th><th>Operario</th></tr></thead><tbody><tr><td>T1</td><td>100</td><td>20</td><td>Ana</td></tr><tr><td>T2</td><td>200</td><td>20</td><td>Ana</td></tr><tr><td>T3</td><td>300</td><td>20</td><td>Luis</td></tr><tr><td>T4</td><td>400</td><td>20</td><td>Luis</td></tr></tbody></table></div><p><strong>Guardado por filas</strong>, que es lo que hace un CSV, el fichero dice:</p><pre><code>T1,100,20,Ana
 T2,200,20,Ana
@@ -1285,7 +1285,7 @@ TO &#x27;cols_3.parquet&#x27; (FORMAT PARQUET, COMPRESSION ZSTD);</code></pre><d
 
       <footer class="footer">
         <span>Fuelle / Módulo 7</span>
-        <span>generado el 2026-09-20</span>
+        <span>generado el 2026-11-06</span>
         <span>fuente: MetroPT-3, del compresor de un tren del Metro de Oporto (CC BY 4.0)</span>
       </footer>
     </div>

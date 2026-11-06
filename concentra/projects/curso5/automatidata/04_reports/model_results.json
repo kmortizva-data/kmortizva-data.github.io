@@ -2,7 +2,7 @@
   "project": "automatidata",
   "course": "curso5",
   "title": "Automatidata: quién deja propina generosa, y si se puede saber",
-  "generated": "2026-08-19",
+  "generated": "2026-11-06",
   "source_csv": "C2_2017_Yellow_Taxi_Trip_Data.csv",
   "leak": {
     "rows_where_total_equals_parts": 22656,
@@ -41,6 +41,18 @@
     "threshold": 0.2,
     "generous_pct": 23.11
   },
+  "declared": {
+    "buttons_pct": [
+      20,
+      25,
+      30
+    ],
+    "split_pct": [
+      60,
+      20,
+      20
+    ]
+  },
   "split": {
     "train_rows": 9121,
     "validation_rows": 3041,
@@ -68,7 +80,7 @@
   "tuning": {
     "bosque": {
       "combinations": 24,
-      "seconds": 41.0,
+      "seconds": 48.4,
       "best_params": {
         "max_depth": "5",
         "max_features": "0.5",
@@ -79,7 +91,7 @@
     },
     "xgboost": {
       "combinations": 36,
-      "seconds": 9.5,
+      "seconds": 11.7,
       "best_params": {
         "learning_rate": "0.02",
         "max_depth": "3",
@@ -130,6 +142,7 @@
       "bosque"
     ],
     "best_auc": 0.6104,
+    "best_tree_minus_logistic": 0.0709,
     "signal_found": false
   },
   "importance": {

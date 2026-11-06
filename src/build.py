@@ -716,6 +716,11 @@ def main() -> int:
         if not source.exists():
             print(f"  ! embedded source missing, not copied: {source_rel}")
             continue
+        # The mirror starts empty every time. Copying over the old one kept every
+        # figure whose fingerprint had changed (104 orphans by 2026-11-06), so the
+        # published folder only ever grew.
+        if (ROOT / target_rel).exists():
+            shutil.rmtree(ROOT / target_rel)
         # Every file travels, .md included: the Silice course index links its own
         # cerebro, and the Concentra case pages link report .md files as material.
         # Excluding them broke a link the gate caught. The cerebros are up to date now.
@@ -761,6 +766,11 @@ def main() -> int:
     # becomes plain text (href) or stays red in the gate (src), never a silent 404.
     concentra_src = ROOT.parent / "Concentra"
     croot = (ROOT / "concentra").resolve()
+    # The copier below skips a file that already exists, so a report corrected at the
+    # source never reached the site: on 2026-11-06, 22 files were stale, among them the
+    # executive summaries whose numbers the visual audit fixed. Start from nothing.
+    if (ROOT / "concentra" / "projects").exists():
+        shutil.rmtree(ROOT / "concentra" / "projects")
     demand_copied = 0
     # Ran to a fixpoint, because a copied page can itself reference more files: the
     # interactive Plotly figures are HTML pages that each want a plotly.min.js beside

@@ -36,7 +36,7 @@ Decidir después qué cuenta como buena referencia es cómo un proyecto se conve
 de que su resultado es impresionante. Se decide antes.
 
 **Y una diferencia con el Curso 4 que conviene mirar.** Aquel proyecto predecía si la cuenta
-estaba verificada, con un reparto de 93,6 % contra 6,4 %, y tuvo que submuestrear. Aquí el
+estaba verificada, con un reparto de 93,7 % contra 6,3 %, y tuvo que submuestrear. Aquí el
 objetivo está al **50,3 % contra 49,7 %**, así que no hay que equilibrar nada. Mismos datos,
 problema opuesto: el desbalance no es una propiedad del archivo, es una propiedad de la
 pregunta.

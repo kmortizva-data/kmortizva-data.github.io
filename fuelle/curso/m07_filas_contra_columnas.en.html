@@ -1229,7 +1229,7 @@ figcaption { font-size: 12.5px; color: var(--ink-faint); margin-top: 7px; max-wi
         <p class="standfirst">Why the format you store in changes the time of a question by a large factor, timed on your own machine</p>
       </header>
 
-      <section class="block is-brief"><span class="kicker">Summary</span><h2 class="block-title">In 30 seconds</h2><ul><li>CSV stores row after row. Parquet stores each column apart, and that changes everything.</li><li>Asking for one column comes out <strong>54 times</strong> faster in Parquet than in the CSV.</li><li>The advantage <strong>shrinks</strong> when the question uses more columns: from 54 times to <strong>25</strong>.</li><li>A Parquet&#x27;s weight is not in the rows: the <code>timestamp</code> column is <strong>30.4 %</strong> of the file.</li><li>The same 1,516,948 rows take <strong>16.84 MB with 17 columns and 0.03 MB with 2</strong>.</li></ul></section>
+      <section class="block is-brief"><span class="kicker">Summary</span><h2 class="block-title">In 30 seconds</h2><ul><li>CSV stores row after row. Parquet stores each column apart, and that changes everything.</li><li>Asking for one column comes out <strong>54 times</strong> faster in Parquet than in the CSV.</li><li>The advantage <strong>shrinks</strong> when the question uses more columns: from 54 times to <strong>22</strong>.</li><li>A Parquet&#x27;s weight is not in the rows: the <code>timestamp</code> column is <strong>30.4 %</strong> of the file.</li><li>The same 1,516,948 rows take <strong>16.84 MB with 17 columns and 0.03 MB with 2</strong>.</li></ul></section>
 <section class="block "><span class="kicker">Context</span><h2 class="block-title">What this module solves</h2><p>The previous modules used Parquet without explaining it. Time to justify why, and to do it with the stopwatch instead of with a list of advantages.</p><p>Along the way the rule that decides how much a data file takes shows up, and it is not the one almost everybody assumes.</p></section>
 <section class="block is-toy"><span class="kicker">By hand</span><h2 class="block-title">Before the theory: a toy example</h2><p>Four shifts, with three data each:</p><div class="table-wrap"><table><thead><tr><th>Shift</th><th>Tonnes</th><th>Grade</th><th>Operator</th></tr></thead><tbody><tr><td>T1</td><td>100</td><td>20</td><td>Ana</td></tr><tr><td>T2</td><td>200</td><td>20</td><td>Ana</td></tr><tr><td>T3</td><td>300</td><td>20</td><td>Luis</td></tr><tr><td>T4</td><td>400</td><td>20</td><td>Luis</td></tr></tbody></table></div><p><strong>Stored by rows</strong>, which is what a CSV does, the file says:</p><pre><code>T1,100,20,Ana
 T2,200,20,Ana
@@ -1285,7 +1285,7 @@ TO &#x27;cols_3.parquet&#x27; (FORMAT PARQUET, COMPRESSION ZSTD);</code></pre><d
 
       <footer class="footer">
         <span>Bellows / Module 7</span>
-        <span>generated on 2026-09-20</span>
+        <span>generated on 2026-11-06</span>
         <span>source: MetroPT-3, from a Porto Metro train compressor (CC BY 4.0)</span>
       </footer>
     </div>

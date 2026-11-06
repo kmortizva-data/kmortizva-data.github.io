@@ -67,8 +67,8 @@ juega entera ahí dentro. Ningún modelo de los cuatro los resuelve.
 
 ## Lo que sí cambió respecto al Curso 4
 
-Aquel proyecto predecía si la cuenta estaba verificada, con un reparto de 93,6 % contra
-6,4 %, así que tuvo que equilibrar las clases y no podía fiarse de la exactitud.
+Aquel proyecto predecía si la cuenta estaba verificada, con un reparto de 93,7 % contra
+6,3 %, así que tuvo que equilibrar las clases y no podía fiarse de la exactitud.
 
 **Aquí no hace falta nada de eso**: reclamación y opinión están al 50,3 % y 49,7 %. Es la
 misma tabla y el problema opuesto, y sirve para ver que el desbalance no es una propiedad de
@@ -93,4 +93,4 @@ los datos, es una propiedad de la pregunta que les haces.
   señales: son una repartida.
 - **La prueba se miró una vez**, después de elegir campeón en validación. El campeón fue el
   bosque ajustado, con 0,9979 de AUC en validación.
-- El ajuste costó 41 segundos para 24 combinaciones del bosque y 4 para 12 del refuerzo.
+- El ajuste costó 46 segundos para 24 combinaciones del bosque y 6 para 12 del refuerzo.

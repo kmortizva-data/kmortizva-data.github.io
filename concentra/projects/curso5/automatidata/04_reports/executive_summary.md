@@ -23,7 +23,8 @@ El refuerzo señala a alguien: detecta al **1,28 %** de los generosos.
 la primera vez en todo el curso.
 
 Y no significa lo que parece. Ordenan mejor los casos, sí, pero **con el umbral por defecto
-ninguno señala a nadie**. Es ganar una carrera que pierden todos.
+casi no señalan a nadie**: el bosque a nadie y el refuerzo a un puñado, con una sensibilidad
+de 0,0128. Es ganar una carrera que pierden todos.
 
 Ese matiz vale la pena guardarlo: **un AUC mejor no es un modelo utilizable.** El AUC mide
 si sabes ordenar; la sensibilidad mide si sirves para decidir.
@@ -53,7 +54,7 @@ viajes y se dice por qué.
 |---|---|
 | Mediana de la propina con tarjeta | **19,97 %** |
 | Viajes que dejan **exactamente** el 20,00 % | 4.363, el **28,7 %** |
-| Viajes en uno de los tres botones (20, 25, 30) | el **43,1 %** |
+| Viajes en uno de los tres botones (20, 25, 30) | el **36,9 %** |
 
 La distribución tiene tres torres, y son los tres botones que ofrece la máquina. **Quien
 pulsa el botón por defecto no decidió ser generoso: aceptó.** Y la mediana cae justo en ese

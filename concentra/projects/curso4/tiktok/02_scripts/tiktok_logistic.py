@@ -54,6 +54,13 @@ if hasattr(sys.stdout, "reconfigure"):
 SLUG = "tiktok"
 FIGURES = figures_dir("curso4", SLUG)
 SEED = 42
+# The usual rule of thumb: a variance inflation factor of 10 or more means a variable
+# is mostly a copy of the others.
+VIF_LIMIT = 10
+# The confidence of the intervals statsmodels reports by default (alpha = 0.05).
+CONFIDENCE = 95
+# The cuts tried to show that the threshold changes nothing.
+CUTS = [0.30, 0.40, 0.50, 0.55]
 COUNTERS = ["video_view_count", "video_like_count", "video_share_count",
             "video_download_count", "video_comment_count"]
 
@@ -231,7 +238,7 @@ def figure_vif(before: pd.DataFrame, after: pd.DataFrame) -> None:
     fig, axes = plt.subplots(1, 2, figsize=WIDE)
     for ax, table, title in [(axes[0], before, "Con los cinco contadores"),
                              (axes[1], after, "Con uno solo")]:
-        colours = [AZURITE if v >= 10 else GOLD for v in table.vif]
+        colours = [AZURITE if v >= VIF_LIMIT else GOLD for v in table.vif]
         bars = ax.barh(table.variable[::-1], table.vif[::-1], color=colours[::-1],
                        height=0.6, edgecolor=SURFACE, linewidth=1.0, zorder=2)
         for bar, value in zip(bars, table.vif[::-1]):
@@ -329,7 +336,7 @@ def figure_correlations(df: pd.DataFrame, results: Results) -> None:
 def figure_odds(model, labels: dict[str, str]) -> None:
     """Odds ratios with their intervals and a line at 1, which is the no-effect mark."""
     style()
-    bounds = np.exp(model.conf_int())
+    bounds = np.exp(model.conf_int(alpha=1 - CONFIDENCE / 100))
     ratios = np.exp(model.params)
     names = [n for n in model.params.index if n != "const"]
     rows = [(labels.get(n, n), float(ratios[n]), float(bounds.loc[n, 0]),
@@ -519,7 +526,9 @@ def main() -> None:
     results.put("split.test_rows", len(test), "filas de prueba")
 
     model = sm.Logit(train.verified, sm.add_constant(train[features])).fit(disp=False)
-    bounds = model.conf_int()
+    results.put("declared.vif_limit", VIF_LIMIT, "umbral de VIF que se considera grave")
+    results.put("declared.confidence_pct", CONFIDENCE, "confianza de los intervalos")
+    bounds = model.conf_int(alpha=1 - CONFIDENCE / 100)
     print()
     for name in ["const"] + features:
         ratio = float(np.exp(model.params[name]))
@@ -556,9 +565,13 @@ def main() -> None:
     results.put("threshold.p_max", round(float(probability.max()), 3),
                 "probabilidad más alta que predice")
 
-    for cut in [0.30, 0.40, 0.50, 0.55]:
+    results.put("threshold.cuts_tried", CUTS, "cortes probados")
+    for cut in CUTS:
         predicted = (probability >= cut).astype(int)
         caught = int(((predicted == 1) & (test.verified == 1)).sum())
+        key = f"threshold.at_{round(100 * cut):03d}"
+        results.put(f"{key}.flagged", int(predicted.sum()), f"cuentas marcadas con corte {cut}")
+        results.put(f"{key}.caught", caught, "  de ellas, verificadas de verdad")
         print(f"  umbral {cut:.2f}: marca {int(predicted.sum()):>3} cuentas, "
               f"acierta {caught:>3}".replace(".", ","))
     results.put("threshold.identical_between",

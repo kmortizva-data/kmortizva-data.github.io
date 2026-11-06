@@ -2,8 +2,14 @@
   "project": "tiktok",
   "course": "curso2",
   "title": "TikTok: qué hay en el archivo antes de analizar nada",
-  "generated": "2026-08-19",
+  "generated": "2026-11-06",
   "source_csv": "tiktok_dataset_raw.csv",
+  "declared": {
+    "duration_range_sec": [
+      1,
+      60
+    ]
+  },
   "quality": {
     "rows": 19382,
     "columns": 12,
@@ -11,6 +17,7 @@
     "incomplete_rows": 298,
     "incomplete_pct": 1.54,
     "columns_with_missing": 7,
+    "missing_cells": 2086,
     "text_columns": 4,
     "numeric_stored_as_text": [],
     "rows_complete": 19084
@@ -39,32 +46,44 @@
     "video_view_count": {
       "count": 0,
       "pct": 0.0,
-      "upper_fence": 1253403.75
+      "upper_fence": 1253403.75,
+      "q1": 4942.5,
+      "q3": 504327.0
     },
     "video_like_count": {
       "count": 1726,
       "pct": 9.04,
-      "upper_fence": 311333.88
+      "upper_fence": 311333.88,
+      "q1": 810.75,
+      "q3": 125020.0
     },
     "video_share_count": {
       "count": 2508,
       "pct": 13.14,
-      "upper_fence": 45382.5
+      "upper_fence": 45382.5,
+      "q1": 115.0,
+      "q3": 18222.0
     },
     "video_download_count": {
       "count": 2450,
       "pct": 12.84,
-      "upper_fence": 2880.12
+      "upper_fence": 2880.12,
+      "q1": 7.0,
+      "q3": 1156.25
     },
     "video_comment_count": {
       "count": 2789,
       "pct": 14.61,
-      "upper_fence": 728.5
+      "upper_fence": 728.5,
+      "q1": 1.0,
+      "q3": 292.0
     },
     "video_duration_sec": {
       "count": 0,
       "pct": 0.0,
-      "upper_fence": 90.5
+      "upper_fence": 90.5,
+      "q1": 18.0,
+      "q3": 47.0
     }
   },
   "impossible": {

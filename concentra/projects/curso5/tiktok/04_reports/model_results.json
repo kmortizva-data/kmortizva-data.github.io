@@ -2,12 +2,13 @@
   "project": "tiktok",
   "course": "curso5",
   "title": "TikTok: reclamación u opinión, y quién hizo el trabajo",
-  "generated": "2026-08-19",
+  "generated": "2026-11-06",
   "source_csv": "tiktok_dataset_raw.csv",
   "data": {
     "rows_raw": 19382,
     "rows_incomplete": 298,
     "rows_clean": 19084,
+    "opinion_pct": 49.7,
     "claim_pct": 50.3,
     "needs_balancing": false
   },
@@ -17,6 +18,14 @@
     "view_ratio": 101.1,
     "opinion_max_views": 9998,
     "claim_min_views": 1049
+  },
+  "declared": {
+    "n_trees": 300,
+    "split_pct": [
+      60,
+      20,
+      20
+    ]
   },
   "split": {
     "train_rows": 11450,
@@ -43,7 +52,7 @@
   "tuning": {
     "bosque": {
       "combinations": 24,
-      "seconds": 40.6,
+      "seconds": 46.0,
       "best_params": {
         "max_depth": "None",
         "max_features": "sqrt",
@@ -54,7 +63,7 @@
     },
     "xgboost": {
       "combinations": 12,
-      "seconds": 3.6,
+      "seconds": 5.8,
       "best_params": {
         "learning_rate": "0.1",
         "max_depth": "2",
@@ -103,6 +112,7 @@
   "verdict": {
     "lone_accuracy": 0.9958,
     "best_model_accuracy": 0.9958,
+    "auc_gain_over_one_question": 0.0028,
     "gain_over_one_question": 0.0
   },
   "importance": {

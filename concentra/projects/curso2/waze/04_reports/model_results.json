@@ -2,17 +2,24 @@
   "project": "waze",
   "course": "curso2",
   "title": "Waze: qué hay en el archivo antes de modelar nada",
-  "generated": "2026-08-19",
+  "generated": "2026-11-06",
   "source_csv": "waze_dataset.csv",
   "quality": {
+    "columns_in_file": 13,
     "rows": 14999,
     "columns": 14,
     "duplicate_rows": 0,
     "incomplete_rows": 1683,
     "incomplete_pct": 11.22,
     "columns_with_missing": 2,
+    "missing_cells": 1724,
     "text_columns": 2,
     "numeric_stored_as_text": []
+  },
+  "declared": {
+    "plausible_km_per_day": 1000,
+    "hours_in_a_day": 24,
+    "days_in_a_month": 31
   },
   "missing": {
     "km_per_driving_day": 1024,
@@ -30,32 +37,44 @@
     "sessions": {
       "count": 729,
       "pct": 4.86,
-      "upper_fence": 245.5
+      "upper_fence": 245.5,
+      "q1": 23.0,
+      "q3": 112.0
     },
     "drives": {
       "count": 734,
       "pct": 4.89,
-      "upper_fence": 202.5
+      "upper_fence": 202.5,
+      "q1": 20.0,
+      "q3": 93.0
     },
     "driven_km_drives": {
       "count": 463,
       "pct": 3.09,
-      "upper_fence": 9905.75
+      "upper_fence": 9905.75,
+      "q1": 2212.6,
+      "q3": 5289.86
     },
     "duration_minutes_drives": {
       "count": 644,
       "pct": 4.29,
-      "upper_fence": 4906.91
+      "upper_fence": 4906.91,
+      "q1": 836.0,
+      "q3": 2464.36
     },
     "activity_days": {
       "count": 0,
       "pct": 0.0,
-      "upper_fence": 45.5
+      "upper_fence": 45.5,
+      "q1": 8.0,
+      "q3": 23.0
     },
     "driving_days": {
       "count": 0,
       "pct": 0.0,
-      "upper_fence": 40.0
+      "upper_fence": 40.0,
+      "q1": 5.0,
+      "q3": 19.0
     }
   },
   "impossible": {
@@ -72,6 +91,8 @@
   },
   "labels": {
     "unlabelled": 700,
+    "unlabelled_pct": 4.67,
+    "labelled": 14299,
     "median_gap": {
       "sessions": 0.0,
       "drives": -1.0,

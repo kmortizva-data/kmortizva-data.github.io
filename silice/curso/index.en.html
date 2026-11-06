@@ -448,6 +448,66 @@ figure.fig figcaption {
   color: var(--ink-faint);
 }
 
+/* El dibujo del ejemplo de juguete: SVG generado en el build con los números del
+   juguete (src/site/toy_figures.py). Toma la tipografía de datos y el acento del módulo
+   de estas variables, así que cada módulo lo pinta con su color. Sin flechas: las
+   posiciones y las etiquetas llevan el mensaje. */
+figure.toy-fig svg { width: 100%; height: auto; display: block; }
+.toy text { font-family: var(--data); font-size: 12px; fill: var(--ink-soft); }
+.toy .t-ink { fill: var(--ink); }
+.toy .t-accent { fill: var(--accent); }
+.toy .t-faint { fill: var(--ink-faint); font-size: 11px; }
+.toy .t-strong { font-weight: 700; }
+.toy .t-caps { letter-spacing: .08em; text-transform: uppercase; font-size: 10px; }
+.toy .t-on-accent { fill: #fff; }
+.toy .axis { stroke: var(--rule); stroke-width: 1; }
+.toy .rule { stroke: var(--ink-faint); stroke-width: 1; }
+.toy .rule-soft { stroke: var(--rule); stroke-width: 1; }
+.toy .rule-strong { stroke: var(--accent); stroke-width: 1.5; }
+.toy .rule-dashed { stroke: var(--ink-faint); stroke-width: 1; stroke-dasharray: 4 4; }
+.toy .level { stroke: var(--ink); stroke-width: 2; }
+.toy .line { stroke: var(--accent); stroke-width: 2; fill: none; }
+.toy .line-ink { stroke: var(--ink); stroke-width: 1.5; fill: none; }
+.toy .line-faint { stroke: var(--ink-faint); stroke-width: 1.5; fill: none; stroke-dasharray: 3 3; }
+.toy .dot { fill: var(--accent); }
+.toy .dot-ink { fill: var(--ink); }
+.toy .dot-soft { fill: var(--ink-faint); }
+.toy .band { fill: var(--accent); opacity: .12; }
+.toy .box { fill: #fff; stroke: var(--rule); }
+.toy .bar { fill: var(--accent); }
+.toy .bar-soft { fill: var(--rule); }
+.toy .cell { fill: #fff; stroke: var(--rule); }
+.toy .cell-accent { fill: var(--accent); stroke: var(--accent); }
+.toy .cell-empty { fill: var(--bench); stroke: var(--rule); stroke-dasharray: 3 3; }
+.toy .alarm { fill: none; stroke: var(--ink); stroke-width: 2; }
+.toy .node { fill: #fff; stroke: var(--ink); stroke-width: 1.5; }
+.toy .node-off { fill: var(--bench); stroke: var(--ink-faint); stroke-width: 1.5; stroke-dasharray: 4 3; }
+.toy .node-accent { fill: var(--accent); stroke: var(--accent); }
+.toy .edge { stroke: var(--ink-faint); stroke-width: 1.2; }
+.toy .edge-off { stroke: var(--rule); stroke-width: 1.2; stroke-dasharray: 4 3; }
+
+/* La perilla: un parámetro que el lector mueve y una posición precalculada por cada valor
+   (src/knobs_build.py, src/site/knobs.py). Sin JavaScript la curva entera sigue ahí y el
+   lector ve la posición que mide la lección. */
+figure.knob svg { width: 100%; height: auto; display: block; }
+.knob-head {
+  display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;
+  margin: .2rem 0 .6rem;
+  font-family: var(--data); font-size: .8rem; color: var(--ink-soft);
+}
+.knob-head label { display: flex; align-items: baseline; gap: .5rem; min-width: 11rem; }
+.knob-head label b { font-size: 1.05rem; color: var(--accent); }
+.knob-head input[type="range"] { flex: 1 1 14rem; accent-color: var(--accent); margin: 0; }
+.knob-cursor { stroke: var(--accent); stroke-width: 1.5; stroke-dasharray: 4 3; }
+.knob-readout {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  gap: .35rem 1.2rem; margin: .7rem 0 0; padding: 0;
+}
+.knob-readout div { display: flex; justify-content: space-between; gap: .6rem;
+  border-top: 1px solid var(--rule-soft); padding-top: .3rem; }
+.knob-readout dt { font-family: var(--data); font-size: .72rem; letter-spacing: .04em; color: var(--ink-faint); margin: 0; }
+.knob-readout dd { font-family: var(--data); font-size: .85rem; color: var(--ink); margin: 0; }
+
 .gone {
   font-family: var(--data);
   font-size: .76rem;
@@ -650,7 +710,7 @@ pre:has(+ details.fold) { margin-bottom: 0; border-bottom: 0; }
       <span class="figure-label">what ML added over repeating the last assay</span>
     </div>
     <nav class="thread" aria-label="The arc of the project"><a href="m01_radiografia_del_dataset.en.html" title="1. An X-ray of the dataset"><span class="n">1</span> <span class="v">737,453</span></a><a href="m02_el_primer_modelo_y_el_techo.en.html" title="2. The first model, and the ceiling that appeared at once"><span class="n">2</span> <span class="v">R² 0.04</span></a><a href="m03_como_aprende_un_modelo.en.html" title="3. How a model learns on the inside"><span class="n">3</span> <span class="v">R² 0.06</span></a><a href="m04_preprocesar_y_validar.en.html" title="4. Preprocessing and validating without cheating"><span class="n">4</span> <span class="v">R² −0.13</span></a><a href="m05_darle_memoria_al_modelo.en.html" title="5. Giving the model a memory"><span class="n">5</span> <span class="v">R² 0.64</span></a><a href="m06_clasificar_fuera_de_spec.en.html" title="6. Classifying: in or out of specification"><span class="n">6</span> <span class="v">0.62 vs 0.77</span></a><a href="m07_contra_que_se_compara.en.html" title="7. What a model is compared against"><span class="n">7</span> <span class="v">+0.009</span></a><a href="m08_donde_aporta_el_ml.en.html" title="8. Where does ML really add value?"><span class="n">8</span> <span class="v">0 of 4</span></a><a href="m09_los_tres_estados_de_la_planta.en.html" title="9. The three states of the plant"><span class="n">9</span> <span class="v">k = 3</span></a><a href="m10_redes_producto_y_cierre.en.html" title="10. Networks, product and closing"><span class="n">10</span> <span class="v">0.76</span></a><a class="starts-part" href="m11_modelos_de_secuencia.en.html" title="11. Sequence models: LSTM, GRU and causal convolution"><span class="n">11</span> <span class="v">+0.215</span></a><a href="m12_practica_de_pronostico.en.html" title="12. The forecasting practice that was missing"><span class="n">12</span> <span class="v">0.52 vs 0.63</span></a><a href="m13_incertidumbre.en.html" title="13. Uncertainty: from the point to the interval"><span class="n">13</span> <span class="v">92.0%</span></a><a href="m14_lectura_causal.en.html" title="14. A causal reading of the control loop"><span class="n">14</span> <span class="v">+0.16</span></a></nav>
-    <div class="assay"><span><b>14</b> of 14 lessons</span><span><b>31</b> source notes</span><span><b>40</b> figures</span><span><b>39</b> scripts</span></div>
+    <div class="assay"><span><b>14</b> of 14 lessons</span><span><b>31</b> source notes</span><span><b>56</b> figures</span><span><b>39</b> scripts</span></div>
   </div>
 </header>
 <main class="container">
@@ -818,7 +878,7 @@ la fisicoquímica haría esperar.
 <footer class="footer">
   <div class="footer-inner">
     <span>Silica</span>
-    <span>generated on 2026-08-29</span>
+    <span>generated on 2026-10-30</span>
     <span>source: the 31 original notes, their scripts and the plant CSV</span>
   </div>
 </footer>

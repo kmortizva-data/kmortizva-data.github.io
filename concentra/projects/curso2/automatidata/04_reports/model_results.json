@@ -2,7 +2,7 @@
   "project": "automatidata",
   "course": "curso2",
   "title": "Automatidata: qué hay en el archivo de viajes",
-  "generated": "2026-08-19",
+  "generated": "2026-11-06",
   "source_csv": "C2_2017_Yellow_Taxi_Trip_Data.csv",
   "quality": {
     "rows": 22699,
@@ -23,22 +23,30 @@
     "fare_amount": {
       "count": 2064,
       "pct": 9.09,
-      "upper_fence": 26.5
+      "upper_fence": 26.5,
+      "q1": 6.5,
+      "q3": 14.5
     },
     "trip_distance": {
       "count": 2527,
       "pct": 11.13,
-      "upper_fence": 6.17
+      "upper_fence": 6.17,
+      "q1": 0.99,
+      "q3": 3.06
     },
     "duration": {
       "count": 1228,
       "pct": 5.41,
-      "upper_fence": 35.98
+      "upper_fence": 35.98,
+      "q1": 6.65,
+      "q3": 18.38
     },
     "total_amount": {
       "count": 2161,
       "pct": 9.52,
-      "upper_fence": 31.38
+      "upper_fence": 31.38,
+      "q1": 8.75,
+      "q3": 17.8
     }
   },
   "impossible": {

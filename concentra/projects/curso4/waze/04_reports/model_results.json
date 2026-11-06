@@ -2,7 +2,7 @@
   "project": "waze",
   "course": "curso4",
   "title": "Waze: predecir qué usuario abandona la aplicación",
-  "generated": "2026-08-19",
+  "generated": "2026-11-06",
   "source_csv": "waze_dataset.csv",
   "data": {
     "rows_raw": 14999,
@@ -26,7 +26,8 @@
   },
   "balance": {
     "churned": 2536,
-    "churn_rate": 17.74
+    "churn_rate": 17.74,
+    "majority_baseline": 82.26
   },
   "features": {
     "zero_driving_days": 983,
@@ -34,6 +35,10 @@
     "professional_drivers": 2488,
     "professional_churn": 7.56,
     "other_churn": 19.88
+  },
+  "declared": {
+    "pro_min_drives": 60,
+    "pro_min_days": 15
   },
   "vif_full": {
     "sessions": 159.3,
@@ -175,47 +180,76 @@
       "tp": 395
     }
   },
+  "threshold": {
+    "cuts_compared": [
+      0.5,
+      0.3,
+      0.2
+    ],
+    "at_050": {
+      "flagged": 103,
+      "caught": 52,
+      "precision_pct": 50.5
+    },
+    "at_030": {
+      "flagged": 725,
+      "caught": 279,
+      "precision_pct": 38.5
+    },
+    "at_020": {
+      "flagged": 1262,
+      "caught": 395,
+      "precision_pct": 31.3
+    },
+    "recall_at_020": 0.623
+  },
   "correlations": {
     "pairs": 55,
     "above_80": 2,
     "below_10": 40,
-    "strongest": 0.9968
+    "strongest": 0.9968,
+    "activity_vs_driving_days": 0.9477
   },
   "scaled_odds": {
     "drives": {
       "unit": "Cada 10 trayectos más",
+      "scale": 10,
       "odds_ratio": 1.0163
     },
     "total_sessions": {
       "unit": "Cada 10 sesiones históricas más",
+      "scale": 10,
       "odds_ratio": 1.0028
     },
     "n_days_after_onboarding": {
       "unit": "Cada año más de antigüedad",
+      "scale": 365,
       "odds_ratio": 0.8638
     },
     "duration_minutes_drives": {
       "unit": "Cada hora más al volante",
+      "scale": 60,
       "odds_ratio": 1.0045
     },
     "activity_days": {
       "unit": "Cada día de actividad más",
+      "scale": 1,
       "odds_ratio": 0.9006
     },
     "km_per_driving_day": {
       "unit": "Cada 100 km por día conducido",
+      "scale": 100,
       "odds_ratio": 1.0015
     },
     "professional_driver": {
       "unit": "Ser conductor profesional",
+      "scale": 1,
       "odds_ratio": 0.9933
     },
     "iphone": {
       "unit": "Usar iPhone",
+      "scale": 1,
       "odds_ratio": 1.0166
     }
-  },
-  "threshold": {
-    "recall_at_020": 0.623
   }
 }

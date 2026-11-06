@@ -37,6 +37,9 @@ FIGURES = figures_dir(COURSE, SLUG)
 
 # A car sustaining this for a whole day is already implausible; the file goes much higher.
 PLAUSIBLE_KM_PER_DAY = 1000
+# The two that are not a judgement call: a day has 24 hours and a month at most 31 days.
+HOURS_IN_A_DAY = 24
+DAYS_IN_A_MONTH = 31
 
 
 def figure_impossible(df: pd.DataFrame, results: Results) -> None:
@@ -151,6 +154,12 @@ def figure_labels(raw: pd.DataFrame, results: Results) -> None:
 def main() -> None:
     results = Results(SLUG, "Waze: qué hay en el archivo antes de modelar nada", COURSE)
     raw = pd.read_csv(dataset(SLUG))
+    # Counted before the derived column below is added, which is the number the sheet
+    # quotes; quality.columns counts after it.
+    results.put("quality.columns_in_file", raw.shape[1], "columnas del archivo")
+    results.put("declared.plausible_km_per_day", PLAUSIBLE_KM_PER_DAY)
+    results.put("declared.hours_in_a_day", HOURS_IN_A_DAY)
+    results.put("declared.days_in_a_month", DAYS_IN_A_MONTH)
     raw["km_per_driving_day"] = raw.driven_km_drives / raw.driving_days.replace(0, np.nan)
 
     full_report(
@@ -159,14 +168,14 @@ def main() -> None:
         outlier_columns=["sessions", "drives", "driven_km_drives",
                          "duration_minutes_drives", "activity_days", "driving_days"],
         impossible={
-            "dias de actividad fuera de 0 a 31": lambda d: ~d.activity_days.between(0, 31),
+            "dias de actividad fuera de 0 a 31": lambda d: ~d.activity_days.between(0, DAYS_IN_A_MONTH),
             "dias conduciendo mayores que dias activo":
                 lambda d: d.driving_days.gt(d.activity_days),
             "mas de 1000 km en un solo dia conducido":
                 lambda d: d.km_per_driving_day.gt(PLAUSIBLE_KM_PER_DAY),
             "mas de 24 horas al volante en un dia conducido":
                 lambda d: (d.duration_minutes_drives / d.driving_days.replace(0, np.nan))
-                .gt(24 * 60),
+                .gt(HOURS_IN_A_DAY * 60),
         },
     )
 
@@ -186,6 +195,9 @@ def main() -> None:
     banner("8. Los 700 sin etiqueta, comparados con el resto")
     missing = raw.label.isna()
     results.put("labels.unlabelled", int(missing.sum()), "usuarios sin etiqueta")
+    results.put("labels.unlabelled_pct", round(100 * float(missing.mean()), 2),
+                "  en porcentaje")
+    results.put("labels.labelled", int((~missing).sum()), "usuarios con etiqueta")
     for column in ["sessions", "drives", "driven_km_drives", "activity_days"]:
         with_label = float(raw.loc[~missing, column].median())
         without = float(raw.loc[missing, column].median())

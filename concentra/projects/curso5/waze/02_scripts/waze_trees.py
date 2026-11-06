@@ -66,6 +66,8 @@ SLUG = "waze"
 COURSE = "curso5"
 FIGURES = figures_dir(COURSE, SLUG)
 SEED = 42
+# A common reading of the silhouette: below this, the groups overlap.
+SILHOUETTE_SEPARATED = 0.35
 
 # What Course 4 published on this same test set, read from its own model_results.json at
 # run time so the two can never drift apart silently.
@@ -158,6 +160,8 @@ def segment(train, validation, test, results: Results) -> KMeans:
 
     best_k = max(scores, key=lambda k: scores[k]["silhouette"])
     results.put("segments.k_chosen", best_k, "grupos elegidos por la silueta")
+    results.put("declared.silhouette_separated", SILHOUETTE_SEPARATED,
+                "silueta por debajo de la cual los grupos se tocan")
     results.put("segments.best_silhouette", round(scores[best_k]["silhouette"], 4),
                 "  y su silueta, que es floja")
 
@@ -246,6 +250,9 @@ def tune(train, validation, results: Results) -> dict:
                     "  AUC en validación cruzada, que sale optimista")
         results.put(f"tuning.{name}.validation_auc", round(float(auc), 4),
                     "  AUC en validación")
+        results.put(f"tuning.{name}.gain",
+                    round(round(float(auc), 4) - results.data["candidates"][f"{name}_auc"], 4),
+                    "  lo que ganó el ajuste, en AUC de validación")
         print(f"  {name:8} {combinations} combinaciones x 4 pliegues en {elapsed:5.0f} s   "
               f"AUC {auc:.4f}")
         print(f"           {search.best_params_}")
@@ -284,8 +291,9 @@ def figure_segments(results: Results) -> None:
                      xy=(best, scores["best_silhouette"]), xytext=(14, -4),
                      textcoords="offset points", fontsize=ANNOTATION, weight="bold",
                      color=AZURITE)
-    axes[0].axhspan(0, 0.35, color=HAIRLINE, alpha=0.45, zorder=1)
-    axes[0].annotate("por debajo de 0,35 los grupos\nse tocan entre sí", xy=(5.4, 0.30),
+    axes[0].axhspan(0, SILHOUETTE_SEPARATED, color=HAIRLINE, alpha=0.45, zorder=1)
+    axes[0].annotate(f"por debajo de {decimal(SILHOUETTE_SEPARATED, 2)} los grupos\n"
+                     "se tocan entre sí", xy=(5.4, SILHOUETTE_SEPARATED - 0.05),
                      ha="center", va="top", fontsize=CAPTION, style="italic", color=MUTED)
     axes[0].set_xlabel("Número de grupos que se piden")
     axes[0].set_ylabel("Coeficiente de silueta")
@@ -533,6 +541,13 @@ def main() -> None:
     for name, auc in on_validation.items():
         results.put(f"finalists.{name}_validation_auc", round(float(auc), 4))
     results.put("champion", champion, "el que gana en validación")
+    results.put("tuning.total_combinations",
+                sum(results.data["tuning"][name]["combinations"] for name in ("bosque", "xgboost")),
+                "combinaciones probadas entre los dos")
+    rounded = {name: round(float(auc), 4) for name, auc in on_validation.items()}
+    results.put("finalists.bosque_gap_to_logistic",
+                round(rounded["logistica"] - rounded["bosque"], 4),
+                "lo que le falta al bosque ajustado para la logística")
     print(f"  campeón: {champion}")
 
     banner("7. El conjunto de prueba, una sola vez")
@@ -551,6 +566,11 @@ def main() -> None:
                                               results.data["test"]["xgboost"]["auc"])
                                           > results.data["test"]["logistica"]["auc"]),
                 "¿le ganó algún árbol a la logística en prueba?")
+    results.put("verdict.best_tree_minus_logistic",
+                round(max(results.data["test"]["bosque"]["auc"],
+                          results.data["test"]["xgboost"]["auc"])
+                      - results.data["test"]["logistica"]["auc"], 4),
+                "AUC de prueba del mejor árbol menos la de la logística")
 
     banner("9. Figuras")
     figure_segments(results)

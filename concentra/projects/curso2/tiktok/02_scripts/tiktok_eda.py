@@ -35,6 +35,8 @@ if hasattr(sys.stdout, "reconfigure"):
 SLUG = "tiktok"
 COURSE = "curso2"
 FIGURES = figures_dir(COURSE, SLUG)
+# The video lengths the platform allows, which is what makes a duration impossible.
+DURATION_RANGE_SEC = (1, 60)
 COUNTS = ["video_view_count", "video_like_count", "video_share_count",
           "video_download_count", "video_comment_count"]
 
@@ -151,6 +153,7 @@ def figure_missing(raw: pd.DataFrame, results: Results) -> None:
 def main() -> None:
     results = Results(SLUG, "TikTok: qué hay en el archivo antes de analizar nada", COURSE)
     raw = pd.read_csv(dataset(SLUG))
+    results.put("declared.duration_range_sec", list(DURATION_RANGE_SEC))
 
     full_report(
         raw, results,
@@ -161,7 +164,7 @@ def main() -> None:
             "me gusta por encima de las vistas": lambda d: d.video_like_count.gt(
                 d.video_view_count),
             "duracion fuera de 1 a 60 segundos": lambda d: ~d.video_duration_sec.between(
-                1, 60),
+                *DURATION_RANGE_SEC),
         },
     )
 
